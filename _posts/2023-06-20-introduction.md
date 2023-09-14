@@ -14,7 +14,7 @@ title: "vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention"
 *By Woosuk Kwon\*, Zhuohan Li\*, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Yu, Joey Gonzalez, Hao Zhang, and Ion Stoica (\* Equal Contribution). June 20th, 2023*
 
 <p align="left">
-<a href="https://github.com/vllm-project/vllm"><b>GitHub</b></a> | <a href="https://vllm.readthedocs.io/en/latest/"><b>Documentation</b></a> | <b>Paper (Stay Tuned)</b>
+<a href="https://github.com/vllm-project/vllm"><b>GitHub</b></a> | <a href="https://vllm.readthedocs.io/en/latest/"><b>Documentation</b></a> | <a href="https://arxiv.org/pdf/2309.06180.pdf"><b>Paper</b></a>
 </p>
 
 ---
