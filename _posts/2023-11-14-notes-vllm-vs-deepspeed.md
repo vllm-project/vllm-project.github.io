@@ -23,8 +23,8 @@ For the majority of workloads, vLLM is faster than (or performs comparably to) D
 
 We've identified two key differences between vLLM and DeepSpeed in terms of performance optimization:
 
-1. DeepSpeed adopts a conservative/suboptimal memory allocation scheme, which wastes memory when output lengths are large.
-2. DeepSpeed’s Dynamic SplitFuse scheduling gives speedup only when prompt lengths are much greater than output lengths.
+1. **DeepSpeed adopts a conservative/suboptimal memory allocation scheme**, which wastes memory when output lengths are large.
+2. DeepSpeed’s Dynamic SplitFuse scheduling gives **speedup only when prompt lengths are much greater than output lengths**.
 
 As a result, DeepSpeed outperforms when the workload is consistently long prompt and short output.
 In other scenarios, vLLM shows superior performance.
@@ -40,7 +40,7 @@ However, the performance gain we observe isn't as significant as 2x.
 </p>
 
 #### Scenario 2: Other cases
-In these cases, vLLM is up to 1.8x faster than DeepSpeed.
+In these cases, vLLM is up to **1.8x** faster than DeepSpeed.
 
 <p align="center">
 <picture>
