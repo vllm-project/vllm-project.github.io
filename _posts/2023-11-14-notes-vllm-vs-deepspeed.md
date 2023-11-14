@@ -6,26 +6,32 @@ author: "vLLM Team"
 
 ---
 **TL;DR:**
-- vLLM is as fast as DeepSpeed in common scenarios and faster than Deepspeed when outputs are long.
-- DeepSpeed only outperforms vLLM in long prompt, short output use cases due to its Dynamic SplitFuse optimization. This optimization is on vLLM’s roadmap.
-- vLLM’s mission is to build the fastest and easiest-to-use open-source LLM inference and serving engine. It is Apache 2.0 and community-owned with broad model and optimization support.
+
+- vLLM matches DeepSpeed's speed in common scenarios and surpasses it when handling longer outputs.
+- DeepSpeed only outperforms vLLM in scenarios with long prompts and short outputs, due to its Dynamic SplitFuse optimization. This optimization is on vLLM’s roadmap.
+- vLLM’s mission is to build the fastest and easiest-to-use open-source LLM inference and serving engine. It is Apache 2.0 and community-owned, offering extensive model and optimization support.
 
 ---
 
-Recently, the DeepSpeed team published [a blog](https://github.com/microsoft/DeepSpeed/tree/master/blogs/deepspeed-fastgen) claiming 2x throughput improvement over vLLM by utilizing the Dynamic Splitfuse technique. We are happy to see the technology advancements from the open-source community. In this blog, we clarify the workloads that benefit from the Dynamic SplitFuse enhancement, which are quite narrow. For most workloads, vLLM is on par with or faster than DeepSpeed MII.
+The DeepSpeed team recently published [a blog post](https://github.com/microsoft/DeepSpeed/tree/master/blogs/deepspeed-fastgen) claiming 2x throughput improvement over vLLM, achieved by leveraging the Dynamic SplitFuse technique.
+We are happy to see the technology advancements from the open-source community.
+In this blog, we show the specific scenarios where the Dynamic SplitFuse technique is advantageous, noting that these cases are relatively limited.
+For the majority of workloads, vLLM is faster than (or performs comparably to) DeepSpeed MII.
 
-In this post, we will discuss the difference between the two systems, share our benchmarks, and discuss future steps.
 
 ### Performance Benchmark
 
-In terms of performance optimization, we believe there are 2 key differences between vLLM and DeepSpeed:
-DeepSpeed uses a conservative/suboptimal memory allocation scheme, which wastes memory when output lengths are large.
-DeepSpeed uses Dynamic SplitFuse scheduling which gives speedup only when prompt lengths are much greater than output lengths.
+We've identified two key differences between vLLM and DeepSpeed in terms of performance optimization:
 
-Consequently, DeepSpeed wins when the workload is consistently long prompt and short output. In other cases, vLLM wins.
+1. DeepSpeed adopts a conservative/suboptimal memory allocation scheme, which wastes memory when output lengths are large.
+2. DeepSpeed’s Dynamic SplitFuse scheduling gives speedup only when prompt lengths are much greater than output lengths.
+
+As a result, DeepSpeed outperforms when the workload is consistently long prompt and short output.
+In other scenarios, vLLM shows superior performance.
 
 #### Scenario 1: Long Prompt Length, Short Output
-In this scenario, we expect DeepSpeed to perform well due to Dynamic SplitFuse. However, the benefit we observe is not as significant as 2x.
+Here, DeepSpeed's Dynamic SplitFuse scheduling is expected to shine.
+However, the performance gain we observe isn't as significant as 2x.
 
 <p align="center">
 <picture>
@@ -33,8 +39,8 @@ In this scenario, we expect DeepSpeed to perform well due to Dynamic SplitFuse. 
 </picture>
 </p>
 
-#### Scenario 2: All other cases
-In this scenario, we observe vLLM perform better or on par with DeepSpeed.
+#### Scenario 2: Other cases
+In these cases, vLLM is up to 1.8x faster than DeepSpeed.
 
 <p align="center">
 <picture>
@@ -48,10 +54,12 @@ We are committed to making vLLM the best open-source project incorporating the c
 
 The vLLM team prioritizes collaborations and we strive to keep the codebase with high quality code and easy to contribute. We are actively working on system performance; as well as new features like LoRA, Speculative Decoding, and better Quantization Support. Additionally, we are collaborating with hardware vendors like AMD, AWS Inferenetia, and Intel Habana to bring LLM to the broadest community.
 
-Specifically for the Dynamic SplitFuse optimization, we are actively investigating the proper integration. If you have any questions and suggestions, please feel free to contact us on [GitHub](https://github.com/vllm-project/vllm). We also published the benchmark code [here](https://github.com/vllm-project/vllm/pull/1649).
+Specifically for the Dynamic SplitFuse optimization, we are actively investigating the proper integration. If you have any questions and suggestions, please feel free to contact us on [GitHub](https://github.com/vllm-project/vllm). We also published the benchmark code [here](https://github.com/vllm-project/vllm/blob/main/benchmarks/benchmark_throughput.py).
 
 ### Appendix: Feature Comparison
-DeepSpeed currently supports only basic functionalities. For example, it only supports 3 types of models and does not support popular features like stop strings and parallel sampling (beam search). We do expect the DeepSpeed open source are eager to catch up and we welcome the creative innovation in the market!
+
+DeepSpeed currently offers basic functionalities, supporting only three model types and lacking popular features like stop strings and parallel sampling (e.g., beam search).
+We do expect the DeepSpeed open source are eager to catch up and we welcome the creative innovation in the market!
 
 |                            |                   vLLM                  |                    DeepSpeed                    |
 |----------------------------|:---------------------------------------:|:-----------------------------------------------:|
