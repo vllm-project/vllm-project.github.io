@@ -15,7 +15,7 @@ author: "vLLM Team"
 
 The DeepSpeed team recently published [a blog post](https://github.com/microsoft/DeepSpeed/tree/master/blogs/deepspeed-fastgen) claiming 2x throughput improvement over vLLM, achieved by leveraging the Dynamic SplitFuse technique.
 We are happy to see the technology advancements from the open-source community.
-In our blog today, we'll elucidate the specific scenarios where the Dynamic SplitFuse technique is advantageous, noting that these cases are relatively limited.
+In this blog, we show the specific scenarios where the Dynamic SplitFuse technique is advantageous, noting that these cases are relatively limited.
 For the majority of workloads, vLLM is faster than (or performs comparably to) DeepSpeed MII.
 
 
