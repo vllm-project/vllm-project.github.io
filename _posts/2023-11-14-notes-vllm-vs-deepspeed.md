@@ -1,14 +1,14 @@
 ---
 layout: post
-title: "Notes on vLLM v.s. DeepSpeed"
+title: "Notes on vLLM v.s. DeepSpeed-FastGen"
 author: "vLLM Team"
 ---
 
 ---
 **TL;DR:**
 
-- vLLM matches DeepSpeed's speed in common scenarios and surpasses it when handling longer outputs.
-- DeepSpeed only outperforms vLLM in scenarios with long prompts and short outputs, due to its Dynamic SplitFuse optimization. This optimization is on vLLM’s roadmap.
+- vLLM matches DeepSpeed-FastGen's speed in common scenarios and surpasses it when handling longer outputs.
+- DeepSpeed-FastGen only outperforms vLLM in scenarios with long prompts and short outputs, due to its Dynamic SplitFuse optimization. This optimization is on vLLM’s roadmap.
 - vLLM’s mission is to build the fastest and easiest-to-use open-source LLM inference and serving engine. It is Apache 2.0 and community-owned, offering extensive model and optimization support.
 
 ---
@@ -16,21 +16,21 @@ author: "vLLM Team"
 The DeepSpeed team recently published [a blog post](https://github.com/microsoft/DeepSpeed/tree/master/blogs/deepspeed-fastgen) claiming 2x throughput improvement over vLLM, achieved by leveraging the Dynamic SplitFuse technique.
 We are happy to see the technology advancements from the open-source community.
 In this blog, we show the specific scenarios where the Dynamic SplitFuse technique is advantageous, noting that these cases are relatively limited.
-For the majority of workloads, vLLM is faster than (or performs comparably to) DeepSpeed MII.
+For the majority of workloads, vLLM is faster than (or performs comparably to) DeepSpeed-FastGen.
 
 
 ### Performance Benchmark
 
-We've identified two key differences between vLLM and DeepSpeed in terms of performance optimization:
+We've identified two key differences between vLLM and DeepSpeed-FastGen in terms of performance optimization:
 
-1. **DeepSpeed adopts a conservative/suboptimal memory allocation scheme**, which wastes memory when output lengths are large.
-2. DeepSpeed’s Dynamic SplitFuse scheduling gives **speedup only when prompt lengths are much greater than output lengths**.
+1. **DeepSpeed-FastGen adopts a conservative/suboptimal memory allocation scheme**, which wastes memory when output lengths are large.
+2. DeepSpeed-FastGen’s Dynamic SplitFuse scheduling gives **speedup only when prompt lengths are much greater than output lengths**.
 
-As a result, DeepSpeed outperforms when the workload is consistently long prompt and short output.
+As a result, DeepSpeed-FastGen outperforms when the workload is consistently long prompt and short output.
 In other scenarios, vLLM shows superior performance.
 
 #### Scenario 1: Long Prompt Length, Short Output
-Here, DeepSpeed's Dynamic SplitFuse scheduling is expected to shine.
+Here, DeepSpeed-FastGen's Dynamic SplitFuse scheduling is expected to shine.
 However, the performance gain we observe isn't as significant as 2x.
 
 <p align="center">
@@ -40,7 +40,7 @@ However, the performance gain we observe isn't as significant as 2x.
 </p>
 
 #### Scenario 2: Other cases
-In these cases, vLLM is up to **1.8x** faster than DeepSpeed.
+In these cases, vLLM is up to **1.8x** faster than DeepSpeed-FastGen.
 
 <p align="center">
 <picture>
@@ -58,10 +58,10 @@ Specifically for the Dynamic SplitFuse optimization, we are actively investigati
 
 ### Appendix: Feature Comparison
 
-DeepSpeed currently offers basic functionalities, supporting only three model types and lacking popular features like stop strings and parallel sampling (e.g., beam search).
-We do expect the DeepSpeed open source are eager to catch up and we welcome the creative innovation in the market!
+DeepSpeed-FastGen currently offers basic functionalities, supporting only three model types and lacking popular features like stop strings and parallel sampling (e.g., beam search).
+We do expect the DeepSpeed-FastGen is eager to catch up and we welcome the creative innovation in the market!
 
-|                            |                   vLLM                  |                    DeepSpeed                    |
+|                            |                   vLLM                  |                DeepSpeed-FastGen                |
 |----------------------------|:---------------------------------------:|:-----------------------------------------------:|
 | Runtime                    | Python/PyTorch                          | Python/PyTorch                                  |
 | Model implementation       | HuggingFace Transformers                | Custom implementation + converter for HF models |
