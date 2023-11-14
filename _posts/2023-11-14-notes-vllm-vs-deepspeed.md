@@ -9,7 +9,7 @@ author: "vLLM Team"
 
 - vLLM matches DeepSpeed's speed in common scenarios and surpasses it when handling longer outputs.
 - DeepSpeed only outperforms vLLM in scenarios with long prompts and short outputs, due to its Dynamic SplitFuse optimization. This optimization is on vLLM’s roadmap.
-- vLLM’s mission is to build the fastest and easiest-to-use open-source LLM inference and serving engine. It is Apache 2.0 licensed and driven by a community focus, offering extensive model and optimization support.
+- vLLM’s mission is to build the fastest and easiest-to-use open-source LLM inference and serving engine. It is Apache 2.0 and community-owned, offering extensive model and optimization support.
 
 ---
 
