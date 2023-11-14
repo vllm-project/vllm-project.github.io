@@ -31,7 +31,7 @@ In other scenarios, vLLM shows superior performance.
 
 #### Scenario 1: Long Prompt Length, Short Output
 Here, DeepSpeed's Dynamic SplitFuse scheduling is expected to shine.
-However, the performance gain we observe isn't as significant as a 2x increase.
+However, the performance gain we observe isn't as significant as 2x.
 
 <p align="center">
 <picture>
