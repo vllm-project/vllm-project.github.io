@@ -58,7 +58,7 @@ Specifically for the Dynamic SplitFuse optimization, we are actively investigati
 
 ### Appendix: Feature Comparison
 
-DeepSpeed currently offers basic functionalities, supporting only three model types and lacking popular features like stop strings and parallel sampling (beam search).
+DeepSpeed currently offers basic functionalities, supporting only three model types and lacking popular features like stop strings and parallel sampling (e.g., beam search).
 We do expect the DeepSpeed open source are eager to catch up and we welcome the creative innovation in the market!
 
 |                            |                   vLLM                  |                    DeepSpeed                    |
