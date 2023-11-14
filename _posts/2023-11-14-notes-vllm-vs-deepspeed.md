@@ -29,6 +29,8 @@ We've identified two key differences between vLLM and DeepSpeed-FastGen in terms
 As a result, DeepSpeed-FastGen outperforms when the workload is consistently long prompt and short output.
 In other scenarios, vLLM shows superior performance.
 
+We benchmarked the two systems on an NVIDIA A100-80GB GPU with the LLaMA-7B model in the following scenarios:
+
 #### Scenario 1: Long Prompt Length, Short Output
 Here, DeepSpeed-FastGen's Dynamic SplitFuse scheduling is expected to shine.
 However, the performance gain we observe isn't as significant as 2x.
