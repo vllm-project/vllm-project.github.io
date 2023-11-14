@@ -54,7 +54,7 @@ We are committed to making vLLM the best open-source project incorporating the c
 
 The vLLM team prioritizes collaborations and we strive to keep the codebase with high quality code and easy to contribute. We are actively working on system performance; as well as new features like LoRA, Speculative Decoding, and better Quantization Support. Additionally, we are collaborating with hardware vendors like AMD, AWS Inferenetia, and Intel Habana to bring LLM to the broadest community.
 
-Specifically for the Dynamic SplitFuse optimization, we are actively investigating the proper integration. If you have any questions and suggestions, please feel free to contact us on [GitHub](https://github.com/vllm-project/vllm). We also published the benchmark code [here](https://github.com/vllm-project/vllm/pull/1649).
+Specifically for the Dynamic SplitFuse optimization, we are actively investigating the proper integration. If you have any questions and suggestions, please feel free to contact us on [GitHub](https://github.com/vllm-project/vllm). We also published the benchmark code [here](https://github.com/vllm-project/vllm/blob/main/benchmarks/benchmark_throughput.py).
 
 ### Appendix: Feature Comparison
 
