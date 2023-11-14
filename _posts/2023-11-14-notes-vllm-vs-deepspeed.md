@@ -39,7 +39,7 @@ However, the performance gain we observe isn't as significant as a 2x increase.
 </picture>
 </p>
 
-#### Scenario 2: All other cases
+#### Scenario 2: Other cases
 In these cases, vLLM is up to 1.8x faster than DeepSpeed.
 
 <p align="center">
