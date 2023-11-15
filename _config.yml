@@ -1,7 +1,7 @@
 title: vLLM Blog
 author:
   name: © 2023. vLLM Team. All rights reserved.
-  email: https://github.com/vllm-project/vllm
+  github: https://github.com/vllm-project/vllm
 google_analytics: G-9C5R3JR3QS
 
 # The `>` after `description:` means to ignore line-breaks until next key.
