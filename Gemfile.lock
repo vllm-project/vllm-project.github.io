@@ -18,8 +18,12 @@ GEM
       eventmachine (>= 0.12.9)
       http_parser.rb (~> 0)
     eventmachine (1.2.7)
+    ffi (1.17.0-arm64-darwin)
     ffi (1.17.0-x86_64-darwin)
     forwardable-extended (2.6.0)
+    google-protobuf (4.27.2-arm64-darwin)
+      bigdecimal
+      rake (>= 13)
     google-protobuf (4.27.2-x86_64-darwin)
       bigdecimal
       rake (>= 13)
@@ -70,6 +74,8 @@ GEM
       strscan
     rouge (4.3.0)
     safe_yaml (1.0.5)
+    sass-embedded (1.77.8-arm64-darwin)
+      google-protobuf (~> 4.26)
     sass-embedded (1.77.8-x86_64-darwin)
       google-protobuf (~> 4.26)
     strscan (3.1.0)
@@ -79,6 +85,7 @@ GEM
     webrick (1.8.1)
 
 PLATFORMS
+  arm64-darwin-23
   x86_64-darwin-22
   x86_64-darwin-23
 
