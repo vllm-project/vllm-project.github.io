@@ -1,3 +1,24 @@
+# vLLM Blog Source
+
+How to compile the blogpost:
+
+1. Install `jekyll` and `bundler` by running `gem install jekyll bundler`. Ask ChatGPT for help if you encounter any issues.
+2. `rm ./Gemfile.lock` if you meet gem error.
+3. `bundle exec jekyll server` to compile and start the server.
+
+To add a new blogpost, please refer to `_posts/2023-06-20-vllm.md` as an example. Some notes:
+- Google Doc can be saved as markdown format which will make your life easier.
+- Note that the blogpost will only show when its date is in the past.
+- Put figures under `assets/figures/yourblogname/`.
+- Push your edits to this repo to save your changes.
+
+To publish:
+- After you finish writing, copy the whole content of `_site/` to `vllm-project.github.io` and push to the github repo.
+- Note that there is a `CNAME` file in the `vllm-project.github.io` that is not included in `_site/`. Please do not delete it.
+
+---
+Please find the original README below.
+
 <div align="center">
   <p><em><strong>Disclaimer:</strong> The information here may vary depending on the version you're using.<br/>
   Please refer to the <code>README.md</code> bundled within the theme-gem for information specific to your version or by pointing
