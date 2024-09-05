@@ -4,7 +4,7 @@ title: "vLLM v0.6.0: 2.7x Throughput Improvement and 5x Latency Reduction"
 author: "vLLM Team"
 ---
 
-**TL;DR:** vLLM achieves 2.7x higher throughput and 5x less TPOT (time per output token) on Llama 8B model, and 1.8x higher throughput and 2x less TPOT on Llama 70B model.
+**TL;DR:** vLLM achieves 2.7x higher throughput and 5x faster TPOT (time per output token) on Llama 8B model, and 1.8x higher throughput and 2x less TPOT on Llama 70B model.
 
 <p align="center">
 <picture>
@@ -133,7 +133,7 @@ Across different workloads, vLLM achieves high throughput compared to other fram
 </p>
 
 
-For the rest of performance benchmarks, as well as captured detailed metrics for time-to-first-token (TTFT) and time-per-output-token (TPOT), please refer to the appendix for more data and analysis. You can follow [this github issue](https://github.com/vllm-project/vllm/issues/8176) to reproduce our benchmark.
+For the rest of performance benchmarks, as well as captured detailed metrics for time-to-first-token (TTFT) and time-per-output-token (TPOT), please refer to the [appendix](#appendix) for more data and analysis. You can follow [this github issue](https://github.com/vllm-project/vllm/issues/8176) to reproduce our benchmark.
 
 
 ### Conclusion & Future Work
@@ -148,7 +148,7 @@ If you haven’t, we highly recommend you to update the vLLM version (see instru
 
 If you are in the Bay Area, you can meet the vLLM team at the following events: [vLLM’s sixth meetup with NVIDIA(09/09)](https://lu.ma/87q3nvnh), [PyTorch Conference (09/19)](https://pytorch2024.sched.com/event/1fHmx/vllm-easy-fast-and-cheap-llm-serving-for-everyone-woosuk-kwon-uc-berkeley-xiaoxuan-liu-ucb), [CUDA MODE IRL meetup (09/21)](https://events.accel.com/cudamode), and [the first ever vLLM track at Ray Summit (10/01-02)](https://raysummit.anyscale.com/flow/anyscale/raysummit2024/landing/page/sessioncatalog?search.sessiontracks=1719251906298001uzJ2).
 
-Regardless where you are, don’t forget to sign up for the [biweekly vLLM office hours](https://neuralmagic.com/community-office-hours/)\! There are always new topics discussed every two weeks. The next one will be a deep dive into the performance enhancements.
+Regardless where you are, don’t forget to sign up for the online [biweekly vLLM office hours](https://neuralmagic.com/community-office-hours/)\! There are always new topics discussed every two weeks. The next one will be a deep dive into the performance enhancements.
 
 ### Acknowledgment
 
