@@ -152,7 +152,7 @@ Regardless where you are, don’t forget to sign up for the [biweekly vLLM offic
 
 ### Acknowledgment
 
-The blogpost is drafted by the vLLM team at Berkeley. The performance boost comes from collective efforts in the vLLM community: [Robert Shaw](https://github.com/robertgshaw2-neuralmagic) from Neural Magic and [Nick Hill](https://github.com/njhill), [Joe Runde](https://github.com/joerunde) from IBM lead the API server refactoring, [William Lin](https://github.com/SolitaryThinker) from UCSD and [Cody Yu](https://github.com/comaniac) from Anyscale lead the multi-step scheduling effort, [Megha Agarwal](https://github.com/megha95) from Databricks and [Alexander Matveev](https://github.com/alexm-neuralmagic) from Neural Magic lead the async output processing, and many contributors from the vLLM community contribute various optimizations. All these efforts bring us together to get a huge performance boost.
+The blogpost is drafted by the vLLM team at Berkeley. The performance boost comes from collective efforts in the vLLM community: [Robert Shaw](https://github.com/robertgshaw2-neuralmagic) from Neural Magic and [Nick Hill](https://github.com/njhill), [Joe Runde](https://github.com/joerunde) from IBM lead the API server refactoring, [Will Lin](https://github.com/SolitaryThinker) from UCSD and [Cody Yu](https://github.com/comaniac) from Anyscale lead the multi-step scheduling effort, [Megha Agarwal](https://github.com/megha95) from Databricks and [Alexander Matveev](https://github.com/alexm-neuralmagic) from Neural Magic lead the async output processing, and many contributors from the vLLM community contribute various optimizations. All these efforts bring us together to get a huge performance boost.
 
 ## Appendix
 
