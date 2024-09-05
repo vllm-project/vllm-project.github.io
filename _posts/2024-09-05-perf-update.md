@@ -18,6 +18,7 @@ Performance comparison between vLLM v0.5.3 and v0.6.0 for Llama 8B on 1xH100 and
 
 A month ago, we released our [performance roadmap](https://blog.vllm.ai/2024/07/25/lfai-perf.html) committing to performance as our top priority. Today, we released vLLM v0.6.0, with 1.8-2.7x throughput improvements compared to v0.5.3, reaching state-of-the-art performance while keeping rich features and great usability.
 
+We will start by diagnosing the performance bottleneck in vLLM previously. Then we will describe the solution we implemented and landed in the past month. Finally, we will showcase the benchmarks of the latest vLLM release v0.6.0 other inference engines.
 
 ### Performance Diagnosis
 
