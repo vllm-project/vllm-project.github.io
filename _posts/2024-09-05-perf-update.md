@@ -62,10 +62,10 @@ Even after splitting these two processes, we find there’s still much room for 
 <img src="/assets/figures/perf-v060/illustration-multi-step.png" width="90%">
 </picture>
 <br>
-Illustration of the multistep scheduling method in vLLM. By batching multiple scheduling steps at one, we keep the GPU busier than before, therefore reducing latency and improve throughput.
+Illustration of the multistep scheduling method in vLLM. By batching multiple scheduling steps at once, we keep the GPU busier than before, therefore reducing latency and improve throughput.
 </p>
 
-We identified that the CPU overhead from vLLM’s scheduler and input preparation was leading to GPU underutilization, resulting in suboptimal throughput. To tackle this, we introduced multi-step scheduling, which performs scheduling and input preparation once and runs the model for `n` consecutive steps. By ensuring that the GPU can continue processing between the `n` steps without waiting for the CPU, this approach spreads the CPU overhead across multiple steps, significantly reducing GPU idle time and boosting overall performance.
+We identified that the CPU overhead from vLLM’s scheduler and input preparation was leading to GPU underutilization, resulting in suboptimal throughput. To tackle this, we introduced *multi-step scheduling*, which performs scheduling and input preparation once and runs the model for `n` consecutive steps. By ensuring that the GPU can continue processing between the `n` steps without waiting for the CPU, this approach spreads the CPU overhead across multiple steps, significantly reducing GPU idle time and boosting overall performance.
 
 This improves the throughput of running Llama 70B models on 4xH100 by 28%.
 
@@ -84,7 +84,7 @@ Continuing our efforts to maximize GPU utilization, we also revamped how the mod
 
 Previously, after generating each token, vLLM moved the model output from GPU to CPU, checked the stopping criteria to determine if the request had finished, and then executed the next step. This output processing was often slow, involving de-tokenizing the generated token IDs and performing string matching, with the overhead increasing as batch sizes grew.
 
-To address this inefficiency, we introduced asynchronous output processing, which overlaps the output processing with model execution. Instead of processing the output immediately, vLLM now delays it, performing the processing of the `n`-th step output while executing the `n+1`-th step. This approach assumes that no request from the `n`-th step has met the stopping criteria, incurring a slight overhead of executing one additional step per request. However, the significant boost in GPU utilization more than offsets this cost, leading to improved overall performance.
+To address this inefficiency, we introduced *asynchronous output processing*, which overlaps the output processing with model execution. Instead of processing the output immediately, vLLM now delays it, performing the processing of the `n`-th step output while executing the `n+1`-th step. This approach assumes that no request from the `n`-th step has met the stopping criteria, incurring a slight overhead of executing one additional step per request. However, the significant boost in GPU utilization more than offsets this cost, leading to improved overall performance.
 
 This improves the time-per-output-token of running Llama 70B models on 4xH100 by 8.7%.
 
