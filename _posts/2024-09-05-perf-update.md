@@ -82,17 +82,17 @@ Illustration of the asynchronous output processing in vLLM. By overlapping the C
 
 Continuing our efforts to maximize GPU utilization, we also revamped how the model output is processed in vLLM.
 
-Previously, after generating each token, vLLM moved the model output from GPU to CPU, checked the stop criteria to determine if the request had finished, and then executed the next step. This output processing was often slow, involving de-tokenizing the generated token IDs and performing string matching, with the overhead increasing as batch sizes grew.
+Previously, after generating each token, vLLM moved the model output from GPU to CPU, checked the stopping criteria to determine if the request had finished, and then executed the next step. This output processing was often slow, involving de-tokenizing the generated token IDs and performing string matching, with the overhead increasing as batch sizes grew.
 
-To address this inefficiency, we introduced asynchronous output processing, which overlaps the output processing with model execution. Instead of processing the output immediately, vLLM now delays it, performing the processing of the `n`-th step output while executing the `n+1`-th step. This approach assumes that no request from the `n`-th step has met the stop criteria, incurring a slight overhead of executing one additional step per request. However, the significant boost in GPU utilization more than offsets this cost, leading to improved overall performance.
+To address this inefficiency, we introduced asynchronous output processing, which overlaps the output processing with model execution. Instead of processing the output immediately, vLLM now delays it, performing the processing of the `n`-th step output while executing the `n+1`-th step. This approach assumes that no request from the `n`-th step has met the stopping criteria, incurring a slight overhead of executing one additional step per request. However, the significant boost in GPU utilization more than offsets this cost, leading to improved overall performance.
 
 This improves the time-per-output-token of running Llama 70B models on 4xH100 by 8.7%.
 
 #### Miscellaneous optimization
-To further shorten CPU overhead, we carefully examine the whole codebase and apply possible optimizations:
-- As requests come and finish, Python will allocate new objects and deallocate them again and again. It turns out we can create an object cache ([#7162](https://github.com/vllm-project/vllm/pull/7162)) to hold these objects, with significant end-to-end speedup.
+To further reduce the CPU overhead, we carefully examined the whole codebase and performed the following optimizations:
+- As requests come and finish, Python will allocate new objects and deallocate them again and again. To alleviate this overhead, we create an object cache ([#7162](https://github.com/vllm-project/vllm/pull/7162)) to hold these objects, which significantly improves the end-to-end throughput by 24%.
 - When sending data from CPU to GPU, we use non-blocking operations ([#7172](https://github.com/vllm-project/vllm/pull/7172)) as much as possible. The CPU can launch many copy operations while the GPU is copying the data.
-- vLLM supports diverse attention backends and sampling algorithms. Its code is designed to be general enough to deal with all cases. For commonly used workloads with simple sampling requests ([#7117](https://github.com/vllm-project/vllm/pull/7117)), we introduce a fast code path to skip complicated and slow processing steps.
+- vLLM supports diverse attention backends and sampling algorithms.  For commonly used workloads with simple sampling requests ([#7117](https://github.com/vllm-project/vllm/pull/7117)), we introduce a fast code path that skips the complex steps.
 
 Over the last month, the vLLM community has devoted many efforts for such optimizations. And we will continue to optimize the code base to improve the efficiency.
 
@@ -100,14 +100,14 @@ Over the last month, the vLLM community has devoted many efforts for such optimi
 
 With the above efforts, we are happy to share that vLLM’s performance has improved a lot compared with last month’s vLLM. And it reaches state-of-the-art performance according to our performance benchmarks.
 
-**Serving engines.** We benchmark latest vLLM against TensorRT-LLM r24.07, SGLang v0.3.0 and lmdeploy v0.6.0a0.
+**Serving engines.** We benchmark the vLLM v0.6.0 against TensorRT-LLM r24.07, SGLang v0.3.0, and lmdeploy v0.6.0a0. For vLLM, we have turned on multistep scheduling via setting `--num-scheduler-steps 10`. We are actively working on making it on by default.
 
 **Dataset.** We benchmark different serving engines using the following three datasets:
 
 * **ShareGPT**: 500 prompts randomly sampled from ShareGPT dataset with fixed random seed.
   * Average input tokens: 202, average output tokens: 179
-* **Prefill-heavy dataset**: 500 prompts synthetically generated from sonnet dataset with roughly the same amount of input tokens (462 in average) and output tokens (16 in average).
-* **Decode-heavy dataset**: 500 prompts synthetically generated from sonnet dataset with roughly the same amount of input tokens (462 in average) and output tokens (256 in average).
+* **Prefill-heavy dataset**: 500 prompts synthetically generated from sonnet dataset with roughly 462 input tokens and 16 output tokens on average.
+* **Decode-heavy dataset**: 500 prompts synthetically generated from sonnet dataset with roughly the same amount of 462 input tokens and 256 output tokens on average.
 
 **Models.** We benchmark on two models: Llama 3 8B and 70B. We did not use the latest Llama 3.1 models as TensorRT-LLM r24.07 with TensorRT LLM backend v0.11 does not support it ([issue link](https://github.com/NVIDIA/TensorRT-LLM/issues/2105)).
 
@@ -138,11 +138,11 @@ For the rest of performance benchmarks, as well as captured detailed metrics for
 
 ### Conclusion & Future Work
 
-In this post, we discussed the performance enhancements in vLLM that lead to 1.8-2.7x throughput increase and matching other inference engines. We remain committed to steadily improving the performance, while continuously broadening our model coverages, hardware support, and diverse features.
+In this post, we discussed the performance enhancements in vLLM that lead to 1.8-2.7x throughput increase and matching other inference engines. We remain committed to steadily improving the performance, while continuously broadening our model coverages, hardware support, and diverse features. For the features discussed in this post, we will continue to harden them for production readiness.
 
 Importantly, we will also focus on improving the core of vLLM to reduce the complexity so it lowers the barriers for contribution and unlocking even more performance enhancements.
 
-### What’s Next?
+### Get Involved
 
 If you haven’t, we highly recommend you to update the vLLM version (see instructions [here](https://docs.vllm.ai/en/latest/getting\_started/installation.html)) and try it out for yourself\! We always love to learn more about your use cases and how we can make vLLM better for you. The vLLM team can be reached out via [vllm-questions@lists.berkeley.edu](mailto:vllm-questions@lists.berkeley.edu). vLLM is also a community project, if you are interested in participating and contributing, we welcome you to check out our [roadmap](https://roadmap.vllm.ai/) and see [good first issues](https://github.com/vllm-project/vllm/issues?q=is:open+is:issue+label:%22good+first+issue%22) to tackle. Stay tuned for more updates by [following us on X](https://x.com/vllm\_project).
 
@@ -152,7 +152,7 @@ Regardless where you are, don’t forget to sign up for the online [biweekly vLL
 
 ### Acknowledgment
 
-The blogpost is drafted by the vLLM team at Berkeley. The performance boost comes from collective efforts in the vLLM community: [Robert Shaw](https://github.com/robertgshaw2-neuralmagic) from Neural Magic and [Nick Hill](https://github.com/njhill), [Joe Runde](https://github.com/joerunde) from IBM lead the API server refactoring, [Will Lin](https://github.com/SolitaryThinker) from UCSD and [Cody Yu](https://github.com/comaniac) from Anyscale lead the multi-step scheduling effort, [Megha Agarwal](https://github.com/megha95) from Databricks and [Alexander Matveev](https://github.com/alexm-neuralmagic) from Neural Magic lead the async output processing, and many contributors from the vLLM community contribute various optimizations. All these efforts bring us together to get a huge performance boost.
+The blogpost is drafted by the vLLM team at UC Berkeley. The performance boost comes from collective efforts in the vLLM community: [Robert Shaw](https://github.com/robertgshaw2-neuralmagic) from Neural Magic and [Nick Hill](https://github.com/njhill), [Joe Runde](https://github.com/joerunde) from IBM lead the API server refactoring, [Will Lin](https://github.com/SolitaryThinker) from UCSD and [Cody Yu](https://github.com/comaniac) from Anyscale lead the multi-step scheduling effort, [Megha Agarwal](https://github.com/megha95) from Databricks and [Alexander Matveev](https://github.com/alexm-neuralmagic) from Neural Magic lead the async output processing, and many contributors from the vLLM community contribute various optimizations. All these efforts bring us together to get a significant performance boost.
 
 ## Appendix
 
