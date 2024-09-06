@@ -101,7 +101,7 @@ Over the last month, the vLLM community has devoted many efforts for such optimi
 
 With the above efforts, we are happy to share that vLLM’s performance has improved a lot compared with last month’s vLLM. And it reaches state-of-the-art performance according to our performance benchmarks.
 
-**Serving engines.** We benchmark the vLLM v0.6.0 against TensorRT-LLM r24.07, SGLang v0.3.0, and lmdeploy v0.6.0a0. For vLLM, we have turned on multistep scheduling via setting `--num-scheduler-steps 10`. We are actively working on making it on by default.
+**Serving engines.** We benchmark the vLLM v0.6.0 against TensorRT-LLM r24.07, SGLang v0.3.0, and lmdeploy v0.6.0a0. For other benchmarks, we use their default setting. For vLLM, we have turned on multistep scheduling via setting `--num-scheduler-steps 10`. We are actively working on making it on by default.
 
 **Dataset.** We benchmark different serving engines using the following three datasets:
 
@@ -136,6 +136,10 @@ Across different workloads, vLLM achieves high throughput compared to other fram
 
 For the rest of performance benchmarks, as well as captured detailed metrics for time-to-first-token (TTFT) and time-per-output-token (TPOT), please refer to the [appendix](#appendix) for more data and analysis. You can follow [this github issue](https://github.com/vllm-project/vllm/issues/8176) to reproduce our benchmark.
 
+**Limitation of current optimizations.** Although our current optimizations give a significant throughput gain, there are performance trade-offs from our current optimizations, especially from multi-step scheduling:
+
+- *Bumpy inter-token latency:* In our current implementation of multi-step scheduling, we also return the output tokens for multiple steps in a batch. From an end-user’s perspective, they will receive batches of tokens being replied. We are fixing this by streaming the intermediate tokens back to the engine.
+- *Higher TTFT at low request rate:* A new request can only start execution after the current multi-step execution finishes. Therefore, higher `--num-scheduler-steps` will lead to higher TTFT at low request rates. Our experiments focus on the queueing delay at high QPS so this effect is not significant in the results in the appendix.
 
 ### Conclusion & Future Work
 
