@@ -3,8 +3,9 @@
 How to compile the blogpost:
 
 1. Install `jekyll` and `bundler` by running `gem install jekyll bundler`. Ask ChatGPT for help if you encounter any issues.
-2. `rm ./Gemfile.lock` if you meet gem error.
-3. `bundle exec jekyll server` to compile and start the server.
+2. `bundle install` to install the necessary gems.
+3. `rm ./Gemfile.lock` if you meet gem error.
+4. `bundle exec jekyll server` to compile and start the server.
 
 To add a new blogpost, please refer to `_posts/2023-06-20-vllm.md` as an example. Some notes:
 - Google Doc can be saved as markdown format which will make your life easier.
