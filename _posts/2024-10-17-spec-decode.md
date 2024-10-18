@@ -92,10 +92,11 @@ Speculative decoding offers significant performance benefits in **low-QPS (queri
 
 <p align="center">
 <picture>
-<img src="/assets/figures/spec-decode/figure5.png" width="42%">
-</picture><picture>
+<img src="/assets/figures/spec-decode/figure5.png" width="48%">
+</picture>
+<picture>
 &nbsp; &nbsp;
-<img src="/assets/figures/spec-decode/figure6.png" width="42%">
+<img src="/assets/figures/spec-decode/figure6.png" width="48%">
 </picture><br>
 Performance comparison showing spec decode delivering up to 1.5x Speedup at QPS=1 Llama3-70B on ShareGPT with 4xH100 using draft model and up to 2.8x Speedup at QPS=1 Llama3-70B on CNN Dailymail with 4xH100 using n-grams
 </p>
@@ -104,7 +105,7 @@ However, in **high-QPS environments**, speculative decoding may introduce perfor
 
 <p align="center">
 <picture>
-<img src="/assets/figures/spec-decode/figure7.png" width="60%">
+<img src="/assets/figures/spec-decode/figure7.png" width="80%">
 </picture><br>
 As high QPS, we see 1.4x slowdown Llama3-70B on ShareGPT with 4xH100, 1.8x slowdown Llama3-70B on CNN Dailymail with 4xH100
 </p>
@@ -171,7 +172,7 @@ for output in outputs:
     print(f"Prompt: {output.prompt!r}, Generated text: {output.outputs[0].text!r}")
 ```
 
-For draft-model-based decoding, users specify the draft model and the number of tokens to speculate. vLLM also supports **Ngram speculative decoding**, where users only need to specify the number of tokens to speculate. Soon, vLLM will include automatic token speculation, removing the need for manual configuration altogether.
+<!-- For draft-model-based decoding, users specify the draft model and the number of tokens to speculate. vLLM also supports **Ngram speculative decoding**, where users only need to specify the number of tokens to speculate. Soon, vLLM will include automatic token speculation, removing the need for manual configuration altogether. -->
 
 Future updates ([paper](https://arxiv.org/abs/2406.14066), [RFC](https://github.com/vllm-project/vllm/issues/4565)) will allow vLLM to automatically choose the number of speculative tokens, removing the need for manual configuration and simplifying the process even further.
 
@@ -180,5 +181,3 @@ Follow our docs on [Speculative Decoding in vLLM](https://docs.vllm.ai/en/v0.6.0
 ## Conclusion: The Future of Speculative Decoding in vLLM
 
 Speculative decoding in vLLM delivers substantial performance improvements, especially in low-QPS environments. As dynamic adjustments are introduced, it will become a highly effective tool even in high-QPS settings, making it a versatile and essential feature for reducing latency and increasing efficiency in LLM inference.
-
-*Interested in more advanced techniques for optimizing vLLM? Join us for our next vLLM Office Hours, where we explore new updates and features. [Register here](https://neuralmagic.com/community-office-hours/?utm_campaign=vLLM%20Office%20Hours&utm_source=vllm-blog).*
