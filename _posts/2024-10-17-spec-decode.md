@@ -26,7 +26,7 @@ Here’s how the process works:
 <picture>
 <img src="/assets/figures/spec-decode/figure8.png" width="80%">
 </picture><br>
-As shown in the picture above, the draft model proposes five tokens: ``["I", "like", "cooking", "and", "traveling"]`. These are then forwarded to the target model for parallel verification. In this example, the third token, `cooking` (should be playing), was proposed inaccurately. As a result, only the first three tokens, ["I", "like", "playing"], are generated in this step.
+As shown in the picture above, the draft model proposes five tokens: ["I", "like", "cooking", "and", "traveling"]. These are then forwarded to the target model for parallel verification. In this example, the third token, "cooking" (should be "playing"), was proposed inaccurately. As a result, only the first three tokens, ["I", "like", "playing"], are generated in this step.
 </p>
 
 By using this approach, speculative decoding speeds up token generation, making it an effective method for both small-scale and large-scale language model deployments.
@@ -84,6 +84,7 @@ However, selecting the right draft model can be challenging. For example, in mod
 <picture>
 <img src="/assets/figures/spec-decode/figure3.png" width="80%">
 </picture>
+
 An example of prompt lookup decoding. Given the prompt, we build all 2-grams as the lookup key. The values are the three tokens following the lookup key. During generation, we will check if the current 2-gram matches any key in the lookup table. If so, we will propose the following tokens with the value.
 </p>
 
@@ -94,7 +95,7 @@ Otherwise known as n-gram matching, this approach is effective for use cases lik
 <picture>
 <img src="/assets/figures/spec-decode/figure4.png" width="60%">
 </picture><br>
-<i>Picture from https://github.com/FasterDecoding/Medusa</i>
+<i>Picture from https://github.com/FasterDecoding/Medusa</i>.
 In the example above, three heads are used to propose tokens for the following three positions. Head 1 is proposing ["is", "\'", "the"] for the first position. Head 2 is proposing ["difficult", "is", "\'"] for the second position. Head 3 is proposing ["not", "difficult", "a"] for the third position. All heads take the output of the last transformer block as the input.
 </p>
 
@@ -116,7 +117,7 @@ Speculative decoding offers significant performance benefits in **low-QPS (queri
 &nbsp; &nbsp;
 <img src="/assets/figures/spec-decode/figure6.png" width="48%">
 </picture><br>
-Performance comparison showing spec decode delivering up to 1.5x Speedup at QPS=1 Llama3-70B on ShareGPT with 4xH100 using draft model ([Qwama-0.5B](turboderp/Qwama-0.5B-Instruct)) and up to 2.8x Speedup at QPS=1 Llama3-70B on CNN Dailymail with 4xH100 using n-grams
+Performance comparison showing spec decode delivering up to 1.5x Speedup at QPS=1 Llama3-70B on ShareGPT with 4xH100 using draft model (turboderp/Qwama-0.5B-Instruct) and up to 2.8x Speedup at QPS=1 Llama3-70B on CNN Dailymail with 4xH100 using n-grams
 </p>
 
 However, in **high-QPS environments**, speculative decoding may introduce performance trade-offs. The extra compute required to propose and verify tokens can sometimes slow down the system when it is already compute-bound, as seen when the number of requests per second increases. In such cases, the overhead of speculative decoding can outweigh its benefits, leading to reduced performance.
