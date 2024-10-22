@@ -83,8 +83,7 @@ However, selecting the right draft model can be challenging. For example, in mod
 <p align="center">
 <picture>
 <img src="/assets/figures/spec-decode/figure3.png" width="80%">
-</picture>
-
+</picture><br>
 An example of prompt lookup decoding. Given the prompt, we build all 2-grams as the lookup key. The values are the three tokens following the lookup key. During generation, we will check if the current 2-gram matches any key in the lookup table. If so, we will propose the following tokens with the value.
 </p>
 
