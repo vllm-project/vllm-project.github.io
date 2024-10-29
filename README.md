@@ -14,6 +14,7 @@ To add a new blogpost, please refer to `_posts/2023-06-20-vllm.md` as an example
 - Push your edits to this repo to save your changes.
 
 To publish:
+- `JEKYLL_ENV=production bundle exec jekyll build` to compile the blogpost fresh.
 - After you finish writing, copy the whole content of `_site/` to `vllm-project.github.io` and push to the github repo.
 - Note that there is a `CNAME` file in the `vllm-project.github.io` that is not included in `_site/`. Please do not delete it.
 

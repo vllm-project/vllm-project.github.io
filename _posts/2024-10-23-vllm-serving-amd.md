@@ -1,10 +1,10 @@
 ---
 layout: post
 title: "Serving LLMs on AMD MI300X: Best Practices"
-author: "Embedded LLM and Hot Aisles Inc."
+author: "Guest Post by Embedded LLM and Hot Aisles Inc."
 ---
 
-**TL;DR:** vLLM unlocks incredible performance on the AMD MI300X, achieving 1.5x higher throughput and 1.7x faster time-to-first-token (TTFT) than Text Generation Inference (TGI) for Llama 3.1 405B. It also achieves 1.8x higher throughput and 5.1x faster TTFT than TGI for Llama 3.1 70B. This guide explores key vLLM settings to maximize efficiency, showing you how to leverage the power of open-source LLM inference on AMD. If you just want to see the optimal parameters, jump to the [Quick Start Guide](#quick-start-guide).
+**TL;DR:** vLLM unlocks incredible performance on the AMD MI300X, achieving 1.5x higher throughput and 1.7x faster time-to-first-token (TTFT) than Text Generation Inference (TGI) for Llama 3.1 405B. It also achieves 1.8x higher throughput and 5.1x faster TTFT than TGI for Llama 3.1 70B. This guide explores 8 key vLLM settings to maximize efficiency, showing you how to leverage the power of open-source LLM inference on AMD. If you just want to see the optimal parameters, jump to the [Quick Start Guide](#quick-start-guide).
 
 
 <p align="center">
@@ -35,7 +35,7 @@ ROCm, AMD's answer to CUDA, might be less familiar to some, but it's rapidly mat
 
 ### vLLM v.s. TGI
 
-vLLM unlocks incredible performance on the AMD MI300X, achieving 1.5x higher throughput and 1.7x faster time-to-first-token (TTFT) than Text Generation Inference (TGI) for Llama 3.1 405B. It also achieves 1.8x higher throughput and 5.1x faster TTFT than TGI for Llama 3.1 70B. 
+vLLM unlocks incredible performance on the AMD MI300X, achieving 1.5x higher throughput and 1.7x faster time-to-first-token (TTFT) than Text Generation Inference (TGI) for Llama 3.1 405B. It also achieves 1.8x higher throughput and 5.1x faster TTFT than TGI for Llama 3.1 70B.
 
 On Llama 3.1 405B, vLLM demonstrates significantly better performance compared to TGI in both time to first token (TTFT) and throughput across various query-per-second (QPS) scenarios. For TTFT, vLLM achieves approximately 3.8x faster response times on average compared to TGI at 16 QPS in the optimized configuration. Throughput-wise, vLLM consistently outperforms TGI, with the highest throughput of 5.76 requests/second on the ShareGPT dataset at 1000 QPS in the optimized setup, compared to TGI's 3.55 requests/second.
 
@@ -58,23 +58,23 @@ vLLM vs. TGI performance for Llama 3.1 405B on 8 x MI300X (FP16, QPS 16, 32, 100
 
 We've been extensively testing various vLLM settings to identify optimal configurations for MI300X.  Here's what we've learned:
 
-- **Chunked Prefill**: The rule of thumb is to disable it in most cases for better performance.
+- **Chunked Prefill**: The rule of thumb is to disable it for now on MI300X in most cases for better performance.
 - **Multi-Step Scheduling**: Significant gains in GPU utilization and overall performance can be achieved with multi-step scheduling. Set the `--num-scheduler-steps` to a value between 10 and 15 to optimize GPU utilization and performance.
-- **Prefix Caching**: Combining prefix caching with chunked prefill can enhance performance in specific scenarios. However, if user requests have a low prefix caching hit rate, it might be advisable to disable both chunked prefill and prefix caching as a general rule of thumb.
-- **Graph Capture**: When working with models that support long context lengths, set the `--max-seq-len-to-capture` to 16384. However, be aware that increasing this value doesn't always guarantee performance improvements and may sometimes lead to degradation due to suboptimal bucket sizes. 
+- **Prefix Caching**: Combining prefix caching with chunked prefill can enhance performance in specific scenarios. However, if user requests have a low prefix caching hit rate, it might be advisable to disable both chunked prefill and prefix caching.
+- **Graph Capture**: When working with models that support long context lengths, set the `--max-seq-len-to-capture` to 16384. However, be aware that increasing this value doesn't always guarantee performance improvements and may sometimes lead to degradation due to suboptimal bucket sizes.
 - **AMD-Specific Optimizations**: Disabling NUMA balancing and tuning `NCCL_MIN_NCHANNELS` can yield further performance improvements.
 - **KV Cache Data Type**: For optimal performance, use the default KV cache data type, which automatically matches the model's data type.
 - **Tensor Parallelism**: For throughput optimization, use the minimum tensor parallelism (TP) that accommodates the model weights and context, and run multiple vLLM instances. For latency optimization, set TP equal to the number of GPUs in a node.
 - **Maximum Number of Sequences**: To optimize performance, increase `--max-num-seqs` to 512 or higher, based on your GPU's memory and compute resources. This can significantly improve resource utilization and throughput, especially for models handling shorter inputs and outputs.
-- **Use CK Flash Attention**: the CK Flash Attention implementation is a lot faster than triton implementation
+- **Use CK Flash Attention**: the CK Flash Attention implementation is a lot faster than triton implementation.
 
-#### Detailed Analysis and Experiments 
+#### Detailed Analysis and Experiments
 
 ##### Case 1: Chunked Prefill
 
 Chunked prefill is an experimental feature in vLLM that allows large prefill requests to be divided into smaller chunks batched together with decode requests. This improves system efficiency by overlapping compute-bound prefill requests with memory-bound decode requests. You can enable it by setting `--enable_chunked_prefill=True` in the LLM constructor or using the `--enable-chunked-prefill` command line option.
 
-Based on the experiment we ran, we found that there’s a slight improvement with tuning the chunked prefill values over disabling the chunked prefill feature. However, if you’re not sure whether to enable chunked prefill or not, simply start off by disabling it and you should generally  expect better performance than with using the default settings.
+Based on the experiment we ran, we found that there’s a slight improvement with tuning the chunked prefill values over disabling the chunked prefill feature. However, if you’re not sure whether to enable chunked prefill or not, simply start off by disabling it and you should generally expect better performance than with using the default settings. This is specific to MI300X GPUs.
 
 
 <p align="center">
@@ -116,10 +116,10 @@ Chunked Prefill and prefix caching are optimization techniques in vLLM that impr
 
 By default, vLLM will automatically _enable the chunked prefill feature if a model has a context length of more than 32k tokens_. The maximum number of tokens to be chunked for prefill is set to 512 by default.
 
-Before we dive deep into the graph, we’ll first try to clear off some of the used jargon. **_Fresh Run_** refers to the situation where the prefix caching memory is not populated at all. **_2nd Run_** refers to rerunning the benchmark script again after the _Fresh Run_. In general, when rerunning the ShareGPT benchmark dataset on the _2nd Run_, we get around a _50%_ prefix caching hit-rate.
+Before we dive deep into the graph, we’ll first try to explain the terminology used in the experiment. **_Fresh Run_** refers to the situation where the prefix caching memory is not populated at all. **_2nd Run_** refers to rerunning the benchmark script again after the _Fresh Run_. In general, when rerunning the ShareGPT benchmark dataset on the _2nd Run_, we get around a _50%_ prefix caching hit-rate.
 
 Looking at the graphs below, we can make three observations about this experiment.
-1. Based on  the comparison of Bar 2 (red) with the baseline (blue), there is a huge gain in performance.
+1. Based on the comparison of Bar 2 (red) with the baseline (blue), there is a huge gain in performance.
 2. Based on the comparison of Bar 3 (yellow), Bar 5 (orange) and Bar 6 (teal) with the baseline, the chunked prefill performance depends on the user request input prompt length distribution.
 3. In our experiments we found that the prefix caching hit rates of Bar 3 (yellow) and Bar 4 (green) are around _0.9%_ and _50%_. Based on the comparison of Bar 3 (yellow) and Bar 4 (green) with the baseline and Bar 2 (red), this tells us that if the user requests do not have high prefix caching hit rate, disabling both chunked prefill and prefix caching might be considered a good rule of thumb.
 
@@ -138,17 +138,17 @@ Looking at the graphs below, we can make three observations about this experimen
 
 ##### Case 4: Max sequence length to capture
 
-The `--max-seq-len-to-capture` argument in vLLM controls the maximum sequence length that can be handled by CUDA graphs, which optimize performance by capturing and replaying GPU operations. If a sequence exceeds this length, the system reverts to "eager mode," executing operations one by one, which can be less efficient. This applies to both regular and encoder-decoder models.
+The `--max-seq-len-to-capture` argument in vLLM controls the maximum sequence length that can be handled by CUDA/HIP graphs, which optimize performance by capturing and replaying GPU operations. If a sequence exceeds this length, the system reverts to eager mode executing operations one by one, which can be less efficient. This applies to both regular and encoder-decoder models.
 
-Our benchmarks reveal an interesting trend: increasing `--max-seq-len-to-capture` doesn't always improve performance and can sometimes even degrade it. This might be due to how vLLM creates "buckets" for different sequence lengths.
+Our benchmarks reveal an interesting trend: increasing `--max-seq-len-to-capture` doesn't always improve performance and can sometimes even degrade it. This might be due to how vLLM creates buckets for different sequence lengths.
 
 Here's why:
 - **Bucketing**: vLLM uses buckets to group sequences of similar lengths, optimizing graph capture for each bucket.
 - **Optimal Buckets**: Initially, the buckets are finely grained (e.g., [4, 8, 12,..., 2048, 4096]), allowing for efficient graph capture for various sequence lengths.
 - **Coarser Buckets**: Increasing `--max-seq-len-to-capture` can lead to coarser buckets (e.g., [4, 8, 12, 2048, 8192]).
-- **Performance Impact**: When input sequences fall into these larger, less precise buckets, the captured CUDA graphs may not be optimal, potentially leading to reduced performance.
+- **Performance Impact**: When input sequences fall into these larger, less precise buckets, the captured CUDA/HIP graphs may not be optimal, potentially leading to reduced performance.
 
-Therefore, while capturing longer sequences with CUDA graphs seems beneficial, it's crucial to consider the potential impact on bucketing and overall performance. Finding the optimal `--max-seq-len-to-capture` value may require experimentation to balance graph capture efficiency with appropriate bucket sizes for your specific workload.
+Therefore, while capturing longer sequences with CUDA/HIP graphs seems beneficial, it's crucial to consider the potential impact on bucketing and overall performance. Finding the optimal `--max-seq-len-to-capture` value may require experimentation to balance graph capture efficiency with appropriate bucket sizes for your specific workload.
 
 
 <p align="center">
@@ -199,9 +199,9 @@ Even though the gains might be small, fine-tuning these environment variables ca
 
 ##### Case 6: KVCache Type Auto/FP8
 
-By default, vLLM will automatically allocate a KV Cache type that matches the model’s data type. However, vLLM also supports native FP8 on MI300X which we can exploit to reduce the memory requirement of KVCache and thereby increasing the deployable context length of the model. 
+By default, vLLM will automatically allocate a KV Cache type that matches the model’s data type. However, vLLM also supports native FP8 on MI300X which we can exploit to reduce the memory requirement of KVCache and thereby increasing the deployable context length of the model.
 
-We experiment by using Auto KVCache type and KV Cache type FP8 and compare it to the default baseline. We can see from the figure below that using Auto KVCache type (red) achieves a higher request per second rate than using KV Cache type set to FP8 (yellow).  Theoretically,  this might be due to a quantization overhead in Llama-3.1-70B-Instruct (bfloat16) model, but since the cost of the overhead seems to be small, it could still be a good tradeoff in some cases to obtain a huge reduction in the KVCache requirements.    
+We experiment by using Auto KVCache type and KV Cache type FP8 and compare it to the default baseline. We can see from the figure below that using Auto KVCache type (red) achieves a higher request per second rate than using KV Cache type set to FP8 (yellow). Theoretically, this might be due to a quantization overhead in `Llama-3.1-70B-Instruct (bfloat16)` model, but since the cost of the overhead seems to be small, it could still be a good tradeoff in some cases to obtain a huge reduction in the KVCache requirements.
 
 
 
@@ -220,9 +220,9 @@ We experiment by using Auto KVCache type and KV Cache type FP8 and compare it to
 
 ##### Case 7: Performance Difference between TP 4 and TP 8
 
-Tensor parallelism is a technique for distributing the computational load of large models. It works by splitting individual tensors across multiple devices, allowing for parallel processing of specific operations or layers. This approach reduces the memory footprint of the model and enables scaling across multiple GPUs.   
+Tensor parallelism is a technique for distributing the computational load of large models. It works by splitting individual tensors across multiple devices, allowing for parallel processing of specific operations or layers. This approach reduces the memory footprint of the model and enables scaling across multiple GPUs.
 
-While increasing the tensor parallelism degree can improve performance by providing more compute resources, the gains aren't always linear. This is because communication overhead increases as more devices are involved, and the workload on each individual GPU decreases.  Given the substantial processing power of the MI300X, smaller workloads per GPU can actually lead to underutilization, further hindering performance scaling.
+While increasing the tensor parallelism degree can improve performance by providing more compute resources, the gains aren't always linear. This is because communication overhead increases as more devices are involved, and the workload on each individual GPU decreases. Given the substantial processing power of the MI300X, smaller workloads per GPU can actually lead to underutilization, further hindering performance scaling.
 
 Therefore, when optimizing for throughput, we recommend launching multiple instances of vLLM instead of aggressively increasing tensor parallelism. This approach tends to yield more linear performance improvements. However, if minimizing latency is the priority, increasing the tensor parallelism degree may be the more effective strategy.
 
@@ -240,7 +240,7 @@ Therefore, when optimizing for throughput, we recommend launching multiple insta
 
 ##### Case 8: Effect of Maximum Number of (Parallel) Sequences
 
-The `--max-num-seqs` argument specifies the maximum number of sequences that can be processed per iteration. This parameter controls the number of concurrent requests in a batch, impacting memory usage and performance. In the ShareGPT benchmark, due to the shorter input and output length of the samples, the Llama-3.1-70B-Instruct hosted on MI300X can process a large number of requests per iteration. In our experiment, the `--max-num-seqs` is still a limiting factor, even if `--max-num-seqs` is set at 1024.
+The `--max-num-seqs` argument specifies the maximum number of sequences that can be processed per iteration. This parameter controls the number of concurrent requests in a batch, impacting memory usage and performance. In the ShareGPT benchmark, due to the shorter input and output length of the samples, the `Llama-3.1-70B-Instruct` hosted on MI300X can process a large number of requests per iteration. In our experiment, the `--max-num-seqs` is still a limiting factor, even if `--max-num-seqs` is set at 1024.
 
 <p align="center">
 <picture>
@@ -274,9 +274,9 @@ VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve meta-llama/Llama-3.1-70B-Instruct --host
 ```
 
 For quick setup, we have compiled the Docker Image of vLLM 0.6.2 (commit: _cb3b2b9ba4a95c413a879e30e2b8674187519a93_) to Github Container Registry.
-To get download the image: 
+To get download the image:
 ```bash
-# v0.6.2 post 
+# v0.6.2 post
 docker pull ghcr.io/embeddedllm/vllm-rocm:cb3b2b9
 # P.S. We also have compiled the image for v0.6.3.post1 at commit 717a5f8
 docker pull ghcr.io/embeddedllm/vllm-rocm:v0.6.3.post1-717a5f8
@@ -304,12 +304,14 @@ VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve meta-llama/Llama-3.1-70B-Instruct --host
 ```
 
 ### Conclusion
-This guide has explored the power of vLLM for serving large language models on AMD MI300X GPUs. By meticulously tuning key settings like chunked prefill, multi-step scheduling, and CUDA graph capture, we've demonstrated how to achieve substantial performance gains over standard configurations and alternative serving solutions.  vLLM unlocks significantly higher throughput and faster response times, making it an ideal choice for deploying LLMs on AMD hardware.
+This guide has explored the power of vLLM for serving large language models on AMD MI300X GPUs. By meticulously tuning key settings like chunked prefill, multi-step scheduling, and CUDA graph capture, we've demonstrated how to achieve substantial performance gains over standard configurations and alternative serving solutions. vLLM unlocks significantly higher throughput and faster response times, making it an ideal choice for deploying LLMs on AMD hardware.
 
-However, it's important to acknowledge that our exploration has focused primarily on general chatbot usage with short inputs and outputs.  Further investigation is needed to optimize vLLM for specific use cases like summarization or long-form content generation.  Additionally, a deeper dive into the performance differences between Triton and CK attention kernels could yield further insights.
+However, it's important to acknowledge that our exploration has focused primarily on general chatbot usage with short inputs and outputs. Further investigation is needed to optimize vLLM for specific use cases like summarization or long-form content generation. Additionally, a deeper dive into the performance differences between Triton and CK attention kernels could yield further insights.
+
+We also want to acknolwedge [this wonderful blogpost](https://shisa.ai/blog/posts/tuning-vllm-mi300x/) by Leonard Lin on how to further optimize vLLM for MI300X, including hipBLAS vs hipBLASLt, CK Flash Attention vs Triton Flash Attention, Tensor Parallelism vs Pipeline Parallelism, etc.
 
 ### Acknowledgements
-This blog post is drafted by the team at [Embedded LLM](https://embeddedllm.com/) and Thank you to [Hot Aisles Inc.](https://hotaisle.xyz/) for sponsoring MI300X for benchmarking vLLM.
+This blog post is drafted by the team at [Embedded LLM](https://embeddedllm.com/) and thank you to [Hot Aisles Inc.](https://hotaisle.xyz/) for sponsoring MI300X for benchmarking vLLM.
 
 ### Appendix
 
