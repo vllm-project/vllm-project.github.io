@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Serving LLMs on AMD MI300X: Best Practices"
-author: "Embedded LLM and Hot Aisles Inc."
+author: "Embedded LLM and Hot Aisle Inc."
 ---
 
 **TL;DR:** vLLM unlocks incredible performance on the AMD MI300X, achieving 1.5x higher throughput and 1.7x faster time-to-first-token (TTFT) than Text Generation Inference (TGI) for Llama 3.1 405B. It also achieves 1.8x higher throughput and 5.1x faster TTFT than TGI for Llama 3.1 70B. This guide explores key vLLM settings to maximize efficiency, showing you how to leverage the power of open-source LLM inference on AMD. If you just want to see the optimal parameters, jump to the [Quick Start Guide](#quick-start-guide).
@@ -309,13 +309,13 @@ This guide has explored the power of vLLM for serving large language models on A
 However, it's important to acknowledge that our exploration has focused primarily on general chatbot usage with short inputs and outputs.  Further investigation is needed to optimize vLLM for specific use cases like summarization or long-form content generation.  Additionally, a deeper dive into the performance differences between Triton and CK attention kernels could yield further insights.
 
 ### Acknowledgements
-This blog post is drafted by the team at [Embedded LLM](https://embeddedllm.com/) and Thank you to [Hot Aisles Inc.](https://hotaisle.xyz/) for sponsoring MI300X for benchmarking vLLM.
+This blog post is drafted by the team at [Embedded LLM](https://embeddedllm.com/) and Thank you to [Hot Aisle Inc.](https://hotaisle.xyz/) for sponsoring MI300X for benchmarking vLLM.
 
 ### Appendix
 
 #### Server Specification
 
-The following are the configuration of the amazing Hot Aisles server:
+The following are the configuration of the amazing Hot Aisle server:
 - CPU: 2 x Intel Xeon Platinum 8470
 - GPU: 8 x AMD Instinct MI300X Accelerators
 The model and software that we are using in the benchmark are as follows:
