@@ -14,7 +14,7 @@ author: "Guest Post by Embedded LLM and Hot Aisle Inc."
 &nbsp; &nbsp;
 <img src="/assets/figures/vllm-serving-amd/405b2.png" width="35%">
 </picture><br>
-vLLM vs. TGI performance comparison for Llama 3.1 405B on 8 x MI300X (FP16, 32 QPS).
+vLLM vs. TGI performance comparison for Llama 3.1 405B on 8 x MI300X (BF16, 32 QPS).
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@ vLLM vs. TGI performance comparison for Llama 3.1 405B on 8 x MI300X (FP16, 32 Q
 &nbsp; &nbsp;
 <img src="/assets/figures/vllm-serving-amd/70b2.png" width="35%">
 </picture><br>
-vLLM vs. TGI performance comparison for Llama 3.1 70B on 8 x MI300X (FP16, 32 QPS).
+vLLM vs. TGI performance comparison for Llama 3.1 70B on 8 x MI300X (BF16, 32 QPS).
 </p>
 
 ### Introduction
@@ -49,7 +49,7 @@ Even in the default configuration, vLLM shows superior performance compared to T
 <picture>
 <img src="/assets/figures/vllm-serving-amd/introduction/Mean TTFT (ms).png" width="70%">
 </picture><br>
-vLLM vs. TGI performance for Llama 3.1 405B on 8 x MI300X (FP16, QPS 16, 32, 1000; see Appendix for commands).
+vLLM vs. TGI performance for Llama 3.1 405B on 8 x MI300X (BF16, QPS 16, 32, 1000; see Appendix for commands).
 </p>
 
 ### How to run vLLM with Optimal Performance
