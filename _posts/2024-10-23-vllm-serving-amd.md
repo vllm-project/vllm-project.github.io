@@ -2,6 +2,7 @@
 layout: post
 title: "Serving LLMs on AMD MI300X: Best Practices"
 author: "Guest Post by Embedded LLM and Hot Aisle Inc."
+image: /assets/figures/vllm-serving-amd/405b1.png
 ---
 
 **TL;DR:** vLLM unlocks incredible performance on the AMD MI300X, achieving 1.5x higher throughput and 1.7x faster time-to-first-token (TTFT) than Text Generation Inference (TGI) for Llama 3.1 405B. It also achieves 1.8x higher throughput and 5.1x faster TTFT than TGI for Llama 3.1 70B. This guide explores 8 key vLLM settings to maximize efficiency, showing you how to leverage the power of open-source LLM inference on AMD. If you just want to see the optimal parameters, jump to the [Quick Start Guide](#quick-start-guide).
