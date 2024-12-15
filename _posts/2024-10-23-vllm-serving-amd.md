@@ -264,14 +264,14 @@ If you are not sure about the deployment setting and the distribution of the use
 - Disable chunked prefill `--enable-chunked-prefill=False`
 - Disable prefix caching
 - If the model supports long context length, set the `--max-seq-len-to-capture` to 16384
-- Set the `--num-scheduler-step` to 10 or 15.
+- Set `--num-scheduler-steps` to 10 or 15.
 - Set the AMD environment:
   - `sh -c 'echo 0 > /proc/sys/kernel/numa_balancing' `
   - `export NCCL_MIN_NCHANNELS=112`
 - Increase `--max-num-seqs` to 512 and above, depending on the GPU memory and compute resource of the GPUs.
 
 ```bash
-VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve meta-llama/Llama-3.1-70B-Instruct --host 0.0.0.0 --port 8000 -tp 4 --max-num-seqs 1024 --max-seq-len-to-capture 16384 --served-model-name meta-llama/Llama-3.1-70B-Instruct --enable-chunked-prefill=False --num-scheduler-step 15 --max-num-seqs 1024
+VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve meta-llama/Llama-3.1-70B-Instruct --host 0.0.0.0 --port 8000 -tp 4 --max-num-seqs 1024 --max-seq-len-to-capture 16384 --served-model-name meta-llama/Llama-3.1-70B-Instruct --enable-chunked-prefill=False --num-scheduler-steps 15 --max-num-seqs 1024
 ```
 
 For quick setup, we have compiled the Docker Image of vLLM 0.6.2 (commit: _cb3b2b9ba4a95c413a879e30e2b8674187519a93_) to Github Container Registry.
@@ -301,7 +301,7 @@ sudo docker run -it \
 Now launch the LLM server with the parameters that we have found:
 
 ```bash
-VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve meta-llama/Llama-3.1-70B-Instruct --host 0.0.0.0 --port 8000 -tp 4 --max-num-seqs 1024 --max-seq-len-to-capture 16384 --served-model-name meta-llama/Llama-3.1-70B-Instruct --enable-chunked-prefill=False --num-scheduler-step 15 --max-num-seqs 1024
+VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve meta-llama/Llama-3.1-70B-Instruct --host 0.0.0.0 --port 8000 -tp 4 --max-num-seqs 1024 --max-seq-len-to-capture 16384 --served-model-name meta-llama/Llama-3.1-70B-Instruct --enable-chunked-prefill=False --num-scheduler-steps 15 --max-num-seqs 1024
 ```
 
 ### Conclusion
@@ -336,5 +336,5 @@ We have built the ROCm compatible vLLM docker from Dockerfile.rocm found in the 
 | ------------- | ------------- |
 | vLLM Default Configuration | `VLLM_RPC_TIMEOUT=30000 VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve Llama-3.1-405B-Instruct -tp 8 --max-num-seqs 1024 --max-num-batched-tokens 1024 ` |
 | TGI Default Configuration | `ROCM_USE_FLASH_ATTN_V2_TRITON=false TRUST_REMOTE_CODE=true text-generation-launcher --num-shard 8 --sharded true --max-concurrent-requests 1024 --model-id Llama-3.1-405B-Instruct` |
-| vLLM (This Guide) | `VLLM_RPC_TIMEOUT=30000 VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve Llama-3.1-405B-Instruct -tp 8 --max-seq-len-to-capture 16384 --enable-chunked-prefill=False --num-scheduler-step 15 --max-num-seqs 1024 ` |
+| vLLM (This Guide) | `VLLM_RPC_TIMEOUT=30000 VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve Llama-3.1-405B-Instruct -tp 8 --max-seq-len-to-capture 16384 --enable-chunked-prefill=False --num-scheduler-steps 15 --max-num-seqs 1024 ` |
 | TGI (This Guide) | `ROCM_USE_FLASH_ATTN_V2_TRITON=false TRUST_REMOTE_CODE=true text-generation-launcher --num-shard 8 --sharded true --max-concurrent-requests 1024 --max-total-tokens 131072 --max-input-tokens 131000 --model-id Llama-3.1-405B-Instruct` |
