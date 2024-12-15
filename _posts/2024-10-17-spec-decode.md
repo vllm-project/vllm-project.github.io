@@ -2,6 +2,7 @@
 layout: post
 title: "How Speculative Decoding Boosts vLLM Performance by up to 2.8x"
 author: "vLLM Team"
+image: /assets/figures/spec-decode/figure9.png
 ---
 
 Speculative decoding in vLLM is a powerful technique that accelerates token generation by leveraging both small and large models in tandem. In this blog, we’ll break down speculative decoding in vLLM, how it works, and the performance improvements it brings.

@@ -2,6 +2,7 @@
 layout: post
 title: "Notes on vLLM v.s. DeepSpeed-FastGen"
 author: "vLLM Team"
+image: /assets/figures/notes-vllm-vs-deepspeed/s2.png
 ---
 
 ---
