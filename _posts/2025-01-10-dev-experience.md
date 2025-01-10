@@ -11,7 +11,7 @@ The field of LLM inference is advancing at an unprecedented pace. With new model
 
 * Flexible and fast installation options from stable releases to nightly builds.  
 * Streamlined development workflow for both Python and C++/CUDA developers.  
-* Robust version tracking capabilities for production environments.
+* Robust version tracking capabilities for production deployments.
 
 ## Seamless Installation of vLLM Versions
 
@@ -29,7 +29,7 @@ For those who prefer a faster package manager, [**uv**](https://github.com/astra
 uv pip install vllm
 ```
 
-Refer to the [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#install-released-versions) for more details on setting up [**uv**](https://github.com/astral-sh/uv). With a simple server-grade setup (Intel 8th Gen CPU), we can see [**uv**](https://github.com/astral-sh/uv) is 200x faster than pip:
+Refer to the [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#install-released-versions) for more details on setting up [**uv**](https://github.com/astral-sh/uv). Using a simple server-grade setup (Intel 8th Gen CPU), we observe that [**uv**](https://github.com/astral-sh/uv) is 200x faster than pip:
 
 ```sh
 # with cached packages, clean virtual environment
@@ -67,7 +67,7 @@ We understand that an active, engaged developer community is the backbone of inn
 
 ### Python Developers
 
-For Python developers who need to tweak and test vLLM’s Python code, there’s no need to compile kernels. Our solution allows you to begin development quickly:
+For Python developers who need to tweak and test vLLM’s Python code, there’s no need to compile kernels. This setup enables you to start development quickly.
 
 ```sh
 git clone https://github.com/vllm-project/vllm.git
@@ -77,7 +77,7 @@ VLLM_USE_PRECOMPILED=1 pip install -e .
 
 The `VLLM_USE_PRECOMPILED=1` flag instructs the installer to use pre-compiled CUDA kernels instead of building them from source, significantly reducing installation time. This is perfect for developers focusing on Python-level features like API improvements, model support, or integration work.
 
-This lightweight process runs efficiently, even on a laptop. For more advanced usage, please check the [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#python-only-build-without-compilation).
+This lightweight process runs efficiently, even on a laptop. Refer to our [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#python-only-build-without-compilation) for more advanced usage.
 
 ### C++/Kernel Developers
 
@@ -85,7 +85,7 @@ For advanced contributors working with C++ code or CUDA kernels, we incorporate 
 
 ## Track Changes with Ease
 
-The fast-evolving nature of LLM inference means interfaces and behaviors are still stabilizing. vLLM has been integrated into many workflows, including [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF), [veRL](https://github.com/volcengine/verl), [open_instruct](https://github.com/allenai/open-instruct), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), etc. We are working with them to stabilize interfaces and behaviors for LLM inference. To facilitate the process, we provide powerful tools for these powerful users to track changes across versions.
+The fast-evolving nature of LLM inference means interfaces and behaviors are still stabilizing. vLLM has been integrated into many workflows, including [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF), [veRL](https://github.com/volcengine/verl), [open_instruct](https://github.com/allenai/open-instruct), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), etc. We collaborate with these projects to stabilize interfaces and behaviors for LLM inference. To facilitate the process, we provide powerful tools for these advanced users to track changes across versions.
 
 ### Installing a Specific Commit
 
@@ -113,8 +113,8 @@ pip install https://wheels.vllm.ai/${VLLM_COMMIT}/vllm-1.0.0.dev-cp38-abi3-manyl
 
 At vLLM, our commitment extends beyond delivering high-performance software. We’re building a system that empowers trust, enables transparent tracking of changes, and invites active participation. Together, we can shape the future of AI, pushing the boundaries of innovation while making it accessible to all.
 
-For collaboration requests or inquiries, reach out at [vllm-questions@lists.berkeley.edu](mailto:vllm-questions@lists.berkeley.edu). Join our growing community on [GitHub](https://github.com/vllm-project/vllm) or connect with us on the [vLLM Slack](https://slack.vllm.ai/). Let’s drive AI innovation forward, together.
+For collaboration requests or inquiries, reach out at [vllm-questions@lists.berkeley.edu](mailto:vllm-questions@lists.berkeley.edu). Join our growing community on [GitHub](https://github.com/vllm-project/vllm) or connect with us on the [vLLM Slack](https://slack.vllm.ai/). Together, let’s drive AI innovation forward.
 
 ## Acknowledgments
 
-We would like to express our gratitude to the [uv community](https://docs.astral.sh/uv/) -- particularly [Charlie Marsh](https://github.com/charliermarsh) -- for creating a fast, innovative package manager. Special thanks to [Kevin Luu](https://github.com/khluu) (Anyscale), [Daniele Trifirò](https://github.com/dtrifiro) (Red Hat), and [Michael Goin](https://github.com/mgoin) (Neural Magic) for their invaluable contributions to streamlining workflows. [Kaichao You](https://github.com/youkaichao) and [Simon Mo](https://github.com/simon-mo) from the UC Berkeley team lead these efforts.  
+We extend our gratitude to the [uv community](https://docs.astral.sh/uv/) — particularly [Charlie Marsh](https://github.com/charliermarsh) — for creating a fast, innovative package manager. Special thanks to [Kevin Luu](https://github.com/khluu) (Anyscale), [Daniele Trifirò](https://github.com/dtrifiro) (Red Hat), and [Michael Goin](https://github.com/mgoin) (Neural Magic) for their invaluable contributions to streamlining workflows. [Kaichao You](https://github.com/youkaichao) and [Simon Mo](https://github.com/simon-mo) from the UC Berkeley team lead these efforts.  
