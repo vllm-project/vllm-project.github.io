@@ -5,7 +5,7 @@ author: "vLLM Team"
 image: /assets/figures/vllm-2024-wrapped-2025-roadmap/model-architecture-serving-usage.png
 ---
 
-The vLLM community has achieved remarkable growth in 2024, evolving from a specialized inference engine to becoming the de facto serving solution for the open-source AI ecosystem. Our growth metrics demonstrate significant progress:
+The vLLM community has achieved remarkable growth in 2024, evolving from a specialized inference engine to becoming the de facto serving solution for the open-source AI ecosystem. This transformation is reflected in our growth metrics, which tell a story of rapid adoption and expanding impact:
 
 * GitHub stars grew from 14,000 to 32,600 (2.3x)  
 * Contributors expanded from 190 to 740 (3.8x)  
@@ -24,7 +24,7 @@ This transformation has established vLLM as the Linux/Kubernetes/PyTorch of **LL
 ### Community Contributions and Growth
 
 <figure>
-  <img src="/assets/figures/vllm-2024-wrapped-2025-roadmap/model-architecture-serving-usage.png" />
+  <img src="/assets/figures/vllm-2024-wrapped-2025-roadmap/vllm-contributor-groups.png" />
 <figcaption>
 vLLM Main Contributor Groups (by Commits)
 </figcaption>
@@ -37,6 +37,8 @@ It’s been a great 2024 for vLLM! Our contribution community has expanded drama
 * Contributions from top institutions including UC Berkeley, Neural Magic, AnyScale, Roblox, IBM, AMD, Intel, and NVIDIA, as well as individual developers worldwide.  
 * A thriving ecosystem bridging model creators, hardware vendors, and optimization developers  
 * Well-attended bi-weekly office hours facilitating transparency, community growth, and strategic partnerships
+
+These numbers reflect more than just growth \- they demonstrate vLLM's increasing role as critical infrastructure in the AI ecosystem, supporting everything from research prototypes to production systems serving millions of users.
 
 ### Expanding Model Support
 
@@ -69,7 +71,7 @@ From the initial hardware target of NVIDIA A100 GPUs, vLLM has expanded to suppo
 
 vLLM's hardware compatibility has broadened to address diverse user requirements while incorporating performance improvements.
 
-### Delivering Key Features!
+### Delivering Key Features
 
 <figure>
   <img src="/assets/figures/vllm-2024-wrapped-2025-roadmap/quantization-deployment-percentage.png" />
@@ -91,9 +93,9 @@ vLLM’s 2024 development roadmap emphasized performance, scalability, and usabi
 
 ## 2025 Vision: The Next Frontier in AI Inference
 
-### Emerging Model Capabilities: GPT-4 Class Models on Consumer Hardware
-
 In 2025, we anticipate a significant push in the boundaries of AI model scaling, with AGI models being trained on clusters of 100,000+ GPUs. However, we're seeing an exciting counter-trend: open-source models are rapidly catching up to proprietary ones, and through distillation, these massive models are becoming smaller, more intelligent, and more practical for production deployment.
+
+### Emerging Model Capabilities: GPT-4 Class Models on Consumer Hardware
 
 Our vision is ambitious yet concrete: enabling GPT-4 level performance on a single GPU, GPT-4o on a single node, and GPT-5 scale capabilities on a modest cluster. To achieve this, we're focusing on three key optimization frontiers:
 
@@ -139,7 +141,7 @@ As we reflect on vLLM's journey, some key themes emerge that have shaped our gro
 
 ### Building Bridges in the AI Ecosystem
 
-What began as an inference engine has evolved into something far more significant: a platform that bridges previously distinct worlds in the AI landscape. Model creators, hardware vendors, and optimization specialists have found in vLLM a unique amplifier for their contributions. When hardware teams develop new accelerators, vLLM provides immediate access to a broad application ecosystem. When researchers devise novel optimization techniques, vLLM offers a production-ready platform to demonstrate real-world impact. This virtuous cycle of **contribution and amplification has become core to our identity**, driving us to continuously improve the platform's accessibility and extensibility.
+What started as an inference engine has evolved into something far more significant: a platform that bridges previously distinct worlds in the AI landscape. Model creators, hardware vendors, and optimization specialists have found in vLLM a unique amplifier for their contributions. When hardware teams develop new accelerators, vLLM provides immediate access to a broad application ecosystem. When researchers devise novel optimization techniques, vLLM offers a production-ready platform to demonstrate real-world impact. This virtuous cycle of **contribution and amplification has become core to our identity**, driving us to continuously improve the platform's accessibility and extensibility.
 
 ### Managing Growth While Maintaining Excellence
 
@@ -147,7 +149,7 @@ Our exponential growth in 2024 brought both opportunities and challenges. The ra
 
 ### Pioneering a New Model of Open Source Development
 
-Perhaps our most unique challenge has been **building a world-class engineering organization** through a network of sponsored volunteers. While most open source projects rely on funding from a single organization, vLLM is charting a different course. We're creating a collaborative environment where multiple organizations contribute not just code, but resources and strategic direction. This model brings novel challenges in coordination, planning, and execution, but it also offers unprecedented opportunities for innovation and resilience. We're learning – and sometimes inventing – best practices for everything from distributed decision-making to remote collaboration across organizational boundaries.
+Perhaps our most unique challenge has been **building a world-class engineering organization** through a network of sponsored volunteers. Unlike traditional open source projects that rely on funding from a single organization, vLLM is charting a different course. We're creating a collaborative environment where multiple organizations contribute not just code, but resources and strategic direction. This model brings novel challenges in coordination, planning, and execution, but it also offers unprecedented opportunities for innovation and resilience. We're learning – and sometimes inventing – best practices for everything from distributed decision-making to remote collaboration across organizational boundaries.
 
 ### Our Unwavering Commitment
 
