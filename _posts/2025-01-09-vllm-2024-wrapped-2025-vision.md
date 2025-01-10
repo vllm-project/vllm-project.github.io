@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM 2024 Retrospective and 2025 Vision"
 author: "vLLM Team"
+image: /assets/figures/vllm-2024-wrapped-2025-roadmap/model-architecture-serving-usage.png
 ---
 
 The vLLM community has achieved remarkable growth in 2024, evolving from a specialized inference engine to becoming the de facto serving solution for the open-source AI ecosystem. Our growth metrics demonstrate significant progress:
