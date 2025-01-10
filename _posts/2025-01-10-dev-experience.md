@@ -11,7 +11,7 @@ The field of LLM inference is advancing at an unprecedented pace. With new model
 
 * Flexible and fast installation options from stable releases to nightly builds.  
 * Streamlined development workflow for both Python and C++/CUDA developers.  
-* Useful version tracking capabilities for production deployments.
+* Robust version tracking capabilities for production environments.
 
 ## Seamless Installation of vLLM Versions
 
@@ -67,7 +67,7 @@ We understand that an active, engaged developer community is the backbone of inn
 
 ### Python Developers
 
-For Python developers who need to tweak and test vLLM’s Python code, there’s no need to compile kernels. Our solution allows you to get started in just a few minutes:
+For Python developers who need to tweak and test vLLM’s Python code, there’s no need to compile kernels. Our solution allows you to begin development quickly:
 
 ```sh
 git clone https://github.com/vllm-project/vllm.git
@@ -81,7 +81,7 @@ This lightweight process runs efficiently, even on a laptop. For more advanced u
 
 ### C++/Kernel Developers
 
-For advanced contributors working with C++ code or CUDA kernels, we’ve optimized the experience by incorporating a compilation cache. This approach minimizes build times and simplifies the process for kernel development. Please check our [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#full-build-with-compilation) for more details.
+For advanced contributors working with C++ code or CUDA kernels, we incorporate a compilation cache to minimize build time and streamline kernel development. Please check our [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#full-build-with-compilation) for more details.
 
 ## Track Changes with Ease
 
@@ -111,10 +111,10 @@ pip install https://wheels.vllm.ai/${VLLM_COMMIT}/vllm-1.0.0.dev-cp38-abi3-manyl
 
 ## Conclusion
 
-The vLLM community is committed to delivering more than just high-performance software. We’re building a system that empowers trust, enables transparent tracking of changes, and invites active participation. Together, we can shape the future of AI, pushing the boundaries of innovation while making it accessible to all.
+At vLLM, our commitment extends beyond delivering high-performance software. We’re building a system that empowers trust, enables transparent tracking of changes, and invites active participation. Together, we can shape the future of AI, pushing the boundaries of innovation while making it accessible to all.
 
 For collaboration requests or inquiries, reach out at [vllm-questions@lists.berkeley.edu](mailto:vllm-questions@lists.berkeley.edu). Join our growing community on [GitHub](https://github.com/vllm-project/vllm) or connect with us on the [vLLM Slack](https://slack.vllm.ai/). Let’s drive AI innovation forward, together.
 
 ## Acknowledgments
 
-We extend our gratitude to the [uv community](https://docs.astral.sh/uv/) (particularly [Charlie Marsh](https://github.com/charliermarsh)) for creating a fast, innovative package manager. Special thanks to [Kevin Luu](https://github.com/khluu) (Anyscale), [Daniele Trifirò](https://github.com/dtrifiro) (Red Hat), and [Michael Goin](https://github.com/mgoin) (Neural Magic) for their invaluable contributions to streamlining workflows. [Kaichao You](https://github.com/youkaichao) and [Simon Mo](https://github.com/simon-mo) from the UC Berkeley team lead these efforts.  
+We would like to express our gratitude to the [uv community](https://docs.astral.sh/uv/) -- particularly [Charlie Marsh](https://github.com/charliermarsh) -- for creating a fast, innovative package manager. Special thanks to [Kevin Luu](https://github.com/khluu) (Anyscale), [Daniele Trifirò](https://github.com/dtrifiro) (Red Hat), and [Michael Goin](https://github.com/mgoin) (Neural Magic) for their invaluable contributions to streamlining workflows. [Kaichao You](https://github.com/youkaichao) and [Simon Mo](https://github.com/simon-mo) from the UC Berkeley team lead these efforts.  
