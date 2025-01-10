@@ -19,18 +19,29 @@ The field of LLM inference is advancing at an unprecedented pace. With new model
 
 We periodically release stable versions of vLLM to the [Python Package Index](https://pypi.org/project/vllm/), ensuring users can easily install them using standard Python package managers. For example:
 
-| pip install vllm |
-| :---- |
+```sh
+pip install vllm
+```
 
 For those who prefer a faster package manager, [**uv**](https://github.com/astral-sh/uv) has been gaining traction in the vLLM community. After setting up a Python environment with uv, installing vLLM is straightforward:
 
-| uv pip install vllm |
-| :---- |
+```sh
+uv pip install vllm
+```
 
 Refer to the [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#install-released-versions) for more details on setting up [**uv**](https://github.com/astral-sh/uv). With a simple server-grade setup (Intel 8th Gen CPU), we can see [**uv**](https://github.com/astral-sh/uv) is 200x faster than pip:
 
-| \# with cached packages, clean virtual environment$ time pip install vllm...pip install vllm 59.09s user 3.82s system 83% cpu 1:15.68 total \# with cached packages, clean virtual environment$ time uv pip install vllm....uv pip install vllm 0.17s user 0.57s system 193% cpu 0.383 total |
-| :---- |
+```sh
+# with cached packages, clean virtual environment
+$ time pip install vllm
+...
+pip install vllm 59.09s user 3.82s system 83% cpu 1:15.68 total
+
+# with cached packages, clean virtual environment
+$ time uv pip install vllm
+...
+uv pip install vllm 0.17s user 0.57s system 193% cpu 0.383 total
+```
 
 ### Install the Latest vLLM from the Main Branch
 
@@ -38,15 +49,17 @@ To meet the community’s need for cutting-edge features and models, we provide 
 
 **Using pip**:
 
-| pip install vllm \--pre \--extra-index-url https://wheels.vllm.ai/nightly |
-| :---- |
+```sh
+pip install vllm --pre --extra-index-url https://wheels.vllm.ai/nightly
+```
 
-Adding \--pre ensures pip includes pre-released versions in its search.
+Adding `--pre` ensures pip includes pre-released versions in its search.
 
 **Using uv**:
 
-| uv pip install vllm \--extra-index-url https://wheels.vllm.ai/nightly |
-| :---- |
+```sh
+uv pip install vllm --extra-index-url https://wheels.vllm.ai/nightly
+```
 
 ## Development Made Simple
 
@@ -56,10 +69,13 @@ We understand that an active, engaged developer community is the backbone of inn
 
 For Python developers who need to tweak and test vLLM’s Python code, there’s no need to compile kernels. Our solution allows you to get started in just a few minutes:
 
-| git clone https://github.com/vllm-project/vllm.gitcd vllmVLLM\_USE\_PRECOMPILED=1 pip install \-e . |
-| :---- |
+```sh
+git clone https://github.com/vllm-project/vllm.git
+cd vllm
+VLLM_USE_PRECOMPILED=1 pip install -e .
+```
 
-The VLLM\_USE\_PRECOMPILED=1 flag instructs the installer to use pre-compiled CUDA kernels instead of building them from source, significantly reducing installation time. This is perfect for developers focusing on Python-level features like API improvements, model support, or integration work.
+The `VLLM_USE_PRECOMPILED=1` flag instructs the installer to use pre-compiled CUDA kernels instead of building them from source, significantly reducing installation time. This is perfect for developers focusing on Python-level features like API improvements, model support, or integration work.
 
 This lightweight process runs efficiently, even on a laptop. For more advanced usage, please check the [documentation](https://docs.vllm.ai/en/latest/getting_started/installation/gpu-cuda.html#python-only-build-without-compilation).
 
@@ -69,7 +85,7 @@ For advanced contributors working with C++ code or CUDA kernels, we’ve optimiz
 
 ## Track Changes with Ease
 
-The fast-evolving nature of LLM inference means interfaces and behaviors are still stabilizing. vLLM has been integrated into many workflows, including [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF), [veRL](https://github.com/volcengine/verl), [open\_instruct](https://github.com/allenai/open-instruct), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), etc. We are working with them to stabilize interfaces and behaviors for LLM inference. To facilitate the process, we provide powerful tools for these powerful users to track changes across versions.
+The fast-evolving nature of LLM inference means interfaces and behaviors are still stabilizing. vLLM has been integrated into many workflows, including [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF), [veRL](https://github.com/volcengine/verl), [open_instruct](https://github.com/allenai/open-instruct), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), etc. We are working with them to stabilize interfaces and behaviors for LLM inference. To facilitate the process, we provide powerful tools for these powerful users to track changes across versions.
 
 ### Installing a Specific Commit
 
@@ -77,15 +93,21 @@ To simplify tracking and testing, we provide wheels for every commit in the main
 
 We recommend using [**uv**](https://github.com/astral-sh/uv) to install a specific commit:
 
-| \# use full commit hash from the main branch export VLLM\_COMMIT=72d9c316d3f6ede485146fe5aabd4e61dbc59069uv pip install vllm \--extra-index-url https://wheels.vllm.ai/${VLLM\_COMMIT} |
-| :---- |
+```sh
+# use full commit hash from the main branch
+export VLLM_COMMIT=72d9c316d3f6ede485146fe5aabd4e61dbc59069
+uv pip install vllm --extra-index-url https://wheels.vllm.ai/${VLLM_COMMIT}
+```
 
-In [**uv**](https://github.com/astral-sh/uv) , packages in `--extra-index-url` have [higher priority than the default index](https://docs.astral.sh/uv/pip/compatibility/#packages-that-exist-on-multiple-indexes), which makes it possible to install a developing version prior to the latest public release (at the time of writing, it is v0.6.6.post1).
+In [**uv**](https://github.com/astral-sh/uv), packages in `--extra-index-url` have [higher priority than the default index](https://docs.astral.sh/uv/pip/compatibility/#packages-that-exist-on-multiple-indexes), which makes it possible to install a developing version prior to the latest public release (at the time of writing, it is v0.6.6.post1).
 
-In contrast, pip combines packages from \--extra-index-url and the default index, choosing only the latest version, which makes it difficult to install a developing version prior to the released version. Therefore, for pip users, it requires specifying a placeholder wheel name to install a specific commit:
+In contrast, pip combines packages from `--extra-index-url` and the default index, choosing only the latest version, which makes it difficult to install a developing version prior to the released version. Therefore, for pip users, it requires specifying a placeholder wheel name to install a specific commit:
 
-| \# use full commit hash from the main branch export VLLM\_COMMIT=33f460b17a54acb3b6cc0b03f4a17876cff5eafd pip install https://wheels.vllm.ai/${VLLM\_COMMIT}/vllm-1.0.0.dev-cp38-abi3-manylinux1\_x86\_64.whl |
-| :---- |
+```sh
+# use full commit hash from the main branch
+export VLLM_COMMIT=33f460b17a54acb3b6cc0b03f4a17876cff5eafd
+pip install https://wheels.vllm.ai/${VLLM_COMMIT}/vllm-1.0.0.dev-cp38-abi3-manylinux1_x86_64.whl
+```
 
 ## Conclusion
 
