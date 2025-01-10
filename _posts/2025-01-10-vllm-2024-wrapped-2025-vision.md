@@ -7,13 +7,13 @@ image: /assets/figures/vllm-2024-wrapped-2025-roadmap/model-architecture-serving
 
 The vLLM community has achieved remarkable growth in 2024, evolving from a specialized inference engine to becoming the de facto serving solution for the open-source AI ecosystem. This transformation is reflected in our growth metrics, which tell a story of rapid adoption and expanding impact:
 
-* GitHub stars grew from 14,000 to 32,600 (2.3x)  
-* Contributors expanded from 190 to 740 (3.8x)  
-* Monthly downloads surged from 6,000 to 27,000 (4.5x)  
-* We've seen approximately 10x growth in GPU hours over the last six months.  
+* GitHub stars grew from 14,000 to 32,600 (2.3x)
+* Contributors expanded from 190 to 740 (3.8x)
+* Monthly downloads surged from 6,000 to 27,000 (4.5x)
+* We've seen approximately 10x growth in GPU hours over the last six months.
 * You can explore more of our usage data at [https://2024.vllm.ai](https://2024.vllm.ai).
 
-This transformation has established vLLM as the Linux/Kubernetes/PyTorch of **LLM inference infrastructure**, with large adoption for production applications (e.g. powering Amazon Rufus and Linkedin AI Features). Our bi-monthly meetups have become strategic gatherings for partnerships with industry leaders like IBM, AWS, and NVIDIA, marking our progress toward becoming the universal serving solution for the open-source AI ecosystem. Read on for more details on vLLM’s 2024 achievements and 2025 roadmap.
+This transformation has established vLLM as the leading open-source LLM serving and inference engine, with large adoption for production applications (e.g. powering Amazon Rufus and Linkedin AI Features). Our bi-monthly meetups have become strategic gatherings for partnerships with industry leaders like IBM, AWS, and NVIDIA, marking our progress toward becoming the universal serving solution for the open-source AI ecosystem. Read on for more details on vLLM’s 2024 achievements and 2025 roadmap!
 
 *This blog is based off of the 16th session of the bi-weekly [vLLM Office Hours](https://hubs.li/Q02TFDTT0) session. Watch the recording [here](https://www.youtube.com/watch?v=xmz8lHsrbGM).*
 
@@ -32,10 +32,10 @@ vLLM Main Contributor Groups (by Commits)
 
 It’s been a great 2024 for vLLM! Our contribution community has expanded dramatically, now including:
 
-* 15+ full-time contributors spanning 6+ organizations  
-* 20+ active organizations as key stakeholders and sponsors  
-* Contributions from top institutions including UC Berkeley, Neural Magic, AnyScale, Roblox, IBM, AMD, Intel, and NVIDIA, as well as individual developers worldwide.  
-* A thriving ecosystem bridging model creators, hardware vendors, and optimization developers  
+* 15+ full-time contributors spanning 6+ organizations
+* 20+ active organizations as key stakeholders and sponsors
+* Contributions from top institutions including UC Berkeley, Neural Magic, Anyscale, Roblox, IBM, AMD, Intel, and NVIDIA, as well as individual developers worldwide.
+* A thriving ecosystem bridging model creators, hardware vendors, and optimization developers
 * Well-attended bi-weekly office hours facilitating transparency, community growth, and strategic partnerships
 
 These numbers reflect more than just growth \- they demonstrate vLLM's increasing role as critical infrastructure in the AI ecosystem, supporting everything from research prototypes to production systems serving millions of users.
@@ -49,7 +49,7 @@ Usage by Model Architecture in Serving
 </figcaption>
 </figure>
 
-At the beginning of 2024, vLLM supported only a handful of models. By year’s end, the project had evolved to support performant inference for almost [**100 model architectures**](https://docs.vllm.ai/en/latest/models/supported_models.html): spanning nearly every prominent open-source large language model (LLM), including multimodal (image, audio, video), encoder-decoder, speculative decoding, classification, embedding, and reward models. Notably, vLLM introduced support for state-space language models, marking a significant technical milestone.
+At the beginning of 2024, vLLM supported only a handful of models. By year’s end, the project had evolved to support performant inference for almost [**100 model architectures**](https://docs.vllm.ai/en/latest/models/supported_models.html): spanning nearly every prominent open-source large language model (LLM), multimodal (image, audio, video), encoder-decoder, speculative decoding, classification, embedding, and reward models. Notably, vLLM introduced production support for state-space language models, exploring the future of non-transformer language models.
 
 ### Broadening Hardware Compatibility
 
@@ -62,14 +62,14 @@ GPU Hours Breakdown by Hardware Vendor
 
 From the initial hardware target of NVIDIA A100 GPUs, vLLM has expanded to support:
 
-* **NVIDIA GPUs:** First-class optimizations for H100, with support for every NVIDIA GPU from V100 and newer.  
-* **AMD GPUs:** Support for MI200, MI300, and Radeon RX 7900 series \- with rapidly growing adoption for MI300X.  
-* **Google TPUs:** Support for TPU v4, v5p, v5e, and the latest v6e.  
-* **AWS Inferentia and Trainium:** Supports for trn1/inf2 instances.  
-* **Intel Gaudi (HPU) and GPU (XPU):** Leveraging Intel GPU and Gaudi architectures for AI workloads.  
+* **NVIDIA GPUs:** First-class optimizations for H100, with support for every NVIDIA GPU from V100 and newer.
+* **AMD GPUs:** Support for MI200, MI300, and Radeon RX 7900 series \- with rapidly growing adoption for MI300X.
+* **Google TPUs:** Support for TPU v4, v5p, v5e, and the latest v6e.
+* **AWS Inferentia and Trainium:** Supports for trn1/inf2 instances.
+* **Intel Gaudi (HPU) and GPU (XPU):** Leveraging Intel GPU and Gaudi architectures for AI workloads.
 * **CPUs:** Featuring support for a growing list of ISAs \- x86, ARM, and PowerPC.
 
-vLLM's hardware compatibility has broadened to address diverse user requirements while incorporating performance improvements.
+vLLM's hardware compatibility has broadened to address diverse user requirements while incorporating performance improvements. Importantly, vLLM is on the path to ensure that all models work on all hardware platforms, with all the optimizations enabled.
 
 ### Delivering Key Features
 
@@ -82,22 +82,23 @@ Increasing Percentage of vLLM Deployments with Quantization
 
 vLLM’s 2024 development roadmap emphasized performance, scalability, and usability:
 
-* **Weight and Activation Quantization:** Prioritized support for a wide variety of quantization methods and kernels, enabling efficient inference on various hardware platforms. Some integrated methods of note are: activation quantization for FP8+INT8, Marlin+Machete kernels for GPTQ/AWQ/wNa16, FP8 KV Cache, AQLM, QQQ, HQQ, bitsandbytes, and GGUF. More than 20% of vLLM deployments now use quantization.  
-* **Automatic Prefix Caching:** Reducing costs and improving latency for context-heavy applications.  
-* **Speculative Decoding:** Accelerating token generation by predicting multiple tokens simultaneously for the model to validate. We added support for draft models, matching n-grams in the prompt, and MLP speculators like Medusa or EAGLE.  
-* **Structured Outputs:** Providing high-performance, structured output capabilities for applications requiring specific formats like JSON or pydantic schemas.  
-* **Tool Calling:** Models with supported chat templates can generate its own tool calls when it deems appropriate, enabling data processing and agentic flows.  
+* **Weight and Activation Quantization:** Prioritized support for a wide variety of quantization methods and kernels, enabling efficient inference on various hardware platforms. Some integrated methods of note are: activation quantization for FP8+INT8, Marlin+Machete kernels for GPTQ/AWQ/wNa16, FP8 KV Cache, AQLM, QQQ, HQQ, bitsandbytes, and GGUF. More than 20% of vLLM deployments now use quantization.
+* **Automatic Prefix Caching:** Reducing costs and improving latency for context-heavy applications.
+* **Chunked Prefill:** Improving stability of inter-token latency for interactive applications.
+* **Speculative Decoding:** Accelerating token generation by predicting multiple tokens simultaneously for the model to validate. We added support for draft models, matching n-grams in the prompt, and MLP speculators like Medusa or EAGLE.
+* **Structured Outputs:** Providing high-performance, structured output capabilities for applications requiring specific formats like JSON or pydantic schemas.
+* **Tool Calling:** Models with supported chat templates can generate its own tool calls when it deems appropriate, enabling data processing and agentic flows.
 * **Distributed Inference:** Introducing pipeline parallelism and disaggregated prefill to scale workloads across GPUs and nodes effectively.
 
 ---
 
-## 2025 Vision: The Next Frontier in AI Inference
+## Our 2025 Vision
 
-In 2025, we anticipate a significant push in the boundaries of AI model scaling, with AGI models being trained on clusters of 100,000+ GPUs. However, we're seeing an exciting counter-trend: open-source models are rapidly catching up to proprietary ones, and through distillation, these massive models are becoming smaller, more intelligent, and more practical for production deployment.
+In 2025, we anticipate a significant push in the boundaries of scaling for both pretraining and inference-time scaling. We believe that open-source models are rapidly catching up to proprietary ones, and through distillation, these massive models are becoming smaller, more intelligent, and more practical for production deployment.
 
-### Emerging Model Capabilities: GPT-4 Class Models on Consumer Hardware
+### Emerging Model Capabilities: GPT-4o Class Models served on single node
 
-Our vision is ambitious yet concrete: enabling GPT-4 level performance on a single GPU, GPT-4o on a single node, and GPT-5 scale capabilities on a modest cluster. To achieve this, we're focusing on three key optimization frontiers:
+Our vision is ambitious yet concrete: enabling GPT-4o level performance on a single GPU, GPT-4o on a single node, and next generation scale capabilities on a modest cluster. To achieve this, we're focusing on three key optimization frontiers:
 
 * KV cache and attention optimization with sliding windows, cross-layer attention, and native quantization
 
@@ -107,7 +108,7 @@ Our vision is ambitious yet concrete: enabling GPT-4 level performance on a sing
 
 Beyond raw performance, we're tailoring vLLM for specialized vertical applications. Each use case demands specific optimizations: reasoning applications need custom tokens and flexible reasoning steps, coding requires fill-in-the-middle capabilities and prompt lookup decoding, agent frameworks benefit from tree-based caching, and creative applications need diverse sampling strategies including beam search variants and contrastive decode.
 
-We're also expanding vLLM's role in the model training process. Recent adoption by prominent researchers like John Schulman signals our growing importance in post-training workflows. We'll provide tight integration with data curation and RLHF processes, making vLLM an essential tool across the full AI development lifecycle.
+We're also expanding vLLM's role in the model training process. Recent adoption by prominent researchers like John Schulman signals our growing importance in post-training workflows. We'll provide tight integration with data curation and post-training processes, making vLLM an essential tool across the full AI development lifecycle.
 
 ### Practical Scale: Powering Thousands of Production Clusters
 
@@ -125,13 +126,13 @@ Our commitment to openness extends beyond just code. We're introducing:
 
 * Pluggable architectures for seamless integration of new models, hardware backends, and custom extensions
 
-* First-class torch.compile support, enabling custom operation fusion passes and rapid experimentation
+* First-class `torch.compile` support, enabling custom operation fusion passes and rapid experimentation
 
 * A flexible component system that supports private extensions while maintaining core stability
 
 We're doubling down on community development, coordinating engineering efforts across organizations while celebrating ecosystem projects. This includes growing our core team through a clear recruitment process and organizational structure. The goal isn't just to make vLLM the best choice technically – it's to ensure that everyone who invests in vLLM finds themselves better off for having done so.
 
-Our architecture is more than just a technical choice; it's a commitment to creating "stickiness" through extensibility and modification rather than lock-in. By making vLLM both powerful and customizable, we ensure its place at the heart of the AI inference ecosystem.
+Our architecture is more than just a technical choice; it's a commitment to creating a connected ecosystem through extensibility and modification rather than lock-in. By making vLLM both powerful and customizable, we ensure its place at the heart of the AI inference ecosystem.
 
 ---
 
@@ -163,8 +164,8 @@ vLLM’s 2024 journey reflects the transformative potential of open-source colla
 
 As vLLM enters 2025, we continue to encourage the community to participate in its growth. Opportunities include:
 
-* **Contributing Code:** Help refine vLLM’s core functionality or extend its capabilities. There are many RFCs and features that could use more hands.  
-* **Providing Feedback:** Share insights on features and use cases to shape vLLM’s roadmap. Find us on Github, Slack, Discord, or at events.  
+* **Contributing Code:** Help refine vLLM’s core functionality or extend its capabilities. There are many RFCs and features that could use more hands.
+* **Providing Feedback:** Share insights on features and use cases to shape vLLM’s roadmap. Find us on Github, Slack, Discord, or at events.
 * **Building with vLLM:** Adopt the platform in your projects, develop your personal knowledge, and share your experience.
 
 Join the [vLLM Developer Slack](https://slack.vllm.ai/) to get mentored by project leaders, offering an exciting opportunity to work at the forefront of AI inference innovation.
