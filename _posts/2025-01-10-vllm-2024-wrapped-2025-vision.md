@@ -158,6 +158,19 @@ Through all these changes and challenges, our fundamental mission remains clear:
 
 ---
 
+## Usage Data Collection
+
+The metrics and insights throughout this post are powered by vLLM's [usage system](https://github.com/vllm-project/vllm/blob/main/vllm/usage/usage_lib.py), which collects anonymized deployment data. Each vLLM instance generates a UUID and reports technical metrics including:
+
+* Hardware specs (GPU count/type, CPU architecture, available memory)
+* Model configuration (architecture, dtype, tensor parallelism degree)
+* Runtime settings (quantization type, prefix caching enabled)
+* Deployment context (cloud provider, platform, vLLM version)
+
+This telemetry helps prioritize optimizations for common hardware configurations and identify which features need performance improvements. The data is collected locally in `~/.config/vllm/usage_stats.json`. Users can opt out by setting `VLLM_NO_USAGE_STATS=1`, `DO_NOT_TRACK=1`, or creating `~/.config/vllm/do_not_track`. The implementation details and full schema are available in our [usage stats documentation](https://docs.vllm.ai/en/latest/serving/usage_stats.html).
+
+---
+
 ## Join the Journey
 
 vLLM's 2024 journey demonstrates the transformative potential of open-source collaboration. With a clear vision for 2025, the project is poised to redefine AI inference, making it more accessible, scalable, and efficient. Whether through code contributions, attending [vLLM Office Hours](https://hubs.li/Q02TFDTT0), or adopting vLLM in production, every participant helps shape the future of this fast-moving project.
