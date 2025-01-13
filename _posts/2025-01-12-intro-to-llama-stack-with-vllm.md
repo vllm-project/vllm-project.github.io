@@ -392,8 +392,12 @@ kubectl port-forward service/llama-stack-service 5000:5000
 llama-stack-client --endpoint http://localhost:5000 inference chat-completion --message "hello, what model are you?"
 ```
 TODO: More interesting prompt to congratulate reaching the end of the article
+TODO(yuan): potential mention of deployment option via KServe
 
 
 ## Acknowledgments
 
-TBA
+TODO(yuan and ashwin):
+* Llama Stack/Meta team (core maintainers)
+* Red Hat team (contributors, reviewers)
+* vLLM team
