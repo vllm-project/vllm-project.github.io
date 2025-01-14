@@ -129,7 +129,7 @@ We want to thank the vLLM team, XGrammar team, [Aaron Pham (BentoML)](https://gi
 
 - Bahdanau, D., Cho, K., & Bengio, Y. (2016). *Neural Machine Translation by Jointly Learning to Align and Translate*. arXiv preprint arXiv:1409.0473
 - Haugeland, J. (1997). *Mind Design II: Philosophy, Psychology, and Artificial Intelligence*. The MIT Press. [https://doi.org/10.7551/mitpress/4626.001.0001](https://doi.org/10.7551/mitpress/4626.001.0001)
-- Hendler, J. (2008). Avoiding Another AI Winter. *IEEE Intelligent Systems*, *23*(2), 2–4. [https://doi.org/10.1109/MIS.2008.20](https://doi.org/10.1109/MIS.2008.20)professional
+- Hendler, J. (2008). Avoiding Another AI Winter. *IEEE Intelligent Systems*, *23*(2), 2–4. [https://doi.org/10.1109/MIS.2008.20](https://doi.org/10.1109/MIS.2008.20)
 - Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*.
 - Kaplan, J., McCandlish, S., Henighan, T., Brown, T. B., Chess, B., Child, R., Gray, S., Radford, A., Wu, J., & Amodei, D. (2020). *Scaling Laws for Neural Language Models*. arXiv preprint arXiv:2001.08361
 - Mikolov, T., Chen, K., Corrado, G., & Dean, J. (2013). *Efficient Estimation of Word Representations in Vector Space*. arXiv preprint arXiv:1301.3781
