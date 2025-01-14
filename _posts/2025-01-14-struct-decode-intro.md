@@ -88,7 +88,7 @@ This advancement addresses **limitation (1)** by moving grammar compilation out 
   <img src="/assets/figures/struct-decode-intro/vllm-new-xgrammar.png" />
   <img src="/assets/figures/struct-decode-intro/vllm-xgrammar-decode-time-per-output-token.png" />
 <figcaption>
-courtesy of Michael Goin (Red Hat).
+courtesy of [Michael Goin (Red Hat)](https://github.com/mgoin).
 </figcaption>
 </figure>
 
@@ -123,7 +123,7 @@ _NOTE: if you have any more suggestions we are more than happy to take it into c
 
 ## Acknowledgements
 
-We want to thank the vLLM team, XGrammar team, Michael Goin (Red Hat), Chendi Xue (Intel), and Russell Bryant (Red Hat) for their valuable feedback and collaboration on bringing XGrammar to vLLM and the continuous effort to improve structured decoding in vLLM.
+We want to thank the vLLM team, XGrammar team, [Aaron Pham (BentoML)](https://github.com/aarnphm), [Michael Goin (Red Hat)](https://github.com/mgoin), [Chendi Xue (Intel)](https://github.com/xuechendi), and [Russell Bryant (Red Hat)](https://github.com/russellb) for their valuable feedback and collaboration on bringing XGrammar to vLLM and the continuous effort to improve structured decoding in vLLM.
 
 ## References
 
