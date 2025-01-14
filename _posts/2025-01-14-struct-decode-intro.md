@@ -88,7 +88,7 @@ This advancement addresses **limitation (1)** by moving grammar compilation out 
   <img src="/assets/figures/struct-decode-intro/vllm-new-xgrammar.png" />
   <img src="/assets/figures/struct-decode-intro/vllm-xgrammar-decode-time-per-output-token.png" />
 <figcaption>
-courtesy of [Michael Goin (Red Hat)](https://github.com/mgoin).
+courtesy of Michael Goin (Red Hat).
 </figcaption>
 </figure>
 
