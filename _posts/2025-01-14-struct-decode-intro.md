@@ -109,7 +109,7 @@ There are still a few usability concerns in XGrammar v0 integration to match fea
 
 With the release of [v1](https://github.com/vllm-project/vllm/issues/8779) on the horizon, we're working on a tentative plan for structured decoding:
 
-1. Moving guided decoding towards scheduler-level [\[10\]](https://www.notion.so/Blog-4X-structured-decoding-speed-in-vLLM-8c3f2d44f6504202abbdb534983f2b2e?pvs=21)
+1. Moving guided decoding towards scheduler-level:
    - Reason: We have more context regarding which requests that use structured decoding at a scheduler-level, therefore it shouldn't block other requests within the batch (tentatively addressing **limitation (2)**). In a sense, this moves guided decoding outside of the critical path.
    - This would allow for more natural vertical integration with jump-forward decoding (address **limitation (4)**).
 2. Allowing bit-mask calculation in one process instead of each GPU workers
