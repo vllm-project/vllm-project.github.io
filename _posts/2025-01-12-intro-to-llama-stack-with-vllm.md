@@ -26,8 +26,9 @@ We will cover the remote vLLM provider here.
 
 * Linux operating system
 * [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli) if you'd like to download the model via CLI.
-* [Podman](https://podman.io/) or [Docker](https://www.docker.com/) (can be specified via the `DOCKER_BINARY` environment variable when running `llama stack` CLI commands).
+* OCI-compliant technologies like [Podman](https://podman.io/) or [Docker](https://www.docker.com/) (can be specified via the `CONTAINER_BINARY` environment variable when running `llama stack` CLI commands).
 * [Kind](https://kind.sigs.k8s.io/) for Kubernetes deployment.
+* [Conda](https://github.com/conda/conda) for managing Python environment.
 * Python >= 3.10 if you'd like to test the [Llama Stack Python SDK](https://github.com/meta-llama/llama-stack-client-python).
 
 
@@ -35,7 +36,7 @@ We will cover the remote vLLM provider here.
 
 ### Start vLLM Server
 
-Use [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli) to download models. 
+We first download the "Llama-3.2-1B-Instruct" model using the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli). Note that you'll need to specify your Hugging Face token when logging in.
 
 ```bash
 mkdir /tmp/test-vllm-llama-stack
@@ -43,8 +44,7 @@ huggingface-cli login --token <YOUR-HF-TOKEN>
 huggingface-cli download meta-llama/Llama-3.2-1B-Instruct --local-dir /tmp/test-vllm-llama-stack/.cache/huggingface/hub/models/Llama-3.2-1B-Instruct
 ```
 
-Build images from source. Use CPU for demonstration only
-TODO: link to other builds guides other than cpus
+Next, let's build the vLLM CPU container image from source. Note that while we use it for demonstration purposes, there are plenty of [other images available for different hardware and architectures](https://docs.vllm.ai/en/latest/getting_started/installation/index.html).
 
 ```
 git clone git@github.com:vllm-project/vllm.git /tmp/test-vllm-llama-stack
@@ -52,9 +52,7 @@ cd /tmp/test-vllm-llama-stack/vllm
 podman build -f Dockerfile.cpu -t vllm-cpu-env --shm-size=4g .
 ```
 
-
-
-Start container:
+We can then start the vLLM container:
 ```bash
 podman run -it --network=host \
    --group-add=video \
@@ -68,12 +66,10 @@ podman run -it --network=host \
     vllm-cpu-env
 ```
 
-Testing:
+We can get a list of models and test a prompt once the model server has started:
 ```bash
-# Get a list of models
 curl http://localhost:8000/v1/models
 
-# Test a prompt
 curl http://localhost:8000/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
@@ -86,12 +82,19 @@ curl http://localhost:8000/v1/completions \
 
 ### Start Llama Stack Server
 
-Build the image with `llama stack build`:
+Once we verify that the vLLM server has started successfully and is able to server requests, we can then build and start the Llama Stack server.
+
+First, we clone the Llama Stack source code and create a Conda environment that includes all the dependencies:
 ```
 git clone git@github.com:meta-llama/llama-stack.git /tmp/test-vllm-llama-stack/llama-stack
 cd /tmp/test-vllm-llama-stack/llama-stack
+conda create -n stack python=3.10
+conda activate stack
 pip install .
+```
 
+Next, we build the container image with `llama stack build`:
+```
 cat > /tmp/test-vllm-llama-stack/vllm-llama-stack-build.yaml << "EOF"
 name: vllm
 distribution_spec:
@@ -105,16 +108,15 @@ distribution_spec:
     scoring: inline::basic
     eval: inline::meta-reference
     post_training: inline::torchtune
-    tool_runtime: inline::brave-search
     telemetry: inline::meta-reference
-image_type: docker
+image_type: container
 EOF
 
-export DOCKER_BINARY=podman
+export CONTAINER_BINARY=podman
 LLAMA_STACK_DIR=. PYTHONPATH=. python -m llama_stack.cli.llama stack build --config /tmp/test-vllm-llama-stack/vllm-llama-stack-build.yaml
 ```
 
-Edit the generated `vllm-run.yaml` to be `/tmp/test-vllm-llama-stack/vllm-llama-stack-run.yaml` with the following change in the `models` field:
+Once the container image has been built successfully, we can then edit the generated `vllm-run.yaml` to be `/tmp/test-vllm-llama-stack/vllm-llama-stack-run.yaml` with the following change in the `models` field:
 
 ```
 models:
@@ -124,15 +126,13 @@ models:
   provider_model_id: null
 ```
 
+Then we can start the LlamaStack Server with the image we built via `llama stack run`:
 ```
 export INFERENCE_ADDR=host.containers.internal
 export INFERENCE_PORT=8000
 export INFERENCE_MODEL=meta-llama/Llama-3.2-1B-Instruct
 export LLAMASTACK_PORT=5000
-```
 
-Start LlamaStack Server with the image we built via `llama stack run`. 
-```
 LLAMA_STACK_DIR=. PYTHONPATH=. python -m llama_stack.cli.llama stack run \
 --env INFERENCE_MODEL=$INFERENCE_MODEL \
 --env VLLM_URL=http://$INFERENCE_ADDR:$INFERENCE_PORT/v1 \
@@ -151,10 +151,10 @@ podman run --security-opt label=disable -it --network host -v /tmp/test-vllm-lla
 --env VLLM_API_TOKEN=fake \
 --env LLAMASTACK_PORT=$LLAMASTACK_PORT \
 --entrypoint='["python", "-m", "llama_stack.distribution.server.server", "--yaml-config", "/app/config.yaml"]' \
-localhost/distribution-vllm:dev
+localhost/distribution-myenv:dev
 ```
 
-Test inference requests
+Once we start the Llama Stack server successfully, we can then start testing a inference request:
 
 Via Bash:
 ```
@@ -209,12 +209,12 @@ Tech's silent dawn rise
 
 ## Deployment on Kubernetes
 
-Create Kind cluster:
+Instead of starting the Llama Stack and vLLM servers locally. We can deploy them in a Kubernetes cluster. We'll use a local Kind cluster for demonstration purposes:
 ```
 kind create cluster --image kindest/node:v1.32.0 --name llama-stack-test
 ```
 
-Start vLLM server (remember to replace `<YOUR-HF-TOKEN>` with your actual token:
+Start vLLM server as a Kubernetes Pod and Service (remember to replace `<YOUR-HF-TOKEN>` with your actual token):
 ```
 cat <<EOF |kubectl apply -f -
 apiVersion: v1
@@ -286,7 +286,7 @@ spec:
 EOF
 ```
 
-vLLM server started (this might take a couple of minutes to download the model):
+We can verify that the vLLM server has started successfully via the logs (this might take a couple of minutes to download the model):
 ```
 $ kubectl logs vllm-server
 ...
@@ -296,7 +296,7 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
-Modify previously created `vllm-llama-stack-run.yaml` to `/tmp/test-vllm-llama-stack/vllm-llama-stack-run-k8s.yaml` with the following inference provider:
+Then we can modify the previously created `vllm-llama-stack-run.yaml` to `/tmp/test-vllm-llama-stack/vllm-llama-stack-run-k8s.yaml` with the following inference provider:
 
 ```
 providers:
@@ -309,11 +309,11 @@ providers:
       api_token: ${env.VLLM_API_TOKEN:fake}
 ```
 
-Build an image with LlamaStack run configuration and server source code:
+Once we have defined the run configuration for Llama Stack, we can build an image with that configuration the server source code:
 
 ```
 cat >/tmp/test-vllm-llama-stack/Containerfile.llama-stack-run-k8s <<EOF
-FROM distribution-vllm:dev
+FROM distribution-myenv:dev
 
 RUN apt-get update && apt-get install -y git
 RUN git clone https://github.com/meta-llama/llama-stack.git /app/llama-stack-source
@@ -324,7 +324,7 @@ podman build -f /tmp/test-vllm-llama-stack/Containerfile.llama-stack-run-k8s -t 
 ```
 
 
-Start LlamaStack server:
+We can then start the LlamaStack server by deploying a Kubernetes Pod and Service:
 ```
 cat <<EOF |kubectl apply -f -
 apiVersion: v1
@@ -375,7 +375,7 @@ spec:
 EOF
 ```
 
-LlamaStack server started:
+We can check that the LlamaStack server has started:
 ```
 $ kubectl logs vllm-server
 ...
@@ -386,18 +386,15 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://['::', '0.0.0.0']:5000 (Press CTRL+C to quit)
 ```
 
-Test:
+Now let's forward the Kubernetes service to a local port and test some inference requests against it via the Llama Stack Client:
 ```
 kubectl port-forward service/llama-stack-service 5000:5000
 llama-stack-client --endpoint http://localhost:5000 inference chat-completion --message "hello, what model are you?"
 ```
-TODO: More interesting prompt to congratulate reaching the end of the article
-TODO(yuan): potential mention of deployment option via KServe
 
+You can learn more about different providers and functionalities of Llama Stack on [the official documentation](https://llama-stack.readthedocs.io).
 
 ## Acknowledgments
 
-TODO(yuan and ashwin):
-* Llama Stack/Meta team (core maintainers)
-* Red Hat team (contributors, reviewers)
-* vLLM team
+TODO(yuan and ashwin to review/edit):
+We'd like to thank the Red Hat AI Engineering team for their contributions to the vLLM provider, bug fixes, documentation, build/CI improvements, and various key design discussions. We also want to thank the Llama Stack team from Meta and the vLLM team for their timely PR reviews and bug fixes.
