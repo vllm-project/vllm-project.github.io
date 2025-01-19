@@ -15,10 +15,11 @@ TODO(ashwin): more background information on Llama Stack
 
 # vLLM Inference Provider
 
-There are two options: https://docs.vllm.ai/en/latest/serving/serving_with_llamastack.html
-TODO(yuan): more details here
+Llama Stack provides two vLLM inference providers:
+1. [Remote vLLM inference provider](https://llama-stack.readthedocs.io/en/latest/distributions/self_hosted_distro/remote-vllm.html) through vLLM's [OpenAI-compatible server](https://docs.vllm.ai/en/latest/getting_started/quickstart.html#openai-completions-api-with-vllm);
+1. [Inline vLLM inference provider](https://github.com/meta-llama/llama-stack/tree/main/llama_stack/providers/inline/inference/vllm) that runs alongside with Llama Stack server.
 
-We will cover the remote vLLM provider here.
+In this article, we will demonstrate the functionality through the remote vLLM inference provider.
 
 # Tutorial
 
