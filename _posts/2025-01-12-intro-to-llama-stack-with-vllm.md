@@ -11,7 +11,12 @@ We are excited to announce that vLLM inference provider is now available in [Lla
 
 Llama Stack defines and standardizes the set of core building blocks needed to bring generative AI applications to market. These building blocks are presented in the form of interoperable APIs with a broad set of Service Providers providing their implementations.
 
-TODO(ashwin): more background information on Llama Stack 
+Llama Stack focuses on making it easy to build production applications with the Llama model family - from the latest Llama 3.3 to specialized models like Llama Guard for safety. The goal is to provide pre-packaged implementations (aka “distributions”) which can be run in a variety of deployment environments. The Stack can assist you in your entire app development lifecycle - start iterating on local, mobile or desktop and seamlessly transition to on-prem or public cloud deployments. At every point in this transition, the same set of APIs and the same developer experience is available.
+
+<!-- ideally we could float this image to the right so it does not come in the flow of the doc -->
+<img width="320" src="https://llama-stack.readthedocs.io/en/latest/_images/llama-stack.png" />
+
+Each specific implementation of an API is called a "Provider" in this architecture. Users can swap providers via configuration. `vLLM` is a prominent example of a high-performance API backing the inference API.
 
 # vLLM Inference Provider
 
