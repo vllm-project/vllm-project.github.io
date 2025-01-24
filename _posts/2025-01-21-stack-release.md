@@ -1,10 +1,10 @@
 ---
 layout: post
 title: "High Performance and Easy Deployment of vLLM in K8S with “vLLM production-stack”"
-thumbnail-img: /assets/figure/stack/stack-thumbnail.png
-share-img: /assets/figure/stack/stack-thumbnail.png
+thumbnail-img: /assets/figures/stack/stack-thumbnail.png
+share-img: /assets/figures/stack/stack-thumbnail.png
 author: LMCache Team
-image: /assets/figure/stack/stack-thumbnail.png
+image: /assets/figures/stack/stack-thumbnail.png
 ---
 <br>
 
@@ -27,7 +27,7 @@ image: /assets/figure/stack/stack-thumbnail.png
 How do we extend its power into a **full-stack** inference system that any organization can deploy at scale with *high reliability*, *high throughput*, and *low latency*? That’s precisely why the LMCache team and the vLLM team built **vLLM production-stack**.
 
 <div align="center">
-<img src="/assets/figure/stack/stack-thumbnail.png" alt="Icon" style="width: 60%; vertical-align:middle;">
+<img src="/assets/figures/stack/stack-thumbnail.png" alt="Icon" style="width: 60%; vertical-align:middle;">
 </div>
 
 # Introducing "*vLLM Production-Stack*"
@@ -41,7 +41,7 @@ How do we extend its power into a **full-stack** inference system that any organ
 
 Below is a quick snapshot comparing vLLM production-stack with its closest counterparts:
 <div align="center">
-<img src="/assets/figure/stack/stack-table.png" alt="Icon" style="width: 90%; vertical-align:middle;">
+<img src="/assets/figures/stack/stack-table.png" alt="Icon" style="width: 90%; vertical-align:middle;">
 </div>
 
 ### The Design
@@ -54,7 +54,7 @@ At a high level:
 - Observability modules gather metrics like TTFT (Time-To-First-Token), TBT (Time-Between-Tokens), and throughput, giving you real-time insights into your system’s health.
 
 <div align="center">
-<img src="/assets/figure/stack/stack-overview-2.png" alt="Icon" style="width: 90%; vertical-align:middle;">
+<img src="/assets/figures/stack/stack-overview-2.png" alt="Icon" style="width: 90%; vertical-align:middle;">
 </div>
 
 # Advantage #1: Easy Deployment
@@ -72,18 +72,18 @@ We conduct a benchmark of multi-round Q&A workload on vLLM production-stack and 
 The results show vLLM stack outperforms other setups across key metrics (time to first token and inter token latency). 
 
 <div align="center">
-<img src="/assets/figure/stack/stack-ttft.png" alt="Icon" style="width: 60%; vertical-align:middle;">
+<img src="/assets/figures/stack/stack-ttft.png" alt="Icon" style="width: 60%; vertical-align:middle;">
 </div>
 
 <div align="center">
-<img src="/assets/figure/stack/stack-itl.png" alt="Icon" style="width: 60%; vertical-align:middle;">
+<img src="/assets/figures/stack/stack-itl.png" alt="Icon" style="width: 60%; vertical-align:middle;">
 </div>
 
 # Advantage #3: Effortless Monitoring
 Keep real-time tracking of your LLM inference cluster with key metrics including latency distributions, number of requests over time, KV cache hit rate.
 
 <div align="center">
-<img src="/assets/figure/stack/stack-panel.png" alt="Icon" style="width: 70%; vertical-align:middle;">
+<img src="/assets/figures/stack/stack-panel.png" alt="Icon" style="width: 70%; vertical-align:middle;">
 </div>
 
 
