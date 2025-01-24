@@ -109,7 +109,7 @@ distribution_spec:
     inference: remote::vllm
     safety: inline::llama-guard
     agents: inline::meta-reference
-    memory: inline::meta-reference
+    vector_io: inline::faiss
     datasetio: inline::localfs
     scoring: inline::basic
     eval: inline::meta-reference
