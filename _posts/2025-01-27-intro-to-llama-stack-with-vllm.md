@@ -9,9 +9,7 @@ We are excited to announce that vLLM inference provider is now available in [Lla
 
 # What is Llama Stack?
 
-<div align="center">
-  <img src="/assets/figures/llama-stack/llama-stack.png" alt="Icon" style="width: 60%; vertical-align:middle;">
-</div>
+<img align="right" src="/assets/figures/llama-stack/llama-stack.png" alt="llama-stack-diagram" width="50%" height="50%">
 
 Llama Stack defines and standardizes the set of core building blocks needed to bring generative AI applications to market. These building blocks are presented in the form of interoperable APIs with a broad set of Service Providers providing their implementations.
 
