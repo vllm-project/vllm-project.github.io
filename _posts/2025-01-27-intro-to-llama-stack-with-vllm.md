@@ -13,7 +13,7 @@ We are excited to announce that vLLM inference provider is now available in [Lla
 
 Llama Stack defines and standardizes the set of core building blocks needed to bring generative AI applications to market. These building blocks are presented in the form of interoperable APIs with a broad set of Service Providers providing their implementations.
 
-Llama Stack focuses on making it easy to build production applications with a variety of models - ranging from the latest Llama 3.3 model to specialized models like Llama Guard for safety and other models. The goal is to provide pre-packaged implementations (aka “distributions”) which can be run in a variety of deployment environments. The Stack can assist you in your entire app development lifecycle - start iterating on local, mobile or desktop and seamlessly transition to on-prem or public cloud deployments. At every point in this transition, the same set of APIs and the same developer experience is available.
+Llama Stack focuses on making it easy to build production applications with a variety of models - ranging from the latest Llama 3.3 model to specialized models like Llama Guard for safety and other models. The goal is to provide pre-packaged implementations (aka “distributions”) which can be run in a variety of deployment environments. The Stack can assist you in your entire app development lifecycle - start iterating on local, mobile or desktop and seamlessly transition to on-prem or public cloud deployments. At every point in this transition, the same set of APIs and the same developer experience are available.
 
 
 Each specific implementation of an API is called a "Provider" in this architecture. Users can swap providers via configuration. `vLLM` is a prominent example of a high-performance API backing the inference API.
@@ -87,7 +87,7 @@ curl http://localhost:8000/v1/completions \
 
 ### Start Llama Stack Server
 
-Once we verify that the vLLM server has started successfully and is able to server requests, we can then build and start the Llama Stack server.
+Once we verify that the vLLM server has started successfully and is able to serve requests, we can then build and start the Llama Stack server.
 
 First, we clone the Llama Stack source code and create a Conda environment that includes all the dependencies:
 ```
