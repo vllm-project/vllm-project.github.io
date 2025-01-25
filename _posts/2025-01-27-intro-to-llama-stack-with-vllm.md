@@ -2,14 +2,16 @@
 layout: post
 title: "Introducing vLLM Inference Provider in Llama Stack"
 author: "Yuan Tang (Red Hat) and Ashwin Bharambe (Meta)"
-image: /assets/logos/vllm-logo-only-light.png
+image: /assets/figures/llama-stack/llama-stack.png
 ---
 
 We are excited to announce that vLLM inference provider is now available in [Llama Stack](https://github.com/meta-llama/llama-stack) through the collaboration between the Red Hat AI Engineering team and the Llama Stack team from Meta. This article provides an introduction to this integration and a tutorial to help you get started using it locally or deploying it in a Kubernetes cluster.
 
 # What is Llama Stack?
 
-<img align="right" src="https://llama-stack.readthedocs.io/en/latest/_images/llama-stack.png" alt="llama-stack-diagram" width="50%" height="50%">
+<div align="center">
+  <img src="/assets/figures/llama-stack/llama-stack.png" alt="Icon" style="width: 60%; vertical-align:middle;">
+</div>
 
 Llama Stack defines and standardizes the set of core building blocks needed to bring generative AI applications to market. These building blocks are presented in the form of interoperable APIs with a broad set of Service Providers providing their implementations.
 
