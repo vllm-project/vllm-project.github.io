@@ -32,10 +32,9 @@ In this article, we will demonstrate the functionality through the remote vLLM i
 
 * Linux operating system
 * [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli) if you'd like to download the model via CLI.
-* OCI-compliant technologies like [Podman](https://podman.io/) or [Docker](https://www.docker.com/) (can be specified via the `CONTAINER_BINARY` environment variable when running `llama stack` CLI commands).
+* OCI-compliant container technologies like [Podman](https://podman.io/) or [Docker](https://www.docker.com/) (can be specified via the `CONTAINER_BINARY` environment variable when running `llama stack` CLI commands).
 * [Kind](https://kind.sigs.k8s.io/) for Kubernetes deployment.
 * [Conda](https://github.com/conda/conda) for managing Python environment.
-* Python >= 3.10 if you'd like to test the [Llama Stack Python SDK](https://github.com/meta-llama/llama-stack-client-python).
 
 
 ## Get Started via Containers
@@ -119,7 +118,7 @@ image_type: container
 EOF
 
 export CONTAINER_BINARY=podman
-LLAMA_STACK_DIR=. PYTHONPATH=. python -m llama_stack.cli.llama stack build --config /tmp/test-vllm-llama-stack/vllm-llama-stack-build.yaml
+LLAMA_STACK_DIR=. PYTHONPATH=. python -m llama_stack.cli.llama stack build --config /tmp/test-vllm-llama-stack/vllm-llama-stack-build.yaml --image-name distribution-myenv
 ```
 
 Once the container image has been built successfully, we can then edit the generated `vllm-run.yaml` to be `/tmp/test-vllm-llama-stack/vllm-llama-stack-run.yaml` with the following change in the `models` field:
@@ -137,14 +136,14 @@ Then we can start the LlamaStack Server with the image we built via `llama stack
 export INFERENCE_ADDR=host.containers.internal
 export INFERENCE_PORT=8000
 export INFERENCE_MODEL=meta-llama/Llama-3.2-1B-Instruct
-export LLAMASTACK_PORT=5000
+export LLAMA_STACK_PORT=5000
 
 LLAMA_STACK_DIR=. PYTHONPATH=. python -m llama_stack.cli.llama stack run \
 --env INFERENCE_MODEL=$INFERENCE_MODEL \
 --env VLLM_URL=http://$INFERENCE_ADDR:$INFERENCE_PORT/v1 \
 --env VLLM_MAX_TOKENS=8192 \
 --env VLLM_API_TOKEN=fake \
---env LLAMASTACK_PORT=$LLAMASTACK_PORT \
+--env LLAMA_STACK_PORT=$LLAMA_STACK_PORT \
 /tmp/test-vllm-llama-stack/vllm-llama-stack-run.yaml
 ```
 
@@ -155,7 +154,7 @@ podman run --security-opt label=disable -it --network host -v /tmp/test-vllm-lla
 --env VLLM_URL=http://$INFERENCE_ADDR:$INFERENCE_PORT/v1 \
 --env VLLM_MAX_TOKENS=8192 \
 --env VLLM_API_TOKEN=fake \
---env LLAMASTACK_PORT=$LLAMASTACK_PORT \
+--env LLAMA_STACK_PORT=$LLAMA_STACK_PORT \
 --entrypoint='["python", "-m", "llama_stack.distribution.server.server", "--yaml-config", "/app/config.yaml"]' \
 localhost/distribution-myenv:dev
 ```
