@@ -128,7 +128,7 @@ We measured the performance of vLLM V0 and V1 on Llama 3.1 8B and Llama 3.3 70B 
 V1 demonstrated consistently lower latency than V0 especially at high QPS, thanks to the higher throughput it achieves.
 Given that the kernels used for V0 and V1 are almost identical, the performance difference is mainly due to the architectural improvements (reduced CPU overheads) in V1.
 
-- **Vision-language Models: Qwen2-VL, 1xH100**
+- **Vision-language Models: Qwen2-VL**
 
 <p align="center">
 <picture>
