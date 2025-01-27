@@ -132,7 +132,7 @@ Given that the kernels used for V0 and V1 are almost identical, the performance 
 
 <p align="center">
 <picture>
-<img src="/assets/figures/v1/v1_qwen2vl.png" width="50%">
+<img src="/assets/figures/v1/v1_qwen2vl.png" width="60%">
 </picture>
 </p>
 
