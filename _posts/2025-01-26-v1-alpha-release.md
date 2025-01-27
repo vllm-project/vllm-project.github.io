@@ -112,7 +112,7 @@ The final piece of the puzzle for vLLM V1 was integrating [FlashAttention 3](htt
 
 # Performance
 
-Thanks to the extensive architectural enhancements, vLLM V1 achieves state-of-the-art throughput and latency, delivering up to **1.7x** higher throughput compared to V0 (*without multi-step scheduling*).
+Thanks to the extensive architectural enhancements, vLLM V1 achieves state-of-the-art throughput and latency, delivering up to **1.7x higher throughput** compared to V0 (*without multi-step scheduling*).
 These dramatic performance gains stem from comprehensive CPU overhead reductions across the entire stack.
 The improvements are even more pronounced for vision-language models (VLMs) like Qwen2-VL, thanks to V1's enhanced support for VLMs.
 
@@ -176,25 +176,25 @@ We gratefully acknowledge that the design of vLLM V1 builds upon and enhances se
 
 The V1 re-architecture is a continued joint effort across the entire vLLM team and community. Below is an incomplete list of contributors to this milestone:
 
-- UC Berkeley, Neural Magic (now Red Hat), Anyscale, and Roblox mainly drove the effort together.  
-- [Woosuk Kwon](https://github.com/WoosukKwon) initiated the project and implemented the scheduler and model runner.  
-- [Robert Shaw](https://github.com/robertgshaw2-redhat) implemented the optimized execution loop and API server.  
-- [Cody Yu](https://github.com/comaniac) implemented efficient prefix caching for text and image inputs.  
-- [Roger Wang](https://github.com/ywang96) led the overall enhanced MLLM support in V1.  
-- [Kaichao You](https://github.com/youkaichao) led the torch.compile integration and implemented the piecewise CUDA graphs.  
-- [Tyler Michael Smith](https://github.com/tlrmchlsmth) implemented the tensor parallelism support with Python multiprocessing.  
+- UC Berkeley, Neural Magic (now Red Hat), Anyscale, and Roblox mainly drove the effort together.
+- [Woosuk Kwon](https://github.com/WoosukKwon) initiated the project and implemented the scheduler and model runner.
+- [Robert Shaw](https://github.com/robertgshaw2-redhat) implemented the optimized execution loop and API server.
+- [Cody Yu](https://github.com/comaniac) implemented efficient prefix caching for text and image inputs.
+- [Roger Wang](https://github.com/ywang96) led the overall enhanced MLLM support in V1.
+- [Kaichao You](https://github.com/youkaichao) led the torch.compile integration and implemented the piecewise CUDA graphs.
+- [Tyler Michael Smith](https://github.com/tlrmchlsmth) implemented the tensor parallelism support with Python multiprocessing.
 - [Rui Qiao](https://github.com/ruisearch42) implemented the tensor parallelism support with Ray and is implementing pipeline parallelism support.
 - [Lucas Wilkinson](https://github.com/LucasWilkinson) added support for FlashAttention 3.
-- [Alexander Matveev](https://github.com/alexm-redhat) implemented the optimized preprocessor for multimodal inputs.  
-- [Sourashis Roy](https://github.com/sroy745) implemented the logit penalties in the sampler.  
-- [Cyrus Leung](https://github.com/DarkLight1337) led the MLLM input processing refactoring effort and helped its integration to V1.  
-- [Russell Bryant](https://github.com/russellb) addressed several multiprocess-related issues.  
-- [Nick Hill](https://github.com/njhill) optimized the engine loop and API server.  
-- [Ricky Xu](https://github.com/rickyyx) and [Chen Zhang](https://github.com/heheda12345) helped refactor the KV cache manager.  
-- [Jie Li](https://github.com/jeejeelee) and [Michael Goin](https://github.com/mgoin) helped with MLLM support and optimization.  
+- [Alexander Matveev](https://github.com/alexm-redhat) implemented the optimized preprocessor for multimodal inputs and is implementing TPU support.
+- [Sourashis Roy](https://github.com/sroy745) implemented the logit penalties in the sampler.
+- [Cyrus Leung](https://github.com/DarkLight1337) led the MLLM input processing refactoring effort and helped its integration to V1.
+- [Russell Bryant](https://github.com/russellb) addressed several multiprocess-related issues.
+- [Nick Hill](https://github.com/njhill) optimized the engine loop and API server.
+- [Ricky Xu](https://github.com/rickyyx) and [Chen Zhang](https://github.com/heheda12345) helped refactor the KV cache manager.
+- [Jie Li](https://github.com/jeejeelee) and [Michael Goin](https://github.com/mgoin) helped with MLLM support and optimization.
 - [Aaron Pham](https://github.com/aarnphm) is implementing the structured decoding support.
-- [Varun Sundar Rabindranath](https://github.com/varun-sundar-rabindranath) is implementing the multi-LoRA support.  
-- [Andrew Feldman](https://github.com/afeldman-nm) is implementing the log probs and prompt log probs support.  
-- [Lily Liu](https://github.com/LiuXiaoxuanPKU) is implementing the speculative decoding support.  
-- [Kuntai Du](https://github.com/KuntaiDu) is implementing the prefill disaggregation and KV Cache transfer support.  
+- [Varun Sundar Rabindranath](https://github.com/varun-sundar-rabindranath) is implementing the multi-LoRA support.
+- [Andrew Feldman](https://github.com/afeldman-nm) is implementing the log probs and prompt log probs support.
+- [Lily Liu](https://github.com/LiuXiaoxuanPKU) is implementing the speculative decoding support.
+- [Kuntai Du](https://github.com/KuntaiDu) is implementing the prefill disaggregation and KV Cache transfer support.
 - [Simon Mo](https://github.com/simon-mo) and [Zhuohan Li](https://github.com/zhuohan123) contributed to the V1 system design.
