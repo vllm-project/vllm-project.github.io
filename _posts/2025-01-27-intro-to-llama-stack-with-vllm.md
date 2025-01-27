@@ -16,7 +16,7 @@ Llama Stack defines and standardizes the set of core building blocks needed to b
 Llama Stack focuses on making it easy to build production applications with a variety of models - ranging from the latest Llama 3.3 model to specialized models like Llama Guard for safety and other models. The goal is to provide pre-packaged implementations (aka “distributions”) which can be run in a variety of deployment environments. The Stack can assist you in your entire app development lifecycle - start iterating on local, mobile or desktop and seamlessly transition to on-prem or public cloud deployments. At every point in this transition, the same set of APIs and the same developer experience are available.
 
 
-Each specific implementation of an API is called a "Provider" in this architecture. Users can swap providers via configuration. `vLLM` is a prominent example of a high-performance API backing the inference API.
+Each specific implementation of an API is called a "Provider" in this architecture. Users can swap providers via configuration. vLLM is a prominent example of a high-performance API backing the inference API.
 
 # vLLM Inference Provider
 
