@@ -136,8 +136,9 @@ Given that the kernels used for V0 and V1 are almost identical, the performance 
 </picture>
 </p>
 
-We evaluated the performance on VLMs by testing Qwen2-VL using the [VisionArena dataset](https://arxiv.org/abs/2412.08687).
+We evaluated the performance on VLMs by testing Qwen2-VL using the [VisionArena](https://arxiv.org/abs/2412.08687) dataset.
 V1 delivered even larger speedups over V0, thanks its improved VLM support, driven by two key improvements: offloading input processing to a separate process and implementing more flexible scheduling for multimodal queries.
+We would also like to point out that prefix caching is now natively supported for multimodal models in V1, but will skip the benchmark results here.
 
 - **Looking Forward**
 
