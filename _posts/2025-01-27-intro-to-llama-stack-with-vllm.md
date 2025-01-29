@@ -131,7 +131,7 @@ models:
   provider_model_id: null
 ```
 
-Then we can start the LlamaStack Server with the image we built via `llama stack run`:
+Then we can start the Llama Stack Server with the image we built via `llama stack run`:
 ```
 export INFERENCE_ADDR=host.containers.internal
 export INFERENCE_PORT=8000
@@ -314,7 +314,7 @@ providers:
       api_token: fake
 ```
 
-Once we have defined the run configuration for Llama Stack, we can build an image with that configuration the server source code:
+Once we have defined the run configuration for Llama Stack, we can build an image with that configuration and the server source code:
 
 ```
 cat >/tmp/test-vllm-llama-stack/Containerfile.llama-stack-run-k8s <<EOF
@@ -329,7 +329,7 @@ podman build -f /tmp/test-vllm-llama-stack/Containerfile.llama-stack-run-k8s -t 
 ```
 
 
-We can then start the LlamaStack server by deploying a Kubernetes Pod and Service:
+We can then start the Llama Stack server by deploying a Kubernetes Pod and Service:
 ```
 cat <<EOF |kubectl apply -f -
 apiVersion: v1
@@ -380,7 +380,7 @@ spec:
 EOF
 ```
 
-We can check that the LlamaStack server has started:
+We can check that the Llama Stack server has started:
 ```
 $ kubectl logs vllm-server
 ...
