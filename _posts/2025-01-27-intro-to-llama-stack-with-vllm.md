@@ -309,9 +309,9 @@ providers:
   - provider_id: vllm
     provider_type: remote::vllm
     config:
-      url: ${env.VLLM_URL}
-      max_tokens: ${env.VLLM_MAX_TOKENS:4096}
-      api_token: ${env.VLLM_API_TOKEN:fake}
+      url: http://vllm-server.default.svc.cluster.local:8000/v1
+      max_tokens: 4096
+      api_token: fake
 ```
 
 Once we have defined the run configuration for Llama Stack, we can build an image with that configuration the server source code:
