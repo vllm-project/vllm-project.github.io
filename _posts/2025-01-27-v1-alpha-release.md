@@ -153,7 +153,7 @@ Stay tuned for more updates!
 While vLLM V1 shows promising results, it is still in its alpha stage and lacks several features from V0. Here’s a clarification:
 
 **Model Support:**  
-V1 supports decoder-only Transformers like Llama, mixture-of-experts (MoE) models like Mixtral, and several VLMs such as Qwen2-VL. All quantization methods are supported. However, V1 currently does not support encoder-decoder architectures like multimodal Llama 3.2, Mamba-based models like Jamba, or embedding models. Please check out [our documentation]() for a more detailed list of the supported models.
+V1 supports decoder-only Transformers like Llama, mixture-of-experts (MoE) models like Mixtral, and several VLMs such as Qwen2-VL. All quantization methods are supported. However, V1 currently does not support encoder-decoder architectures like multimodal Llama 3.2, Mamba-based models like Jamba, or embedding models. Please check out [our documentation](https://docs.vllm.ai/en/latest/models/supported_models.html) for a more detailed list of the supported models.
 
 **Feature Limitations:**  
 V1 currently lacks support for log probs, prompt log probs sampling parameters, pipeline parallelism, structured decoding, speculative decoding, prometheus metrics, and LoRA. We are actively working to close this feature gap and add brand-new optimizations to the V1 engine.
