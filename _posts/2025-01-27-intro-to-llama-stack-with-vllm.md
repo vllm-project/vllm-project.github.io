@@ -41,7 +41,7 @@ In this article, we will demonstrate the functionality through the remote vLLM i
 
 ### Start vLLM Server
 
-We first download the "Llama-3.2-1B-Instruct" model using the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli). Note that you'll need to specify your Hugging Face token when logging in.
+We first download the "Llama-3.2-1B-Instruct" model using the [Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/main/en/guides/cli). Note that you'll need to [request for access](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) and then specify your Hugging Face token when logging in.
 
 ```bash
 mkdir /tmp/test-vllm-llama-stack
