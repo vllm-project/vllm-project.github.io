@@ -64,8 +64,6 @@ Source: <a href="https://sebastianraschka.com/blog/2023/pytorch-memory-optimizat
 </figcaption>
 </figure>
 
-[Source](https://sebastianraschka.com/blog/2023/pytorch-memory-optimization.html)
-
 However, it requires **high-bandwidth interconnects** between each GPU, like NVLink or InfiniBand, to minimize overhead from the increased communication costs.
 
 ### Pipeline Parallelism
