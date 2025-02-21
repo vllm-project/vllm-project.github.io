@@ -20,6 +20,8 @@ plugins:
 # Theme-specific settings
 
 minima:
+  skin: auto
+
   # Minima date format.
   # Refer to https://shopify.github.io/liquid/filters/date/ if you want to customize this.
   #
