@@ -5,11 +5,11 @@ author: "AIBrix Team"
 image: /assets/logos/vllm-logo-only-light.png
 ---
 
-Today, we are excited to announce [vllm-project/AIBrix](https://github.com/vllm-project/aibrix): a battery-included vLLM Kubernetes serving stack developed by Bytedance. Started in early 2024, AIBrix has been successfully deployed to support multiple business use cases across ByteDance, demonstrating its scalability and effectiveness in large-scale deployments.
+Today, we are excited to announce [vllm-project/aibrix](https://github.com/vllm-project/aibrix): a battery-included vLLM Kubernetes serving stack developed by Bytedance. Started in early 2024, AIBrix has been successfully deployed to support multiple business use cases across ByteDance, demonstrating its scalability and effectiveness in large-scale deployments.
 
 While vLLM makes deploying a single serving instance easy, deploying vLLM at scale presents unique challenges in routing, autoscaling, and fault tolerance. AIBrix is an open-source initiative designed to provide the essential building blocks to construct scalable inference infrastructure. It delivers a cloud-native solution optimized for deploying, managing, and scaling large language model (LLM) inference, tailored specifically to enterprise needs.
 
-<figure>
+<figure style="width: 50%; height: auto; text-align: center; margin: 0 auto;">
   <img src="/assets/figures/aibrix/aibrix-diagram.png" />
 </figure>
 
