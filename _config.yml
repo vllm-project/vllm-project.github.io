@@ -1,20 +1,17 @@
 title: vLLM Blog
 author:
   name: © 2025. vLLM Team. All rights reserved.
-  github: https://github.com/vllm-project/vllm
 google_analytics: G-9C5R3JR3QS
 url: https://blog.vllm.ai
 
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
-# description: >
-#   Write an awesome description for your new site here. You can edit this line
-#   in _config.yml. It will appear in your document head meta (for Google search
-#   results) and in your feed.xml site description.
+description: >
+  vLLM is a fast and easy-to-use library for LLM inference and serving.
 
 # Build settings
 
-theme: minima
+remote_theme: jekyll/minima@5ce4006d175e6e5278bb63a0aad1a85e3bf2370b
 
 plugins:
   - jekyll-feed
@@ -31,9 +28,15 @@ minima:
   # Generate social links in footer.
   #
   social_links:
-    - { platform: github,         user_url: "https://github.com/vllm-project/vllm" }
-    - { platform: x,              user_url: "https://x.com/vllm_project" }
-    - { platform: linkedin,       user_url: "https://www.linkedin.com/company/vllm-project" }
+    - title: vLLM repository on GitHub
+      icon: github
+      url: "https://github.com/vllm-project/vllm"
+    - title: vLLM on X (formerly Twitter)
+      icon: x-twitter
+      url: "https://x.com/vllm_project"
+    - title: vLLM on LinkedIn
+      icon: linkedin
+      url: "https://www.linkedin.com/company/vllm-project"
   #   - { platform: devto,          user_url: "https://dev.to/jekyll" }
   #   - { platform: dribbble,       user_url: "https://dribbble.com/jekyll" }
   #   - { platform: facebook,       user_url: "https://www.facebook.com/jekyll" }
@@ -51,8 +54,8 @@ minima:
 # If you want to link only specific pages in your header, uncomment this and add the path to the pages in
 # order as they should show up.
 #
-# header_pages:
-#   - about.md
+header_pages:
+  - index.md
 
 # Set to `true` to show excerpts on the homepage.
 #
