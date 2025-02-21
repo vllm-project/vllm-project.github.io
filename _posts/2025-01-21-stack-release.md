@@ -65,7 +65,7 @@ sudo helm repo add llmstack-repo https://lmcache.github.io/helm/ &&\
   sudo helm install llmstack llmstack-repo/vllm-stack 
 ```
 
-For more details, please refer to the detailed README at [vLLM production-stack repo](https://github.com/vllm-project/production-stack). [Tutorials](https://github.com/LMCache/LMStack/tree/main/tutorials) about setting up k8s cluster and customizing helm charts are also available.
+For more details, please refer to the detailed README at [vLLM production-stack repo](https://github.com/vllm-project/production-stack). [Tutorials](https://github.com/vllm-project/production-stack/tree/main/tutorials) about setting up k8s cluster and customizing helm charts are also available.
 
 # Advantage #2: Better Performance
 We conduct a benchmark of multi-round Q&A workload on vLLM production-stack and other setups, including vLLM + KServe and an commercial endpoint service.
