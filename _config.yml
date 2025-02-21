@@ -3,6 +3,7 @@ author:
   name: © 2025. vLLM Team. All rights reserved.
 google_analytics: G-9C5R3JR3QS
 url: https://blog.vllm.ai
+logo: /assets/logos/vllm-logo-only-light.png
 
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
