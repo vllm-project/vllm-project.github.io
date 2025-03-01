@@ -7,8 +7,6 @@ thumbnail-img: /assets/figures/ptpc/PTPC-tumbnail.png
 share-img: /assets/figures/ptpc/PTPC-tumbnail.png
 ---
 
-# **Boosting vLLM Performance on AMD ROCm: PTPC-FP8 Quantization Unleashes Speed and Accuracy**
-
 **TL;DR**: vLLM on AMD ROCm now has better FP8 performance!
 
 * **What's new?** [PTPC-FP8 quantization](https://github.com/vllm-project/vllm/pull/12501) is now supported in vLLM (v0.7.3+) on AMD ROCm.  
