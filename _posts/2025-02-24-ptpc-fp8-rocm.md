@@ -64,7 +64,7 @@ The illustration shows two quantization approaches:
 
 **Scaling Factors:**
 - **Top (Per-Tensor)**: Single scalars ΔX[1] and ΔW[1] for entire tensors
-- **Bottom (PTPC)**: Vector ΔX[T×1] with one scale per token and ΔW[1×Co] with one scale per output channel
+- **Bottom (PTPC)**: Vector ΔX[T×1] with one scale per token and ΔW[1×Co] with one scale per input channel
 
 This granular scaling approach allows PTPC-FP8 to achieve accuracy close to BF16 while maintaining the speed and memory benefits of 8-bit computation.
 
