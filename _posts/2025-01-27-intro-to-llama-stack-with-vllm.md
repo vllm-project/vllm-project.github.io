@@ -49,7 +49,7 @@ huggingface-cli login --token <YOUR-HF-TOKEN>
 huggingface-cli download meta-llama/Llama-3.2-1B-Instruct --local-dir /tmp/test-vllm-llama-stack/.cache/huggingface/hub/models/Llama-3.2-1B-Instruct
 ```
 
-Next, let's build the vLLM CPU container image from source. Note that while we use it for demonstration purposes, there are plenty of [other images available for different hardware and architectures](https://docs.vllm.ai/en/latest/getting_started/installation/index.html).
+Next, let's build the vLLM CPU container image from source. Note that while we use it for demonstration purposes, there are plenty of [other images available for different hardware and architectures](https://docs.vllm.ai/en/latest/getting_started/installation.html).
 
 ```
 git clone git@github.com:vllm-project/vllm.git /tmp/test-vllm-llama-stack
