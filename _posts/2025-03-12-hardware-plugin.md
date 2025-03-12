@@ -35,7 +35,7 @@ Before introducing the vLLM Hardware Plugin, let's first look at two prerequisit
 
 Based on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
 
-Currently, the vLLM team, collaborate with vLLM Ascend developers, has successfully implemented the Platform module introduced in the RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) and [vllm-project/vllm-spyre](https://github.com/vllm-project/vllm-spyre) projects. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU and IBM Spyre backends.
+Currently, vLLM community has successfully implemented the Platform module introduced in the RFC. The functionality is validated through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) and [vllm-project/vllm-spyre](https://github.com/vllm-project/vllm-spyre) projects. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU and IBM Spyre backends.
 
 ---
 
@@ -136,7 +136,7 @@ INFO 02-06 15:49:01 __init__.py:181] Platform plugin ascend is activated
 
 Moving forward, we will continue collaborating with developers in the vLLM community to enhance the following aspects:
 
-1. Continuous enhancements to the V1 Engine.  
+1. Continuous enhancements to the V1 Engine.
 2. Expanding plugin support for more modules and features, such as scheduler and custom operators.
 3. Better user experience and higher performance.
 
