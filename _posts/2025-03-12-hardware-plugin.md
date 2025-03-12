@@ -35,7 +35,7 @@ Before introducing the vLLM Hardware Plugin, let's first look at two prerequisit
 
 Based on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
 
-Currently, the vLLM team, collaborate with vLLM Ascend developers, has successfully implemented the Platform module introduced in the RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) project. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU backend.
+Currently, the vLLM team, collaborate with vLLM Ascend developers, has successfully implemented the Platform module introduced in the RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) and [vllm-project/vllm-spyre](https://github.com/vllm-project/vllm-spyre) projects. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU and IBM Spyre backends.
 
 ---
 
@@ -55,7 +55,7 @@ You can refer to the [`platform.py`](https://github.com/vllm-project/vllm-ascend
 
 #### Step 2: Implement Custom Worker, Model Runner, Attention Backend, and Communicator Modules
 
-Depending on the new backend’s requirements, implement the following modules:
+Depending on the new backend's requirements, implement the following modules:
 
 ```python
 from vllm.worker.worker_base import WorkerBase
@@ -64,11 +64,11 @@ from vllm.attention.backends.abstract import AttentionBackend
 from vllm.distributed.device_communicators.base_communicator import CommunicatorBase
 ```
 
-Each of these classes has a corresponding base class in vLLM. Again, you can refer to [vLLM Ascend’s implementation](https://github.com/vllm-project/vllm-ascend/tree/main/vllm_ascend) for an example.
+Each of these classes has a corresponding base class in vLLM. Again, you can refer to [vLLM Ascend's implementation](https://github.com/vllm-project/vllm-ascend/tree/main/vllm_ascend) for an example.
 
 #### Step 3: Register the Plugin
 
-Register the plugin in `setup.py` using Python’s entry point mechanism:
+Register the plugin in `setup.py` using entrypoint mechanism of python:
 
 ```python
 setup(
@@ -132,7 +132,7 @@ INFO 02-06 15:49:01 __init__.py:181] Platform plugin ascend is activated
 
 ---
 
-## What’s Next?
+## What's Next?
 
 Moving forward, we will continue collaborating with developers in the vLLM community to enhance the following aspects:
 
