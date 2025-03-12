@@ -1,0 +1,142 @@
+---
+layout: post
+title: "Introducing vLLM Hardware Plugin and Best Practice with Ascend NPU"
+author: "vLLM Ascend Team"
+image: /assets/logos/vllm-logo-only-light.png
+---
+
+Since December 2024, through the joint efforts of the vLLM community and the vLLM Ascend team, we have completed the **Hardware Pluggable** RFC. This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms. The RFC has now taken initial shape. This blog post focuses on how the vLLM Hardware Plugin works and shares best practice for supporting Ascend NPU through the plugin mechanism.
+
+---
+
+## Why vLLM Hardware Plugin?
+
+Currently, vLLM already supports multiple backends. However, as the number of vLLM backends continues to grow, several challenges have emerged:
+
+- **Increased Code Complexity**: Each hardware backend has its own `Executor`, `Worker`, `Runner`, and `Attention` components. This has made the vLLM codebase more complex, with non-generic backend-specific code scattered throughout the project.
+- **High Maintenance Costs**: The cost of maintaining backends is high, not only for the backend developers but also for the vLLM community. When backend maintainers are unavailable, the limited bandwidth of community contributors makes it difficult to add new features efficiently.  
+- **Lack of Extensibility**: While vLLM follows a well-structured layered design by implementing backends through `Executor`, `Worker`, `Runner`, and `Attention`, supporting new hardware often requires invasive modifications or patching rather than dynamic registration. This makes adding new backends cumbersome.
+
+Recognizing the need for a flexible and modular approach to integrating hardware backends, we identified hardware pluginization as a feasible solution:
+
+- **Decoupled Codebase**: The hardware backend plugin code remains independent, making the vLLM core code cleaner and more maintainable.  
+- **Reduced Maintenance Burden**: vLLM developers can focus on generic features without being overwhelmed by the differences caused by backend-specific implementations.
+- **Faster Expansion and Iteration**: Each backend can be maintained independently to ensure stability, and new backends can be integrated quickly.  
+
+---
+
+## What is the vLLM Hardware Plugin?
+
+Before introducing the vLLM Hardware Plugin, let's first look at two prerequisite RFCs:
+
+- [[RFC] vLLM Plugin System](https://github.com/vllm-project/vllm/issues/7131): This RFC introduces a plugin-based approach to support various customization requirements, allowing users to define custom models, executors, schedulers, etc.
+- [[RFC] Make vLLM Device-Agnostic for Diverse Hardware Support](https://github.com/vllm-project/vllm/issues/9268) and ([vllm-project/vllm#6080](https://github.com/vllm-project/vllm/pull/6080)): This RFC introduces the **platform** submodule, which centralizes hardware-related implementations to reduce conditional logic in the main codebase and lays the foundation for modularization.
+
+Building on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
+
+Currently, the vLLM team, in collaboration with vLLM Ascend developers, has successfully implemented the initial version of this RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) project. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU backend.
+
+---
+
+## How to Add Backend Support with vLLM Hardware Plugin
+
+This section will dive into integrating a New Backend via the Hardware Plugin in both developer and user perspective.
+
+### Developer Perspective
+
+To integrate a new backend into vLLM using the Hardware Plugin, follow these steps:
+
+#### Step 1: Create a New Project and Initialize the Platform
+
+Start by creating a Python project for the new backend and adding a `platform.py` file. Then, import the `Platform` class from `vllm.platforms` and implement the required attributes and methods.
+
+You can refer to the [`platform.py`](https://github.com/vllm-project/vllm-ascend/blob/72a43a61d8d2193dddbfcc60578fd642008225a5/vllm_ascend/platform.py#L52) in vLLM Ascend project for an example.
+
+#### Step 2: Implement Custom Worker, Model Runner, Attention Backend, and Communicator Modules
+
+Depending on the new backend’s requirements, implement the following modules:
+
+```python
+from vllm.worker.worker_base import WorkerBase
+from vllm.worker.model_runner_base import ModelRunnerBase
+from vllm.attention.backends.abstract import AttentionBackend
+from vllm.distributed.device_communicators.base_communicator import CommunicatorBase
+```
+
+Each of these classes has a corresponding base class in vLLM. Again, you can refer to [vLLM Ascend’s implementation](https://github.com/vllm-project/vllm-ascend/tree/main/vllm_ascend) for an example.
+
+#### Step 3: Register the Plugin
+
+Register the plugin in `setup.py` using Python’s entry point mechanism:
+
+```python
+setup(
+    entry_points={'vllm.platform_plugins': ["{your_platform_name} = {code_path}:{register_function}"]}
+)
+```
+
+- `{your_platform_name}`: The name of the new backend (can be arbitrary).  
+- `{code_path}`: The path to the main Python module.  
+- `{register_function}`: The register function, which returns the path of `Platform` class defined in step 1.
+
+Refer to [`setup.py`](https://github.com/vllm-project/vllm-ascend/blob/72a43a61d8d2193dddbfcc60578fd642008225a5/setup.py#L102) in vLLM Ascend for a practical example.  
+
+#### Step 4 (Optional): Implement Custom Quantization Algorithms and Model
+
+vLLM supports both dynamic registration of quantization algorithms and model. New backends can implemente them on demand.
+
+**Registering a Custom Quantization Algorithm**
+
+Quantization algorithms can be imported by `from vllm.model_executor.layers.quantization import register_quantization_config` and supported as decorators on new quantization methods. For example:
+
+```python
+from vllm.model_executor.layers.quantization import register_quantization_config
+from vllm.model_executor.layers.quantization.base_config import QuantizationConfig
+
+@register_quantization_config("my_quantization_method")
+class MyQuantizationConfig(QuantizationConfig):
+    ...
+```
+
+**Registering a Custom Model**
+
+New models can be dynamically registered to vLLM via the `ModelRegistry` method:
+
+```python
+from vllm import ModelRegistry
+
+if "MyLlava" not in ModelRegistry.get_supported_archs():
+    ModelRegistry.register_model("MyLlava", "vllm_add_dummy_model.my_llava:MyLlava")
+```
+
+---
+
+### User Perspective
+
+Taking vLLM Ascend as an example, you only need to install vllm and vllm-ascend to complete the installation:
+
+```bash
+pip install vllm vllm-ascend
+```
+
+On startup, you will observe the following logs, which means the backend plugin is working properly:
+
+```bash
+INFO 02-06 15:49:01 __init__.py:30] Available plugins for group vllm.platform_plugins:
+INFO 02-06 15:49:01 __init__.py:32] name=ascend, value=vllm_ascend:register
+… …
+INFO 02-06 15:49:01 __init__.py:44] plugin ascend loaded.
+INFO 02-06 15:49:01 __init__.py:181] Platform plugin ascend is activated
+```
+
+---
+
+## What’s Next?
+
+Moving forward, we will continue collaborating with developers in the vLLM community to enhance the following aspects:
+
+1. Continuous enhancements to the V1 Egine.  
+2. Expanding plugin support for more modules and features, such as scheduler and custom operators.
+3. Better user experience and higher performance.
+
+We encourage everyone to try out this new feature! If you have any questions, join the [vLLM Slack](https://inviter.co/vllm-slack) and participate in the **#sig-extensible-hardware** channel for discussions. 🚀
