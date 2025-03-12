@@ -14,7 +14,7 @@ Since December 2024, through the joint efforts of the vLLM community and the vLL
 Currently, vLLM already supports multiple backends. However, as the number of vLLM backends continues to grow, several challenges have emerged:
 
 - **Increased Code Complexity**: Each hardware backend has its own `Executor`, `Worker`, `Runner`, and `Attention` components. This has made the vLLM codebase more complex, with non-generic backend-specific code scattered throughout the project.
-- **High Maintenance Costs**: The cost of maintaining backends is high, not only for the backend developers but also for the vLLM community. When backend maintainers are unavailable, the limited bandwidth of community contributors makes it difficult to add new features efficiently.  
+- **High Maintenance Costs**: The cost of maintaining backends is high, not only for the backend developers but also for the vLLM community. The scarcity of community contributor resources makes efficiently adding new features difficult when backend maintainers are not present. 
 - **Lack of Extensibility**: While vLLM follows a well-structured layered design by implementing backends through `Executor`, `Worker`, `Runner`, and `Attention`, supporting new hardware often requires invasive modifications or patching rather than dynamic registration. This makes adding new backends cumbersome.
 
 Recognizing the need for a flexible and modular approach to integrating hardware backends, we identified hardware pluginization as a feasible solution:
@@ -32,7 +32,7 @@ Before introducing the vLLM Hardware Plugin, let's first look at two prerequisit
 - [[RFC] vLLM Plugin System](https://github.com/vllm-project/vllm/issues/7131): This RFC introduces a plugin-based approach to support various customization requirements, allowing users to define custom models, executors, schedulers, etc.
 - [[RFC] Make vLLM Device-Agnostic for Diverse Hardware Support](https://github.com/vllm-project/vllm/issues/9268) and ([vllm-project/vllm#6080](https://github.com/vllm-project/vllm/pull/6080)): This RFC introduces the **platform** submodule, which centralizes hardware-related implementations to reduce conditional logic in the main codebase and lays the foundation for modularization.
 
-Building on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
+Based on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
 
 Currently, the vLLM team, in collaboration with vLLM Ascend developers, has successfully implemented the initial version of this RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) project. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU backend.
 
@@ -83,7 +83,7 @@ Refer to [`setup.py`](https://github.com/vllm-project/vllm-ascend/blob/72a43a61d
 
 #### Step 4 (Optional): Implement Custom Quantization Algorithms and Model
 
-vLLM supports both dynamic registration of quantization algorithms and model. New backends can implemente them on demand.
+vLLM supports both dynamic registration of quantization algorithms and model. New backends can implement them on demand.
 
 **Registering a Custom Quantization Algorithm**
 
@@ -135,7 +135,7 @@ INFO 02-06 15:49:01 __init__.py:181] Platform plugin ascend is activated
 
 Moving forward, we will continue collaborating with developers in the vLLM community to enhance the following aspects:
 
-1. Continuous enhancements to the V1 Egine.  
+1. Continuous enhancements to the V1 Engine.  
 2. Expanding plugin support for more modules and features, such as scheduler and custom operators.
 3. Better user experience and higher performance.
 
