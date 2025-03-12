@@ -5,7 +5,8 @@ author: "vLLM Ascend Team"
 image: /assets/logos/vllm-logo-only-light.png
 ---
 
-Since December 2024, through the joint efforts of the vLLM community and the vLLM Ascend team, we have completed the **Hardware Pluggable** RFC. This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms. The RFC has now taken initial shape. This blog post focuses on how the vLLM Hardware Plugin works and shares best practice for supporting Ascend NPU through the plugin mechanism.
+Since December 2024, through the joint efforts of the vLLM community and the vLLM Ascend team, we have completed the [Hardware Pluggable RFC]((https://github.com/vllm-project/vllm/issues/11162)). This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms. The RFC has now taken initial shape.
+This proposal enables hardware integration into vLLM in a decoupled way, allowing for quick and modular support of various hardware platforms.
 
 ---
 
@@ -13,15 +14,15 @@ Since December 2024, through the joint efforts of the vLLM community and the vLL
 
 Currently, vLLM already supports multiple backends. However, as the number of vLLM backends continues to grow, several challenges have emerged:
 
-- **Increased Code Complexity**: Each hardware backend has its own `Executor`, `Worker`, `Runner`, and `Attention` components. This has made the vLLM codebase more complex, with non-generic backend-specific code scattered throughout the project.
+- **Increased Code Complexity**: Each hardware backend has its own `Executor`, `Worker`, `Runner`, and `Attention` components. This has increased the complexity of the vLLM codebase, with non-generic backend-specific code scattered throughout the project.
 - **High Maintenance Costs**: The cost of maintaining backends is high, not only for the backend developers but also for the vLLM community. The scarcity of community contributor resources makes efficiently adding new features difficult when backend maintainers are not present. 
 - **Lack of Extensibility**: While vLLM follows a well-structured layered design by implementing backends through `Executor`, `Worker`, `Runner`, and `Attention`, supporting new hardware often requires invasive modifications or patching rather than dynamic registration. This makes adding new backends cumbersome.
 
 Recognizing the need for a flexible and modular approach to integrating hardware backends, we identified hardware pluginization as a feasible solution:
 
-- **Decoupled Codebase**: The hardware backend plugin code remains independent, making the vLLM core code cleaner and more maintainable.  
+- **Decoupled Codebase**: The hardware backend plugin code remains independent, making the vLLM core code cleaner.
 - **Reduced Maintenance Burden**: vLLM developers can focus on generic features without being overwhelmed by the differences caused by backend-specific implementations.
-- **Faster Expansion and Iteration**: Each backend can be maintained independently to ensure stability, and new backends can be integrated quickly.  
+- **Faster Integration & More Independent**: New backends can be integrated quickly with less work to do and evolve independently.
 
 ---
 
@@ -34,11 +35,11 @@ Before introducing the vLLM Hardware Plugin, let's first look at two prerequisit
 
 Based on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
 
-Currently, the vLLM team, in collaboration with vLLM Ascend developers, has successfully implemented the initial version of this RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) project. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU backend.
+Currently, the vLLM team, collaborate with vLLM Ascend developers, has successfully implemented the Platform module introduced in the RFC. We also validated the functionality through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) project. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU backend.
 
 ---
 
-## How to Add Backend Support with vLLM Hardware Plugin
+## How to Integrate a New Backend via vLLM Hardware Plugin Mechanism
 
 This section will dive into integrating a New Backend via the Hardware Plugin in both developer and user perspective.
 
@@ -113,7 +114,7 @@ if "MyLlava" not in ModelRegistry.get_supported_archs():
 
 ### User Perspective
 
-Taking vLLM Ascend as an example, you only need to install vllm and vllm-ascend to complete the installation:
+Only need to install vllm and your plugin before running, taking [vllm-ascend](https://github.com/vllm-project/vllm-ascend) as an example:
 
 ```bash
 pip install vllm vllm-ascend
