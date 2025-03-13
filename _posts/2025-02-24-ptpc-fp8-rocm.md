@@ -21,15 +21,15 @@ share-img: /assets/figures/ptpc/PTPC-tumbnail.png
 
 **What is PTPC-FP8?** It's a method for FP8 weights *and* activations quantization. It uses per-token scaling for activations and per-channel scaling for weights, giving you better accuracy than traditional per-tensor FP8.
 
-## **Introduction**
+## Introduction
 
 Large Language Models (LLMs) are revolutionizing how we interact with technology, but their immense computational demands can be a barrier. What if you could run these powerful models faster and more efficiently on your AMD GPUs, without sacrificing accuracy? Now you can! This post introduces a breakthrough: PTPC-FP8 quantization in vLLM, optimized for AMD's ROCm platform. Get ready for near-BF16 accuracy at FP8 speeds, directly using Hugging Face models – no pre-quantization needed! We'll show you how it works, benchmark its performance, and get you started.
 
-**The Challenge of LLM Quantization and the PTPC-FP8 Solution**
+### The Challenge of LLM Quantization and the PTPC-FP8 Solution
 
 Running large language models is computationally expensive. FP8 (8-bit floating-point) offers a compelling solution by reducing memory footprint and accelerating matrix multiplications, but traditional quantization approaches face a critical challenge with LLMs.
 
-**The Outlier Problem**
+#### The Outlier Problem
 
 LLMs develop activation outliers as they scale beyond certain sizes. These unusually large values create significant quantization challenges:
 
@@ -37,7 +37,7 @@ LLMs develop activation outliers as they scale beyond certain sizes. These unusu
 - Outliers appear persistently in specific channels across different tokens
 - While weights are relatively uniform and easy to quantize, activations are not
 
-**PTPC: A Precision-Targeted Approach**
+#### PTPC: A Precision-Targeted Approach
 
 PTPC-FP8 (Per-Token-Activation, Per-Channel-Weight FP8) addresses this challenge by using tailored scaling factors based on three key observations:
 
@@ -51,7 +51,7 @@ This insight led to a dual-granularity approach:
 
 <img align="right" src="/assets/figures/ptpc/PTPC-Diagram.png" alt="Per-Token Activation + Per-Channel Weight Quantization" width="50%" height="50%">
 
-**Understanding the Diagram**
+#### Understanding the Diagram
 
 The illustration shows two quantization approaches:
 
@@ -68,12 +68,11 @@ The illustration shows two quantization approaches:
 
 This granular scaling approach allows PTPC-FP8 to achieve accuracy close to BF16 while maintaining the speed and memory benefits of 8-bit computation.
 
-## **Deep Dive: How PTPC-FP8 Works in vLLM (and the Fused Kernel)**
-**Unlocking FP8 Speed: The Fused Rowwise Scaled GEMM**
+## Deep Dive: How PTPC-FP8 Works in vLLM (and the Fused Kernel)
 
 PTPC-FP8's fine-grained scaling could slow things down without proper optimization. The key to maintaining speed is AMD ROCm's implementation of a **fused FP8 rowwise scaled GEMM** operation.
 
-**The Challenge: 2-Step vs. Fused Approach**
+### The Challenge: 2-Step vs. Fused Approach
 
 Without optimization, matrix multiplication with per-token and per-channel scaling would require two costly steps:
 
@@ -88,7 +87,7 @@ This creates a performance bottleneck:
 - Read them back for scaling operations
 - Waste memory bandwidth and compute cycles
 
-**The Solution: Fusion**
+### The Solution: Fusion
 
 The fused approach combines matrix multiplication and scaling into a single hardware operation:
 
@@ -101,7 +100,7 @@ output = torch._scaled_mm(input, weight,
 
 <img align="center" src="/assets/figures/ptpc/FusedGEMM.svg" alt="Fused GEMM Operation" width="90%" height="90%">
 
-**Why This Matters**
+### Why This Matters
 
 This fusion leverages AMD GPUs' specialized hardware (particularly on MI300X with native FP8 support):
 
@@ -111,13 +110,11 @@ This fusion leverages AMD GPUs' specialized hardware (particularly on MI300X wit
 
 The fused operation makes PTPC-FP8 practical for real-world deployment, eliminating the performance penalty of using more granular scaling factors while maintaining accuracy benefits.
 
-## **Benchmarks and Results (MI300X GPUs)**
-
-**Benchmarking PTPC-FP8: Speed and Accuracy on MI300X**
+## Benchmarking PTPC-FP8: Speed and Accuracy on MI300X
 
 We extensively benchmarked PTPC-FP8 using vLLM on AMD MI300X GPUs (commit `4ea48fb35cf67d61a1c3f18e3981c362e1d8e26f`). Here's what we found:
 
-**1\. Throughput Comparison (PTPC-FP8 vs. Per-Tensor FP8):**
+### 1. Throughput Comparison (PTPC-FP8 vs. Per-Tensor FP8):
 
 * **Model:** Llama-3.1-70B-Instruct  
 * **Dataset:** SharedGPT  
@@ -129,13 +126,13 @@ We extensively benchmarked PTPC-FP8 using vLLM on AMD MI300X GPUs (commit `4ea48
 <img align="center" src="/assets/figures/ptpc/PTPCSpeedup.svg" alt="Request/s Throughput gain over FP8 per-tensor quantization
 across different input token length - output token length" width="90%" height="50%">
 
-**2.1. Accuracy: Perplexity (Lower is Better)**
+### 2.1. Accuracy: Perplexity (Lower is Better)
 
 * **Model:** Llama-3.1-8B-Instruct  
 * **Dataset:** Wikitext  
 * **Setup:** 2× MI300X GPUs with tensor parallelism
 
-**Understanding Perplexity: The Prediction Power Test**
+#### Understanding Perplexity: The Prediction Power Test
 
 Think of perplexity as a measure of how "confused" the model is when predicting text. Like a student taking a quiz:
 - **Lower perplexity = Better predictions** (the model confidently assigns high probability to the correct next words)
@@ -143,7 +140,7 @@ Think of perplexity as a measure of how "confused" the model is when predicting 
 
 A small increase in perplexity (even 0.1) can indicate meaningful degradation in model quality, especially for large language models that have been extensively optimized.
 
-**Results: PTPC-FP8 Maintains BF16-Like Quality**
+#### Results: PTPC-FP8 Maintains BF16-Like Quality
 
 <img align="right" src="/assets/figures/ptpc/PerplexityBits.png" alt="bits and byte perplexity" width="50%" height="50%">
 
@@ -163,9 +160,9 @@ As shown in both the table and chart:
 
 **Why This Matters:** While standard FP8 already provides decent results, PTPC-FP8's lower perplexity indicates it better preserves the model's ability to make accurate predictions. This is especially important for complex reasoning and generation tasks, where small quality drops can compound into noticeable differences in output quality.
 
-**2.2. Accuracy on GSM8K: Testing Mathematical Reasoning**
+### 2.2. Accuracy on GSM8K: Testing Mathematical Reasoning**
 
-**What is GSM8K and Why It Matters**
+#### What is GSM8K and Why It Matters
 
 GSM8K tests a model's ability to solve grade school math word problems – one of the most challenging tasks for LLMs. Unlike simple text prediction, these problems require:
 - Multi-step reasoning
@@ -174,7 +171,7 @@ GSM8K tests a model's ability to solve grade school math word problems – one o
 
 This benchmark provides a strong indicator of whether quantization preserves a model's reasoning abilities.
 
-**Understanding the Results**
+#### Understanding the Results
 
 We measured accuracy using two methods:
 - **Flexible-extract**: Accepts answers if the correct number appears anywhere in the response
@@ -199,7 +196,7 @@ For the larger 70B model:
 - This is actually **slightly better** than BF16's 86.3%
 - Both outperform standard FP8 in strict-match conditions
 
-**Why These Results Matter**
+#### Why These Results Matter
 
 1. **Preservation of reasoning abilities**: Mathematical reasoning is often the first capability to degrade with quantization
 
@@ -211,7 +208,7 @@ For the larger 70B model:
 
 These results demonstrate that PTPC-FP8 quantization preserves the model's ability to perform complex reasoning tasks while delivering the speed and efficiency benefits of 8-bit precision.
 
-## **Getting Started**
+## Getting Started
 
 1. **Install ROCm:** Make sure you have a recent version.  
 2. Clone the latest vLLM commit now! Setup and start exploring this new feature!
@@ -241,11 +238,11 @@ VLLM_USE_TRITON_FLASH_ATTN=0 vllm serve <your-model> --max-seq-len-to-capture 16
 
 (Replace `<your-model>` with any hugging face model; It will automatically quantize the weight on-the-fly.)
 
-## **Conclusion: The Accuracy-Speed Sweet Spot**
+## Conclusion: The Accuracy-Speed Sweet Spot
 
 PTPC-FP8 quantization in vLLM on AMD ROCm represents a significant step towards democratizing access to powerful LLMs. By making near-BF16 accuracy achievable at FP8 speeds, we're breaking down the computational barriers that have limited wider adoption. This advancement empowers a broader community – from individual researchers to resource-constrained organizations – to leverage the power of large language models on accessible AMD hardware. We invite you to explore PTPC-FP8, share your experiences, contribute to the vLLM project, and help us build a future where efficient and accurate AI is available to everyone.
 
-## **Appendix**
+## Appendix
 
 **lm-evaluation-harness Commands:**
 
