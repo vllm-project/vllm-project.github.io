@@ -45,7 +45,7 @@ You Kaichao, another maintainer of vLLM, shared the current ecosystem developmen
 
 Wang Xiyuan, an engineer at Huawei and a core maintainer of the vllm-ascend project, shared Huawei's work on the vLLM hardware plugin mechanism using the Ascend NPU as an example. He explained the technology behind vLLM's easy implementation of multi-device backend support. Additionally, he introduced Huawei's Ascend AI chips and the principles and features of the CANN computing architecture, as well as Huawei's future plans for the vLLM community.
 
-### VeRL: A Hybrid Controller-based RLHF Framework
+### verl: A Hybrid Controller-based RLHF Framework
 
 <p align="center">
     <picture>
@@ -53,7 +53,7 @@ Wang Xiyuan, an engineer at Huawei and a core maintainer of the vllm-ascend proj
     </picture>
 </p>
 
-Zhang Chi, an engineer at ByteDance and a core developer of the VeRL project, shared ByteDance's research and work in the field of reinforcement learning fine-tuning frameworks. He focused on the pain points currently addressed by VeRL and the core working principles of the Hybrid Controller.
+Zhang Chi, an engineer at ByteDance and a core developer of the verl project, shared ByteDance's research and work in the field of reinforcement learning fine-tuning frameworks. He focused on the pain points currently addressed by verl and the core working principles of the Hybrid Controller.
 
 ### Best Practices for Efficient Fine-Tuning Framework LLaMA-Factory with vLLM
 
@@ -63,4 +63,4 @@ Zhang Chi, an engineer at ByteDance and a core developer of the VeRL project, sh
     </picture>
 </p>
 
-Zheng Yaowei, a researcher at Beihang University and a core maintainer of the LLaMA-Factory project, shared the current development status in the field of large model fine-tuning and the latest graphical interface launched by LLaMA-Factory. He also introduced how LLaMA-Factory works with frameworks like vLLM to provide developers with ultimate ease of use.
+Zheng Yaowei, a researcher at Beijing University of Aeronautics and Astronautics and a core maintainer of the LLaMA-Factory project, shared the current development status in the field of large model fine-tuning and the latest graphical interface launched by LLaMA-Factory. He also introduced how LLaMA-Factory works with frameworks like vLLM to provide developers with ultimate ease of use.
