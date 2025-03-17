@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Boosting vLLM Performance on AMD ROCm: PTPC-FP8 Quantization Unleashes Speed and Accuracy"
+title: "PTPC-FP8: Boosting vLLM Performance on AMD ROCm"
 author: "AMD and Embedded LLM"
 image: /assets/figures/ptpc/PTPC-tumbnail.png
 thumbnail-img: /assets/figures/ptpc/PTPC-tumbnail.png
@@ -36,7 +36,6 @@ LLMs develop activation outliers as they scale beyond certain sizes. These unusu
 - Most values receive few effective bits of precision when using per-tensor quantization
 - Outliers appear persistently in specific channels across different tokens
 - While weights are relatively uniform and easy to quantize, activations are not
-
 #### PTPC: A Precision-Targeted Approach
 
 PTPC-FP8 (Per-Token-Activation, Per-Channel-Weight FP8) addresses this challenge by using tailored scaling factors based on three key observations:
@@ -49,7 +48,9 @@ This insight led to a dual-granularity approach:
 * **Per-Token Activation Quantization**: Each input token receives its own scaling factor
 * **Per-Channel Weight Quantization**: Each weight column gets a unique scaling factor
 
-<img align="right" src="/assets/figures/ptpc/PTPC-Diagram.png" alt="Per-Token Activation + Per-Channel Weight Quantization" width="50%" height="50%">
+<div align="center">
+  <img src="/assets/figures/ptpc/PTPC-Diagram.png" alt="Per-Token Activation + Per-Channel Weight Quantization" width="80%">
+</div>
 
 #### Understanding the Diagram
 
