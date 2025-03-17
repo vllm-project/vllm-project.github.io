@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "vLLM Beijing meetup: Innovation, Ecosystem and Cmmunity"
+title: "vLLM Beijing meetup: Innovation, Ecosystem and Community"
 author: "vLLM / vLLM Ascend / verl / LLaMAFactory Team"
 image: /assets/logos/vllm-logo-text-light.png
 ---
