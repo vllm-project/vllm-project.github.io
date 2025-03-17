@@ -7,12 +7,6 @@ image: /assets/logos/vllm-logo-text-light.png
 
 On March 16, 2025, We hosted the tenth vLLM meetup with Huawei, the vLLM team, [verl](https://github.com/volcengine/verl), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) team and [vLLM Ascend](https://github.com/vllm-project/vllm-ascend) team share how vLLM is leveraged in post-training, fine-tuning and deployment.
 
-<p align="center">
-    <picture>
-    <img src="/assets/figures/vllm-2025-beijing-meetup/0.png" width="45%">
-    </picture>
-</p>
-
 It is worth noting that this meetup marked the first vLLM community exchange event held in China. It not only provided a great platform for communication among major Chinese enterprises and universities but also strengthened the connection between the vLLM community and Chinese developers. In the future, we hope that through the joint efforts of the vLLM community and Chinese users, vLLM can be further refined, made more efficient, and user-friendly.
 
 ## Talks
