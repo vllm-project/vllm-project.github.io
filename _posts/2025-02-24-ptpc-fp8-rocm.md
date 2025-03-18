@@ -5,6 +5,7 @@ author: "AMD and Embedded LLM"
 image: /assets/figures/ptpc/PTPC-tumbnail.png
 thumbnail-img: /assets/figures/ptpc/PTPC-tumbnail.png
 share-img: /assets/figures/ptpc/PTPC-tumbnail.png
+math: true
 ---
 
 **TL;DR**: vLLM on AMD ROCm now has better FP8 performance!
@@ -57,15 +58,15 @@ This insight led to a dual-granularity approach:
 The illustration shows two quantization approaches:
 
 **Tensor Dimensions (Both Methods):**
-- **X**: Input activation tensor (T×Ci)
-- **W**: Weight tensor (Ci×Co)
-- **T**: Token sequence length
-- **Ci/Co**: Input/output channels
-- **\***: Matrix multiplication
+- **$X$**: Input activation tensor ($T \times C_i$)
+- **$W$**: Weight tensor ($C_i \times C_o$)
+- **$T$**: Token sequence length
+- **$C_i/C_o$**: Input/output channels
+- **$*$**: Matrix multiplication
 
 **Scaling Factors:**
-- **Top (Per-Tensor)**: Single scalars ΔX[1] and ΔW[1] for entire tensors
-- **Bottom (PTPC)**: Vector ΔX[T×1] with one scale per token and ΔW[1×Co] with one scale per input channel
+- **Top (Per-Tensor)**: Single scalars $\Delta_X[1]$ and $\Delta_W[1]$ for entire tensors
+- **Bottom (PTPC)**: Vector $\Delta_X[T \times 1]$ with one scale per token and $\Delta_W[1 \times C_o]$ with one scale per input channel
 
 This granular scaling approach allows PTPC-FP8 to achieve accuracy close to BF16 while maintaining the speed and memory benefits of 8-bit computation.
 
