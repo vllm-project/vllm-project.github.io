@@ -144,9 +144,9 @@ A small increase in perplexity (even 0.1) can indicate meaningful degradation in
 
 #### Results: PTPC-FP8 Maintains BF16-Like Quality
 
-<img align="right" src="/assets/figures/ptpc/PerplexityBits.png" alt="bits and byte perplexity" width="50%" height="50%">
+<img align="center" src="/assets/figures/ptpc/PerplexityBits.png" alt="bits and byte perplexity" width="90%">
 
-<img align="right" src="/assets/figures/ptpc/Perplexitywords.png" alt="Word Perplexity Comparison" width="50%" height="50%">
+<img align="center" src="/assets/figures/ptpc/Perplexitywords.png" alt="Word Perplexity Comparison" width="90%">
 
 | Precision | Word Perplexity | % Degradation |
 |:----------|:----------------|:--------------|
