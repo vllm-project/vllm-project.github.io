@@ -105,7 +105,7 @@ transformers. With the integration of the transformers backend, we step towards 
 Here is the [official documentation](https://docs.vllm.ai/en/latest/models/supported_models.html#remote-code)
 on how to make your transformers model compatible with vLLM for the integration to kick in.
 We followed this and made `modeling_gpt2.py` compatible with the integration! You can follow the
-changes in this [PR](https://github.com/huggingface/transformers/pull/36934).
+changes in this [transformers pull request](https://github.com/huggingface/transformers/pull/36934).
 
 For a model already in transformers (and compatible with vLLM), this is what we would need to:
 
