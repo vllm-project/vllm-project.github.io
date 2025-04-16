@@ -113,9 +113,9 @@ For a model already in transformers (and compatible with vLLM), this is what we 
 llm = LLM(model="new-transformers-model", model_impl="transformers")
 ```
 
-> ![NOTE]  
+> [!NOTE]
 > It is not a strict necessity to add `model_impl` parameter. vLLM switches to the transformers
-implementation on its own if the model is not natively supported in vLLM.
+> implementation on its own if the model is not natively supported in vLLM.
 
 Or for a custom model from the Hugging Face Hub:
 
