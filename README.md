@@ -31,6 +31,30 @@ math block
 $$
 ```
 
+## GitHub Flavored Admonitions
+
+The blog supports GitHub flavored admonitions via [jekyll-gfm-admonition](https://github.com/Helveg/jekyll-gfm-admonitions). It supports the following syntax:
+
+```markdown
+> [!NOTE]
+> Highlights information that users should take into account, even when skimming.
+> And supports multi-line text.
+
+> [!TIP]
+> Optional information to help a user be more successful.
+
+> [!IMPORTANT]
+> Crucial information necessary for users to succeed.
+
+> [!WARNING]
+> Critical content demanding immediate
+> user attention due to potential risks.
+
+> [!CAUTION]
+> Negative potential consequences of an action.
+> Opportunity to provide more context.
+```
+
 ## Theme customization
 
 The theme we are using is [Minima](https://github.com/jekyll/minima). If you need to customise anything from this theme, see [Overriding theme defaults](https://jekyllrb.com/docs/themes/#overriding-theme-defaults).
