@@ -20,7 +20,7 @@ vLLM will therefore optimize throughput/latency on top of existing transformers 
 In this post, we’ll explore how vLLM leverages the transformers backend to combine **flexibility**
 with **efficiency**, enabling you to deploy state-of-the-art models faster and smarter.
 
-## transformers and vLLM: Inference in Action
+## Transformers and vLLM: Inference in Action
 
 Let’s start with a simple text generation task using the `meta-llama/Llama-3.2-1B` model to see how
 these libraries stack up.
@@ -92,7 +92,7 @@ print("Completion result:", completion.choices[0].text)
 
 This compatibility slashes costs and boosts control, letting you scale inference locally with vLLM’s optimizations.
 
-## Why need the transformers backend?
+## Why do we need the transformers backend?
 
 The transformers library is optimized for contributions and
 [addition of new models](https://huggingface.co/docs/transformers/en/add_new_model). Adding a new
