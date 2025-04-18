@@ -19,7 +19,7 @@ To strike a balance between performance and usability in RLHF frameworks, [OpenR
 
 **ZeRO-3 with HuggingFace Transformers**, a memory optimization approach from DeepSpeed, empowers OpenRLHF to train large models without requiring heavyweight frameworks like Megatron. This seamless integration with HuggingFace allows for simple loading and fine-tuning of pre-trained models.
 
-Together, Ray, vLLM, ZeRO-3, and HuggingFace Transformers create a cutting-edge yet streamlined solution for accelerating RLHF training. The architecture has also influenced other frameworks such as [veRL](https://github.com/volcengine/verl), which adopt similar paradigms for scalable and efficient RLHF training. OpenRLHF is also the first open-source RLHF framework developed based on Ray and vLLM.
+Together, Ray, vLLM, ZeRO-3, and HuggingFace Transformers create a cutting-edge yet streamlined solution for accelerating RLHF training. The architecture has also influenced other frameworks such as [veRL](https://github.com/volcengine/verl), which adopt similar paradigms for scalable and efficient RLHF training. OpenRLHF is also the first open-source RLHF framework developed based on Ray and vLLM, and has been used by Google, Bytedance, Alibaba, Meituan, Berkeley Starling Team etc.
 
 <img align="center" src="/assets/figures/openrlhf-vllm/ray.png" alt="Ray and vLLM in OpenRLHF" width="90%" height="90%">
 
