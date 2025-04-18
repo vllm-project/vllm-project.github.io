@@ -1,6 +1,6 @@
 ---
 layout: post  
-title: "Accelerating RLHF with vLLM Ray Executor (OpenRLHF)"  
+title: "Accelerating RLHF with vLLM, Best Practice from OpenRLHF"
 author: "The OpenRLHF Team"  
 image: /assets/figures/openrlhf-vllm/ray.png  
 thumbnail-img: /assets/figures/openrlhf-vllm/ray.png  
