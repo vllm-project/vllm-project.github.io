@@ -17,9 +17,9 @@ To address these challenges, OpenRLHF is designed as a user-friendly, high-perfo
 
 **vLLM with Ray Executor and AutoTP** is central to accelerating inference within OpenRLHF. It naturally supports Ray Executors and integrates with Hugging Face Transformers, enabling efficient weight updates through AutoTP. This combination ensures high-throughput, memory-efficient serving of large language models.
 
-**ZeRO-3**, a memory optimization strategy from DeepSpeed, enables OpenRLHF to train large-scale models without the need for complex frameworks like Megatron. This allows for seamless integration with Hugging Face Transformers, facilitating straightforward loading and fine-tuning of pre-trained models. 
+**ZeRO-3 with HuggingFace Transformers**, a memory optimization strategy from DeepSpeed, enables OpenRLHF to train large-scale models without the need for complex frameworks like Megatron. This allows for seamless integration with HuggingFace Transformers, facilitating straightforward loading and fine-tuning of pre-trained models. 
 
-By combining Ray, vLLM, ZeRO-3, and Hugging Face Transformers, OpenRLHF offers a leading and simple solution for accelerating RLHF training. This architecture has influenced other frameworks, such as veRL, which adopt a similar paradigm for efficient and scalable RLHF training.
+By combining Ray, vLLM, ZeRO-3, and HuggingFace Transformers, OpenRLHF offers a leading and simple solution for accelerating RLHF training. This architecture has influenced other frameworks, such as veRL, which adopt a similar paradigm for efficient and scalable RLHF training.
 
 <img align="center" src="/assets/figures/openrlhf-vllm/ray.png" alt="Ray and vLLM in OpenRLHF" width="90%" height="90%">
 
