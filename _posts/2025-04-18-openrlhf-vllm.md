@@ -97,4 +97,6 @@ for bundle_indices in [[0, 1], [2, 3]]:
 
 ## Acknowledgements
 
-We would like to express our sincere gratitude to [Kaichao You](https://github.com/youkaichao) from the **vLLM** team and [Jian Hu](https://github.com/hijkzzz) from **OpenRLHF** for their invaluable contributions and close collaboration throughout this integration. Kaichao’s guidance on vLLM’s internals and RLHF API design significantly accelerated our implementation of high-throughput inference, while Jian’s deep insights into distributed RLHF architecture and training optimization were instrumental in refining OpenRLHF’s usability and performance. Their support not only made this work possible, but also laid the foundation for future advancements in efficient, scalable RLHF systems.
+We would like to express our sincere gratitude to the **vLLM** contributors, including [Kaichao You](https://github.com/youkaichao), [Cody Yu](https://github.com/comaniac), [Rui Qiao](https://github.com/ruisearch42), and many others, without which the OpenRLHF integration with vLLM will not be possible. [Kaichao You](https://github.com/youkaichao) from the vLLM team leads the RLHF integration.
+
+The ** OpenRLHF** project is an open-source project that provides xxx benefit, and we would like to thank xxx (contributors) for their major contribution to the OpenRLHF project.
