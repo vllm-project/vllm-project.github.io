@@ -23,7 +23,7 @@ By combining Ray, vLLM, ZeRO-3, and Hugging Face Transformers, OpenRLHF offers a
 
 <img align="center" src="/assets/figures/openrlhf-vllm/ray.png" alt="Ray and vLLM in OpenRLHF" width="90%" height="90%">
 
-​As illustrated in the figure, OpenRLHF utilizes Ray's placement group API to flexibly schedule various RLHF components, including the vLLM engine, Actor, Critic, Reference, and Reward models. While these models are depicted separately, they can be co-located within shared placement groups to optimize resource utilization. For instance, all modules can share the same GPU group in a Hybrid Engine configuration, or specific components like the Actor and Critic can be assigned to the same GPU group. Weight synchronization between the Actor and the vLLM engine is achieved through high-performance communication mechanisms such as NVIDIA's NCCL or CUDA IPC memory copying, particularly in Hybrid Engine setups. 
+​As illustrated in the figure, OpenRLHF utilizes [Ray's placement group API](https://docs.ray.io/en/latest/ray-core/scheduling/placement-group.html) to flexibly schedule various RLHF components, including the vLLM engine, Actor, Critic, Reference, and Reward models. While these models are depicted separately, they can be co-located within shared placement groups to optimize resource utilization. For instance, all modules can share the same GPU group in a Hybrid Engine configuration, or specific components like the Actor and Critic can be assigned to the same GPU group. Weight synchronization between the Actor and the vLLM engine is achieved through high-performance communication mechanisms such as NVIDIA's NCCL or CUDA IPC memory copying, particularly in Hybrid Engine setups. 
 
 ##  Implementing RLHF Acceleration with vLLM Ray Executor
 
