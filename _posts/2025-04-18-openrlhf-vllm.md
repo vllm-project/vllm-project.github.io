@@ -11,9 +11,9 @@ As the demand for training reasoning large language models (LLMs) grows, Reinfor
 
 ## Design Philosophy
 
-To address these challenges, OpenRLHF is designed as a user-friendly, high-performance framework for Reinforcement Learning from Human Feedback (RLHF), integrating key technologies such as Ray, vLLM, Zero Redundancy Optimizer (ZeRO-3), and Automatic Tensor Parallelism (AutoTP):
+To address these challenges, [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF) is designed as a user-friendly, high-performance framework for Reinforcement Learning from Human Feedback (RLHF), integrating key technologies such as Ray, vLLM, Zero Redundancy Optimizer (ZeRO-3), and Automatic Tensor Parallelism (AutoTP):
 
-**Ray** serves as the backbone for distributed programming within OpenRLHF. Its robust scheduling and orchestration capabilities make it ideal for managing the complex data flows and computations inherent in RLHF training, including the distribution of reward models across multiple nodes. 
+**Ray** serves as the backbone for distributed programming within OpenRLHF. Its robust scheduling and orchestration capabilities make it ideal for managing the complex data flows and computations inherent in RLHF training, including the distribution of rule-based reward models across multiple nodes. 
 
 **vLLM with Ray Executor and AutoTP** is central to accelerating inference within OpenRLHF. It naturally supports Ray Executors and integrates with Hugging Face Transformers, enabling efficient weight updates through AutoTP. This combination ensures high-throughput, memory-efficient generation of large language models.
 
