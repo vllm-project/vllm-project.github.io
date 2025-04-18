@@ -27,7 +27,7 @@ As illustrated above, OpenRLHF uses [Ray’s Placement Group API](https://docs.r
 
 ## Implementing RLHF Acceleration with vLLM Ray Executor
 
-OpenRLHF and vLLM provide a clean and efficient set of APIs to simplify interaction within RLHF pipelines. By implementing a custom `WorkerExtension` class, users can handle weight synchronization between training and inference components. The environment variable `VLLM_RAY_PER_WORKER_GPUS` allows fine-grained GPU resource allocation per worker, enabling hybrid engine configurations where multiple components share a GPU group:
+OpenRLHF and vLLM provide a clean and efficient set of APIs to simplify interaction within RLHF pipelines. By implementing a custom `WorkerExtension` class, users can handle weight synchronization between training and inference components. The environment variables `VLLM_RAY_PER_WORKER_GPUS` and `VLLM_RAY_BUNDLE_INDICES` allows fine-grained GPU resource allocation per worker, enabling hybrid engine configurations where multiple components share a GPU group:
 
 ```python
 class ColocateWorkerExtension:
