@@ -13,11 +13,11 @@ As demand grows for training reasoning-capable large language models (LLMs), Rei
 
 To strike a balance between performance and usability in RLHF frameworks, [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF) is designed as a high-performance yet user-friendly solution that integrates key technologies like Ray, vLLM, Zero Redundancy Optimizer (ZeRO-3), and Automatic Tensor Parallelism (AutoTP):
 
-**Ray** acts as the backbone of OpenRLHF's distributed architecture. With powerful scheduling and orchestration features, Ray efficiently manages complex data flows and computations, including distributing rule-based reward models across multiple nodes.
+**[Ray](https://github.com/ray-project/ray)** acts as the backbone of OpenRLHF's distributed architecture. With powerful scheduling and orchestration features, Ray efficiently manages complex data flows and computations, including distributing rule-based reward models across multiple nodes.
 
 **vLLM with Ray Executor and AutoTP** plays a central role in accelerating inference. With built-in support for Ray Executors and integration with HuggingFace Transformers, it enables efficient weight updates through AutoTP, resulting in high-throughput and memory-efficient LLM generation.
 
-**ZeRO-3 with HuggingFace Transformers**, a memory optimization approach from DeepSpeed, empowers OpenRLHF to train large models without requiring heavyweight frameworks like Megatron. This seamless integration with HuggingFace allows for simple loading and fine-tuning of pre-trained models.
+**ZeRO-3 with [HuggingFace Transformers](https://github.com/huggingface/transformers)**, a memory optimization approach from [DeepSpeed](https://github.com/deepspeedai/DeepSpeed), empowers OpenRLHF to train large models without requiring heavyweight frameworks like Megatron. This seamless integration with HuggingFace allows for simple loading and fine-tuning of pre-trained models.
 
 Together, Ray, vLLM, ZeRO-3, and HuggingFace Transformers create a cutting-edge yet streamlined solution for accelerating RLHF training. The architecture has also influenced other frameworks such as [veRL](https://github.com/volcengine/verl), which adopt similar paradigms for scalable and efficient RLHF training. OpenRLHF is also the first open-source RLHF framework developed based on Ray and vLLM, and has been used by Google, Bytedance, Alibaba, Meituan, Berkeley Starling Team etc.
 
@@ -92,7 +92,7 @@ for bundle_indices in [[0, 1], [2, 3]]:
     inference_engines.append(llm)
 ```
 
-[The complete example](https://docs.vllm.ai/en/latest/getting_started/examples/rlhf_colocate.html) walks through initializing Ray with a specified GPU count, creating a placement group to manage resources, and defining both training actors and inference engines. The training actors manage model initialization and weight updates, while the inference engines serve models via vLLM. Weight synchronization is carried out using CUDA IPC or NCCL, ensuring coherence and efficiency throughout the RLHF pipeline.
+[The complete RLHF example](https://docs.vllm.ai/en/latest/getting_started/examples/rlhf_colocate.html) walks through initializing Ray with a specified GPU count, creating a placement group to manage resources, and defining both training actors and inference engines. The training actors manage model initialization and weight updates, while the inference engines serve models via vLLM. Weight synchronization is carried out using CUDA IPC or NCCL, ensuring coherence and efficiency throughout the RLHF pipeline.
 
 
 ## Acknowledgements
