@@ -93,3 +93,8 @@ for bundle_indices in [[0, 1], [2, 3]]:
 ```
 
 [The complete example](https://docs.vllm.ai/en/latest/getting_started/examples/rlhf_colocate.html) walks through initializing Ray with a specified GPU count, creating a placement group to manage resources, and defining both training actors and inference engines. The training actors manage model initialization and weight updates, while the inference engines serve models via vLLM. Weight synchronization is carried out using CUDA IPC or NCCL, ensuring coherence and efficiency throughout the RLHF pipeline.
+
+
+## Acknowledgements
+
+We would like to express our sincere gratitude to [Kaichao You](https://github.com/youkaichao) from the **vLLM** team and [Jian Hu](https://github.com/hijkzzz) from **OpenRLHF** for their invaluable contributions and close collaboration throughout this integration. Kaichao’s guidance on vLLM’s internals and RLHF API design significantly accelerated our implementation of high-throughput inference, while Jian’s deep insights into distributed RLHF architecture and training optimization were instrumental in refining OpenRLHF’s usability and performance. Their support not only made this work possible, but also laid the foundation for future advancements in efficient, scalable RLHF systems.
