@@ -99,4 +99,4 @@ for bundle_indices in [[0, 1], [2, 3]]:
 
 We would like to express our sincere gratitude to the **vLLM** contributors, including [Kaichao You](https://github.com/youkaichao), [Cody Yu](https://github.com/comaniac), [Rui Qiao](https://github.com/ruisearch42), and many others, without which the OpenRLHF integration with vLLM will not be possible. [Kaichao You](https://github.com/youkaichao) from the vLLM team leads the RLHF integration.
 
-The ** OpenRLHF** project is an open-source project that provides xxx benefit, and we would like to thank xxx (contributors) for their major contribution to the OpenRLHF project.
+The **OpenRLHF** project is the first open-source RLHF framework based on Ray and vLLM. We would like to thank [Jian Hu](https://github.com/hijkzzz) and [HollowMan6](https://github.com/HollowMan6) for their significant contributions to the vLLM generation and Hybrid Engine components of the OpenRLHF project.
