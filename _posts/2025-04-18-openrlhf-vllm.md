@@ -1,5 +1,5 @@
 ---
-layout: post  
+layout: post
 title: "Accelerating RLHF with vLLM, Best Practice from OpenRLHF"
 author: "The OpenRLHF Team"  
 image: /assets/figures/openrlhf-vllm/ray.png  
