@@ -19,7 +19,7 @@ To strike a balance between performance and usability in RLHF frameworks, [OpenR
 
 **ZeRO-3 with [HuggingFace Transformers](https://github.com/huggingface/transformers)**, a memory optimization approach from [DeepSpeed](https://github.com/deepspeedai/DeepSpeed), empowers OpenRLHF to train large models without requiring heavyweight frameworks like Megatron. This seamless integration with HuggingFace allows for simple loading and fine-tuning of pre-trained models.
 
-Together, Ray, vLLM, ZeRO-3, and HuggingFace Transformers create a cutting-edge yet streamlined solution for accelerating RLHF training. The architecture has also influenced other frameworks such as [veRL](https://github.com/volcengine/verl), which adopt similar paradigms for scalable and efficient RLHF training. OpenRLHF is also the first open-source RLHF framework developed based on Ray and vLLM, and has been used by Google, Bytedance, Alibaba, Meituan, Berkeley Starling Team etc.
+Together, Ray, vLLM, ZeRO-3, and HuggingFace Transformers create a cutting-edge yet streamlined solution for accelerating RLHF training. The architecture has also influenced other frameworks such as [veRL](https://github.com/volcengine/verl), which adopt similar paradigms for scalable and efficient RLHF training. OpenRLHF is also the first open-source RLHF framework developed based on Ray, vLLM and ZeRO-3, and has been used by Google, Bytedance, Alibaba, Meituan, Berkeley Starling Team etc.
 
 <img align="center" src="/assets/figures/openrlhf-vllm/ray.png" alt="Ray and vLLM in OpenRLHF" width="90%" height="90%">
 
@@ -30,6 +30,7 @@ As illustrated above, OpenRLHF uses [Ray’s Placement Group API](https://docs.r
 OpenRLHF and vLLM provide a clean and efficient set of APIs to simplify interaction within RLHF pipelines. By implementing a custom `WorkerExtension` class, users can handle weight synchronization between training and inference components. The environment variables `VLLM_RAY_PER_WORKER_GPUS` and `VLLM_RAY_BUNDLE_INDICES` allows fine-grained GPU resource allocation per worker, enabling hybrid engine configurations where multiple components share a GPU group:
 
 ```python
+# rlhf_utils.py
 class ColocateWorkerExtension:
     """
     Extension class for vLLM workers to handle weight synchronization.
@@ -55,6 +56,7 @@ class ColocateWorkerExtension:
         self.model_runner.model.load_weights(weights=weights)
         torch.cuda.synchronize()
 
+# main.py
 class MyLLM(LLM):
     """
     Custom LLM class to handle GPU resource allocation and bundle indices.
@@ -69,7 +71,7 @@ class MyLLM(LLM):
         super().__init__(*args, **kwargs)
 
 
-# Create placement group for GPU allocation
+# Create Ray's placement group for GPU allocation
 pg = placement_group([{"GPU": 1, "CPU": 0}] * 4)
 ray.get(pg.ready())
 
@@ -86,7 +88,7 @@ for bundle_indices in [[0, 1], [2, 3]]:
         tensor_parallel_size=2,
         distributed_executor_backend="ray",
         gpu_memory_utilization=0.4,
-        worker_extension_cls="__main__.ColocateWorkerExtension",
+        worker_extension_cls="rlhf_utils.ColocateWorkerExtension",
         bundle_indices=bundle_indices
     )
     inference_engines.append(llm)
