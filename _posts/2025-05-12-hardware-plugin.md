@@ -1,12 +1,11 @@
 ---
 layout: post
-title: "Introducing vLLM Hardware Plugin and Best Practice with Ascend NPU"
-author: "vLLM Ascend Team"
+title: "Introducing vLLM Hardware Plugin, Best Practice from Ascend NPU"
+author: "The Ascend Team on vLLM"
 image: /assets/logos/vllm-logo-only-light.png
 ---
 
-Since December 2024, through the joint efforts of the vLLM community and the vLLM Ascend team, we have completed the [Hardware Pluggable RFC]((https://github.com/vllm-project/vllm/issues/11162)). This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms. The RFC has now taken initial shape.
-This proposal enables hardware integration into vLLM in a decoupled way, allowing for quick and modular support of various hardware platforms.
+Since December 2024, through the joint efforts of the vLLM community and the vLLM Ascend team, we have completed the [Hardware Pluggable RFC]((https://github.com/vllm-project/vllm/issues/11162)). This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms.
 
 ---
 
@@ -18,7 +17,7 @@ Currently, vLLM already supports multiple backends. However, as the number of vL
 - **High Maintenance Costs**: The cost of maintaining backends is high, not only for the backend developers but also for the vLLM community. The scarcity of community contributor resources makes efficiently adding new features difficult when backend maintainers are not present. 
 - **Lack of Extensibility**: While vLLM follows a well-structured layered design by implementing backends through `Executor`, `Worker`, `Runner`, and `Attention`, supporting new hardware often requires invasive modifications or patching rather than dynamic registration. This makes adding new backends cumbersome.
 
-Recognizing the need for a flexible and modular approach to integrating hardware backends, we identified hardware pluginization as a feasible solution:
+Recognizing the need for a flexible and modular approach to integrating hardware backends, we proposed hardware plugins as a feasible solution:
 
 - **Decoupled Codebase**: The hardware backend plugin code remains independent, making the vLLM core code cleaner.
 - **Reduced Maintenance Burden**: vLLM developers can focus on generic features without being overwhelmed by the differences caused by backend-specific implementations.
@@ -112,4 +111,4 @@ Moving forward, we will continue collaborating with developers in the vLLM commu
 2. Expanding plugin support for more modules and features, such as scheduler and custom operators.
 3. Better user experience and higher performance.
 
-We encourage everyone to try out this new feature! If you have any questions, join the [vLLM Slack](https://inviter.co/vllm-slack) and participate in the **#sig-extensible-hardware** channel for discussions. 🚀
+We encourage everyone to try out this new feature! If you have any questions, join the [vLLM Slack](https://slack.vllm.ai) and participate in the **#sig-extensible-hardware** channel for discussions. 🚀
