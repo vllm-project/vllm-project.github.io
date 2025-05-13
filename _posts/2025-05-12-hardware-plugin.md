@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Introducing vLLM Hardware Plugin, Best Practice from Ascend NPU"
-author: "The Ascend Team on vLLM"
+author: "The vLLM Ascend team"
 image: /assets/logos/vllm-logo-only-light.png
 ---
 
@@ -79,7 +79,7 @@ setup(
 - `{code_path}`: The path to the main Python module.  
 - `{register_function}`: The register function, which returns the path of `Platform` class defined in step 1.
 
-Refer to [`setup.py`](https://github.com/vllm-project/vllm-ascend/blob/72a43a61d8d2193dddbfcc60578fd642008225a5/setup.py#L102) in vLLM Ascend for a practical example.  
+Refer to [`setup.py`](https://github.com/vllm-project/vllm-ascend/blob/72a43a61d8d2193dddbfcc60578fd642008225a5/setup.py#L102) in vLLM Ascend for a practical example.
 
 ---
 
@@ -107,8 +107,14 @@ INFO 02-06 15:49:01 __init__.py:181] Platform plugin ascend is activated
 
 Moving forward, we will continue collaborating with developers in the vLLM community to enhance the following aspects:
 
-1. Continuous enhancements to the V1 Engine.
-2. Expanding plugin support for more modules and features, such as scheduler and custom operators.
+1. Continuous enhancements to the V1 Engine and VLMs.
+2. Expanding plugin support for more modules and features, such as scheduler, graph mode and custom operators.
 3. Better user experience and higher performance.
+4. Maintenance and enhancement of a stable plugin architecture for appropriate hardware platforms
 
 We encourage everyone to try out this new feature! If you have any questions, join the [vLLM Slack](https://slack.vllm.ai) and participate in the **#sig-extensible-hardware** channel for discussions. 🚀
+
+
+## Acknowledgements
+
+This flexible hardware backend plugin mechanism would not have been possible without the efforts contributed by a lot of vLLM contributors. Thus we are deeply grateful to the vLLM maintainers, including [Kaichao You](https://github.com/youkaichao), [Simon Mo](https://github.com/simon-mo), [Cyrus Leung](https://github.com/DarkLight1337), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Michael Goin](https://github.com/mgoin) and [Jee Jee Li](https://github.com/jeejeelee) for related refactor, deeply discuss and quickly review, [Xiyuan Wang](https://github.com/wangxiyuan), [Shanshan Shen](https://github.com/shen-shanshan), [Chenguang Li](https://github.com/noemotiovon) and [Mengqing Cao](https://github.com/MengqingCao) from vLLM Ascend team for mechanism design and implentment, [Joe Runde](https://github.com/joerunde) and [Yannick Schnider](https://github.com/yannicks1) from the vLLM Spyre team for pluggable scheduler design and implentment, and other contributors, including [yancong](https://github.com/ice-tong) for extendable quantization method design and implentment, [Aviv Keshet](https://github.com/akeshet) for extendable `SamplingParams`.
