@@ -5,7 +5,7 @@ author: "The Ascend Team on vLLM"
 image: /assets/logos/vllm-logo-only-light.png
 ---
 
-Since December 2024, through the joint efforts of the vLLM community and the Ascend team on vLLM, we have completed the [Hardware Pluggable RFC]((https://github.com/vllm-project/vllm/issues/11162)). This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms.
+Since December 2024, through the joint efforts of the vLLM community and the Ascend team on vLLM, we have completed the [Hardware Pluggable RFC](https://github.com/vllm-project/vllm/issues/11162). This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms.
 
 ---
 
@@ -34,17 +34,17 @@ Before introducing the vLLM Hardware Plugin, let's first look at two prerequisit
 
 Based on these RFCs, we proposed [[RFC] Hardware Pluggable](https://github.com/vllm-project/vllm/issues/11162), which integrates the `Platform` module into vLLM as a plugin. Additionally, we refactored `Executor`, `Worker`, `ModelRunner`, `AttentionBackend`, and `Communicator` to support hardware plugins more flexibly.
 
-Currently, vLLM community has successfully implemented the Platform module introduced in the RFC. The functionality is validated through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) and [vllm-project/vllm-spyre](https://github.com/vllm-project/vllm-spyre) projects. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU and IBM Spyre backends.
+Currently, the vLLM community has successfully implemented the Platform module introduced in the RFC. The functionality is validated through the [vllm-project/vllm-ascend](https://github.com/vllm-project/vllm-ascend) and [vllm-project/vllm-spyre](https://github.com/vllm-project/vllm-spyre) projects. Using this plugin mechanism, we successfully integrated vLLM with the Ascend NPU and IBM Spyre backends.
 
 ---
 
 ## How to Integrate a New Backend via vLLM Hardware Plugin Mechanism
 
-This section will dive into integrating a New Backend via the Hardware Plugin in both developer and user perspective.
+This section will dive into integrating a new backend via the hardware plugin in both developer and user perspective.
 
 ### Developer Perspective
 
-To integrate a new backend into vLLM using the Hardware Plugin, follow these steps:
+To integrate a new backend into vLLM using the hardware plugin, follow these steps:
 
 #### Step 1: Create a New Project and Initialize the Platform
 
@@ -67,7 +67,7 @@ Each of these classes has a corresponding base class in vLLM. Again, you can ref
 
 #### Step 3: Register the Plugin
 
-Register the plugin in `setup.py` using entrypoint mechanism of python:
+Register the plugin in `setup.py` using the entrypoint mechanism of python:
 
 ```python
 setup(
@@ -85,7 +85,7 @@ Refer to [`setup.py`](https://github.com/vllm-project/vllm-ascend/blob/72a43a61d
 
 ### User Perspective
 
-Only need to install vllm and your plugin before running, taking [vllm-ascend](https://github.com/vllm-project/vllm-ascend) as an example:
+Users only need to install vllm and your plugin before running, taking [vllm-ascend](https://github.com/vllm-project/vllm-ascend) as an example:
 
 ```bash
 pip install vllm vllm-ascend
@@ -117,4 +117,4 @@ We encourage everyone to try out this new feature! If you have any questions, jo
 
 ## Acknowledgements
 
-This flexible hardware backend plugin mechanism would not have been possible without the efforts contributed by a lot of vLLM contributors. Thus we are deeply grateful to the vLLM maintainers, including [Kaichao You](https://github.com/youkaichao), [Simon Mo](https://github.com/simon-mo), [Cyrus Leung](https://github.com/DarkLight1337), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Michael Goin](https://github.com/mgoin) and [Jie Li](https://github.com/jeejeelee) for related refactor, deep discussion and quick review, [Xiyuan Wang](https://github.com/wangxiyuan), [Shanshan Shen](https://github.com/shen-shanshan), [Chenguang Li](https://github.com/noemotiovon) and [Mengqing Cao](https://github.com/MengqingCao) from the Ascend team on vLLM for mechanism design and implementation, [Joe Runde](https://github.com/joerunde) and [Yannick Schnider](https://github.com/yannicks1) from the Spyre team on vLLM for pluggable scheduler design and implementation, and other contributors, including [yancong](https://github.com/ice-tong) for extendable quantization method design and implementation, [Aviv Keshet](https://github.com/akeshet) for extendable `SamplingParams`.
+This flexible hardware backend plugin mechanism would not have been possible without the efforts of many vLLM contributors. Thus we are deeply grateful to the vLLM maintainers, including [Kaichao You](https://github.com/youkaichao), [Simon Mo](https://github.com/simon-mo), [Cyrus Leung](https://github.com/DarkLight1337), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Michael Goin](https://github.com/mgoin) and [Jie Li](https://github.com/jeejeelee) for related refactor, deep discussion and quick review, [Xiyuan Wang](https://github.com/wangxiyuan), [Shanshan Shen](https://github.com/shen-shanshan), [Chenguang Li](https://github.com/noemotiovon) and [Mengqing Cao](https://github.com/MengqingCao) from the Ascend team on vLLM for mechanism design and implementation, [Joe Runde](https://github.com/joerunde) and [Yannick Schnider](https://github.com/yannicks1) from the Spyre team on vLLM for pluggable scheduler design and implementation, and other contributors, including [yancong](https://github.com/ice-tong) for extendable quantization method design and implementation, [Aviv Keshet](https://github.com/akeshet) for extendable `SamplingParams`.
