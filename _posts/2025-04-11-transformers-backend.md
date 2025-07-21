@@ -20,6 +20,69 @@ vLLM will therefore optimize throughput/latency on top of existing transformers 
 In this post, we’ll explore how vLLM leverages the transformers backend to combine **flexibility**
 with **efficiency**, enabling you to deploy state-of-the-art models faster and smarter.
 
+## Updates
+
+This section will hold all the updates that have been taken place over the course of the first release of the blog psot (11th April 2025).
+
+### Support for Vision Language Models (21st July 2025)
+
+vLLM with the transformers backend now supports Vision Langauge Models. Here is how one would use
+the API.
+
+```python
+from vllm import LLM, SamplingParams
+from PIL import Image
+import requests
+from transformers import AutoProcessor
+
+model_id = "llava-hf/llava-onevision-qwen2-0.5b-ov-hf"
+hf_processor = AutoProcessor.from_pretrained(model_id) # required to dynamically update the chat template
+
+messages = [
+    {
+      "role": "user",
+      "content": [
+          {"type": "image", "url": "dummy_image.jpg"},
+          {"type": "text", "text": "What is the content of this image?"},
+        ],
+    },
+]
+prompt = hf_processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+image = Image.open(
+    requests.get(
+        "http://images.cocodataset.org/val2017/000000039769.jpg", stream=True
+    ).raw
+)
+
+# initialize the vlm using the `model_impl="transformers"`
+vlm = LLM(
+    model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
+    model_impl="transformers",
+    disable_mm_preprocessor_cache=True, # we disable the mm preprocessor cache for the time being
+    enable_prefix_caching=False,
+    enable_chunked_prefill=False
+)
+
+outputs = vlm.generate(
+    {
+        "prompt": prompt,
+        "multi_modal_data": {"image": image},
+    },
+    sampling_params=SamplingParams(max_tokens=100)
+)
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+
+# OUTPUTS:
+# In the tranquil setting of this image, two feline companions are enjoying a peaceful slumber on a
+# cozy pink couch. The couch, adorned with a plush red fabric across the seating area, serves as their perfect resting place.
+#
+# On the left side of the couch, a gray tabby cat is curled up at rest, its body relaxed in a display
+# of feline serenity. One paw playfully stretches out, perhaps in mid-jump or simply exploring its surroundings.
+```
+
 ## Transformers and vLLM: Inference in Action
 
 Let’s start with a simple text generation task using the `meta-llama/Llama-3.2-1B` model to see how
