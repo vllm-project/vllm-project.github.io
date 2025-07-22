@@ -29,7 +29,44 @@ This section will hold all the updates that have taken place since the blog post
 vLLM with the transformers backend now supports **Vision Language Models**. When user adds `model_impl="transformers"`,
 the correct class for text-only and multimodality will be deduced and loaded.
 
-Here is how one would use the API.
+Here is how one can serve a multimodal model using the transformers backend.
+```bash
+vllm serve llava-hf/llava-onevision-qwen2-0.5b-ov-hf \
+--model_impl transformers \
+--disable-mm-preprocessor-cache \
+--no-enable-prefix-caching \
+--no-enable-chunked-prefill
+```
+
+To consume the model one can use the `openai` API like so:
+```python
+from openai import OpenAI
+openai_api_key = "EMPTY"
+openai_api_base = "http://localhost:8000/v1"
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+chat_response = client.chat.completions.create(
+    model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "What's in this image?"},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": "http://images.cocodataset.org/val2017/000000039769.jpg",
+                },
+            },
+        ],
+    }],
+)
+print("Chat response:", chat_response)
+```
+
+You can also directly initialize the vLLM engine using the `LLM` API. Here is the same model being
+served using the `LLM` API.
 
 ```python
 from vllm import LLM, SamplingParams
