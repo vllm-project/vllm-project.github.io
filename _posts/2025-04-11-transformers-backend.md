@@ -26,7 +26,7 @@ This section will hold all the updates that have been taken place over the cours
 
 ### Support for Vision Language Models (21st July 2025)
 
-vLLM with the transformers backend now supports Vision Langauge Models. Here is how one would use
+vLLM with the transformers backend now supports Vision Language Models. Here is how one would use
 the API.
 
 ```python
