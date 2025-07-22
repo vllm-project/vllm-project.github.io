@@ -26,8 +26,10 @@ This section will hold all the updates that have taken place since the blog post
 
 ### Support for Vision Language Models (21st July 2025)
 
-vLLM with the transformers backend now supports Vision Language Models. Here is how one would use
-the API.
+vLLM with the transformers backend now supports **Vision Language Models**. When user adds `model_impl="transformers"`,
+the correct class for text-only and multimodality will be deduced and loaded.
+
+Here is how one would use the API.
 
 ```python
 from vllm import LLM, SamplingParams
