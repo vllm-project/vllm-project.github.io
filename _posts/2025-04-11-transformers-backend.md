@@ -22,7 +22,7 @@ with **efficiency**, enabling you to deploy state-of-the-art models faster and s
 
 ## Updates
 
-This section will hold all the updates that have been taken place over the course of the first release of the blog post (11th April 2025).
+This section will hold all the updates that have taken place since the blog post was first released (11th April 2025).
 
 ### Support for Vision Language Models (21st July 2025)
 
