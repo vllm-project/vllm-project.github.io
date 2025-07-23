@@ -33,9 +33,6 @@ Here is how one can serve a multimodal model using the transformers backend.
 ```bash
 vllm serve llava-hf/llava-onevision-qwen2-0.5b-ov-hf \
 --model_impl transformers \
---disable-mm-preprocessor-cache \
---no-enable-prefix-caching \
---no-enable-chunked-prefill
 ```
 
 To consume the model one can use the `openai` API like so:
