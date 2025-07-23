@@ -20,6 +20,102 @@ vLLM will therefore optimize throughput/latency on top of existing transformers 
 In this post, we’ll explore how vLLM leverages the transformers backend to combine **flexibility**
 with **efficiency**, enabling you to deploy state-of-the-art models faster and smarter.
 
+## Updates
+
+This section will hold all the updates that have taken place since the blog post was first released (11th April 2025).
+
+### Support for Vision Language Models (21st July 2025)
+
+vLLM with the transformers backend now supports **Vision Language Models**. When user adds `model_impl="transformers"`,
+the correct class for text-only and multimodality will be deduced and loaded.
+
+Here is how one can serve a multimodal model using the transformers backend.
+```bash
+vllm serve llava-hf/llava-onevision-qwen2-0.5b-ov-hf \
+--model_impl transformers \
+```
+
+To consume the model one can use the `openai` API like so:
+```python
+from openai import OpenAI
+openai_api_key = "EMPTY"
+openai_api_base = "http://localhost:8000/v1"
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+chat_response = client.chat.completions.create(
+    model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "What's in this image?"},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": "http://images.cocodataset.org/val2017/000000039769.jpg",
+                },
+            },
+        ],
+    }],
+)
+print("Chat response:", chat_response)
+```
+
+You can also directly initialize the vLLM engine using the `LLM` API. Here is the same model being
+served using the `LLM` API.
+
+```python
+from vllm import LLM, SamplingParams
+from PIL import Image
+import requests
+from transformers import AutoProcessor
+
+model_id = "llava-hf/llava-onevision-qwen2-0.5b-ov-hf"
+hf_processor = AutoProcessor.from_pretrained(model_id) # required to dynamically update the chat template
+
+messages = [
+    {
+      "role": "user",
+      "content": [
+          {"type": "image", "url": "dummy_image.jpg"},
+          {"type": "text", "text": "What is the content of this image?"},
+        ],
+    },
+]
+prompt = hf_processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+image = Image.open(
+    requests.get(
+        "http://images.cocodataset.org/val2017/000000039769.jpg", stream=True
+    ).raw
+)
+
+# initialize the vlm using the `model_impl="transformers"`
+vlm = LLM(
+    model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
+    model_impl="transformers",
+)
+
+outputs = vlm.generate(
+    {
+        "prompt": prompt,
+        "multi_modal_data": {"image": image},
+    },
+    sampling_params=SamplingParams(max_tokens=100)
+)
+
+for o in outputs:
+    generated_text = o.outputs[0].text
+    print(generated_text)
+
+# OUTPUTS:
+# In the tranquil setting of this image, two feline companions are enjoying a peaceful slumber on a
+# cozy pink couch. The couch, adorned with a plush red fabric across the seating area, serves as their perfect resting place.
+#
+# On the left side of the couch, a gray tabby cat is curled up at rest, its body relaxed in a display
+# of feline serenity. One paw playfully stretches out, perhaps in mid-jump or simply exploring its surroundings.
+```
+
 ## Transformers and vLLM: Inference in Action
 
 Let’s start with a simple text generation task using the `meta-llama/Llama-3.2-1B` model to see how
