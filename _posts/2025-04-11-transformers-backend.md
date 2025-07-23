@@ -97,9 +97,6 @@ image = Image.open(
 vlm = LLM(
     model="llava-hf/llava-onevision-qwen2-0.5b-ov-hf",
     model_impl="transformers",
-    disable_mm_preprocessor_cache=True, # we disable the mm preprocessor cache for the time being
-    enable_prefix_caching=False,
-    enable_chunked_prefill=False
 )
 
 outputs = vlm.generate(
