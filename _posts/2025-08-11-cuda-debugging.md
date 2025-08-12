@@ -309,7 +309,7 @@ RuntimeError: CUDA error: an illegal memory access was encountered
 Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
 ```
 
-It can be inferred that an exception occurrs in a kernel within the CUDA graph. However, conventional methods can only provide information up to this point.
+It can be inferred that an exception occurs in a kernel within the CUDA graph. However, conventional methods can only provide information up to this point.
 
 By adding the environment variables `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory' CUDA_COREDUMP_FILE="/tmp/cuda_coredump_%h.%p.%t"`, we can clearly identify the kernel that caused the error:
 
