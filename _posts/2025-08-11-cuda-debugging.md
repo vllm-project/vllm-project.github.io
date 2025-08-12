@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "GPU Core Dump: An Effective Tool to Debug Illegal Memory Accesses and Beyond"
+title: "CUDA Core Dump: An Effective Tool to Debug Illegal Memory Accesses and Beyond"
 author: "Kaichao You"
 image: /assets/logos/vllm-logo-text-light.png
 ---
@@ -35,7 +35,7 @@ A [core dump](https://en.wikipedia.org/wiki/Core_dump) is a feature jointly prov
 
 By analogy, the core dump functionality on GPUs requires collaboration between GPU hardware and GPU drivers. When a thread on the GPU crashes during execution, the GPU hardware needs to trigger an exception and pass it to the GPU driver, which then immediately handles the exception. However, according to [forum discussions](https://forums.developer.nvidia.com/t/difference-in-error-handling-between-driver-api-and-runtime-api/336389), the default behavior of the GPU driver when handling exceptions is to mark the current CUDA context as unusable, rather than terminating the program.
 
-# How to Enable GPU Core Dump
+# How to Enable CUDA Core Dump
 
 Enabling GPU core dump is very straightforward; you just need to set the `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1` environment variable. However, for a smoother experience, you should also set a few additional environment variables:
 
@@ -53,7 +53,7 @@ In summary, when using the GPU core dump feature, it is recommended to use the f
 
 `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory' CUDA_COREDUMP_FILE="/persistent_dir/cuda_coredump_%h.%p.%t"`
 
-# Example of Using GPU Core Dump
+# Example of Using CUDA Core Dump
 
 Let's use some code to verify the effectiveness of GPU core dump.
 
