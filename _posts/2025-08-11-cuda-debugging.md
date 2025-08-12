@@ -61,7 +61,8 @@ Let's use some code to verify the effectiveness of CUDA core dump.
 
 ## Debugging Improper Kernel Launch
 
-```cuda
+```cpp
+// test.cu
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -181,6 +182,7 @@ We can clearly see that the exception is caused by `illegalMemoryAccessKernel` a
 Here’s a more complex example where an illegal memory access kernel is inserted into a CUDA graph:
 
 ```python
+# core_dump.py
 import torch
 import torch.nn as nn
 
