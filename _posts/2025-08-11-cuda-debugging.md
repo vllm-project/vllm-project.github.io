@@ -7,9 +7,11 @@ image: /assets/logos/vllm-logo-text-light.png
 
 # Introduction
 
-vLLM is a high-performance inference engine for large language models. Today we will cover some of the debugging tools to help users debug complicated issues in vLLM, such as illegal memory accesses.
+Have you ever felt you are developing attention kernel and your tests oftens runs into illegal memory access (IMA for short) and you have no idea how to debug? We definitely felt this pain again and again while working on vLLM, a high-performance inference engine for LLM models. 
 
-Illegal memory access (IMA for short), is probably the most common and frustrating issue. For example, here’s an error from PyTorch:
+If you are one of the developers who have faced this issue, this blog is for you! We will uncover some of advanced debugging techniques we use that can help users debug complicated issues in vLLM, such as IMA.
+
+For example, here’s an error from PyTorch:
 
 ```text
 RuntimeError: CUDA error: an illegal memory access was encountered
