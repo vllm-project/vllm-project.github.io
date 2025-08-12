@@ -325,7 +325,7 @@ The exception was triggered at PC 0x7fc2afba5e30  void at::native::vectorized_el
 
 Clearly, this is a `fill` function, and the grid size of `40960` is very large. With this information, we can easily pinpoint that the lines `y = from_buffer(x.data_ptr(), x.numel() * 1024 * 1024); y.fill_(1);` forcibly expand the length of `x` by a million times and then fill it entirely with 1s, thereby triggering the `illegal memory access` exception.
 
-> On some GPUs, this line might cause `invalid argument` error instead of `illegal memory access`, because the grid size exceeds the maximum limit. In such cases, the CUDA core dump feature cannot be triggered, and you need to turn down the expansion factor `1024 * 1024` a little bit to avoid exceeding the grid size limit.
+On some GPUs, this line might cause `invalid argument` error instead of `illegal memory access`, because the grid size exceeds the maximum limit. In such cases, the CUDA core dump feature cannot be triggered, and you need to turn down the expansion factor `1024 * 1024` a little bit to avoid exceeding the grid size limit.
 
 # Limitations and Considerations
 
