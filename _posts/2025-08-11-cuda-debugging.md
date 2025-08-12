@@ -25,7 +25,7 @@ The error message suggests adding `CUDA_LAUNCH_BLOCKING=1` when running the code
 
 To accurately pinpoint this kind of problem, we need to react immediately when an illegal memory access occurs. Of course, this isn’t something users can do directly — it must be supported by the CUDA driver itself.
 
-The [GPU core dump functionality](https://docs.nvidia.com/cuda/cuda-gdb/index.html#gpu-core-dump-support), is exactly designed for this purpose. It allows the CUDA driver to dump the GPU state when an illegal memory access occurs, so that users can analyze the GPU state later to find out which kernel caused the issue and what the illegal memory access was.
+The [CUDA core dump functionality](https://docs.nvidia.com/cuda/cuda-gdb/index.html#gpu-core-dump-support), is exactly designed for this purpose. It allows the CUDA driver to dump the GPU state when an illegal memory access occurs, so that users can analyze the GPU state later to find out which kernel caused the issue and what the illegal memory access was.
 
 # What is a Core Dump?
 
@@ -37,25 +37,25 @@ By analogy, the core dump functionality on GPUs requires collaboration between G
 
 # How to Enable CUDA Core Dump
 
-Enabling GPU core dump is very straightforward; you just need to set the `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1` environment variable. However, for a smoother experience, you should also set a few additional environment variables:
+Enabling CUDA core dump is very straightforward; you just need to set the `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1` environment variable. However, for a smoother experience, you should also set a few additional environment variables:
 
-1. By default, the GPU core dump saves the coredump file in the current directory without printing the file path. You can enable the `CUDA_COREDUMP_SHOW_PROGRESS=1` environment variable to display the progress and details of the coredump procedure. Most importantly, it shows the path of the coredump file after the procedure is complete, making it easier for subsequent debugging and analysis.
+1. By default, the CUDA core dump saves the coredump file in the current directory without printing the file path. You can enable the `CUDA_COREDUMP_SHOW_PROGRESS=1` environment variable to display the progress and details of the coredump procedure. Most importantly, it shows the path of the coredump file after the procedure is complete, making it easier for subsequent debugging and analysis.
 2. Many tasks run inside containers, and when a task fails, the container is destroyed, making it impossible to retain the coredump file. In such cases, you can use the `CUDA_COREDUMP_FILE` environment variable to specify a file path template for the coredump file. For example, you can store the coredump file in a persistent storage directory: `CUDA_COREDUMP_FILE="/persistent_dir/cuda_coredump_%h.%p.%t"`, where `%h` is the hostname, `%p` is the process ID, and `%t` is the timestamp of the coredump.
 3. By default, the coredump procedure saves the entire GPU context. For programs like large model inference that occupy almost all GPU memory, a full coredump is impractical (hundreds of GiB of data). You can use the `CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory'` environment variable to skip saving GPU memory, shared memory, and local memory, thereby reducing the size of the coredump file.
 
 > The documentation also mentions that adding `skip_abort` to `CUDA_COREDUMP_GENERATION_FLAGS` prevents the CPU process from aborting after the coredump is complete. This allows the CPU process to add its own error trace, providing more debugging information. However, experiments have shown that this feature has a significant [bug](https://forums.developer.nvidia.com/t/cuda-core-dump-with-skip-abort-will-ignore-an-illegal-memory-access-error/341802/3), which may cause illegal memory access errors on the GPU to be ignored. In such cases, subsequent code may continue to run normally, but the program's memory data might already be corrupted. This is unacceptable for training tasks and undesirable for inference tasks. Therefore, this feature is generally unreliable and not recommended.
 
-> Additionally, the documentation states that enabling `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1` not only enables GPU core dump but also generates a CPU coredump by default. However, in practice, we find that the CPU coredump contains little useful information and is difficult to analyze.
+> Additionally, the documentation states that enabling `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1` not only enables CUDA core dump but also generates a CPU coredump by default. However, in practice, we find that the CPU coredump contains little useful information and is difficult to analyze.
 
-> If you want live data for debugging, you can also enable `CUDA_DEVICE_WAITS_ON_EXCEPTION=1` environment variable, which does not use GPU core dump, but stops GPU execution immediately when an exception occurs, and hangs there, waiting for users to attach a debugger (like cuda-gdb) to inspect the GPU state, where the full GPU memory is still intact. However, this approach is less automatic and requires more manual intervention.
+> If you want live data for debugging, you can also enable `CUDA_DEVICE_WAITS_ON_EXCEPTION=1` environment variable, which does not use CUDA core dump, but stops GPU execution immediately when an exception occurs, and hangs there, waiting for users to attach a debugger (like cuda-gdb) to inspect the GPU state, where the full GPU memory is still intact. However, this approach is less automatic and requires more manual intervention.
 
-In summary, when using the GPU core dump feature, it is recommended to use the following combination of environment variables:
+In summary, when using the CUDA core dump feature, it is recommended to use the following combination of environment variables:
 
 `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory' CUDA_COREDUMP_FILE="/persistent_dir/cuda_coredump_%h.%p.%t"`
 
 # Example of Using CUDA Core Dump
 
-Let's use some code to verify the effectiveness of GPU core dump.
+Let's use some code to verify the effectiveness of CUDA core dump.
 
 ## Debugging Improper Kernel Launch
 
@@ -142,7 +142,7 @@ int main() {
 
 This code launches two kernels consecutively (`illegalMemoryAccessKernel` and `normalKernel`). During normal execution, you would encounter an error message: `CUDA Error at test.cu:62 - cudaMemcpy(h_data, d_data, size * sizeof(int), cudaMemcpyDeviceToHost): an illegal memory access was encountered`, and the error would only be detected in the return value of `cudaMemcpy`. Even with `CUDA_LAUNCH_BLOCKING=1`, it is still impossible to identify the specific kernel that caused the error.
 
-By adding the GPU core dump-related environment variables, we can observe:
+By adding the CUDA core dump-related environment variables, we can observe:
 
 ```text
 [00:40:46.606413] coredump: SM 123/132 has finished state collection
@@ -321,21 +321,21 @@ The exception was triggered at PC 0x7fc2afba5e30  void at::native::vectorized_el
 
 Clearly, this is a `fill` function, and the grid size of `40960` is very large. With this information, we can easily pinpoint that the lines `y = from_buffer(x.data_ptr(), x.numel() * 1024 * 1024); y.fill_(1);` forcibly expand the length of `x` by a million times and then fill it entirely with 1s, thereby triggering the `illegal memory access` exception.
 
-> On some GPUs, this line might cause `invalid argument` error instead of `illegal memory access`, because the grid size exceeds the maximum limit. In such cases, the GPU core dump feature cannot be triggered, and you need to turn down the expansion factor `1024 * 1024` a little bit to avoid exceeding the grid size limit.
+> On some GPUs, this line might cause `invalid argument` error instead of `illegal memory access`, because the grid size exceeds the maximum limit. In such cases, the CUDA core dump feature cannot be triggered, and you need to turn down the expansion factor `1024 * 1024` a little bit to avoid exceeding the grid size limit.
 
 # Limitations and Considerations
 
-1. In theory, GPU core dump should be able to capture various exceptions caused by a specific thread on the GPU. However, in practice, on certain GPU and driver versions, exceptions like `operation not supported on global/shared address space` may fail to trigger a GPU core dump. Fortunately, `illegal memory access` can generally trigger GPU core dumps reliably, which satisfies most debugging needs.
-2. For hardware-related errors, such as `Invalid access of peer GPU memory over nvlink or a hardware error`, these are not caused by a specific thread and cannot be attributed to a particular GPU thread. As a result, GPU core dumps will not be triggered for such issues.
-3. Errors caused by improper use of the driver API are considered [non-sticky errors](https://forums.developer.nvidia.com/t/difference-in-error-handling-between-driver-api-and-runtime-api/336389) and are unrelated to the GPU itself. These errors are reported at the driver API level and do not trigger GPU core dumps. A common example is an out-of-memory error during `cudaMalloc`, which will not result in a GPU core dump.
-4. For distributed programs involving multi-GPU communication, memory mapping is often used to map the memory of other GPUs to the current GPU. If the program on another GPU exits, the mapped memory becomes invalid, and accessing it will trigger an `illegal memory access`. However, this does not fall under the typical `illegal memory access` issues. Such problems are common during the shutdown process of distributed programs. If GPUs are communicating during shutdown, the order of shutdown may cause some GPUs to report `illegal memory access`. When using GPU core dump for such programs, it is important to distinguish these false positives.
-5. Enabling GPU core dump does have some performance impact on CUDA kernels (since it needs to check for errors and attribute them when GPU threads exit). Therefore, it is not advisable to enable GPU core dump in production environments. It is recommended to enable GPU core dump only after errors like `illegal memory access` can be reliably reproduced for debugging purposes.
+1. In theory, CUDA core dump should be able to capture various exceptions caused by a specific thread on the GPU. However, in practice, on certain GPU and driver versions, exceptions like `operation not supported on global/shared address space` may fail to trigger a CUDA core dump. Fortunately, `illegal memory access` can generally trigger CUDA core dumps reliably, which satisfies most debugging needs.
+2. For hardware-related errors, such as `Invalid access of peer GPU memory over nvlink or a hardware error`, these are not caused by a specific thread and cannot be attributed to a particular GPU thread. As a result, CUDA core dumps will not be triggered for such issues.
+3. Errors caused by improper use of the driver API are considered [non-sticky errors](https://forums.developer.nvidia.com/t/difference-in-error-handling-between-driver-api-and-runtime-api/336389) and are unrelated to the GPU itself. These errors are reported at the driver API level and do not trigger CUDA core dumps. A common example is an out-of-memory error during `cudaMalloc`, which will not result in a CUDA core dump.
+4. For distributed programs involving multi-GPU communication, memory mapping is often used to map the memory of other GPUs to the current GPU. If the program on another GPU exits, the mapped memory becomes invalid, and accessing it will trigger an `illegal memory access`. However, this does not fall under the typical `illegal memory access` issues. Such problems are common during the shutdown process of distributed programs. If GPUs are communicating during shutdown, the order of shutdown may cause some GPUs to report `illegal memory access`. When using CUDA core dump for such programs, it is important to distinguish these false positives.
+5. Enabling CUDA core dump does have some performance impact on CUDA kernels (since it needs to check for errors and attribute them when GPU threads exit). Therefore, it is not advisable to enable CUDA core dump in production environments. It is recommended to enable CUDA core dump only after errors like `illegal memory access` can be reliably reproduced for debugging purposes.
 
 # Conclusion
 
-This blogpost analyzed the principles and use cases of GPU core dump. This debugging method is effective for issues like improper kernel launches and kernel exceptions within CUDA graphs, making it a powerful tool for debugging `illegal memory access` issues and beyond.
+This blogpost analyzed the principles and use cases of CUDA core dump. This debugging method is effective for issues like improper kernel launches and kernel exceptions within CUDA graphs, making it a powerful tool for debugging `illegal memory access` issues and beyond.
 
-As an example, we recently use this technique to debug a complex `illegal memory access` issue in vLLM, see [this PR](https://github.com/vllm-project/vllm/pull/22593) for more details. Basically, we add a [triton kernel](https://github.com/vllm-project/vllm/pull/22375) for MRope, but that kernel has an implicit assumption that `head_size==rotary_dim` (i.e. it's a full Rope). When `head_size!=rotary_dim` (i.e. it's a partial Rope), the kernel will trigger an `illegal memory access`, which is the case for the new [GLM-4.5V](https://huggingface.co/zai-org/GLM-4.5V) model. Without GPU core dump, the error is reported as `Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:453 'an illegal memory access was encountered'`, which is very misleading. With GPU core dump, we can easily pinpoint the error to the MRope kernel, and then fix it.
+As an example, we recently use this technique to debug a complex `illegal memory access` issue in vLLM, see [this PR](https://github.com/vllm-project/vllm/pull/22593) for more details. Basically, we add a [triton kernel](https://github.com/vllm-project/vllm/pull/22375) for MRope, but that kernel has an implicit assumption that `head_size==rotary_dim` (i.e. it's a full Rope). When `head_size!=rotary_dim` (i.e. it's a partial Rope), the kernel will trigger an `illegal memory access`, which is the case for the new [GLM-4.5V](https://huggingface.co/zai-org/GLM-4.5V) model. Without CUDA core dump, the error is reported as `Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:453 'an illegal memory access was encountered'`, which is very misleading. With CUDA core dump, we can easily pinpoint the error to the MRope kernel, and then fix it.
 
 The vLLM project aims to provide easy, fast, and cheap LLM serving for everyone, and easy debugging is also an important aspect. We will continue to share more debugging tips and techniques in the future, to build a strong LLM inference ecosystem together. To share your story or usage with vLLM, please submit a PR at [the blogpost repository](https://github.com/vllm-project/vllm-project.github.io).
 
