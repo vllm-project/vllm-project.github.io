@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "CUDA Core Dump: An Effective Tool to Debug Illegal Memory Accesses and Beyond"
+title: "CUDA Core Dump: An Effective Tool to Debug Memory Access Issues and Beyond"
 author: "Kaichao You"
 image: /assets/logos/vllm-logo-text-light.png
 ---
