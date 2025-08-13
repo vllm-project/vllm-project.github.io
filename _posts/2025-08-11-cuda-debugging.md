@@ -345,4 +345,4 @@ The vLLM project aims to provide easy, fast, and cheap LLM serving for everyone,
 
 # Acknowledgement
 
-We would like to thank Ze Long, Vikram Sharma Mailthody, Jeremy Iverson, and Sandarbh Jain from NVIDIA for their helpful discussions.
+We would like to thank Ze Long, Vikram Sharma Mailthody, Jeremy Iverson, and Sandarbh Jain from NVIDIA for their helpful discussions. Lucas Wilkinson from Red Hat helped polishing the draft.
