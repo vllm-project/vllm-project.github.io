@@ -20,7 +20,7 @@ For debugging consider passing CUDA_LAUNCH_BLOCKING=1
 Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
 ```
 
-The error message suggests adding `CUDA_LAUNCH_BLOCKING=1` when running the code. However, there are still two problems:
+The challenging bit here is: CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect. In our experience the python stack traces for these types of exceptions are basically **always incorrect and pretty worthless**. To resolve this the error message suggests adding `CUDA_LAUNCH_BLOCKING=1` when running the code. However, there are still two problems:
 
 1. Many people launch CUDA kernels using the `kernel<<<>>>` syntax without adding error checking for the kernel launch status, for example, this [code](https://github.com/pytorch/pytorch/blob/5e320eea665f773b78f6d3bfdbb1898b8e09e051/aten/src/ATen/native/cuda/SortStable.cu#L117). In such cases, even with `CUDA_LAUNCH_BLOCKING=1`, it’s still impossible to locate the faulty kernel.
 2. If the illegal memory access occurs inside a kernel within a CUDA graph, then even with `CUDA_LAUNCH_BLOCKING=1`, we can only see that there’s an issue when launching the CUDA graph, but still cannot pinpoint the exact kernel that failed.
