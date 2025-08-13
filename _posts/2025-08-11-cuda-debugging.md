@@ -7,7 +7,7 @@ image: /assets/logos/vllm-logo-text-light.png
 
 # Introduction
 
-Have you ever felt you are developing attention kernel and your tests oftens runs into illegal memory access (IMA for short) and you have no idea how to debug? We definitely felt this pain again and again while working on vLLM, a high-performance inference engine for LLM models. 
+Have you ever felt you are developing cuda kernels and your tests often run into illegal memory access (IMA for short) and you have no idea how to debug? We definitely felt this pain again and again while working on vLLM, a high-performance inference engine for LLM models. 
 
 If you are one of the developers who have faced this issue, this blog is for you! We will uncover some of advanced debugging techniques we use that can help users debug complicated issues in vLLM, such as IMA.
 
