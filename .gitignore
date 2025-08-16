@@ -20,9 +20,3 @@ Gemfile.lock
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# IDE and venv
-.idea
-.vscode
-.venv
-venv
