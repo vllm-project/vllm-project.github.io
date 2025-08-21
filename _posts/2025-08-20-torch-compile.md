@@ -6,7 +6,7 @@ image: /assets/logos/vllm-logo-text-light.png
 ---
 
 > [!NOTE]
-> This blog originated from our biweekly vLLM office hours, a community forum hosted by Red Hat with vLLM project committers and the UC Berkeley team. Each session covers recent updates, a deep dive with a guest speaker, and open Q\&A. [Join us every other Thursday](https://red.ht/office-hours) at 2:00 PM ET / 11:00 AM PT on Google Meet, and get the recording and slides afterward on our [YouTube playlist](https://www.youtube.com/playlist?list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3).
+> This blog originated from our biweekly vLLM office hours, a community forum hosted by Red Hat with vLLM project committers and the UC Berkeley team. Each session covers recent updates, a deep dive with a guest speaker, and open Q&A. [Join us every other Thursday](https://red.ht/office-hours) at 2:00 PM ET / 11:00 AM PT on Google Meet, and get the recording and slides afterward on our [YouTube playlist](https://www.youtube.com/playlist?list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3).
 
 ## Introduction
 
