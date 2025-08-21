@@ -1,12 +1,12 @@
 ---
 layout: post
 title: "Introduction to <code>torch.compile</code> and How It Works with vLLM"
-author: "[Luka Govedič](https://github.com/proexpertprog) (Red Hat), [Richard Zou](https://github.com/zou3519) (Meta), Addie Stevens (Red Hat), [Kaichao You](https://github.com/youkaichao) (Tsinghua University), [Michael Goin](https://github.com/mgoin) (Red Hat), Saša Zelenović (Red Hat)"
+author: "<a href="https://github.com/proexpertprog">Luka Govedič (Red Hat)</a>, <a href="https://github.com/zou3519">Richard Zou (Meta)</a>, Addie Stevens (Red Hat), <a href="https://github.com/youkaichao">Kaichao You (Tsinghua University)</a>, <a href="https://github.com/mgoin">Michael Goin (Red Hat)</a>, Saša Zelenović (Red Hat)"
 image: /assets/logos/vllm-logo-text-light.png
 ---
 
 > [!NOTE]
-> This blog originated from our biweekly vLLM office hours, a community forum hosted by Red Hat with vLLM project committers and the UC Berkeley team. Each session covers recent updates, a deep dive with a guest speaker, and open Q\&A. [Join us every other Thursday](https://red.ht/office-hours) at 2:00 PM ET / 11:00 AM PT on Google Meet, and get the recording and slides afterward on our [YouTube playlist](https://www.youtube.com/playlist?list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3).
+> This blog originated from our biweekly vLLM office hours, a community forum hosted by Red Hat with vLLM project committers and the UC Berkeley team. Each session covers recent updates, a deep dive with a guest speaker, and open Q&A. [Join us every other Thursday](https://red.ht/office-hours) at 2:00 PM ET / 11:00 AM PT on Google Meet, and get the recording and slides afterward on our [YouTube playlist](https://www.youtube.com/playlist?list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3).
 
 ## Introduction
 
