@@ -22,7 +22,7 @@ In the following example, `torch.compile` produces a single fused kernel for all
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure1.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure1.png" width="80%">
 </picture><br>
 **Figure 1**: `torch.compile` is a JIT compiler for PyTorch code. You can wrap functions, nn.Modules, and other callables in `torch.compile`.
 </p>
@@ -35,7 +35,7 @@ One way of optimizing models is to write custom CPU/CUDA operations that perform
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure2.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure2.png" width="80%">
 </picture><br>
 **Figure 2**: `torch.compile` gives you fast baseline performance to save YOU development time from tuning model performance.
 </p>
@@ -52,7 +52,7 @@ In the following code example, torch.save is an unsupported operation: `torch.co
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure3.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure3.png" width="80%">
 </picture><br>
 **Figure 3**: `torch.compile` captures straight-line graphs of Tensor operations and works around unsupported operations like torch.save.
 </p>
@@ -80,7 +80,7 @@ The compiled artifacts and the cache can be reused across machines with the same
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure4.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure4.png" width="80%">
 </picture><br>  
 **Figure 4**: Compiled artifacts are cached after cold start and can be reused across machines to ensure fast, consistent startup when set up correctly.
 </p>
@@ -93,8 +93,8 @@ Use `compile_sizes: [1, 2, 4]` in your config to trigger this specialization. Un
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure5_a.png" width="80%">
-<img src="/assets/figures/torch-compile/figure5_b.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure5_a.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure5_b.png" width="80%">
 </picture><br>  
 **Figure 5**: How to specify specializing compilation on specific batch sizes.
 </p>
@@ -105,7 +105,7 @@ Not all operations are compatible with CUDA Graphs; for example, [cascade attent
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure6.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure6.png" width="80%">
 </picture><br>  
 **Figure 6**: Piecewise CUDA Graphs in vLLM capture and replay supported GPU kernel sequences for low-overhead execution, while skipping unsupported operations like cascade attention.
 </p>
@@ -129,14 +129,14 @@ A common pattern in quantized MLPs is SiLU activation followed by a quantized do
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure7.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure7.png" width="80%">
 </picture><br>
 **Figure 7**: On Llama 3.1 405B quantized to FP8, tested on 8x AMD MI300s, fused kernels (`fusion`, in yellow) outperformed both `default` (using torch ops for RMSNorm and SiLU and custom FP8 quant kernel) and `custom` (unfused custom kernels). 
 </p>
 
 <p align="center">
 <picture>
-<img src="/assets/figures/torch-compile/figure8.png" width="80%">
+<img src="/assets/figures/2025-torch-compile/figure8.png" width="80%">
 </picture><br>
 Detailed throughput speedup comparing `fusion` and `default` regimes above. If all quantization overhead (8%) was removed via fusion, the theoretical maximum improvement to throughput would be 8%, and we can see that improvement reached in some cases.
 </p>
