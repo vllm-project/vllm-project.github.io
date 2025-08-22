@@ -148,7 +148,7 @@ A common pattern in quantized MLPs is SiLU activation followed by a quantized do
 
 When using Tensor Parallelism (TP), the linear layer shards the weights and computes incomplete matrix multiplication results, which need to be synchronized across GPUs. When using separate kernels for the compute and communication pieces, we incur communication overhead as the GPUs sit idle while waiting for the network latency of communication results.
 
-Instead, we can overlap computation and communication by using fused GEMM+collective kernels. One example of such kernels are the GEMM+reduce\_scatter and all\_gather+GEMM kernels. To utilize these kernels, we have to transform the computation graph, including parallelizing operations between two GEMMs across GPUs.
+Instead, we can overlap computation and communication by using fused GEMM+collective kernels. One example of such kernels are the GEMM+reduce\_scatter and all\_gather+GEMM kernels. To utilize these kernels, we need to decompose the all\_reduce collective operation into a reduce\_scatter and an all\_gather while also postponing the all\_gather until after layernorm to allow it to fuse with the following GEMM.```
 
 If we were to implement this kind of optimization in model definitions, we would have to touch every model vLLM supports (there are hundreds of them\!). It would be intrusive, break abstractions, increase developer friction, and be unlikely to be accepted into vLLM in the first place. Instead, by implementing the optimization in torch.compile, it is contained to just 2 custom passes and can be turned on using CLI flags, providing better performance for all models supported by vLLM.
 
