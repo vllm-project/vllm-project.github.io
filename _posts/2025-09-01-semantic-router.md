@@ -7,7 +7,7 @@ image: /assets/logos/vllm-logo-text-light.png
 
 ![](/assets/figures/semantic-router/request.png)
 
-## **Industry Status: Inference ≠ The More, The Better**
+## Industry Status: Inference ≠ The More, The Better
 
 Over the past year, **Hybrid inference / automatic routing** has become one of the hottest topics in the large model industry.
 
@@ -38,7 +38,7 @@ Meanwhile, other companies are rapidly following suit:
 
 In summary: The industry is entering a new era where **"not a single token should be wasted"**.
 
-## **Recent Research: vLLM Semantic Router**
+## Recent Research: vLLM Semantic Router
 
 Amid the industry's push for "Hybrid inference," we focus on the **open-source inference engine vLLM**.
 
@@ -70,7 +70,7 @@ Experimental data shows:
 
 Especially in knowledge-intensive areas like business and economics, accuracy improvements even exceed **20%**.
 
-## **Background of the vLLM Semantic Router Project**
+## Background of the vLLM Semantic Router Project
 
 The Semantic Router is not the isolated outcome of a single paper, but rather the result of collaboration and sustained efforts within the open-source community:
 
@@ -90,7 +90,7 @@ Thus, the vLLM Semantic Router is not just a research achievement but an **impor
 
 You can start exploring and experience it by visiting the GitHub repository: [https://github.com/vllm-project/semantic-router](https://github.com/vllm-project/semantic-router).
 
-## **Future Trends: Cost-Effective, Just-in-Time Inference**
+## Future Trends: Cost-Effective, Just-in-Time Inference
 
 The large model industry has shifted from "Can we perform inference?" to "**When to perform inference and how to perform it?**"
 
@@ -106,7 +106,7 @@ The future competitive focus will no longer be about "whose model is the largest
 
 Thus, the next frontier will be: **Intelligent self-adjusting inference mechanisms**. No need for explicit user switches or hardcoding; instead, the model/system can autonomously decide when to "think deeply" or provide a quick answer.
 
-## **Summary in One Sentence**
+## Summary in One Sentence
 
 * **GPT-5**: Uses routing for business, driving widespread intelligence.
 * **vLLM Semantic Router**: Uses semantic routing for efficiency, driving green AI.
