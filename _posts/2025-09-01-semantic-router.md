@@ -64,15 +64,13 @@ Experimental results show:
 
 In knowledge-intensive areas such as business and economics, accuracy improvements can exceed **20%**.
 
----
-
 ## Project Background
 
 The Semantic Router is not the isolated result of a single paper but a collaborative outcome of sustained community contributions:
 
 * Originally proposed by **[Dr. Chen Huamin](https://www.linkedin.com/in/huaminchen)**, Distinguished Engineer at **Red Hat**, in early **2025** across multiple open-source communities.
 * Iterated and further developed by **[Xunzhuo Liu](https://www.linkedin.com/in/bitliu)** at **Tencent**, later contributed to the vLLM community.
-* **[Dr. Wang Chen](https://www.linkedin.com/in/chenw615)** from **IBM Research** and **Dr. Chen Huamin** will present the project at **KubeCon North America 2025**.
+* **[Dr. Wang Chen](https://www.linkedin.com/in/chenw615)** from **IBM Research** and **Dr. Chen Huamin** will present the project at **[KubeCon North America 2025](https://kccncna2025.sched.com/event/27FaI/intelligent-llm-routing-a-new-paradigm-for-multi-model-ai-orchestration-in-kubernetes-chen-wang-ibm-research-huamin-chen-red-hat?iframe=no&w=100%&sidebar=yes&bg=no)**.
 
 The mission is clear: to serve as an **inference accelerator** for open-source large models:
 
@@ -83,8 +81,6 @@ The mission is clear: to serve as an **inference accelerator** for open-source l
 The vLLM Semantic Router is therefore not just a research milestone but an **essential bridge for open-source AI infrastructure**, translating **academic innovation into industrial application**.
 
 You can start exploring the project at [GitHub](https://github.com/vllm-project/semantic-router). We're currently working on the [v0.1 Roadmap](https://github.com/vllm-project/semantic-router/issues/14) and have established a [Work Group](https://github.com/vllm-project/semantic-router/issues/15). We welcome your thoughts and invite you to join us!
-
----
 
 ## Future Trends: Cost-Effective, Just-in-Time Inference
 
@@ -100,8 +96,6 @@ The new competitive focus will be less about model scale and more about:
 * **Preserving user experience without wasting compute.**
 
 The next frontier is **intelligent, self-adjusting inference mechanisms** — systems that autonomously determine when to "think deeply" and when to respond directly, without explicit user toggles or hardcoded rules.
-
----
 
 ## One-Sentence Summary
 
