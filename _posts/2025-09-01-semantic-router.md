@@ -36,8 +36,6 @@ Other companies are adopting similar strategies:
 
 In short: the industry is entering an era where **no token should be wasted**.
 
----
-
 ## Recent Research: vLLM Semantic Router
 
 Amid this shift toward hybrid reasoning, we focus on the **open-source inference engine vLLM**.
@@ -72,9 +70,9 @@ In knowledge-intensive areas such as business and economics, accuracy improvemen
 
 The Semantic Router is not the isolated result of a single paper but a collaborative outcome of sustained community contributions:
 
-* Originally proposed by **Dr. Chen Huamin**, Distinguished Engineer at **Red Hat**, in early **2025** across multiple open-source communities.
-* Iterated and further developed by **Xunzhuo Liu** at **Tencent**, later contributed to the vLLM community.
-* **Dr. Wang Chen** from **IBM Research** and **Dr. Chen Huamin** will present the project at **KubeCon North America 2025**.
+* Originally proposed by **[Dr. Chen Huamin](https://www.linkedin.com/in/huaminchen)**, Distinguished Engineer at **Red Hat**, in early **2025** across multiple open-source communities.
+* Iterated and further developed by **[Xunzhuo Liu](https://www.linkedin.com/in/bitliu)** at **Tencent**, later contributed to the vLLM community.
+* **[Dr. Wang Chen](https://www.linkedin.com/in/chenw615)** from **IBM Research** and **Dr. Chen Huamin** will present the project at **KubeCon North America 2025**.
 
 The mission is clear: to serve as an **inference accelerator** for open-source large models:
 
@@ -84,7 +82,7 @@ The mission is clear: to serve as an **inference accelerator** for open-source l
 
 The vLLM Semantic Router is therefore not just a research milestone but an **essential bridge for open-source AI infrastructure**, translating **academic innovation into industrial application**.
 
-You can start exploring the project here: [https://github.com/vllm-project/semantic-router](https://github.com/vllm-project/semantic-router).
+You can start exploring the project at [GitHub](https://github.com/vllm-project/semantic-router). We're currently working on the [v0.1 Roadmap](https://github.com/vllm-project/semantic-router/issues/14) and have established a [Work Group](https://github.com/vllm-project/semantic-router/issues/15). We welcome your thoughts and invite you to join us!
 
 ---
 
