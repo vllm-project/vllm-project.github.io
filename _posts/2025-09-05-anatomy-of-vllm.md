@@ -8,7 +8,7 @@ image: /assets/logos/vllm-logo-text-light.png
 > [!NOTE]
 > Originally posted on [Aleksa Gordic's website](https://www.aleksagordic.com/blog/vllm).
 
-## From paged attention, continuous batching, prefix caching, specdec, etc. to multi-GPU, multi-node dynamic serving at scale
+### From paged attention, continuous batching, prefix caching, specdec, etc. to multi-GPU, multi-node dynamic serving at scale
 
 In this post, I'll gradually introduce all of the core system components and advanced features that make up a modern high-throughput LLM inference system. In particular I'll be doing a breakdown of how vLLM [1] works.
 
@@ -107,7 +107,7 @@ The KV-cache manager maintains a <code>free_block_queue</code> - a pool of avail
 
 > [!NOTE]
 > Block size for a standard transformer layer (non-MLA [4]) is computed as follows:
-2 * <code>block_size</code> (default=16) * <code>num_kv_heads</code> * <code>head_size</code> * <code>dtype_num_bytes</code> (2 for bf16)
+> 2 * <code>block_size</code> (default=16) * <code>num_kv_heads</code> * <code>head_size</code> * <code>dtype_num_bytes</code> (2 for bf16)
 
 During model executor construction, a <code>Worker</code> object is created, and three key procedures are executed. (Later, with <code>MultiProcExecutor</code>, these same procedures run independently on each worker process across different GPUs.)
 
