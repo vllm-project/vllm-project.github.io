@@ -735,18 +735,18 @@ How does this work in VLLM?
 
 ### On the headless server node
 
-On the headless node, a CoreEngineProcManager launches 2 processes (per --data-parallel-size-local) each running EngineCoreProc.run_engine_core. Each of these functions creates a DPEngineCoreProc (the engine core) and then enters its busy loop.
+On the headless node, a <code>CoreEngineProcManager</code> launches 2 processes (per <code>--data-parallel-size-local</code>) each running <code>EngineCoreProc.run_engine_core</code>. Each of these functions creates a <code>DPEngineCoreProc</code> (the engine core) and then enters its busy loop.
 
-DPEngineCoreProc initializes its parent EngineCoreProc (child of EngineCore), which:
+<code>DPEngineCoreProc</code> initializes its parent <code>EngineCoreProc</code> (child of <code>EngineCore</code>), which:
 
-1. Creates an input_queue and output_queue (queue.Queue).
-2. Performs an initial handshake with the frontend on the other node using a DEALER ZMQ socket (async messaging lib), and receives coordination address info.
+1. Creates an <code>input_queue</code> and <code>output_queue</code> (<code>queue.Queue</code>).
+2. Performs an initial handshake with the frontend on the other node using a <code>DEALER</code> ZMQ socket (async messaging lib), and receives coordination address info.
 3. Initializes DP group (e.g. using NCCL backend).
-4. Initializes the EngineCore with MultiProcExecutor (TP=4 on 4 GPUs as described earlier).
-5. Creates a ready_event (threading.Event).
-6. Starts an input deamon thread (threading.Thread) running process_input_sockets(…, ready_event). Similarly starts an output thread.
-7. Still in the main thread, waits on ready_event until all input threads across all 4 processes (spanning the 2 nodes) have completed the coordination handshake finally executing ready_event.set().
-8. Once unblocked, sends a "ready" message to the frontend with metadata (e.g., num_gpu_blocks available in paged KV cache memory).
+4. Initializes the <code>EngineCore</code> with <code>MultiProcExecutor</code> (<code>TP=4</code> on 4 GPUs as described earlier).
+5. Creates a <code>ready_event</code> (<code>threading.Event</code>).
+6. Starts an input deamon thread (<code>threading.Thread</code>) running <code>process_input_sockets(…, ready_event)</code>. Similarly starts an output thread.
+7. Still in the main thread, waits on <code>ready_event</code> until all input threads across all 4 processes (spanning the 2 nodes) have completed the coordination handshake finally executing <code>ready_event.set()</code>.
+8. Once unblocked, sends a "ready" message to the frontend with metadata (e.g., <code>num_gpu_blocks</code> available in paged KV cache memory).
 9. The main, input, and output threads then enter their respective busy loops.
 
 TL;DR: We end up with 4 child processes (one per DP replica), each running a main, input, and output thread. They complete a coordination handshake with the DP coordinator and frontend, then all three threads per process run in steady-state busy loops.
@@ -758,17 +758,17 @@ TL;DR: We end up with 4 child processes (one per DP replica), each running a mai
 <b>Figure 15</b>: distributed system with 4 DP replicas running 4 DPEngineCoreProc
 </p>
 
-Current steady state:
+<b>Current steady state</b>:
 
-* Input thread — blocks on the input socket until a request is routed from the API server; upon receipt, it decodes the payload, enqueues a work item via input_queue.put_nowait(...), and returns to blocking on the socket.
-* Main thread — wakes on input_queue.get(...), feeds the request to the engine; MultiProcExecutor runs the forward pass and enqueues results to output_queue.
-* Output thread — wakes on output_queue.get(...), sends the result back to the API server, then resumes blocking.
+* <b>Input thread</b> — blocks on the input socket until a request is routed from the API server; upon receipt, it decodes the payload, enqueues a work item via <code>input_queue.put_nowait(...)</code>, and returns to blocking on the socket.
+* <b>Main thread</b> — wakes on <code>input_queue.get(...)</code>, feeds the request to the engine; <code>MultiProcExecutor</code> runs the forward pass and enqueues results to <code>output_queue</code>.
+* <b>Output thread</b> — wakes on <code>output_queue.get(...)</code>, sends the result back to the API server, then resumes blocking.
 
-Additional mechanics:
+<b>Additional mechanics</b>:
 
-* DP wave counter — the system tracks "waves"; when all engines become idle they quiesce, and the counter increments when new work arrives (useful for coordination/metrics).
-* Control messages — the API server can send more than just inference requests (e.g., aborts and utility/control RPCs).
-* Dummy steps for lockstep — if any DP replica has work, all replicas execute a forward step; replicas without requests perform a dummy step to participate in required synchronization points (avoids blocking the active replica).
+* <b>DP wave counter</b> — the system tracks "waves"; when all engines become idle they quiesce, and the counter increments when new work arrives (useful for coordination/metrics).
+* <b>Control messages</b> — the API server can send more than just inference requests (e.g., aborts and utility/control RPCs).
+* <b>Dummy steps for lockstep</b> — if any DP replica has work, all replicas execute a forward step; replicas without requests perform a dummy step to participate in required synchronization points (avoids blocking the active replica).
 
 > [!NOTE]
 > Lockstep clarification: this is actually only required for MoE models where the expert layers form an EP or TP group while attention layers are still DP. It's currently always done with DP - this is just because there's limited use for "built-in" non-MoE DP since you could just run multiple independent vLLMs and load-balance between them in a normal way.
@@ -777,35 +777,35 @@ Now for the second part, what happens on the API server node?
 
 ### On the API server node
 
-We instantiate an AsyncLLM object (an asyncio wrapper around the LLM engine). Internally this creates a DPLBAsyncMPClient (data-parallel, load-balancing, asynchronous, multiprocessing client).
+We instantiate an <code>AsyncLLM</code> object (an asyncio wrapper around the LLM engine). Internally this creates a <code>DPLBAsyncMPClient</code> (data-parallel, load-balancing, asynchronous, multiprocessing client).
 
-Inside the parent class of MPClient, the launch_core_engines function runs and:
+Inside the parent class of <code>MPClient</code>, the <code>launch_core_engines</code> function runs and:
 
 1. Creates the ZMQ addresses used for the startup handshake (as seen on the headless node).
-2. Spawns a DPCoordinator process.
-3. Creates a CoreEngineProcManager (same as on the headless node).
+2. Spawns a <code>DPCoordinator</code> process.
+3. Creates a <code>CoreEngineProcManager</code> (same as on the headless node).
 
-Inside AsyncMPClient (child of MPClient), we:
+Inside <code>AsyncMPClient</code> (child of <code>MPClient</code>), we:
 
-1. Create an outputs_queue (asyncio.Queue).
-2. We create an asyncio task process_outputs_socket which communicates (through the output socket) with output threads of all 4 DPEngineCoreProc and writes into outputs_queue.
-3. Subsequently one more asyncio task output_handler from AsyncLLM reads from this queue and finally sends out information to the create_completion function.
+1. Create an <code>outputs_queue</code> (<code>asyncio.Queue</code>).
+2. We create an asyncio task <code>process_outputs_socket</code> which communicates (through the output socket) with output threads of all 4 <code>DPEngineCoreProc</code> and writes into <code>outputs_queue</code>.
+3. Subsequently one more asyncio task <code>output_handler</code> from <code>AsyncLLM</code> reads from this queue and finally sends out information to the <code>create_completion</code> function.
 
-Inside DPAsyncMPClient we create an asyncio task run_engine_stats_update_task which communicates with DP coordinator.
+Inside <code>DPAsyncMPClient</code> we create an asyncio task <code>run_engine_stats_update_task</code> which communicates with DP coordinator.
 
 The DP coordinator mediates between the frontend (API server) and backend (engine cores). It:
 
-* Periodically sends load-balancing info (queue sizes, waiting/running requests) to the frontend's run_engine_stats_update_task.
-* Handles SCALE_ELASTIC_EP commands from the frontend by dynamically changing the number of engines (only works with Ray backend).
-* Sends START_DP_WAVE events to the backend (when triggered by frontend) and reports wave-state updates back.
+* Periodically sends load-balancing info (queue sizes, waiting/running requests) to the frontend's <code>run_engine_stats_update_task</code>.
+* Handles <code>SCALE_ELASTIC_EP</code> commands from the frontend by dynamically changing the number of engines (only works with Ray backend).
+* Sends <code>START_DP_WAVE</code> events to the backend (when triggered by frontend) and reports wave-state updates back.
 
-To recap, the frontend (AsyncLLM) runs several asyncio tasks (remember: concurrent, not parallel):
+To recap, the frontend (<code>AsyncLLM</code>) runs several asyncio tasks (remember: concurrent, not parallel):
 
-* A class of tasks handles input requests through the generate path (each new client request spawns a new asyncio task).
-* Two tasks (process_outputs_socket, output_handler) process output messages from the underlying engines.
-* One task (run_engine_stats_update_task) maintains communication with the DP coordinator: sending wave triggers, polling LB state, and handling dynamic scaling requests.
+* A class of tasks handles input requests through the <code>generate</code> path (each new client request spawns a new asyncio task).
+* Two tasks (<code>process_outputs_socket</code>, <code>output_handler</code>) process output messages from the underlying engines.
+* One task (<code>run_engine_stats_update_task</code>) maintains communication with the DP coordinator: sending wave triggers, polling LB state, and handling dynamic scaling requests.
 
-Finally, the main server process creates a FastAPI app and mounts endpoints such as OpenAIServingCompletion and OpenAIServingChat, which expose /completion, /chat/completion, and others. The stack is then served via Uvicorn.
+Finally, the main server process creates a FastAPI app and mounts endpoints such as <code>OpenAIServingCompletion</code> and <code>OpenAIServingChat</code>, which expose <code>/completion</code>, <code>/chat/completion</code>, and others. The stack is then served via Uvicorn.
 
 So, putting it all together, here's the full request lifecycle!
 
@@ -822,28 +822,28 @@ curl -X POST http://localhost:8000/v1/completions -H "Content-Type: application/
 
 What happens next:
 
-1. The request hits OpenAIServingCompletion's create_completion route on the API server.
+1. The request hits <code>OpenAIServingCompletion</code>'s <code>create_completion</code> route on the API server.
 2. The function tokenizes the prompt asynchronously, and prepares metadata (request ID, sampling params, timestamp, etc.).
-3. It then calls AsyncLLM.generate, which follows the same flow as the synchronous engine, eventually invoking DPAsyncMPClient.add_request_async.
-4. This in turn calls get_core_engine_for_request, which does load balancing across engines based on the DP coordinator's state (picking the one that has minimal score / lowest load: score = len(waiting) * 4 + len(running)).
-5. The ADD request is sent to the chosen engine's input_socket.
+3. It then calls <code>AsyncLLM.generate</code>, which follows the same flow as the synchronous engine, eventually invoking <code>DPAsyncMPClient.add_request_async</code>.
+4. This in turn calls <code>get_core_engine_for_request</code>, which does load balancing across engines based on the DP coordinator's state (picking the one that has minimal score / lowest load: <code>score = len(waiting) * 4 + len(running)</code>).
+5. The <code>ADD</code> request is sent to the chosen engine's <code>input_socket</code>.
 6. At that engine:
-* Input thread — unblocks, decodes data from the input socket, and places a work item on the input_queue for the main thread.
-* Main thread — unblocks on input_queue, adds the request to the engine, and repeatedly calls engine_core.step(), enqueueing intermediate results to output_queue until a stop condition is met.
+* Input thread — unblocks, decodes data from the input socket, and places a work item on the <code>input_queue</code> for the main thread.
+* Main thread — unblocks on <code>input_queue</code>, adds the request to the engine, and repeatedly calls <code>engine_core.step()</code>, enqueueing intermediate results to <code>output_queue</code> until a stop condition is met.
 
 > [!NOTE]
-> Reminder: step() calls the scheduler, model executor (which in turn can be MultiProcExecutor!), etc. We have already seen this!
+> Reminder: <code>step()</code> calls the scheduler, model executor (which in turn can be <code>MultiProcExecutor</code>!), etc. We have already seen this!
 
-* Output thread — unblocks on output_queue and sends results back through the output socket.
+* Output thread — unblocks on <code>output_queue</code> and sends results back through the output socket.
 
-7. Those results trigger the AsyncLLM output asyncio tasks (process_outputs_socket and output_handler), which propagate tokens back to FastAPI's create_completion route.
-8. FastAPI attaches metadata (finish reason, logprobs, usage info, etc.) and returns a JSONResponse via Uvicorn to your terminal!
+7. Those results trigger the <code>AsyncLLM</code> output asyncio tasks (<code>process_outputs_socket</code> and <code>output_handler</code>), which propagate tokens back to FastAPI's <code>create_completion</code> route.
+8. FastAPI attaches metadata (finish reason, logprobs, usage info, etc.) and returns a <code>JSONResponse</code> via Uvicorn to your terminal!
 
-And just like that, your completion came back — the whole distributed machinery hidden behind a simple curl command! :) So much fun!!!
+And just like that, your completion came back — the whole distributed machinery hidden behind a simple <code>curl</code> command! :) So much fun!!!
 
 > [!NOTE] Additional notes:
 > * When adding more API servers, load balancing is handled at the OS/socket level. From the application's perspective, nothing significant changes — the complexity is hidden.
-> * With Ray as a DP backend, you can expose a URL endpoint (/scale_elastic_ep) that enables automatic scaling of the number of engine replicas up or down.
+> * With Ray as a DP backend, you can expose a URL endpoint (<code>/scale_elastic_ep</code>) that enables automatic scaling of the number of engine replicas up or down.
 
 ## Benchmarks and auto-tuning - latency vs throughput
 
@@ -851,12 +851,12 @@ So far we've been analyzing the "gas particles" — the internals of how request
 
 At the highest level there are two competing metrics:
 
-1. Latency — the time from when a request is submitted until tokens are returned
-2. Throughput — the number of tokens/requests per second the system can generate/process
+1. <b>Latency</b> — the time from when a request is submitted until tokens are returned
+2. <b>Throughput</b> — the number of tokens/requests per second the system can generate/process
 
-Latency matters most for interactive applications, where users are waiting on responses.
+<b>Latency</b> matters most for interactive applications, where users are waiting on responses.
 
-Throughput matters in offline workloads like synthetic data generation for pre/post-training runs, data cleaning/processing, and in general - any type of offline batch inference jobs.
+<b>Throughput</b> matters in offline workloads like synthetic data generation for pre/post-training runs, data cleaning/processing, and in general - any type of offline batch inference jobs.
 
 Before explaining why latency and throughput compete, let's define a few common inference metrics:
 
@@ -907,9 +907,9 @@ Here is a simplified model explaining the competing nature of these 2 metrics.
 > [!NOTE] Assumption:
 > weight i/o and not KV cache i/o dominates; i.e. we're dealing with short sequences.
 
-The tradeoff becomes clear when looking at how batch size B affects a single decode step. As B ↓ toward 1, ITL drops: there's less work per step and the token isn't "competing" with others. As B ↑ toward infinity, ITL rises because we do more FLOPs per step—but throughput improves (until we hit peak perf) because weight I/O is amortized across more tokens.
+The tradeoff becomes clear when looking at how batch size <code>B</code> affects a single decode step. As <code>B ↓</code> toward 1, ITL drops: there's less work per step and the token isn't "competing" with others. As <code>B ↑</code> toward infinity, ITL rises because we do more FLOPs per step—but throughput improves (until we hit peak perf) because weight I/O is amortized across more tokens.
 
-A roofline model helps with understanding here: below a saturation batch B_sat, the step time is dominated by HBM bandwidth (streaming weights layer-by-layer into on-chip memory), so step latency is nearly flat—computing 1 vs 10 tokens can take a similar time. Beyond B_sat, the kernels become compute-bound and step time grows roughly with B; each extra token adds to ITL.
+A roofline model helps with understanding here: below a saturation batch <code>B_sat</code>, the step time is dominated by HBM bandwidth (streaming weights layer-by-layer into on-chip memory), so step latency is nearly flat—computing 1 vs 10 tokens can take a similar time. Beyond <code>B_sat</code>, the kernels become compute-bound and step time grows roughly with <code>B</code>; each extra token adds to ITL.
 
 <p align="center">
 <picture>
@@ -919,17 +919,17 @@ A roofline model helps with understanding here: below a saturation batch B_sat, 
 </p>
 
 > [!NOTE] Note:
-> For a more rigorous treatment, we have to account for kernel auto-tuning: as B grows, the runtime may switch to more efficient kernels for that shape, changing the achieved performance P_kernel. Step latency is t = FLOPs_step / P_kernel, where FLOPs_step is the work in the step. You can see that as P_kernel hits P_peak more compute per step will directly lead to an increase in latency.
+> For a more rigorous treatment, we have to account for kernel auto-tuning: as <code>B</code> grows, the runtime may switch to more efficient kernels for that shape, changing the achieved performance <code>P_kernel</code>. Step latency is <code>t = FLOPs_step / P_kernel</code>, where <code>FLOPs_step</code> is the work in the step. You can see that as <code>P_kernel</code> hits <code>P_peak</code> more compute per step will directly lead to an increase in latency.
 
 ### How to benchmark in vLLM
 
-vLLM provides a vllm bench {serve,latency,throughput} CLI that wraps vllm / benchmarks / {server,latency,throughput}.py.
+vLLM provides a <code>vllm bench {serve,latency,throughput}</code> CLI that wraps vllm / benchmarks / {server,latency,throughput}.py.
 
 Here is what the scripts do:
 
-* latency — uses a short input (default 32 tokens) and samples 128 output tokens with a small batch (default 8). It runs several iterations and reports e2e latency for the batch.
-* throughput — submits a fixed set of prompts (default: 1000 ShareGPT samples) all at once (aka as QPS=Inf mode), and reports input/output/total tokens and requests per second across the run.
-* serve — Launches a vLLM server and simulates a real-world workload by sampling request inter-arrival times from a Poisson (or more generally, Gamma) distribution. It sends requests over a time window, measures all the metrics we’ve discussed, and can optionally enforce a server-side max concurrency (via a semaphore, e.g. limiting the server to 64 concurrent requests).
+* <b>latency</b> — uses a short input (default 32 tokens) and samples 128 output tokens with a small batch (default 8). It runs several iterations and reports e2e latency for the batch.
+* <b>throughput</b> — submits a fixed set of prompts (default: 1000 ShareGPT samples) all at once (aka as <code>QPS=Inf</code> mode), and reports input/output/total tokens and requests per second across the run.
+* <b>serve</b> — Launches a vLLM server and simulates a real-world workload by sampling request inter-arrival times from a Poisson (or more generally, Gamma) distribution. It sends requests over a time window, measures all the metrics we’ve discussed, and can optionally enforce a server-side max concurrency (via a semaphore, e.g. limiting the server to 64 concurrent requests).
 
 Here is an example of how you can run the latency script:
 
@@ -943,35 +943,35 @@ vllm bench latency
 ```
 
 > [!NOTE]
-> Benchmark configs used in CI live under .buildkite/nightly-benchmarks/tests.
+> Benchmark configs used in CI live under <code>.buildkite/nightly-benchmarks/tests</code>.
 
 
 There is also an auto-tune script that drives the serve benchmark to find argument settings that meet target SLOs (e.g., "maximize throughput while keeping p99 e2e < 500 ms"), returning a suggested config.
 
 ## Epilogue
 
-We began with the basic engine core (UniprocExecutor), added advanced features like speculative decoding and prefix caching, scaled up to MultiProcExecutor (with TP/PP > 1), and finally scaled out, wrapped everything in the asynchronous engine and distributed serving stack—closing with how to measure system performance.
+We began with the basic engine core (<code>UniprocExecutor</code>), added advanced features like speculative decoding and prefix caching, scaled up to <code>MultiProcExecutor</code> (with <code>TP/PP > 1</code>), and finally scaled out, wrapped everything in the asynchronous engine and distributed serving stack—closing with how to measure system performance.
 
 vLLM also includes specialized handling that I've skipped. E.g.:
 
-* Custom hardware backends: TPUs, AWS Neuron (Trainium/Inferentia), etc.
-* Architectures/techniques: MLA, MoE, encoder-decoder (e.g., Whisper), pooling/embedding models, EPLB, m-RoPE, LoRA, ALiBi, attention-free variants, sliding-window attention, multimodal LMs, and state-space models (e.g., Mamba/Mamba-2, Jamba)
-* TP/PP/SP
-* Hybrid KV-cache logic (Jenga), more complex sampling methods like beam sampling, and more
-* Experimental: async scheduling
+* <b>Custom hardware backends</b>: TPUs, AWS Neuron (Trainium/Inferentia), etc.
+* <b>Architectures/techniques</b>: <code>MLA</code>, <code>MoE</code>, encoder-decoder (e.g., Whisper), pooling/embedding models, <code>EPLB</code>, <code>m-RoPE</code>, <code>LoRA</coder>, <code>ALiBi</code>, attention-free variants, sliding-window attention, multimodal LMs, and state-space models (e.g., Mamba/Mamba-2, Jamba)
+* <b>TP/PP/SP</b>
+* <b>Hybrid KV-cache logic</b> (Jenga), more complex sampling methods like beam sampling, and more
+* <b>Experimental</b>: async scheduling
 
 The nice thing is that most of these are orthogonal to the main flow described above—you can almost treat them like "plugins" (in practice there's some coupling, of course).
 
 I love understanding systems. Having said that, the resolution definitely suffered at this altitude. In the next posts I'll zoom in on specific subsystems and get into the nitty-gritty details.
 
-> [!NOTE]
-> If you spot any errors in the post, please DM me - feel free to drop me a message on X or LinkedIn or via anon feedback.
+> [!NOTE] Get in touch:
+> If you spot any errors in the post, please DM me - feel free to drop me a message on [X](https://x.com/gordic_aleksa) or [LinkedIn](https://www.linkedin.com/in/aleksagordic/) or via [anon feedback](https://docs.google.com/forms/d/1z1fEirrN2xtGxAsJvptpM7yV4ByT5SF25S-XiMPrXNA).
 
 ### Acknowledgments
 
-A huge thank you to Hyperstack for providing me with H100s for my experiments over the past year!
+A huge thank you to [Hyperstack](https://www.hyperstack.cloud/) for providing me with H100s for my experiments over the past year!
 
-Thanks to Nick Hill (core vLLM contributor, RedHat), Mark Saroufim (PyTorch), Kyle Krannen (NVIDIA, Dynamo), and Ashish Vaswani for reading pre-release version of this blog post and providing feedback!
+Thanks to [Nick Hill](https://www.linkedin.com/in/nickhillprofile/) (core vLLM contributor, RedHat), [Mark Saroufim](https://x.com/marksaroufim) (PyTorch), [Kyle Krannen](https://www.linkedin.com/in/kyle-kranen/) (NVIDIA, Dynamo), and [Ashish Vaswani](https://www.linkedin.com/in/ashish-vaswani-99892181/) for reading pre-release version of this blog post and providing feedback!
 
 References
 1. vLLM https://github.com/vllm-project/vllm
