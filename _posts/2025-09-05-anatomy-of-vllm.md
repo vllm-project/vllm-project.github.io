@@ -18,11 +18,11 @@ Later posts will dive into specific subsystems.
 
 This post is structured into five parts:
 
-1. LLM engine & engine core: fundamentals of vLLM (scheduling, paged attention, continuous batching, etc.)
-2. Advanced features: chunked prefill, prefix caching, guided & speculative decoding, disaggregated P/D
-3. Scaling up: from single-GPU to multi-GPU execution
-4. Serving layer: distributed / concurrent web scaffolding
-5. Benchmarks and auto-tuning: measuring latency and throughput
+1. [LLM engine & engine core](#llm-engine--engine-core): fundamentals of vLLM (scheduling, paged attention, continuous batching, etc.)
+2. [Advanced features](#advanced-features--extending-the-core-engine-logic): chunked prefill, prefix caching, guided & speculative decoding, disaggregated P/D
+3. [Scaling up](#from-uniprocexecutor-to-multiprocexecutor): from single-GPU to multi-GPU execution
+4. [Serving layer](#distributed-system-serving-vllm): distributed / concurrent web scaffolding
+5. [Benchmarks and auto-tuning](#benchmarks-and-auto-tuning---latency-vs-throughput): measuring latency and throughput
 
 > [!NOTE]
 > * Analysis is based on [commit 42172ad](https://github.com/vllm-project/vllm/tree/42172ad) (August 9th, 2025).
@@ -80,9 +80,9 @@ Let's start analyzing the constructor.
 The main components of the engine are:
 
 * vLLM config (contains all of the knobs for configuring model, cache, parallelism, etc.)
-* processor (turns raw inputs → EngineCoreRequests via validation, tokenization, and processing)
-* engine core client (in our running example we're using InprocClient which is basically == EngineCore; we'll gradually build up to DPLBAsyncMPClient which allows serving at scale)
-* output processor (converts raw EngineCoreOutputs → RequestOutput that the user sees)
+* processor (turns raw inputs → <code>EngineCoreRequests</code> via validation, tokenization, and processing)
+* engine core client (in our running example we're using <code>InprocClient</code> which is basically == <code>EngineCore</code>; we'll gradually build up to <code>DPLBAsyncMPClient</code> which allows serving at scale)
+* output processor (converts raw <code>EngineCoreOutputs</code> → <code>RequestOutput</code> that the user sees)
 > [!NOTE]
 > With the V0 engine being deprecated, class names and details may shift. I'll emphasize the core ideas rather than exact signatures. I'll abstract away some but not all of those details.
 
