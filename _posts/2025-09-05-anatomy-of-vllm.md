@@ -201,7 +201,7 @@ After that, it processes prefill requests from the <code>waiting</code> queue, i
 
 Let's now look at what <code>allocate_slots</code> does, it:
 
-1. <b>Computes number of blocks</b> — determines how many new KV-cache blocks (n) must be allocated. Each block stores 16 tokens by default. For example, if a prefill request has 17 new tokens, we need <code>ceil(17/16) = 2</code> blocks.
+1. <b>Computes number of blocks</b> — determines how many new KV-cache blocks (<code>n</code>) must be allocated. Each block stores 16 tokens by default. For example, if a prefill request has 17 new tokens, we need <code>ceil(17/16) = 2</code> blocks.
 2. <b>Checks availability</b> — if there aren't enough blocks in the manager's pool, exit early. Depending on whether it's a decode or prefill request, the engine may attempt recompute preemption (swap preemption was supported in V0) by evicting low-priority requests (calling <code>kv_cache_manager.free</code> which returns KV blocks to block pool), or it might skip scheduling and continue execution.
 3. <b>Allocates blocks</b> — via the KV-cache manager's coordinator, fetches the first <code>n</code> blocks from the block pool (the <code>free_block_queue</code> doubly linked list mentioned earlier). Stores to <code>req_to_blocks</code>, the dictionary mapping each <code>request_id</code> to its list of KV-cache blocks.
 
@@ -344,7 +344,7 @@ Afterwards, the forward pass will populate KVs in paged KV cache memory correspo
 <b>Figure 7</b>: Prefix caching - populate KVs in paged memory
 </p>
 
-On a second <code>generate</code> call with the same prefix, steps 1-3 repeat, but now <code>find_longest_cache_hit</code> finds matches for all n blocks (via linear search). The engine can reuse those KV blocks directly.
+On a second <code>generate</code> call with the same prefix, steps 1-3 repeat, but now <code>find_longest_cache_hit</code> finds matches for all <code>n</code> blocks (via linear search). The engine can reuse those KV blocks directly.
 
 <p align="center">
 <picture>
@@ -434,18 +434,23 @@ You can enable this in vLLM by passing in a desired <code>guided_decoding</code>
 
 In autoregressive generation, each new token requires a forward pass of the large LM. This is expensive — every step reloads and applies all model weights just to compute a single token! (assuming batch size == 1, in general it's <code>B</code>)
 
-Speculative decoding [8] speeds this up by introducing a smaller draft LM. The draft proposes k tokens cheaply. But we don't ultimately want to sample from the smaller model — it's only there to guess candidate continuations. The large model still decides what's valid.
+Speculative decoding [8] speeds this up by introducing a smaller draft LM. The draft proposes <code>k</code> tokens cheaply. But we don't ultimately want to sample from the smaller model — it's only there to guess candidate continuations. The large model still decides what's valid.
 
 Here are the steps:
 
 1. <b>Draft</b>: run the small model on the current context and propose <code>k</code> tokens
 2. <b>Verify</b>: run the large model once on context + <code>k</code> draft tokens. This produces probabilities for those <code>k</code> positions plus one extra (so we get <code>k+1</code> candidates)
 3. <b>Accept/reject</b>: going from left to right over the <code>k</code> draft tokens:
-* If the large model's probability for the draft token ≥ the draft's probability, accept it
-* Otherwise, accept it with probability <code>p_large(token)/p_draft(token)</code>
-* Stop at the first rejection, or accept all <code>k</code> draft tokens.
-* If all <code>k</code> draft tokens are accepted, also sample the extra <code>(k+1)</code>-th token "for free" from the large model (we already computed that distribution).
-* If there was a rejection create a new rebalanced distribution at that position (<code>p_large - p_draft</code>, clamp min at 0, normalize to sum to 1) and sample the last token from it.
+  <ul>
+      <li>If the large model's probability for the draft token ≥ the draft's probability, accept it</li>
+      <li>Otherwise, accept it with probability <code>p_large(token)/p_draft(token)</code></li>
+      <li>Stop at the first rejection, or accept all <code>k</code> draft tokens</li>
+      <ul>
+        <li>If all <code>k</code> draft tokens are accepted, also sample the extra <code>(k+1)</code>-th token "for free" from the large model (we already computed that distribution)</li>
+        <li>If there was a rejection create a new rebalanced distribution at that position (<code>p_large - p_draft</code>, clamp min at 0, normalize to sum to 1) and sample the last token from it</li>
+      </ul>
+  </ul>
+
 
 <b>Why this works</b>: Although we use the small model to propose candidates, the accept/reject rule guarantees that in expectation the sequence is distributed exactly as if we had sampled token by token from the large model. This means speculative decoding is statistically equivalent to standard autoregressive decoding — but potentially much faster, since a single large-model pass can yield up to <code>k+1</code> tokens.
 
@@ -955,7 +960,7 @@ We began with the basic engine core (<code>UniprocExecutor</code>), added advanc
 vLLM also includes specialized handling that I've skipped. E.g.:
 
 * <b>Custom hardware backends</b>: TPUs, AWS Neuron (Trainium/Inferentia), etc.
-* <b>Architectures/techniques</b>: <code>MLA</code>, <code>MoE</code>, encoder-decoder (e.g., Whisper), pooling/embedding models, <code>EPLB</code>, <code>m-RoPE</code>, <code>LoRA</coder>, <code>ALiBi</code>, attention-free variants, sliding-window attention, multimodal LMs, and state-space models (e.g., Mamba/Mamba-2, Jamba)
+* <b>Architectures/techniques</b>: <code>MLA</code>, <code>MoE</code>, encoder-decoder (e.g., Whisper), pooling/embedding models, <code>EPLB</code>, <code>m-RoPE</code>, <code>LoRA</code>, <code>ALiBi</code>, attention-free variants, sliding-window attention, multimodal LMs, and state-space models (e.g., Mamba/Mamba-2, Jamba)
 * <b>TP/PP/SP</b>
 * <b>Hybrid KV-cache logic</b> (Jenga), more complex sampling methods like beam sampling, and more
 * <b>Experimental</b>: async scheduling
