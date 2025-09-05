@@ -220,16 +220,16 @@ We call model executor's <code>execute_model</code>, which delegates to the <cod
 
 Here are the main steps:
 
-1. Update states — prune finished requests from input_batch; update misc fwd pass related metadata (e.g., KV cache blocks per request that will be used to index into paged KV cache memory).
-2. Prepare inputs — copy buffers from CPU→GPU; compute positions; build slot_mapping (more on that in example); construct attention metadata.
-3. Forward pass — run the model with custom paged attn kernels. All sequences are flattened and concatenated into one long "super sequence". Position indices and attention masks ensure each sequence only attends to its own tokens, which enables continuous batching without right-padding.
-4. Gather last-token states — extract hidden states for each sequence's final position and compute logits.
-5. Sample — sample tokens from computed logits as dictated by the sampling config (greedy, temperature, top-p, top-k, etc.).
+1. <b>Update states</b> — prune finished requests from <code>input_batch</code>; update misc fwd pass related metadata (e.g., KV cache blocks per request that will be used to index into paged KV cache memory).
+2. <b>Prepare inputs</b> — copy buffers from CPU→GPU; compute positions; build <code>slot_mapping</code> (more on that in example); construct attention metadata.
+3. <b>Forward pass</b> — run the model with custom paged attn kernels. All sequences are flattened and concatenated into one long "super sequence". Position indices and attention masks ensure each sequence only attends to its own tokens, which enables continuous batching without right-padding.
+4. <b>Gather last-token states</b> — extract hidden states for each sequence's final position and compute logits.
+5. <b>Sample</b> — sample tokens from computed logits as dictated by the sampling config (greedy, temperature, top-p, top-k, etc.).
 
 Forward-pass step itself has two execution modes:
 
-1. Eager mode — run the standard PyTorch forward pass when eager execution is enabled.
-2. "Captured" mode — execute/reply a pre-captured CUDA Graph when eager is not enforced (remember we captured these during engine construction in the initialize KV cache procedure).
+1. <b>Eager mode</b> — run the standard PyTorch forward pass when eager execution is enabled.
+2. <b>"Captured" mode</b> — execute/reply a pre-captured CUDA Graph when eager is not enforced (remember we captured these during engine construction in the initialize KV cache procedure).
 
 Here is a concrete example that should make continuous batching and paged attention clear:
 
@@ -258,7 +258,7 @@ Next, we'll dive into:
 
 Chunked prefill is a technique for handling long prompts by splitting their prefill step into smaller chunks. Without it, we could end up with a single very long request monopolizing one engine step disallowing other prefill requests to run. That would postpone all other requests and increase their latency.
 
-For example, let each chunk contain n (=8) tokens, labeled with lowercase letters separated by "-". A long prompt P could look like x-y-z, where z is an incomplete chunk (e.g. 2 toks). Executing the full prefill for P would then take ≥ 3 engine steps (> can happen if it's not scheduled for execution in one of the steps), and only in the last chunked prefill step would we sample one new token.
+For example, let each chunk contain <code>n</code> (=8) tokens, labeled with lowercase letters separated by "-". A long prompt <code>P</code> could look like <code>x-y-z</code>, where <code>z</code> is an incomplete chunk (e.g. 2 toks). Executing the full prefill for <code>P</code> would then take ≥ 3 engine steps (> can happen if it's not scheduled for execution in one of the steps), and only in the last chunked prefill step would we sample one new token.
 
 Here is that same example visually:
 
@@ -269,9 +269,9 @@ Here is that same example visually:
 <b>Figure 5</b>: Chunked prefill
 </p>
 
-Implementation is straightforward: cap the number of new tokens per step. If the requested number exceeds long_prefill_token_threshold, reset it to exactly that value. The underlying indexing logic (described earlier) takes care of the rest.
+Implementation is straightforward: cap the number of new tokens per step. If the requested number exceeds <code>long_prefill_token_threshold</code>, reset it to exactly that value. The underlying indexing logic (described earlier) takes care of the rest.
 
-In vLLM V1, you enable chunked prefill by setting long_prefill_token_threshold to a positive integer. (Technically, it can happen irrespective of this, if the prompt length exceeds the token budget we truncate it and run a chunked prefill.)
+In vLLM V1, you enable chunked prefill by setting <code>long_prefill_token_threshold</code> to a positive integer. (Technically, it can happen irrespective of this, if the prompt length exceeds the token budget we truncate it and run a chunked prefill.)
 
 ### Prefix Caching
 
@@ -299,29 +299,29 @@ if __name__ == "__main__":
     main()
 ```
 
-Prefix caching avoids recomputing tokens that multiple prompts share at the beginning - hence prefix.
+Prefix caching avoids recomputing tokens that multiple prompts share at the beginning - hence <b>prefix</b>.
 
-The crucial piece is the long_prefix: it's defined as any prefix longer than a KV-cache block (16 tokens by default). To simplify our example let's say long_prefix has exactly length n x block_size (where n ≥ 1).
+The crucial piece is the <code>long_prefix</code>: it's defined as any prefix longer than a KV-cache block (16 tokens by default). To simplify our example let's say <code>long_prefix</code> has exactly length <code>n x block_size</code> (where <code>n ≥ 1</code>).
 
 > [!NOTE]
-> i.e. it perfectly aligns with block boundary - otherwise we'd have to recompute long_prefix_len % block_size tokens as we can't cache incomplete blocks.
+> i.e. it perfectly aligns with block boundary - otherwise we'd have to recompute <code>long_prefix_len % block_size</code> tokens as we can't cache incomplete blocks.
 
-Without prefix caching, each time we process a new request with the same long_prefix, we'd recompute all n x block_size tokens.
+Without prefix caching, each time we process a new request with the same <code>long_prefix</code>, we'd recompute all <code>n x block_size</code> tokens.
 
 With prefix caching, those tokens are computed once (their KVs stored in KV cache paged memory) and then reused, so only the new prompt tokens need processing. This speeds up prefill requests (though it doesn't help with decode).
 
 How does this work in vLLM?
 
-During the first generate call, in the scheduling stage, inside kv_cache_manager.get_computed_blocks, the engine invokes hash_request_tokens:
+During the first <code>generate</code> call, in the scheduling stage, inside <code>kv_cache_manager.get_computed_blocks</code>, the engine invokes <code>hash_request_tokens</code>:
 
-1. This function splits the long_prefix + prompts[0] into 16-token chunks.
+1. This function splits the <code>long_prefix + prompts[0]</code> into 16-token chunks.
 2. For each complete chunk, it computes a hash (using either the built-in hash or SHA-256, which is slower but has fewer collisions). The hash combines the previous block's hash, the current tokens, and optional metadata.
 > [!NOTE] optional metadata includes: MM hash, LoRA ID, cache salt (injected into hash of the first block ensures only requests with this cache salt can reuse blocks).
-3. Each result is stored as a BlockHash object containing both the hash and its token IDs. We return a list of block hashes.
+3. Each result is stored as a <code>BlockHash</code> object containing both the hash and its token IDs. We return a list of block hashes.
 
-The list is stored in self.req_to_block_hashes[request_id].
+The list is stored in <code>self.req_to_block_hashes[request_id]</code>.
 
-Next, the engine calls find_longest_cache_hit to check if any of these hashes already exist in cached_block_hash_to_block. On the first request, no hits are found.
+Next, the engine calls <code>find_longest_cache_hit</code> to check if any of these hashes already exist in <code>cached_block_hash_to_block</code>. On the first request, no hits are found.
 
 <p align="center">
 <picture>
@@ -330,12 +330,12 @@ Next, the engine calls find_longest_cache_hit to check if any of these hashes al
 <b>Figure 6</b>: Prefix caching - hash function
 </p>
 
-Then we call allocate_slots which calls coordinator.cache_blocks, which associates the new BlockHash entries with allocated KV blocks and records them in cached_block_hash_to_block.
+Then we call <code>allocate_slots</code> which calls <code>coordinator.cache_blocks</code>, which associates the new <code>BlockHash</code> entries with allocated KV blocks and records them in <code>cached_block_hash_to_block</code>.
 
 Afterwards, the forward pass will populate KVs in paged KV cache memory corresponding to KV cache blocks that we allocated above.
 
 > [!NOTE]
-> After many engine steps it'll allocate more KV cache blocks but it doesn't matter for our example because the prefix has diverged immediately after long_prefix.
+> After many engine steps it'll allocate more KV cache blocks but it doesn't matter for our example because the prefix has diverged immediately after <code>long_prefix</code>.
 
 <p align="center">
 <picture>
@@ -344,7 +344,7 @@ Afterwards, the forward pass will populate KVs in paged KV cache memory correspo
 <b>Figure 7</b>: Prefix caching - populate KVs in paged memory
 </p>
 
-On a second generate call with the same prefix, steps 1-3 repeat, but now find_longest_cache_hit finds matches for all n blocks (via linear search). The engine can reuse those KV blocks directly.
+On a second <code>generate</code> call with the same prefix, steps 1-3 repeat, but now <code>find_longest_cache_hit</code> finds matches for all n blocks (via linear search). The engine can reuse those KV blocks directly.
 
 <p align="center">
 <picture>
@@ -353,16 +353,16 @@ On a second generate call with the same prefix, steps 1-3 repeat, but now find_l
 <b>Figure 8</b>: Prefix caching - reuse KVs
 </p>
 
-If the original request were still alive, the reference count for those blocks would increment (e.g. to 2). In this example, the first request has already completed, so the blocks were freed back to the pool and their reference counts set back to 0. Because we were able to retrieve them from cached_block_hash_to_block we know they're valid (the logic of the KV cache manager is setup in such a way), so we just remove them from free_block_queue again.
+If the original request were still alive, the reference count for those blocks would increment (e.g. to 2). In this example, the first request has already completed, so the blocks were freed back to the pool and their reference counts set back to 0. Because we were able to retrieve them from <code>cached_block_hash_to_block</code> we know they're valid (the logic of the KV cache manager is setup in such a way), so we just remove them from <code>free_block_queue</code> again.
 
 > [!NOTE] Advanced note:
-> KV-cache blocks become invalid only when they're about to be reallocated from the free_block_queue (which pops from the left) and we discover the block still has an associated hash and is present in cached_block_hash_to_block. At that moment, we clear the block's hash and remove its entry from cached_block_hash_to_block, ensuring it can't be reused via prefix caching (at least not for that old prefix).
+> KV-cache blocks become invalid only when they're about to be reallocated from the <code>free_block_queue</code> (which pops from the left) and we discover the block still has an associated hash and is present in <code>cached_block_hash_to_block</code>. At that moment, we clear the block's hash and remove its entry from <code>cached_block_hash_to_block</code>, ensuring it can't be reused via prefix caching (at least not for that old prefix).
 
 And that's the gist of prefix caching: don't recompute prefixes you've already seen — just reuse their KV cache!
 
 If you understood this example you also understood how paged attention works.
 
-Prefix caching is enabled by default. To disable it: enable_prefix_caching = False.
+Prefix caching is enabled by default. To disable it: <code>enable_prefix_caching = False</code>.
 
 ### Guided Decoding (FSM)
 
