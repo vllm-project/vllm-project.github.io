@@ -461,14 +461,14 @@ vLLM V1 does not support the LLM draft model method, instead it implements faste
 
 One-liners on each:
 
-1. <b>n-gram</b>: take the last <code>prompt_lookup_max</code> tokens; find a prior match in the sequence; if found, propose the <code>k</code> tokens that followed that match; otherwise decrement the window and retry down to <code>prompt_lookup_min</code>
+* <b>n-gram</b>: take the last <code>prompt_lookup_max</code> tokens; find a prior match in the sequence; if found, propose the <code>k</code> tokens that followed that match; otherwise decrement the window and retry down to <code>prompt_lookup_min</code>
 
 > [!NOTE]
 > The current implementation returns <code>k</code> tokens after the first match. It feels more natural to introduce a recency bias and reverse the search direction? (i.e. last match)
 
-2. <b>Eagle</b>: perform "model surgery" on the large LM—keep embeddings and LM head, replace the transformer stack with a lightweight MLP; fine-tune that as a cheap draft
+* <b>Eagle</b>: perform "model surgery" on the large LM—keep embeddings and LM head, replace the transformer stack with a lightweight MLP; fine-tune that as a cheap draft
 
-3. <b>Medusa</b>: train auxiliary linear heads on top (embeddings before LM head) of the large model to predict the next <code>k</code> tokens in parallel; use these heads to propose tokens more efficiently than running a separate small LM
+* <b>Medusa</b>: train auxiliary linear heads on top (embeddings before LM head) of the large model to predict the next <code>k</code> tokens in parallel; use these heads to propose tokens more efficiently than running a separate small LM
 
 Here's how to invoke speculative decoding in vLLM using <code>ngram</code> as the draft method:
 
@@ -979,14 +979,14 @@ A huge thank you to [Hyperstack](https://www.hyperstack.cloud/) for providing me
 Thanks to [Nick Hill](https://www.linkedin.com/in/nickhillprofile/) (core vLLM contributor, RedHat), [Mark Saroufim](https://x.com/marksaroufim) (PyTorch), [Kyle Krannen](https://www.linkedin.com/in/kyle-kranen/) (NVIDIA, Dynamo), and [Ashish Vaswani](https://www.linkedin.com/in/ashish-vaswani-99892181/) for reading pre-release version of this blog post and providing feedback!
 
 References
-1. vLLM https://github.com/vllm-project/vllm
-2. "Attention Is All You Need", https://arxiv.org/abs/1706.03762
-3. "Efficient Memory Management for Large Language Model Serving with PagedAttention", https://arxiv.org/abs/2309.06180
-4. "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model", https://arxiv.org/abs/2405.04434
-5. "Jenga: Effective Memory Management for Serving LLM with Heterogeneity", https://arxiv.org/abs/2503.18292
-6. "Orca: A Distributed Serving System for Transformer-Based Generative Models", https://www.usenix.org/conference/osdi22/presentation/yu
-7. "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models", https://arxiv.org/abs/2411.15100
-8. "Accelerating Large Language Model Decoding with Speculative Sampling", https://arxiv.org/abs/2302.01318
-9. "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty", https://arxiv.org/abs/2401.15077
-10. "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads", https://arxiv.org/abs/2401.10774
-11. LMCache, https://github.com/LMCache/LMCache
+1. vLLM [https://github.com/vllm-project/vllm](https://github.com/vllm-project/vllm)
+2. "Attention Is All You Need", [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
+3. "Efficient Memory Management for Large Language Model Serving with PagedAttention", [https://arxiv.org/abs/2309.06180](https://arxiv.org/abs/2309.06180)
+4. "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model", [https://arxiv.org/abs/2405.04434](https://arxiv.org/abs/2405.04434)
+5. "Jenga: Effective Memory Management for Serving LLM with Heterogeneity", [https://arxiv.org/abs/2503.18292](https://arxiv.org/abs/2503.18292)
+6. "Orca: A Distributed Serving System for Transformer-Based Generative Models", [https://www.usenix.org/conference/osdi22/presentation/yu](https://www.usenix.org/conference/osdi22/presentation/yu)
+7. "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models", [https://arxiv.org/abs/2411.15100](https://arxiv.org/abs/2411.15100)
+8. "Accelerating Large Language Model Decoding with Speculative Sampling", [https://arxiv.org/abs/2302.01318](https://arxiv.org/abs/2302.01318)
+9. "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty", [https://arxiv.org/abs/2401.15077](https://arxiv.org/abs/2401.15077)
+10. "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads", [https://arxiv.org/abs/2401.10774](https://arxiv.org/abs/2401.10774)
+11. LMCache, [https://github.com/LMCache/LMCache](https://github.com/LMCache/LMCache)
