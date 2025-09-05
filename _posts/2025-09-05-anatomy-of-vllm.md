@@ -404,17 +404,17 @@ In the toy example I gave (assume character-level tokenization): at prefill, the
 
 How this works in vLLM:
 
-1. At LLM engine construction, a StructuredOutputManager is created; it has access to the tokenizer and maintains a _grammar_bitmask tensor.
-2. When adding a request, its status is set to WAITING_FOR_FSM and grammar_init selects the backend compiler (e.g., xgrammar [7]; note that backends are 3rd party code).
+1. At LLM engine construction, a <code>StructuredOutputManager</code> is created; it has access to the tokenizer and maintains a <code>_grammar_bitmask</code> tensor.
+2. When adding a request, its status is set to <code>WAITING_FOR_FSM</code> and <code>grammar_init</code> selects the backend compiler (e.g., <code>xgrammar</code> [7]; note that backends are 3rd party code).
 3. The grammar for this request is compiled asynchronously.
-4. During scheduling, if the async compile has completed, the status switches to WAITING and request_id is added to structured_output_request_ids; otherwise it's placed in skipped_waiting_requests to retry on next engine step.
-5. After the scheduling loop (still inside scheduling), if there are FSM requests, the StructuredOutputManager asks the backend to prepare/update _grammar_bitmask.
+4. During scheduling, if the async compile has completed, the status switches to <code>WAITING</code> and <code>request_id</code> is added to <code>structured_output_request_ids</code>; otherwise it's placed in <code>skipped_waiting_requests</code> to retry on next engine step.
+5. After the scheduling loop (still inside scheduling), if there are FSM requests, the <code>StructuredOutputManager</code> asks the backend to prepare/update <code>_grammar_bitmask</code>.
 6. After the forward pass produces logits, xgr_torch_compile's function expands the bitmask to vocab size (32x expansion ratio because we use 32 bit integers) and masks disallowed logits to –∞.
-7. After sampling the next token, the request's FSM is advanced via accept_tokens. Visually we move to the next state on the FSM diagram.
+7. After sampling the next token, the request's FSM is advanced via <code>accept_tokens</code>. Visually we move to the next state on the FSM diagram.
 
 Step 6 deserves further clarification.
 
-If vocab_size = 32, _grammar_bitmask is a single integer; its binary representation encodes which tokens are allowed ("1") vs disallowed ("0"). For example, "101…001" expands to a length-32 array [1, 0, 1, …, 0, 0, 1]; positions with 0 get logits set to –∞. For larger vocabularies, multiple 32-bit words are used and expanded/concatenated accordingly. The backend (e.g., xgrammar) is responsible for producing these bit patterns using the current FSM state.
+If <code>vocab_size = 32</code>, <code>_grammar_bitmask</code> is a single integer; its binary representation encodes which tokens are allowed ("1") vs disallowed ("0"). For example, "101…001" expands to a length-32 array <code>[1, 0, 1, ..., 0, 0, 1]</code>; positions with 0 get logits set to –∞. For larger vocabularies, multiple 32-bit words are used and expanded/concatenated accordingly. The backend (e.g., <code>xgrammar</code>) is responsible for producing these bit patterns using the current FSM state.
 
 > [!NOTE]
 > Most of the complexity here is hidden in the 3rd party libs like xgrammar.
@@ -428,44 +428,44 @@ Here is an even simpler example with vocab_size = 8 and 8-bit integers (for thos
 <b>Figure 10</b>: Toy example
 </p>
 
-You can enable this in vLLM by passing in a desired guided_decoding config.
+You can enable this in vLLM by passing in a desired <code>guided_decoding</code> config.
 
 ### Speculative Decoding
 
-In autoregressive generation, each new token requires a forward pass of the large LM. This is expensive — every step reloads and applies all model weights just to compute a single token! (assuming batch size == 1, in general it's B)
+In autoregressive generation, each new token requires a forward pass of the large LM. This is expensive — every step reloads and applies all model weights just to compute a single token! (assuming batch size == 1, in general it's <code>B</code>)
 
 Speculative decoding [8] speeds this up by introducing a smaller draft LM. The draft proposes k tokens cheaply. But we don't ultimately want to sample from the smaller model — it's only there to guess candidate continuations. The large model still decides what's valid.
 
 Here are the steps:
 
-1. Draft: run the small model on the current context and propose k tokens
-2. Verify: run the large model once on context + k draft tokens. This produces probabilities for those k positions plus one extra (so we get k+1 candidates)
-3. Accept/reject: going from left to right over the k draft tokens:
+1. <b>Draft</b>: run the small model on the current context and propose <code>k</code> tokens
+2. <b>Verify</b>: run the large model once on context + <code>k</code> draft tokens. This produces probabilities for those <code>k</code> positions plus one extra (so we get <code>k+1</code> candidates)
+3. <b>Accept/reject</b>: going from left to right over the <code>k</code> draft tokens:
 * If the large model's probability for the draft token ≥ the draft's probability, accept it
-* Otherwise, accept it with probability p_large(token)/p_draft(token)
-* Stop at the first rejection, or accept all k draft tokens.
-* If all k draft tokens are accepted, also sample the extra (k+1)-th token "for free" from the large model (we already computed that distribution).
-* If there was a rejection create a new rebalanced distribution at that position (p_large - p_draft, clamp min at 0, normalize to sum to 1) and sample the last token from it.
+* Otherwise, accept it with probability <code>p_large(token)/p_draft(token)</code>
+* Stop at the first rejection, or accept all <code>k</code> draft tokens.
+* If all <code>k</code> draft tokens are accepted, also sample the extra <code>(k+1)</code>-th token "for free" from the large model (we already computed that distribution).
+* If there was a rejection create a new rebalanced distribution at that position (<code>p_large - p_draft</code>, clamp min at 0, normalize to sum to 1) and sample the last token from it.
 
-Why this works: Although we use the small model to propose candidates, the accept/reject rule guarantees that in expectation the sequence is distributed exactly as if we had sampled token by token from the large model. This means speculative decoding is statistically equivalent to standard autoregressive decoding — but potentially much faster, since a single large-model pass can yield up to k+1 tokens.
+<b>Why this works</b>: Although we use the small model to propose candidates, the accept/reject rule guarantees that in expectation the sequence is distributed exactly as if we had sampled token by token from the large model. This means speculative decoding is statistically equivalent to standard autoregressive decoding — but potentially much faster, since a single large-model pass can yield up to <code>k+1</code> tokens.
 
 > [!NOTE]
-> I recommend looking at gpt-fast for a simple implementation, and the original paper for the math details and the proof of equivalence to sampling from the full model.
+> I recommend looking at [gpt-fast](https://github.com/meta-pytorch/gpt-fast) for a simple implementation, and the [original paper](https://arxiv.org/abs/2302.01318) for the math details and the proof of equivalence to sampling from the full model.
 
 vLLM V1 does not support the LLM draft model method, instead it implements faster—but less accurate—proposal schemes: n-gram, EAGLE [9], and Medusa [10].
 
 One-liners on each:
 
-1. n-gram: take the last prompt_lookup_max tokens; find a prior match in the sequence; if found, propose the k tokens that followed that match; otherwise decrement the window and retry down to prompt_lookup_min
+1. <b>n-gram</b>: take the last <code>prompt_lookup_max</code> tokens; find a prior match in the sequence; if found, propose the <code>k</code> tokens that followed that match; otherwise decrement the window and retry down to <code>prompt_lookup_min</code>
 
 > [!NOTE]
-> The current implementation returns k tokens after the first match. It feels more natural to introduce a recency bias and reverse the search direction? (i.e. last match)
+> The current implementation returns <code>k</code> tokens after the first match. It feels more natural to introduce a recency bias and reverse the search direction? (i.e. last match)
 
-2. Eagle: perform "model surgery" on the large LM—keep embeddings and LM head, replace the transformer stack with a lightweight MLP; fine-tune that as a cheap draft
+2. <b>Eagle</b>: perform "model surgery" on the large LM—keep embeddings and LM head, replace the transformer stack with a lightweight MLP; fine-tune that as a cheap draft
 
-3. Medusa: train auxiliary linear heads on top (embeddings before LM head) of the large model to predict the next k tokens in parallel; use these heads to propose tokens more efficiently than running a separate small LM
+3. <b>Medusa</b>: train auxiliary linear heads on top (embeddings before LM head) of the large model to predict the next <code>k</code> tokens in parallel; use these heads to propose tokens more efficiently than running a separate small LM
 
-Here's how to invoke speculative decoding in vLLM using ngram as the draft method:
+Here's how to invoke speculative decoding in vLLM using <code>ngram</code> as the draft method:
 
 ```python
 from vllm import LLM, SamplingParams
@@ -498,18 +498,18 @@ How does this work in vLLM?
 <b>Setup (during engine construction):</b>
 
 
-1. Init device: create a drafter (draft model, e.g., NgramProposer) and a rejection_sampler (parts of it are written in Triton).
+1. Init device: create a <code>drafter</code> (draft model, e.g., <code>NgramProposer</code>) and a <code>rejection_sampler</code> (parts of it are written in Triton).
 2. Load model: load draft model weights (no-op for n-gram).
 
-After that in the generate function (assume we get a brand new request):
+<b>After that in the <code>generate</code> function</b> (assume we get a brand new request):
 
 1. Run the regular prefill step with the large model.
-2. After the forward pass and standard sampling, call propose_draft_token_ids(k) to sample k draft tokens from the draft model.
-3. Store these in request.spec_token_ids (update the request metadata).
-4. On the next engine step, when the request is in the running queue, add len(request.spec_token_ids) to the "new tokens" count so allocate_slots reserves sufficient KV blocks for the fwd pass.
-5. Copy spec_token_ids into input_batch.token_ids_cpu to form (context + draft) tokens.
-6. Compute metadata via _calc_spec_decode_metadata (this copies over tokens from input_batch.token_ids_cpu, prepares logits, etc.), then run a large-model forward pass over the draft tokens.
-7. Instead of regular sampling from logits, use the rejection_sampler to accept/reject left-to-right and produce output_token_ids.
+2. After the forward pass and standard sampling, call <code>propose_draft_token_ids(k)</code> to sample <code>k</code> draft tokens from the draft model.
+3. Store these in <code>request.spec_token_ids</code> (update the request metadata).
+4. On the next engine step, when the request is in the running queue, add <code>len(request.spec_token_ids)</code> to the "new tokens" count so <code>allocate_slots</code> reserves sufficient KV blocks for the fwd pass.
+5. Copy <code>spec_token_ids</code> into <code>input_batch.token_ids_cpu</code> to form (context + draft) tokens.
+6. Compute metadata via <code>_calc_spec_decode_metadata</code> (this copies over tokens from <code>input_batch.token_ids_cpu</code>, prepares logits, etc.), then run a large-model forward pass over the draft tokens.
+7. Instead of regular sampling from logits, use the <code>rejection_sampler</code> to accept/reject left-to-right and produce <code>output_token_ids</code>.
 8. Repeat steps 2-7 until a stop condition is met.
 
 The best way to internalize this is to fire up your debugger and step through the codebase, but this section hopefully gives you a taste for it. This as well:
@@ -531,13 +531,13 @@ The best way to internalize this is to fire up your debugger and step through th
 
 I've already previously hinted at the motivation behind disaggregated P/D (prefill/decode).
 
-Prefill and decode have very different performance profiles (compute-bound vs. memory-bandwidth-bound), so separating their execution is a sensible design. It gives tighter control over latency — both TFTT (time-to-first-token) and ITL (inter-token latency) — more on this in the benchmarking section.
+Prefill and decode have very different performance profiles (compute-bound vs. memory-bandwidth-bound), so separating their execution is a sensible design. It gives tighter control over latency — both <code>TFTT</code> (time-to-first-token) and <code>ITL</code> (inter-token latency) — more on this in the [benchmarking](#benchmarks-and-auto-tuning---latency-vs-throughput) section.
 
-In practice, we run N vLLM prefill instances and M vLLM decode instances, autoscaling them based on the live request mix. Prefill workers write KV to a dedicated KV-cache service; decode workers read from it. This isolates long, bursty prefill from steady, latency-sensitive decode.
+In practice, we run <code>N</code> vLLM prefill instances and <code>M</code> vLLM decode instances, autoscaling them based on the live request mix. Prefill workers write KV to a dedicated KV-cache service; decode workers read from it. This isolates long, bursty prefill from steady, latency-sensitive decode.
 
 How does this work in vLLM?
 
-For clarity, the example below relies on SharedStorageConnector, a debugging connector implementation used to illustrate the mechanics.
+For clarity, the example below relies on <code>SharedStorageConnector</code>, a debugging connector implementation used to illustrate the mechanics.
 
 > [!NOTE]
 > Connector is vLLM's abstraction for handling the exchange of KVs between instances. Connector interface is not yet stable, there are some near-term improvements planned which will involve changes, some potentially breaking.
@@ -613,21 +613,21 @@ if __name__ == "__main__":
 ```
 
 > [!NOTE]
-> I've also experimented with LMCache [11], the fastest production-ready connector (uses NVIDIA's NIXL as the backend), but it's still at the bleeding edge and I ran into some bugs. Since much of its complexity lives in an external repo, SharedStorageConnector is a better choice for explanation.
+> I've also experimented with <code>LMCache</code> [11], the fastest production-ready connector (uses NVIDIA's NIXL as the backend), but it's still at the bleeding edge and I ran into some bugs. Since much of its complexity lives in an external repo, <code>SharedStorageConnector</code> is a better choice for explanation.
 
 These are the steps in vLLM:
 
-1. Instantiation — During engine construction, connectors are created in two places:
+1. <b>Instantiation</b> — During engine construction, connectors are created in two places:
 * Inside the worker's init device procedure (under init worker distributed environment function), with role "worker".
 * Inside the scheduler constructor, with role "scheduler".
-2. Cache lookup — When the scheduler processes prefill requests from the waiting queue (after local prefix-cache checks), it calls connector's get_num_new_matched_tokens. This checks for externally cached tokens in the KV-cache server. Prefill always sees 0 here; decode may have a cache hit. The result is added to the local count before calling allocate_slots.
-3. State update — The scheduler then calls connector.update_state_after_alloc, which records requests that had a cache (no-op for prefill).
-4. Meta build — At the end of scheduling, the scheduler calls meta = connector.build_connector_meta:
-* Prefill adds all requests with is_store=True (to upload KV).
-* Decode adds requests with is_store=False (to fetch KV).
-5. Context manager — Before the forward pass, the engine enters a KV-connector context manager:
-* On enter: kv_connector.start_load_kv is called. For decode, this loads KV from the external server and injects it into paged memory. For prefill, it's a no-op.
-* On exit: kv_connector.wait_for_save is called. For prefill, this blocks until KV is uploaded to the external server. For decode, it's a no-op.
+2. <b>Cache lookup</b> — When the scheduler processes prefill requests from the <code>waiting</code> queue (after local prefix-cache checks), it calls connector's <code>get_num_new_matched_tokens</code>. This checks for externally cached tokens in the KV-cache server. Prefill always sees 0 here; decode may have a cache hit. The result is added to the local count before calling <code>allocate_slots</code>.
+3. <b>State update</b> — The scheduler then calls <code>connector.update_state_after_alloc</code>, which records requests that had a cache (no-op for prefill).
+4. <code>Build metadata object</code> — At the end of scheduling, the scheduler calls <code>meta = connector.build_connector_meta</code>:
+* Prefill adds all requests with <code>is_store=True</code> (to upload KV).
+* Decode adds requests with <code>is_store=False</code> (to fetch KV).
+5. <b>Context manager</b> — Before the forward pass, the engine enters a KV-connector context manager:
+* On enter: <code>kv_connector.start_load_kv</code> is called. For decode, this loads KV from the external server and injects it into paged memory. For prefill, it's a no-op.
+* On exit: <code>kv_connector.wait_for_save</code> is called. For prefill, this blocks until KV is uploaded to the external server. For decode, it's a no-op.
 
 Here is a visual example:
 
@@ -639,7 +639,7 @@ Here is a visual example:
 </p>
 
 > [!NOTE] Additional notes:
-> * For SharedStorageConnector "external server" is just a local file system.
+> * For <code>SharedStorageConnector</code> "external server" is just a local file system.
 > * Depending on configuration, KV transfers can also be done layer-by-layer (before/after each attention layer).
 > * Decode loads external KV only once, on the first step of its requests; afterwards it computes/stores locally.
 
@@ -650,13 +650,13 @@ With the core techniques in place, we can now talk about scaling up.
 
 Suppose your model weights no longer fit into a single GPU's VRAM.
 
-The first option is to shard the model across multiple GPUs on the same node using tensor parallelism (e.g., TP=8). If the model still doesn't fit, the next step is pipeline parallelism across nodes.
+The first option is to shard the model across multiple GPUs on the same node using tensor parallelism (e.g., <code>TP=8</code>). If the model still doesn't fit, the next step is pipeline parallelism across nodes.
 
 > [!NOTE] Notes:
 > * Intranode bandwidth is significantly higher than internode, which is why tensor parallelism (TP) is generally preferred over pipeline parallelism (PP). (It is also true that PP communicates less data than TP.)
 > * I'm not covering expert parallelism (EP) since we're focusing on standard transformers rather than MoE, nor sequence parallelism, as TP and PP are the most commonly used in practice.
 
-At this stage, we need multiple GPU processes (workers) and an orchestration layer to coordinate them. That's exactly what MultiProcExecutor provides.
+At this stage, we need multiple GPU processes (workers) and an orchestration layer to coordinate them. That's exactly what <code>MultiProcExecutor</code> provides.
 
 <p align="center">
 <picture>
@@ -667,31 +667,31 @@ At this stage, we need multiple GPU processes (workers) and an orchestration lay
 
 How this works in vLLM:
 
-1. MultiProcExecutor initializes an rpc_broadcast_mq message queue (implemented with shared memory under the hood).
-2. The constructor loops over world_size (e.g. TP=8 ⇒ world_size=8) and spawns a daemon process for each rank via WorkerProc.make_worker_process.
+1. <code>MultiProcExecutor</code> initializes an <code>rpc_broadcast_mq</code> message queue (implemented with shared memory under the hood).
+2. The constructor loops over <code>world_size</code> (e.g. <code>TP=8 ⇒ world_size=8</code>) and spawns a daemon process for each rank via <code>WorkerProc.make_worker_process</code>.
 3. For each worker, the parent first creates a reader and writer pipe.
-4. The new process runs WorkerProc.worker_main, which instantiates a worker (going through the same "init device", "load model", etc. as in UniprocExecutor).
+4. The new process runs <code>WorkerProc.worker_main</code>, which instantiates a worker (going through the same "init device", "load model", etc. as in <code>UniprocExecutor</code>).
 5. Each worker determines whether it is the driver (rank 0 in the TP group) or a regular worker. Every worker sets up two queues:
-* rpc_broadcast_mq (shared with the parent) for receiving work.
-* worker_response_mq for sending responses back.
-6. During initialization, each child sends its worker_response_mq handle to the parent via the pipe. Once all are received, the parent unblocks — this completes coordination.
-7. Workers then enter a busy loop, blocking on rpc_broadcast_mq.dequeue. When a work item arrives, they execute it (just like in UniprocExecutor, but now with TP/PP-specific partitioned work). Results are sent back through worker_response_mq.enqueue.
-8. At runtime, when a request arrives, MultiProcExecutor enqueues it into rpc_broadcast_mq (non-blocking) for all children workers. It then waits on the designated output rank's worker_response_mq.dequeue to collect the final result.
+* <code>rpc_broadcast_mq</code> (shared with the parent) for receiving work.
+* <code>worker_response_mq</code> for sending responses back.
+6. During initialization, each child sends its <code>worker_response_mq</code> handle to the parent via the pipe. Once all are received, the parent unblocks — this completes coordination.
+7. Workers then enter a busy loop, blocking on <code>rpc_broadcast_mq.dequeue</code>. When a work item arrives, they execute it (just like in <code>UniprocExecutor</code>, but now with TP/PP-specific partitioned work). Results are sent back through <code>worker_response_mq.enqueue</code>.
+8. At runtime, when a request arrives, <code>MultiProcExecutor</code> enqueues it into <code>rpc_broadcast_mq</code> (non-blocking) for all children workers. It then waits on the designated output rank's <code>worker_response_mq.dequeue</code> to collect the final result.
 
-From the engine's perspective, nothing has changed — all of this multiprocessing complexity is abstracted away through a call to model executor's execute_model.
+From the engine's perspective, nothing has changed — all of this multiprocessing complexity is abstracted away through a call to model executor's <code>execute_model</code>.
 
-* In the UniProcExecutor case: execute_model directly leads to calling execute_model on the worker
-* In the MultiProcExecutor case: execute_model indirectly leads to calling execute_model on each worker through rpc_broadcast_mq
+* In the <code>UniProcExecutor</code> case: execute_model directly leads to calling execute_model on the worker
+* In the <code>MultiProcExecutor</code> case: execute_model indirectly leads to calling execute_model on each worker through <code>rpc_broadcast_mq</code>
 
 At this point, we can run models that are as large as resources allow using the same engine interface.
 
-The next step is to scale out: enable data parallelism (DP > 1) replicating the model across nodes, add a lightweight DP coordination layer, introduce load balancing across replicas, and place one or more API servers in front to handle incoming traffic.
+The next step is to scale out: enable data parallelism (<code>DP > 1</code>) replicating the model across nodes, add a lightweight DP coordination layer, introduce load balancing across replicas, and place one or more API servers in front to handle incoming traffic.
 
 ## Distributed system serving vLLM
 
 There are many ways to set up serving infrastructure, but to stay concrete, here's one example: suppose we have two H100 nodes and want to run four vLLM engines across them.
 
-If the model requires TP=4, we can configure the nodes like this.
+If the model requires <code>TP=4</code>, we can configure the nodes like this.
 
 <p align="center">
 <picture>
@@ -715,7 +715,7 @@ vllm serve <model-name>
 
 and run that same command on the other node with few tweaks:
 
-* no --headless
+* no <code>--headless</code>
 * modify DP start rank
 
 ```shell
