@@ -88,15 +88,15 @@ The main components of the engine are:
 
 Engine core itself is made up of several sub components:
 
-* Model Executor (drives forward passes on the model, we're currently dealing with UniProcExecutor which has a single Worker process on a single GPU). We'll gradually build up to MultiProcExecutor which supports multiple GPUs
+* Model Executor (drives forward passes on the model, we're currently dealing with <code>UniProcExecutor</code> which has a single <code>Worker</code> process on a single GPU). We'll gradually build up to <code>MultiProcExecutor</code> which supports multiple GPUs
 * Structured Output Manager (used for guided decoding - we'll cover this later)
 * Scheduler (decides which requests go into the next engine step) - it further contains:
   <ol type="a">
-  <li>policy setting - it can be either FCFS (first come first served) or priority (higher priority requests are served first)</li>
-  <li>waiting and running queues</li>
+  <li>policy setting - it can be either <b>FCFS</b> (first come first served) or <b>priority</b> (higher priority requests are served first)</li>
+  <li><code>waiting</code> and <code>running</code> queues</li>
   <li>KV cache manager - the heart of paged attention [3]</li>
 
-The KV-cache manager maintains a free_block_queue - a pool of available KV-cache blocks (often on the order of hundreds of thousands, depending on VRAM size and block size). During paged attention, the blocks serve as the indexing structure that map tokens to their computed KV cache blocks.
+The KV-cache manager maintains a <code>free_block_queue</code> - a pool of available KV-cache blocks (often on the order of hundreds of thousands, depending on VRAM size and block size). During paged attention, the blocks serve as the indexing structure that map tokens to their computed KV cache blocks.
 
 <p align="center">
 <picture>
@@ -107,16 +107,16 @@ The KV-cache manager maintains a free_block_queue - a pool of available KV-cache
 
 > [!NOTE]
 > Block size for a standard transformer layer (non-MLA [4]) is computed as follows:
-2 * block_size (default=16) * num_kv_heads * head_size * dtype_num_bytes (2 for bf16)
+2 * <code>block_size</code> (default=16) * <code>num_kv_heads</code> * <code>head_size</code> * <code>dtype_num_bytes</code> (2 for bf16)
 
-During model executor construction, a Worker object is created, and three key procedures are executed. (Later, with MultiProcExecutor, these same procedures run independently on each worker process across different GPUs.)
+During model executor construction, a <code>Worker</code> object is created, and three key procedures are executed. (Later, with <code>MultiProcExecutor</code>, these same procedures run independently on each worker process across different GPUs.)
 
 1. Init device:
 * Assign a CUDA device (e.g. "cuda:0") to the worker and check that the model dtype is supported (e.g. bf16)
-* Verify enough VRAM is available, given the requested gpu_memory_utilization (e.g. 0.8 → 80% of total VRAM)
+* Verify enough VRAM is available, given the requested <code>gpu_memory_utilization</code> (e.g. 0.8 → 80% of total VRAM)
 * Set up distributed settings (DP / TP / PP / EP, etc.)
-* Instantiate a model_runner (holds the sampler, KV cache, and forward-pass buffers such as input_ids, positions, etc.)
-* Instantiate an InputBatch object (holds CPU-side forward-pass buffers, block tables for KV-cache indexing, sampling metadata, etc.)
+* Instantiate a <code>model_runner</code> (holds the sampler, KV cache, and forward-pass buffers such as <code>input_ids</code>, <code>positions</code>, etc.)
+* Instantiate an <code>InputBatch</code> object (holds CPU-side forward-pass buffers, block tables for KV-cache indexing, sampling metadata, etc.)
 
 2. Load model:
 * Instantiate the model architecture
@@ -125,42 +125,42 @@ During model executor construction, a Worker object is created, and three key pr
 * Optional: call torch.compile() on the model
 
 3. Initialize KV cache
-* Get per-layer KV-cache spec. Historically this was always FullAttentionSpec (homogeneous transformer), but with hybrid models (sliding window, Transformer/SSM like Jamba) it became more complex (see Jenga [5])
+* Get per-layer KV-cache spec. Historically this was always <code>FullAttentionSpec</code> (homogeneous transformer), but with hybrid models (sliding window, Transformer/SSM like Jamba) it became more complex (see Jenga [5])
 * Run a dummy/profiling forward pass and take a GPU memory snapshot to compute how many KV cache blocks fit in available VRAM
 * Allocate, reshape and bind KV cache tensors to attention layers
 * Prepare attention metadata (e.g. set the backend to FlashAttention) later consumed by kernels during the fwd pass
-* Unless --enforce-eager is provided, for each of warmup batch sizes do a dummy run and capture CUDA graphs. CUDA graphs record the whole sequence of GPU work into a DAG. Later during fwd pass we launch/reply pre-baked graphs and cut on kernel launch overhead and thus improve latency.
+* Unless <code>--enforce-eager</code> is provided, for each of warmup batch sizes do a dummy run and capture CUDA graphs. CUDA graphs record the whole sequence of GPU work into a DAG. Later during fwd pass we launch/reply pre-baked graphs and cut on kernel launch overhead and thus improve latency.
 
 I've abstracted away many low-level details here — but these are the core pieces I'll introduce now, since I'll reference them repeatedly in the following sections.
 
-Now that we have the engine initialized let's proceed to the generate function.
+Now that we have the engine initialized let's proceed to the <code>generate</code> function.
 
 ### Generate function
 
 The first step is to validate and feed requests into the engine. For each prompt we:
 
 1. Create a unique request ID and capture its arrival time
-2. Call an input preprocessor that tokenizes the prompt and returns a dictionary containing prompt, prompt_token_ids, and a type (text, tokens, embeds, etc.)
-3. Pack this info into an EngineCoreRequest, adding priority, sampling params, and other metadata
-4. Pass the request into the engine core, which wraps it in a Request object and sets its status to WAITING. This request is then added to the scheduler's waiting queue (append if FCFS, or heap-push if priority)
+2. Call an input preprocessor that tokenizes the prompt and returns a dictionary containing <code>prompt</code>, <code>prompt_token_ids</code>, and a <code>type</code> (text, tokens, embeds, etc.)
+3. Pack this info into an <code>EngineCoreRequest</code>, adding priority, sampling params, and other metadata
+4. Pass the request into the engine core, which wraps it in a <code>Request</code> object and sets its status to <code>WAITING</code>. This request is then added to the scheduler's <code>waiting</code> queue (append if FCFS, or heap-push if priority)
 
-At this point the engine has been fed and execution can begin. In the synchronous engine example, these initial prompts are the only ones we'll process — there's no mechanism to inject new requests mid-run. In contrast, the asynchronous engine supports this (aka continuous batching [6]): after each step, both new and old requests are considered.
+At this point the engine has been fed and execution can begin. In the synchronous engine example, these initial prompts are the only ones we'll process — there's no mechanism to inject new requests mid-run. In contrast, the asynchronous engine supports this (aka <b>continuous batching</b> [6]): after each step, both new and old requests are considered.
 
 > [!NOTE]
 > Because the forward pass flattens the batch into a single sequence and custom kernels handle it efficiently, continuous batching is fundamentally supported even in the synchronous engine.
 
-Next, as long as there are requests to process, the engine repeatedly calls its step() function. Each step has three stages:
+Next, as long as there are requests to process, the engine repeatedly calls its <code>step()</code> function. Each step has three stages:
 
 1. Schedule: select which requests to run in this step (decode, and/or (chunked) prefill)
 2. Forward pass: run the model and sample tokens
-3. Postprocess: append sampled token IDs to each Request, detokenize, and check stop conditions. If a request is finished, clean up (e.g. return its KV-cache blocks to free_block_queue) and return the output early
+3. Postprocess: append sampled token IDs to each <code>Request</code>, detokenize, and check stop conditions. If a request is finished, clean up (e.g. return its KV-cache blocks to <code>free_block_queue</code>) and return the output early
 
 > [!NOTE]
 > Stop conditions are:
-> * The request exceeds its length limit (max_model_length or its own max_tokens)
-> * The sampled token is the EOS ID (unless ignore_eos is enabled -> useful for benchmarking when we want to force a generation of a certain number of out tokens)
-> * The sampled token matches any of the stop_token_ids specified in the sampling parameters
-> * Stop strings are present in the output - we truncate the output until the first stop string appearance and abort the request in the engine (note that stop_token_ids will be present in the output but stop strings will not).
+> * The request exceeds its length limit (<code>max_model_length</code> or its own <code>max_tokens</code>)
+> * The sampled token is the EOS ID (unless <code>ignore_eos</code> is enabled -> useful for benchmarking when we want to force a generation of a certain number of out tokens)
+> * The sampled token matches any of the <code>stop_token_ids</code> specified in the sampling parameters
+> * Stop strings are present in the output - we truncate the output until the first stop string appearance and abort the request in the engine (note that <code>stop_token_ids</code> will be present in the output but stop strings will not).
 
 <p align="center">
 <picture>
@@ -178,32 +178,32 @@ Next, we'll examine scheduling in more detail.
 
 There are two main types of workloads an inference engine handles:
 
-1. Prefill requests — a forward pass over all prompt tokens. These are usually compute-bound (threshold depends on hardware and prompt length). At the end, we sample a single token from the probability distribution of the final token's position.
-2. Decode requests — a forward pass over just the most recent token. All earlier KV vectors are already cached. These are memory-bandwidth-bound, since we still need to load all LLM weights (and KV caches) just to compute one token.
+1. <b>Prefill</b> requests — a forward pass over all prompt tokens. These are usually <b>compute-bound</b> (threshold depends on hardware and prompt length). At the end, we sample a single token from the probability distribution of the final token's position.
+2. <b>Decode</b> requests — a forward pass over just the most recent token. All earlier KV vectors are already cached. These are <b>memory-bandwidth-bound</b>, since we still need to load all LLM weights (and KV caches) just to compute one token.
 
 > [!NOTE]
-> In the benchmarking section we'll analyze the so-called roofline model of GPU perf. That will go into more detail behind prefill/decode perf profiles.
+> In the [benchmarking section](#benchmarks-and-auto-tuning---latency-vs-throughput) we'll analyze the so-called roofline model of GPU perf. That will go into more detail behind prefill/decode perf profiles.
 
 The V1 scheduler can mix both types of requests in the same step, thanks to smarter design choices. In contrast, the V0 engine could only process either prefill or decode at once.
 
-The scheduler prioritizes decode requests — i.e. those already in the running queue. For each such request it:
+The scheduler prioritizes decode requests — i.e. those already in the <code>running</code> queue. For each such request it:
 
 1. Computes the number of new tokens to generate (not always 1, due to speculative decoding and async scheduling — more on that later).
-2. Calls the KV-cache manager's allocate_slots function (details below).
+2. Calls the KV-cache manager's <code>allocate_slots</code> function (details below).
 3. Updates the token budget by subtracting the number of tokens from step 1.
 
-After that, it processes prefill requests from the waiting queue, it:
+After that, it processes prefill requests from the <code>waiting</code> queue, it:
 
 1. Retrieves the number of computed blocks (returns 0 if prefix caching is disabled — we'll cover that later).
-2. Calls the KV-cache manager's allocate_slots function.
-3. Pops the request from waiting and moves it to running, setting its status to RUNNING.
+2. Calls the KV-cache manager's <code>allocate_slots</code> function.
+3. Pops the request from waiting and moves it to running, setting its status to <code>RUNNING</code>.
 4. Updates the token budget.
 
-Let's now look at what allocate_slots does, it:
+Let's now look at what <code>allocate_slots</code> does, it:
 
-1. Computes number of blocks — determines how many new KV-cache blocks (n) must be allocated. Each block stores 16 tokens by default. For example, if a prefill request has 17 new tokens, we need ceil(17/16) = 2 blocks.
-2. Checks availability — if there aren't enough blocks in the manager's pool, exit early. Depending on whether it's a decode or prefill request, the engine may attempt recompute preemption (swap preemption was supported in V0) by evicting low-priority requests (calling kv_cache_manager.free which returns KV blocks to block pool), or it might skip scheduling and continue execution.
-3. Allocates blocks — via the KV-cache manager's coordinator, fetches the first n blocks from the block pool (the free_block_queue doubly linked list mentioned earlier). Stores to req_to_blocks, the dictionary mapping each request_id to its list of KV-cache blocks.
+1. <b>Computes number of blocks</b> — determines how many new KV-cache blocks (n) must be allocated. Each block stores 16 tokens by default. For example, if a prefill request has 17 new tokens, we need <code>ceil(17/16) = 2</code> blocks.
+2. <b>Checks availability</b> — if there aren't enough blocks in the manager's pool, exit early. Depending on whether it's a decode or prefill request, the engine may attempt recompute preemption (swap preemption was supported in V0) by evicting low-priority requests (calling <code>kv_cache_manager.free</code> which returns KV blocks to block pool), or it might skip scheduling and continue execution.
+3. <b>Allocates blocks</b> — via the KV-cache manager's coordinator, fetches the first <code>n</code> blocks from the block pool (the <code>free_block_queue</code> doubly linked list mentioned earlier). Stores to <code>req_to_blocks</code>, the dictionary mapping each <code>request_id</code> to its list of KV-cache blocks.
 
 <p align="center">
 <picture>
@@ -216,7 +216,7 @@ We're finally ready to do a forward pass!
 
 ### Run forward pass
 
-We call model executor's execute_model, which delegates to the Worker, which in turn delegates to the model runner.
+We call model executor's <code>execute_model</code>, which delegates to the <code>Worker</code>, which in turn delegates to the model runner.
 
 Here are the main steps:
 
