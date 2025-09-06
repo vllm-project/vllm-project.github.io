@@ -979,14 +979,14 @@ A huge thank you to [Hyperstack](https://www.hyperstack.cloud/) for providing me
 Thanks to [Nick Hill](https://www.linkedin.com/in/nickhillprofile/) (core vLLM contributor, RedHat), [Mark Saroufim](https://x.com/marksaroufim) (PyTorch), [Kyle Krannen](https://www.linkedin.com/in/kyle-kranen/) (NVIDIA, Dynamo), and [Ashish Vaswani](https://www.linkedin.com/in/ashish-vaswani-99892181/) for reading pre-release version of this blog post and providing feedback!
 
 References
-1. <div href="ref-1"> vLLM <a href="https://github.com/vllm-project/vllm">https://github.com/vllm-project/vllm </a> </div>
-2. <div href="ref-2"> "Attention Is All You Need" <a href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a> </div>
-3. <div href="ref-3"> "Efficient Memory Management for Large Language Model Serving with PagedAttention" <a href="https://arxiv.org/abs/2309.06180">https://arxiv.org/abs/2309.06180</a> </div>
-4. <div href="ref-4"> "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model" <a href="https://arxiv.org/abs/2405.04434">https://arxiv.org/abs/2405.04434</a> </div>
-5. <div href="ref-5"> "Jenga: Effective Memory Management for Serving LLM with Heterogeneity" <a href="https://arxiv.org/abs/2503.18292">https://arxiv.org/abs/2503.18292</a> </div>
-6. <div href="ref-6"> "Orca: A Distributed Serving System for Transformer-Based Generative Models" <a href="https://www.usenix.org/conference/osdi22/presentation/yu">https://www.usenix.org/conference/osdi22/presentation/yu</a> </div>
-7. <div href="ref-7"> "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models" <a href="https://arxiv.org/abs/2411.15100">https://arxiv.org/abs/2411.15100</a> </div>
-8. <div href="ref-8"> "Accelerating Large Language Model Decoding with Speculative Sampling" <a href="https://arxiv.org/abs/2302.01318">https://arxiv.org/abs/2302.01318</a> </div>
-9. <div href="ref-9"> "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty" <a href="https://arxiv.org/abs/2401.15077">https://arxiv.org/abs/2401.15077</a> </div>
-10. <div href="ref-10"> "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads" <a href="https://arxiv.org/abs/2401.10774">https://arxiv.org/abs/2401.10774</a> </div>
-11. <div href="ref-11"> LMCache <a href="https://github.com/LMCache/LMCache">https://github.com/LMCache/LMCache</a> </div>
+1. <div id="ref-1"> vLLM <a href="https://github.com/vllm-project/vllm">https://github.com/vllm-project/vllm </a> </div>
+2. <div id="ref-2"> "Attention Is All You Need" <a href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a> </div>
+3. <div id="ref-3"> "Efficient Memory Management for Large Language Model Serving with PagedAttention" <a href="https://arxiv.org/abs/2309.06180">https://arxiv.org/abs/2309.06180</a> </div>
+4. <div id="ref-4"> "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model" <a href="https://arxiv.org/abs/2405.04434">https://arxiv.org/abs/2405.04434</a> </div>
+5. <div id="ref-5"> "Jenga: Effective Memory Management for Serving LLM with Heterogeneity" <a href="https://arxiv.org/abs/2503.18292">https://arxiv.org/abs/2503.18292</a> </div>
+6. <div id="ref-6"> "Orca: A Distributed Serving System for Transformer-Based Generative Models" <a href="https://www.usenix.org/conference/osdi22/presentation/yu">https://www.usenix.org/conference/osdi22/presentation/yu</a> </div>
+7. <div id="ref-7"> "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models" <a href="https://arxiv.org/abs/2411.15100">https://arxiv.org/abs/2411.15100</a> </div>
+8. <div id="ref-8"> "Accelerating Large Language Model Decoding with Speculative Sampling" <a href="https://arxiv.org/abs/2302.01318">https://arxiv.org/abs/2302.01318</a> </div>
+9. <div id="ref-9"> "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty" <a href="https://arxiv.org/abs/2401.15077">https://arxiv.org/abs/2401.15077</a> </div>
+10. <div id="ref-10"> "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads" <a href="https://arxiv.org/abs/2401.10774">https://arxiv.org/abs/2401.10774</a> </div>
+11. <div id="ref-11"> LMCache <a href="https://github.com/LMCache/LMCache">https://github.com/LMCache/LMCache</a> </div>
