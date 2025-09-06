@@ -10,7 +10,7 @@ image: /assets/logos/vllm-logo-text-light.png
 
 ### From paged attention, continuous batching, prefix caching, specdec, etc. to multi-GPU, multi-node dynamic serving at scale
 
-In this post, I'll gradually introduce all of the core system components and advanced features that make up a modern high-throughput LLM inference system. In particular I'll be doing a breakdown of how vLLM [1] works.
+In this post, I'll gradually introduce all of the core system components and advanced features that make up a modern high-throughput LLM inference system. In particular I'll be doing a breakdown of how vLLM [[1]](#ref-1) works.
 
 This post is the first in a series. It starts broad and then layers in detail (following an inverse-pyramid approach) so you can form an accurate high-level mental model of the complete system without drowning in minutiae.
 
@@ -65,7 +65,7 @@ This configuration is:
 * offline (no web/distributed system scaffolding)
 * synchronous (all execution happens in a single blocking process)
 * single-GPU (no data/model/pipeline/expert parallelism; DP/TP/PP/EP = 1)
-* using standard transformer [2] (supporting hybrid models like Jamba requires a more complex hybrid KV-cache memory allocator)
+* using standard transformer [[2]](#ref-2) (supporting hybrid models like Jamba requires a more complex hybrid KV-cache memory allocator)
 
 From here, we'll gradually build up to an online, async, multi-GPU, multi-node inference system - but still serving a standard transformer.
 
@@ -106,7 +106,7 @@ The KV-cache manager maintains a <code>free_block_queue</code> - a pool of avail
 </p>
 
 > [!NOTE]
-> Block size for a standard transformer layer (non-MLA [4]) is computed as follows:
+> Block size for a standard transformer layer (non-MLA [[4]](#ref-4)) is computed as follows:
 > 2 * <code>block_size</code> (default=16) * <code>num_kv_heads</code> * <code>head_size</code> * <code>dtype_num_bytes</code> (2 for bf16)
 
 During model executor construction, a <code>Worker</code> object is created, and three key procedures are executed. (Later, with <code>MultiProcExecutor</code>, these same procedures run independently on each worker process across different GPUs.)
@@ -125,7 +125,7 @@ During model executor construction, a <code>Worker</code> object is created, and
 * Optional: call torch.compile() on the model
 
 3. Initialize KV cache
-* Get per-layer KV-cache spec. Historically this was always <code>FullAttentionSpec</code> (homogeneous transformer), but with hybrid models (sliding window, Transformer/SSM like Jamba) it became more complex (see Jenga [5])
+* Get per-layer KV-cache spec. Historically this was always <code>FullAttentionSpec</code> (homogeneous transformer), but with hybrid models (sliding window, Transformer/SSM like Jamba) it became more complex (see Jenga [[5]](#ref-5))
 * Run a dummy/profiling forward pass and take a GPU memory snapshot to compute how many KV cache blocks fit in available VRAM
 * Allocate, reshape and bind KV cache tensors to attention layers
 * Prepare attention metadata (e.g. set the backend to FlashAttention) later consumed by kernels during the fwd pass
@@ -144,7 +144,7 @@ The first step is to validate and feed requests into the engine. For each prompt
 3. Pack this info into an <code>EngineCoreRequest</code>, adding priority, sampling params, and other metadata
 4. Pass the request into the engine core, which wraps it in a <code>Request</code> object and sets its status to <code>WAITING</code>. This request is then added to the scheduler's <code>waiting</code> queue (append if FCFS, or heap-push if priority)
 
-At this point the engine has been fed and execution can begin. In the synchronous engine example, these initial prompts are the only ones we'll process — there's no mechanism to inject new requests mid-run. In contrast, the asynchronous engine supports this (aka <b>continuous batching</b> [6]): after each step, both new and old requests are considered.
+At this point the engine has been fed and execution can begin. In the synchronous engine example, these initial prompts are the only ones we'll process — there's no mechanism to inject new requests mid-run. In contrast, the asynchronous engine supports this (aka <b>continuous batching</b> [[6]](#ref-6)): after each step, both new and old requests are considered.
 
 > [!NOTE]
 > Because the forward pass flattens the batch into a single sequence and custom kernels handle it efficiently, continuous batching is fundamentally supported even in the synchronous engine.
@@ -405,7 +405,7 @@ In the toy example I gave (assume character-level tokenization): at prefill, the
 How this works in vLLM:
 
 1. At LLM engine construction, a <code>StructuredOutputManager</code> is created; it has access to the tokenizer and maintains a <code>_grammar_bitmask</code> tensor.
-2. When adding a request, its status is set to <code>WAITING_FOR_FSM</code> and <code>grammar_init</code> selects the backend compiler (e.g., <code>xgrammar</code> [7]; note that backends are 3rd party code).
+2. When adding a request, its status is set to <code>WAITING_FOR_FSM</code> and <code>grammar_init</code> selects the backend compiler (e.g., <code>xgrammar</code> [[7]](#ref-7); note that backends are 3rd party code).
 3. The grammar for this request is compiled asynchronously.
 4. During scheduling, if the async compile has completed, the status switches to <code>WAITING</code> and <code>request_id</code> is added to <code>structured_output_request_ids</code>; otherwise it's placed in <code>skipped_waiting_requests</code> to retry on next engine step.
 5. After the scheduling loop (still inside scheduling), if there are FSM requests, the <code>StructuredOutputManager</code> asks the backend to prepare/update <code>_grammar_bitmask</code>.
@@ -434,7 +434,7 @@ You can enable this in vLLM by passing in a desired <code>guided_decoding</code>
 
 In autoregressive generation, each new token requires a forward pass of the large LM. This is expensive — every step reloads and applies all model weights just to compute a single token! (assuming batch size == 1, in general it's <code>B</code>)
 
-Speculative decoding [8] speeds this up by introducing a smaller draft LM. The draft proposes <code>k</code> tokens cheaply. But we don't ultimately want to sample from the smaller model — it's only there to guess candidate continuations. The large model still decides what's valid.
+Speculative decoding [[8]](#ref-8) speeds this up by introducing a smaller draft LM. The draft proposes <code>k</code> tokens cheaply. But we don't ultimately want to sample from the smaller model — it's only there to guess candidate continuations. The large model still decides what's valid.
 
 Here are the steps:
 
@@ -457,7 +457,7 @@ Here are the steps:
 > [!NOTE]
 > I recommend looking at [gpt-fast](https://github.com/meta-pytorch/gpt-fast) for a simple implementation, and the [original paper](https://arxiv.org/abs/2302.01318) for the math details and the proof of equivalence to sampling from the full model.
 
-vLLM V1 does not support the LLM draft model method, instead it implements faster—but less accurate—proposal schemes: n-gram, EAGLE [9], and Medusa [10].
+vLLM V1 does not support the LLM draft model method, instead it implements faster—but less accurate—proposal schemes: n-gram, EAGLE [[9]](#ref-9), and Medusa [[10]](#ref-10).
 
 One-liners on each:
 
@@ -618,7 +618,7 @@ if __name__ == "__main__":
 ```
 
 > [!NOTE]
-> I've also experimented with <code>LMCache</code> [11], the fastest production-ready connector (uses NVIDIA's NIXL as the backend), but it's still at the bleeding edge and I ran into some bugs. Since much of its complexity lives in an external repo, <code>SharedStorageConnector</code> is a better choice for explanation.
+> I've also experimented with <code>LMCache</code> [[11]](#ref-11), the fastest production-ready connector (uses NVIDIA's NIXL as the backend), but it's still at the bleeding edge and I ran into some bugs. Since much of its complexity lives in an external repo, <code>SharedStorageConnector</code> is a better choice for explanation.
 
 These are the steps in vLLM:
 
@@ -979,14 +979,14 @@ A huge thank you to [Hyperstack](https://www.hyperstack.cloud/) for providing me
 Thanks to [Nick Hill](https://www.linkedin.com/in/nickhillprofile/) (core vLLM contributor, RedHat), [Mark Saroufim](https://x.com/marksaroufim) (PyTorch), [Kyle Krannen](https://www.linkedin.com/in/kyle-kranen/) (NVIDIA, Dynamo), and [Ashish Vaswani](https://www.linkedin.com/in/ashish-vaswani-99892181/) for reading pre-release version of this blog post and providing feedback!
 
 References
-1. vLLM [https://github.com/vllm-project/vllm](https://github.com/vllm-project/vllm)
-2. "Attention Is All You Need", [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
-3. "Efficient Memory Management for Large Language Model Serving with PagedAttention", [https://arxiv.org/abs/2309.06180](https://arxiv.org/abs/2309.06180)
-4. "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model", [https://arxiv.org/abs/2405.04434](https://arxiv.org/abs/2405.04434)
-5. "Jenga: Effective Memory Management for Serving LLM with Heterogeneity", [https://arxiv.org/abs/2503.18292](https://arxiv.org/abs/2503.18292)
-6. "Orca: A Distributed Serving System for Transformer-Based Generative Models", [https://www.usenix.org/conference/osdi22/presentation/yu](https://www.usenix.org/conference/osdi22/presentation/yu)
-7. "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models", [https://arxiv.org/abs/2411.15100](https://arxiv.org/abs/2411.15100)
-8. "Accelerating Large Language Model Decoding with Speculative Sampling", [https://arxiv.org/abs/2302.01318](https://arxiv.org/abs/2302.01318)
-9. "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty", [https://arxiv.org/abs/2401.15077](https://arxiv.org/abs/2401.15077)
-10. "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads", [https://arxiv.org/abs/2401.10774](https://arxiv.org/abs/2401.10774)
-11. LMCache, [https://github.com/LMCache/LMCache](https://github.com/LMCache/LMCache)
+1. <div href="ref-1"> vLLM <a href="https://github.com/vllm-project/vllm">https://github.com/vllm-project/vllm </a> </div>
+2. <div href="ref-2"> "Attention Is All You Need" <a href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a> </div>
+3. <div href="ref-3"> "Efficient Memory Management for Large Language Model Serving with PagedAttention" <a href="https://arxiv.org/abs/2309.06180">https://arxiv.org/abs/2309.06180</a> </div>
+4. <div href="ref-4"> "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model" <a href="https://arxiv.org/abs/2405.04434">https://arxiv.org/abs/2405.04434</a> </div>
+5. <div href="ref-5"> "Jenga: Effective Memory Management for Serving LLM with Heterogeneity" <a href="https://arxiv.org/abs/2503.18292">https://arxiv.org/abs/2503.18292</a> </div>
+6. <div href="ref-6"> "Orca: A Distributed Serving System for Transformer-Based Generative Models" <a href="https://www.usenix.org/conference/osdi22/presentation/yu">https://www.usenix.org/conference/osdi22/presentation/yu</a> </div>
+7. <div href="ref-7"> "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models" <a href="https://arxiv.org/abs/2411.15100">https://arxiv.org/abs/2411.15100</a> </div>
+8. <div href="ref-8"> "Accelerating Large Language Model Decoding with Speculative Sampling" <a href="https://arxiv.org/abs/2302.01318">https://arxiv.org/abs/2302.01318</a> </div>
+9. <div href="ref-9"> "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty" <a href="https://arxiv.org/abs/2401.15077">https://arxiv.org/abs/2401.15077</a> </div>
+10. <div href="ref-10"> "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads" <a href="https://arxiv.org/abs/2401.10774">https://arxiv.org/abs/2401.10774</a> </div>
+11. <div href="ref-11"> LMCache <a href="https://github.com/LMCache/LMCache">https://github.com/LMCache/LMCache</a> </div>
