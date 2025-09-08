@@ -94,7 +94,7 @@ Engine core itself is made up of several sub components:
   <ol type="a">
   <li>policy setting - it can be either <b>FCFS</b> (first come first served) or <b>priority</b> (higher priority requests are served first)</li>
   <li><code>waiting</code> and <code>running</code> queues</li>
-  <li>KV cache manager - the heart of paged attention [[3]](#ref-3)</li>
+  <li>KV cache manager - the heart of paged attention <a href="#ref-3">[3]</a></li>
 
 The KV-cache manager maintains a <code>free_block_queue</code> - a pool of available KV-cache blocks (often on the order of hundreds of thousands, depending on VRAM size and block size). During paged attention, the blocks serve as the indexing structure that map tokens to their computed KV cache blocks.
 
@@ -107,7 +107,7 @@ The KV-cache manager maintains a <code>free_block_queue</code> - a pool of avail
 
 > [!NOTE]
 > Block size for a standard transformer layer (non-MLA [[4]](#ref-4)) is computed as follows:
-> 2 * <code>block_size</code> (default=16) * <code>num_kv_heads</code> * <code>head_size</code> * <code>dtype_num_bytes</code> (2 for bf16)
+> 2 (key/value) * <code>block_size</code> (default=16) * <code>num_kv_heads</code> * <code>head_size</code> * <code>dtype_num_bytes</code> (e.g. 2 for bf16)
 
 During model executor construction, a <code>Worker</code> object is created, and three key procedures are executed. (Later, with <code>MultiProcExecutor</code>, these same procedures run independently on each worker process across different GPUs.)
 
@@ -129,7 +129,7 @@ During model executor construction, a <code>Worker</code> object is created, and
 * Run a dummy/profiling forward pass and take a GPU memory snapshot to compute how many KV cache blocks fit in available VRAM
 * Allocate, reshape and bind KV cache tensors to attention layers
 * Prepare attention metadata (e.g. set the backend to FlashAttention) later consumed by kernels during the fwd pass
-* Unless <code>--enforce-eager</code> is provided, for each of warmup batch sizes do a dummy run and capture CUDA graphs. CUDA graphs record the whole sequence of GPU work into a DAG. Later during fwd pass we launch/reply pre-baked graphs and cut on kernel launch overhead and thus improve latency.
+* Unless <code>--enforce-eager</code> is provided, for each of warmup batch sizes do a dummy run and capture CUDA graphs. CUDA graphs record the whole sequence of GPU work into a DAG. Later during fwd pass we launch/replay pre-baked graphs and cut on kernel launch overhead and thus improve latency.
 
 I've abstracted away many low-level details here — but these are the core pieces I'll introduce now, since I'll reference them repeatedly in the following sections.
 
@@ -229,7 +229,7 @@ Here are the main steps:
 Forward-pass step itself has two execution modes:
 
 1. <b>Eager mode</b> — run the standard PyTorch forward pass when eager execution is enabled.
-2. <b>"Captured" mode</b> — execute/reply a pre-captured CUDA Graph when eager is not enforced (remember we captured these during engine construction in the initialize KV cache procedure).
+2. <b>"Captured" mode</b> — execute/replay a pre-captured CUDA Graph when eager is not enforced (remember we captured these during engine construction in the initialize KV cache procedure).
 
 Here is a concrete example that should make continuous batching and paged attention clear:
 
@@ -316,7 +316,8 @@ During the first <code>generate</code> call, in the scheduling stage, inside <co
 
 1. This function splits the <code>long_prefix + prompts[0]</code> into 16-token chunks.
 2. For each complete chunk, it computes a hash (using either the built-in hash or SHA-256, which is slower but has fewer collisions). The hash combines the previous block's hash, the current tokens, and optional metadata.
-> [!NOTE] optional metadata includes: MM hash, LoRA ID, cache salt (injected into hash of the first block ensures only requests with this cache salt can reuse blocks).
+> [!NOTE]
+> optional metadata includes: MM hash, LoRA ID, cache salt (injected into hash of the first block ensures only requests with this cache salt can reuse blocks).
 3. Each result is stored as a <code>BlockHash</code> object containing both the hash and its token IDs. We return a list of block hashes.
 
 The list is stored in <code>self.req_to_block_hashes[request_id]</code>.
@@ -423,7 +424,7 @@ Here is an even simpler example with vocab_size = 8 and 8-bit integers (for thos
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-vllm-anatomy/fsm.png" width="100%">
+<img src="/assets/figures/2025-vllm-anatomy/fsm2.png" width="100%">
 </picture><br>
 <b>Figure 10</b>: Toy example
 </p>
@@ -650,7 +651,6 @@ Here is a visual example:
 
 ## From UniprocExecutor to MultiProcExecutor
 
-From UniprocExecutor to MultiProcExecutor
 With the core techniques in place, we can now talk about scaling up.
 
 Suppose your model weights no longer fit into a single GPU's VRAM.
@@ -944,7 +944,6 @@ vllm bench latency
   --input-tokens 32
   --output-tokens 128
   --batch-size 8
-}'
 ```
 
 > [!NOTE]
@@ -959,7 +958,7 @@ We began with the basic engine core (<code>UniprocExecutor</code>), added advanc
 
 vLLM also includes specialized handling that I've skipped. E.g.:
 
-* <b>Custom hardware backends</b>: TPUs, AWS Neuron (Trainium/Inferentia), etc.
+* <b>Diverse hardware backends</b>: TPUs, AWS Neuron (Trainium/Inferentia), etc.
 * <b>Architectures/techniques</b>: <code>MLA</code>, <code>MoE</code>, encoder-decoder (e.g., Whisper), pooling/embedding models, <code>EPLB</code>, <code>m-RoPE</code>, <code>LoRA</code>, <code>ALiBi</code>, attention-free variants, sliding-window attention, multimodal LMs, and state-space models (e.g., Mamba/Mamba-2, Jamba)
 * <b>TP/PP/SP</b>
 * <b>Hybrid KV-cache logic</b> (Jenga), more complex sampling methods like beam sampling, and more
