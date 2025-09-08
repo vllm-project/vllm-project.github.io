@@ -16,15 +16,15 @@ Supporting such any-modality models where inputs and outputs may be images, audi
 We've made that shift in vLLM.
 
 In this article, we introduce a set of enhancements to vLLM that enable non-autoregressive, any-modality model serving. 
-While our initial integration focuses on geospatial vision transformers, used for tasks like flood detection, burn scar identification, and land use classification from satellite imagery, the changes are generic and pave the way for serving a wide variety of non text-generating models.
+Our initial integration focuses on geospatial foundation models, a class of convolutional or vision transformer models that requires data beyond RGB channels (e.g. multispectral or radar) and metadata (e.g. geolocation, date of image acquisition) used for, but limited to, tasks like disaster response or land use classification from satellite imagery. However, the changes are generic and pave the way for serving a wide variety of non text-generating models.
 
 As a concrete example, we've integrated all geospatial models from the [Terratorch](https://github.com/IBM/terratorch) framework (some of which were developed in collaboration with NASA and ESA) into vLLM via a generic backend, making them first-class citizens in the vLLM ecosystem.
 
-In the sections that follow, we describe the technical changes made to vLLM, starting with the requirements and challenges of serving geospatial vision transformer models.
+In the sections that follow, we describe the technical changes made to vLLM, starting with the requirements and challenges of serving geospatial foundation models.
 
-## Integrating geospatial vision transformer models in vLLM
+## Integrating geospatial models in vLLM
 
-Unlike text models, vision transformers don’t need token decoding i.e. they do not need output tokens to be transformed into text.
+Unlike text models, geospatial foundation models (often implemented as vision transformers) don’t need token decoding i.e. they do not need output tokens to be transformed into text.
 Instead, given one input image, a single inference generates the raw model output, and then this is post-processed into the output image.
 In addition, sometimes the input image needs to be partitioned and batched into a number of sub-images, or patches.
 These patches are then fed to the model for inference, with the resulting output images from each patch being stitched together to form the final output image.
@@ -35,12 +35,12 @@ These patches are then fed to the model for inference, with the resulting output
 </picture>
 </p>
 
-Given these requirements, the obvious choice was to integrate vision transformers in vLLM as pooling models.
-In vLLM pooling models allow extracting the raw model output via an identity pooler. 
+Given these requirements, the obvious choice was to integrate geospatial foundation models in vLLM as pooling models.
+In vLLM, pooling models allow extracting the raw model output via an identity pooler. 
 Identity poolers do not apply any transformation to the data and return it as is - exactly what we need. 
 For the input, we pre-process images into tensors that are then fed to vLLM for inference, exploiting the existing multimodal input capabilities of vLLM.
 
-Since we wanted to support multiple geospatial vision transformers out-of-the-box in vLLM we have also added a model implementation backend for TerraTorch models, following the same pattern as the backend for the HuggingFace Transformers library.
+Since we wanted to support multiple geospatial foundation models out-of-the-box in vLLM we have also added a model implementation backend for TerraTorch models, following the same pattern as the backend for the HuggingFace Transformers library.
 
 Getting this to work was no easy task, though. 
 Enabling these model classes required changes to various parts of vLLM such as:
@@ -54,7 +54,7 @@ Enabling these model classes required changes to various parts of vLLM such as:
 
 So far so good! Well, this brings us only halfway towards our goal. 
 
-With the above integration we can indeed serve geospatial vision transformer models -- though only in tensor-to-tensor format. 
+With the above integration we can indeed serve geospatial foundation models -- though only in tensor-to-tensor format. 
 Users still have to pre-process their image to a tensor format, before sending these tensors to the vLLM instance.
 Similarly, post-processing of the raw tensor output has to happen outside vLLM. 
 The impact: there is no endpoint that users can send an image to and get an image back. 
@@ -81,20 +81,50 @@ This maintains a unified serving stack, reducing operational complexity and impr
 
 ### Using vLLM IO Processor plugins
 
-Each IO Processor plugin implements a pre-defined [IO Processor interface](https://github.com/vllm-project/vllm/blob/main/vllm/plugins/io_processors/interface.py) and resides outside of the vLLM source code tree. 
+Each IO Processor plugin implements a pre-defined [IO Processor interface](https://github.com/vllm-project/vllm/blob/main/vllm/plugins/io_processors/interface.py) and resides outside the vLLM source code tree. 
 At installation time each plugin registers one or more entrypoints in the `vllm.io_processor_plugins` group. 
 This allows vLLM to automatically discover and load plugins at engine initialization time. 
-A full plugin example for geospatial vision transformers is available [here](https://github.com/christian-pinto/prithvi_io_processor_plugin).
 
 Using an IO Processor plugin is as easy as installing it in the same python environment with vLLM, and adding the `--io-processor-plugin <plugin_name>` parameter when starting the serving instance. 
 Currently, one IO Processor plugin can be loaded for each vLLM instance.
 
-Once the serving instance is started, pre- and post-processing is automatically applied to the model input and output when serving the `pooling` endpoint.
-At this stage IO Processors are only available for pooling models, but in the future we expect other endpoints to be integrated too.
+Once the serving instance is started, pre- and post-processing is automatically applied to the model input and output when serving the `/pooling` endpoint.
+At this stage, IO Processors are only available for pooling models, but in the future we expect other endpoints to be integrated too.
 
 ## Step-by-Step: Serving the Prithvi Model in vLLM
 
-One example model class that can be served with vLLM using the Terratorch backend is [Prithvi for flood detection](https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11).
+One example model class that can be served with vLLM using the Terratorch backend is [Prithvi for flood detection](https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11). A full plugin example for the Prithvi geospatial foundation model is available [here](https://github.com/christian-pinto/prithvi_io_processor_plugin).
+
+### The Prithvi IO Processor plugin
+To help the reader understand the flexibility of the IO Processor plugin approach, the below pseudo-code shows the main steps of the Prithvi IO Processor pre- and post-processing. What we want to highlight is the decoupling between the data specific transformations with the model inference data. This makes room for ideally any model and any input/ouput data type, or even multiple plugins applied to the same model output depending on the downstream task that consumes the data.
+
+```python
+def pre_process(request_data: dict):
+    # Downloads geotiff
+    # In this example the input image has 7 bands
+    image_url = request_data["url"]
+    image_obj = download_image(image_url)
+
+    # Extract image data:
+    # - pixel_values([n, 6, 512, 512])
+    #   - 6 input bands R, G, B, +3 multi-spectral wavelenghts
+    #   - n > 1 if the size of the input image is > [512, 512]
+    # - meta_data
+    #   - GPS coordinates
+    #   - date
+    pixel_values, meta_data = process_image(image_obj)
+
+    # Process the image data into n vLLM prompts
+    model_prompts = pixels_to_prompts(pixel_values)
+
+    return model_prompts
+
+
+def post_process(model_outputs: list[PoolingRequestOutput]):
+    # Uses the previously extracted metadata to guarantee the output
+    # contains the same georeferences and date.
+    return image_object(model_outputs, metadata)
+```
 
 ### Install the python requirements
 
@@ -137,7 +167,7 @@ INFO: Application startup complete.
 ```
 
 ### Send requests to the model
-The below python script sends a request to the vLLM `pooling` endpoint with a specific JSON payload where the `model` and `softmax` arguments are pre-defined, while the `data` field is defined by the user and depends on the plugin in use. 
+The below python script sends a request to the vLLM `/pooling` endpoint with a specific JSON payload where the `model` and `softmax` arguments are pre-defined, while the `data` field is defined by the user and depends on the plugin in use. 
 >[!NOTE] 
 >Setting the `softmax` field to `False` is required to ensure the plugin receives the raw model output.
 In this case we send the input image to vLLM as a URL and we request the response to be a geotiff image in base64 encoding. 
@@ -205,4 +235,4 @@ To get started, check out the IO Processor [documentation](https://docs.vllm.ai/
 More information on IBM's Terratorch is available [here](https://github.com/IBM/terratorch).
 
 ## Acknowledgement
-We would like to thank the members of the vLLM community who helped improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation.
+We would like to thank the members of the vLLM community who helped improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the Terratorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic Terratorch backend in vLLM.
