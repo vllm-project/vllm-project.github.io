@@ -96,7 +96,7 @@ At this stage, IO Processors are only available for pooling models, but in the f
 One example model class that can be served with vLLM using the Terratorch backend is [Prithvi for flood detection](https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11). A full plugin example for the Prithvi geospatial foundation model is available [here](https://github.com/christian-pinto/prithvi_io_processor_plugin).
 
 ### The Prithvi IO Processor plugin
-To help the reader understand the flexibility of the IO Processor plugin approach, the below pseudo-code shows the main steps of the Prithvi IO Processor pre- and post-processing. What we want to highlight is the decoupling between the data specific transformations with the model inference data. This makes room for ideally any model and any input/ouput data type, or even multiple plugins applied to the same model output depending on the downstream task that consumes the data.
+To help the reader understand the flexibility of the IO Processor plugin approach, the below pseudo-code shows the main steps of the Prithvi IO Processor pre- and post-processing. What we want to highlight is the decoupling between the data specific transformations with the model inference data. This makes room for ideally any model and any input/output data type, or even multiple plugins applied to the same model output depending on the downstream task that consumes the data.
 
 ```python
 def pre_process(request_data: dict):
@@ -170,7 +170,7 @@ INFO: Application startup complete.
 The below python script sends a request to the vLLM `/pooling` endpoint with a specific JSON payload where the `model` and `softmax` arguments are pre-defined, while the `data` field is defined by the user and depends on the plugin in use. 
 >[!NOTE] 
 >Setting the `softmax` field to `False` is required to ensure the plugin receives the raw model output.
-In this case we send the input image to vLLM as a URL and we request the response to be a geotiff image in base64 encoding. 
+In this case we send the input image to vLLM as a URL, and we request the response to be a geotiff image in base64 encoding. 
 The script decodes the image and writes it to disk as a tiff (geotiff) file.
 
 ```python
@@ -235,4 +235,4 @@ To get started, check out the IO Processor [documentation](https://docs.vllm.ai/
 More information on IBM's Terratorch is available [here](https://github.com/IBM/terratorch).
 
 ## Acknowledgement
-We would like to thank the members of the vLLM community who helped improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the Terratorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic Terratorch backend in vLLM.
+We would like to thank the members of the vLLM community for their help with improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the Terratorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic Terratorch backend in vLLM.
