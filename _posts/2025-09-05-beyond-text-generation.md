@@ -109,10 +109,10 @@ def pre_process(request_data: dict):
     # - pixel_values([n, 6, 512, 512])
     #   - 6 input bands R, G, B, +3 multi-spectral wavelenghts
     #   - n > 1 if the size of the input image is > [512, 512]
-    # - meta_data
+    # - metadata
     #   - GPS coordinates
     #   - date
-    pixel_values, meta_data = process_image(image_obj)
+    pixel_values, metadata = process_image(image_obj)
 
     # Process the image data into n vLLM prompts
     model_prompts = pixels_to_prompts(pixel_values)
