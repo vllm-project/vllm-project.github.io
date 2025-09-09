@@ -30,10 +30,8 @@ These patches are then fed to the model for inference, with the resulting output
 </picture>
 </p>
 
-Given these requirements, the obvious choice was to integrate geospatial foundation models in vLLM as pooling models.
-In vLLM, pooling models allow extracting the raw model output via an identity pooler. 
-Identity poolers do not apply any transformation to the data and return it as is - exactly what we need. 
-For the input, we pre-process images into tensors that are then fed to vLLM for inference, exploiting the existing multimodal input capabilities of vLLM.
+Given these requirements, the obvious choice was to integrate geospatial foundation models in vLLM as pooling models. Pooling is a technique that is commonly used in deep learning models to reduce the spatial dimensions of feature maps. Common types include max pooling, average pooling and global pooling each using different strategies to aggregate information. In vLLM, pooling can be applied to [tasks](https://docs.vllm.ai/en/latest/models/pooling_models.html?h=pooling) such as embeddings vectors calculation and classification. In addition, vLLM supports identity poolers, returning the model hidden states without applying any transformations - exactly what we need. 
+For the input, we pre-process images into tensors that are then fed to the model for inference, exploiting the existing multimodal input capabilities of vLLM.
 
 Since we wanted to support multiple geospatial foundation models out-of-the-box in vLLM we have also added a model implementation backend for TerraTorch models, following the same pattern as the backend for the HuggingFace Transformers library.
 
