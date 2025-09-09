@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Serving Geospatial, Vision, and Beyond: Enabling Multimodal Output Processing in vLLM"
-author: Christian Pinto (IBM Research Europe - Dublin), Michele Gazzetti (IBM Research Europe - Dublin), Michael Johnston (IBM Research Europe - Dublin)
+author: Christian Pinto (IBM Research Europe - Dublin), Michele Gazzetti (IBM Research Europe - Dublin), Michael Johnston (IBM Research Europe - Dublin), Maximilien Philippe Marie de Bayser (IBM Research - Brazil)
 image: /assets/logos/vllm-logo-text-light.png
 ---
 ## Introduction
@@ -229,4 +229,4 @@ To get started with IO Processor plugins, check the [documentation](https://docs
 More information on IBM's TerraTorch is available [here](https://github.com/IBM/terratorch).
 
 ## Acknowledgement
-We would like to thank the members of the vLLM community for their help with improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the TerraTorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic TerraTorch backend in vLLM.
+We would like to thank the members of the vLLM community for their help with improving our contribution. In particular, we would like to thank [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the TerraTorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic TerraTorch backend in vLLM.
