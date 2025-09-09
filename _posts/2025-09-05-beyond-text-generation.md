@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Serving Geospatial, Vision, and Beyond: Enabling Any-Modality Models in vLLM"
+title: "Serving Geospatial, Vision, and Beyond: Enabling Multimodal Output Processing in vLLM"
 author: Christian Pinto (IBM Research Europe - Dublin), Michele Gazzetti (IBM Research Europe - Dublin), Michael Johnston (IBM Research Europe - Dublin)
 image: /assets/logos/vllm-logo-text-light.png
 ---
@@ -11,14 +11,14 @@ But not all models work this way.
 A growing class of non-autoregressive models generate their outputs in a single inference pass, enabling faster and more efficient generation across a wide range of modalities.
 
 These models are increasingly used in domains beyond text: from image classification and segmentation, to audio synthesis and structured data generation. 
-Supporting such any-modality models where inputs and outputs may be images, audio, tabular data, or combinations thereof, requires a fundamental shift in how inference frameworks operate.
+Supporting multiple modalities, where inputs and outputs may be images, audio, tabular data, or combinations thereof, requires a fundamental shift in how inference frameworks operate.
 
 We've made that shift in vLLM.
 
-In this article, we introduce a set of enhancements to vLLM that enable non-autoregressive, any-modality model serving. 
-Our initial integration focuses on geospatial foundation models, a class of convolutional or vision transformer models that requires data beyond RGB channels (e.g. multispectral or radar) and metadata (e.g. geolocation, date of image acquisition) used for, but limited to, tasks like disaster response or land use classification from satellite imagery. However, the changes are generic and pave the way for serving a wide variety of non text-generating models.
+In this article, we introduce a set of enhancements to vLLM that enable non-autoregressive, multimodal (input/output) models serving. 
+Our initial integration focuses on geospatial foundation models, a class of convolutional or vision transformer models that requires data beyond RGB channels (e.g. multispectral or radar) and metadata (e.g. geolocation, date of image acquisition) used for, but not limited to, tasks like disaster response or land use classification from satellite imagery. However, the changes are generic and pave the way for serving a wide variety of non text-generating models.
 
-As a concrete example, we've integrated all geospatial models from the [Terratorch](https://github.com/IBM/terratorch) framework (some of which were developed in collaboration with NASA and ESA) into vLLM via a generic backend, making them first-class citizens in the vLLM ecosystem.
+As a concrete example, we've integrated all geospatial models from the [TerraTorch](https://github.com/IBM/terratorch) framework (some of which were developed in collaboration with NASA and ESA) into vLLM via a generic backend, making them first-class citizens in the vLLM ecosystem.
 
 In the sections that follow, we describe the technical changes made to vLLM, starting with the requirements and challenges of serving geospatial foundation models.
 
@@ -93,7 +93,7 @@ At this stage, IO Processors are only available for pooling models, but in the f
 
 ## Step-by-Step: Serving the Prithvi Model in vLLM
 
-One example model class that can be served with vLLM using the Terratorch backend is [Prithvi for flood detection](https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11). A full plugin example for the Prithvi geospatial foundation model is available [here](https://github.com/christian-pinto/prithvi_io_processor_plugin).
+One example model class that can be served with vLLM using the TerraTorch backend is [Prithvi for flood detection](https://huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11). A full plugin example for the Prithvi geospatial foundation model is available [here](https://github.com/christian-pinto/prithvi_io_processor_plugin).
 
 ### The Prithvi IO Processor plugin
 To help the reader understand the flexibility of the IO Processor plugin approach, the below pseudo-code shows the main steps of the Prithvi IO Processor pre- and post-processing. What we want to highlight is the decoupling between the data specific transformations with the model inference data. This makes room for ideally any model and any input/output data type, or even multiple plugins applied to the same model output depending on the downstream task that consumes the data.
@@ -128,7 +128,7 @@ def post_process(model_outputs: list[PoolingRequestOutput]):
 
 ### Install the python requirements
 
-Install terratorch (>=1.1rc3) and vLLM in your python environment. 
+Install the `terratorch` (>=1.1rc3) and `vllm` packages in your python environment. 
 At the time of writing this article the changes required for replicating this example are not yet part of a vLLM release (current latest is v0.10.1.1) and we advise users to install the [latest code](https://docs.vllm.ai/en/latest/getting_started/installation/gpu.html#install-the-latest-code_1).
 
 Download and install the IO Processor plugin for flood detection with Prithvi.
@@ -226,13 +226,14 @@ The output image (right) shows the areas predicted as flooded (in white) by the 
 ## What’s Next
 
 This is just the beginning. 
-We plan to expand IO Processor plugins across more Terratorch models and modalities and beyond, making installation seamless.
+We plan to expand IO Processor plugins across more TerraTorch models and modalities and beyond, making installation seamless.
 Longer-term, we envision IO Processors powered vision-language systems, structured reasoning agents, and multi-modal pipelines, all served from the same vLLM stack. We're also excited to see how the community uses IO Processors to push the boundaries of what’s possible with vLLM. 
+We also plan to continue working with, and contribute to, the vLLM community to enable more multi-modal models and end-to-end use cases.
 
 **Contributions, feedback, and ideas are always welcome!**
 
-To get started, check out the IO Processor [documentation](https://docs.vllm.ai/en/latest/design/io_processor_plugins.html) and explore the [examples](https://github.com/vllm-project/vllm/tree/main/examples). 
-More information on IBM's Terratorch is available [here](https://github.com/IBM/terratorch).
+To get started with IO Processor plugins, check the [documentation](https://docs.vllm.ai/en/latest/design/io_processor_plugins.html) and explore the [examples](https://github.com/vllm-project/vllm/tree/main/examples). 
+More information on IBM's TerraTorch is available [here](https://github.com/IBM/terratorch).
 
 ## Acknowledgement
-We would like to thank the members of the vLLM community for their help with improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the Terratorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic Terratorch backend in vLLM.
+We would like to thank the members of the vLLM community for their help with improving our contribution. In particular, we would like to thank [Maximilien Philippe Marie de Bayser](https://github.com/maxdebayser) (IBM Research Brazil) for his contributions to the IO Processor plugins framework, and [Cyrus Leung](https://github.com/DarkLight1337) (HKUST) for his support in shaping up the overall concept of extending vLLM beyond text generation. Finally, we would like to thank the TerraTorch team at IBM, especially Paolo Fraccaro and Joao Lucas de Sousa Almeida, for their help with integrating the generic TerraTorch backend in vLLM.
