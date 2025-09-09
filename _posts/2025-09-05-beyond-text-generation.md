@@ -6,23 +6,18 @@ image: /assets/logos/vllm-logo-text-light.png
 ---
 ## Introduction
 
-Until recently, generative AI infrastructure has been tightly coupled with autoregressive text generation models that produce output token-by-token, typically in the form of natural language. 
-But not all models work this way. 
-A growing class of non-autoregressive models generate their outputs in a single inference pass, enabling faster and more efficient generation across a wide range of modalities.
+Until recently, generative AI infrastructure has been tightly coupled with autoregressive text generation models that produce output token-by-token, typically in the form of natural language. vLLM has been following the trend by initially supporting models working with text input and output, the traditional LLMs. The trend has started shifting towards multimodal data with the introduction of MLLMs (Multimodal Large Language Models), capable of reasoning on text as well as data in various modalities (e.g., images, video, audio, etc.). Again, vLLM has followed the trend with support of LLaVA-style MLLMs, reasoning on multimodal input data and generating text. 
 
-These models are increasingly used in domains beyond text: from image classification and segmentation, to audio synthesis and structured data generation. 
-Supporting multiple modalities, where inputs and outputs may be images, audio, tabular data, or combinations thereof, requires a fundamental shift in how inference frameworks operate.
+We are now witnessing a new trend shift with a growing class of non-autoregressive models that generate multimodal outputs in a single inference pass, enabling faster and more efficient generation across a wide range of modalities. These models can be seen as pooling models from the inference standpoint, but require additional support for input and output handling. Applications for this type of models can be found in domains beyond text: from image classification and segmentation, to audio synthesis and structured data generation. 
+We've made the next step in vLLM and added support for this models class.
 
-We've made that shift in vLLM.
-
-In this article, we introduce a set of enhancements to vLLM that enable non-autoregressive, multimodal (input/output) models serving. 
 Our initial integration focuses on geospatial foundation models, a class of convolutional or vision transformer models that requires data beyond RGB channels (e.g. multispectral or radar) and metadata (e.g. geolocation, date of image acquisition) used for, but not limited to, tasks like disaster response or land use classification from satellite imagery. However, the changes are generic and pave the way for serving a wide variety of non text-generating models.
 
 As a concrete example, we've integrated all geospatial models from the [TerraTorch](https://github.com/IBM/terratorch) framework (some of which were developed in collaboration with NASA and ESA) into vLLM via a generic backend, making them first-class citizens in the vLLM ecosystem.
 
 In the sections that follow, we describe the technical changes made to vLLM, starting with the requirements and challenges of serving geospatial foundation models.
 
-## Integrating geospatial models in vLLM
+## Integrating Geospatial Foundation Models in vLLM
 
 Unlike text models, geospatial foundation models (often implemented as vision transformers) don’t need token decoding i.e. they do not need output tokens to be transformed into text.
 Instead, given one input image, a single inference generates the raw model output, and then this is post-processed into the output image.
@@ -60,7 +55,7 @@ Similarly, post-processing of the raw tensor output has to happen outside vLLM.
 The impact: there is no endpoint that users can send an image to and get an image back. 
 
 This problem existed because, before our changes, pre-processing of input data and post-processing of the model output was only partially supported in vLLM. 
-Specifically, pre-processing of multi-modal input data was only possible via the processors available in the Transformers library. 
+Specifically, pre-processing of multimodal input data was only possible via the processors available in the Transformers library. 
 However, the transformers processors usually support only standard data types and do not handle more complex data formats such as `geotiff`, which are image files with enriched geospatial metadata. 
 Also, on the output processing side vLLM only supported de-tokenization into text or the application of poolers to the model hidden states - no other output processing was possible. 
 
@@ -227,8 +222,8 @@ The output image (right) shows the areas predicted as flooded (in white) by the 
 
 This is just the beginning. 
 We plan to expand IO Processor plugins across more TerraTorch models and modalities and beyond, making installation seamless.
-Longer-term, we envision IO Processors powered vision-language systems, structured reasoning agents, and multi-modal pipelines, all served from the same vLLM stack. We're also excited to see how the community uses IO Processors to push the boundaries of what’s possible with vLLM. 
-We also plan to continue working with, and contribute to, the vLLM community to enable more multi-modal models and end-to-end use cases.
+Longer-term, we envision IO Processors powered vision-language systems, structured reasoning agents, and multimodal pipelines, all served from the same vLLM stack. We're also excited to see how the community uses IO Processors to push the boundaries of what’s possible with vLLM. 
+We also plan to continue working with, and contribute to, the vLLM community to enable more multimodal models and end-to-end use cases.
 
 **Contributions, feedback, and ideas are always welcome!**
 
