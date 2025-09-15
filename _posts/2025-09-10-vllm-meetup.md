@@ -27,7 +27,6 @@ The event brought together local developers, researchers, and AI infrastructure 
 </picture><br>
 </p>
 
-
 Nicolò Lucchesi, Senior ML Engineer at Red Hat, opened the event by highlighting the original innovation behind vLLM — solving long-standing challenges in KV caching and dynamic batching with a novel paged attention architecture. He emphasized that “modern problems require traditional solutions,” noting that the exact challenges in scheduling and memory management had already been tackled in operating systems, and vLLM simply applies the same proven ideas to AI inference.
 
 He also introduced llm-d, a project enabling distributed inference. llm-d is a Kubernetes-native orchestration layer that coordinates multiple vLLM instances with auto-scaling support — “vLLM meeting Kubernetes.”
