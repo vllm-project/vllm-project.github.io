@@ -42,7 +42,6 @@ Nicolò concluded with ongoing work to integrate AI accelerators like Google TPU
 </picture><br>
 </p>
 
-
 Daniele Trifirò, Software Engineer at Red Hat, shared how developers can build, test, and contribute to the vLLM project — with a focus on real-world AI serving. He highlighted the fast-paced development cycle, where weekly releases and a growing contributor base are pushing out massive changes in code. Building vLLM isn’t always straightforward due to hardware requirements, and Daniele offered practical tips and insights to help new contributors get started.
 
 He also explained the need for hardware-specific compilation, noting how memory usage can spike dramatically during builds depending on the target (e.g., CUDA, ROCm, TPU). To improve flexibility and developer access, he introduced vLLM’s new hardware plugin system. This plugin architecture makes vLLM more device-agnostic and further strengthens its position as a robust and scalable AI serving ecosystem.
