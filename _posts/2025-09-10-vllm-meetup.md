@@ -12,7 +12,7 @@ author: "vLLM Team"
 
 The first vLLM meetup in Korea was held on August 19, 2025, in Seoul, hosted by Rebellions and Red Hat with support from PyTorch Korea User Group and SqueezeBits.
 
-Here’s are numbers that mattered:
+Here are the important numbers:
 350+ signed up, attendees came from more than 75 companies, and 80% were industry professionals - and 80% of those were software engineers and researchers. A strong showing for vLLM’s debut in Korea.
 
 The event brought together local developers, researchers, and AI infrastructure engineers to share insights on efficient LLM inference and explore how vLLM is enabling scalable, hardware-friendly deployment - now including NPUs.
