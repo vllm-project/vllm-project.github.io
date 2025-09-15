@@ -53,7 +53,6 @@ He also explained the need for hardware-specific compilation, noting how memory 
 </picture><br>
 </p>
 
-
 Hong-Seok Kim, Chief Software Architect at Rebellions, spoke about the growing importance of vLLM for AI accelerator startups and shared how Rebellions is contributing to the broader AI inference serving ecosystem. He highlighted how vLLM’s hardware plugin system enables companies like Rebellions to support developers in deploying LLMs on custom hardware — delivering a near-seamless experience comparable to running on GPUs. 
 
 Thanks to vLLM, engineers can now run MoE (Mixture of Experts) models directly on Rebellions’ NPU, while also leveraging core optimizations like parallelism and continuous batching — all without complex integration steps. This opens the door to efficient, scalable AI serving on next-generation accelerators.
