@@ -43,7 +43,7 @@ Enabling CUDA core dump is very straightforward; you just need to set the `CUDA_
 
 1. By default, the CUDA core dump saves the coredump file in the current directory without printing the file path. You can enable the `CUDA_COREDUMP_SHOW_PROGRESS=1` environment variable to display the progress and details of the coredump procedure. Most importantly, it shows the path of the coredump file after the procedure is complete, making it easier for subsequent debugging and analysis.
 2. Many tasks run inside containers, and when a task fails, the container is destroyed, making it impossible to retain the coredump file. In such cases, you can use the `CUDA_COREDUMP_FILE` environment variable to specify a file path template for the coredump file. For example, you can store the coredump file in a persistent storage directory: `CUDA_COREDUMP_FILE="/persistent_dir/cuda_coredump_%h.%p.%t"`, where `%h` is the hostname, `%p` is the process ID, and `%t` is the timestamp of the coredump.
-3. By default, the coredump procedure saves the entire GPU context. For programs like large model inference that occupy almost all GPU memory, a full coredump is impractical (hundreds of GiB of data). You can use the `CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory'` environment variable to skip saving GPU memory, shared memory, and local memory, thereby reducing the size of the coredump file.
+3. By default, the coredump procedure saves the entire GPU context. For programs like large model inference that occupy almost all GPU memory, a full coredump is impractical (hundreds of GiB of data). You can use the `CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory,skip_constbank_memory'` environment variable to skip saving GPU memory, shared memory, and local memory, thereby reducing the size of the coredump file. The `skip_constbank_memory` flag is missing in the documentation, but it is actually supported by the CUDA core dump feature, and would be necessary sometimes [when we have many GPU threads hitting errors at the same time](https://forums.developer.nvidia.com/t/cuda-core-dump-does-not-work-properly-when-many-device-assert-happens/342410).
 
 The documentation also mentions that adding `skip_abort` to `CUDA_COREDUMP_GENERATION_FLAGS` prevents the CPU process from aborting after the coredump is complete. This allows the CPU process to add its own error trace, providing more debugging information. However, experiments have shown that this feature has a significant [bug](https://forums.developer.nvidia.com/t/cuda-core-dump-with-skip-abort-will-ignore-an-illegal-memory-access-error/341802/3), which may cause illegal memory access errors on the GPU to be ignored. In such cases, subsequent code may continue to run normally, but the program's memory data might already be corrupted. This is unacceptable for training tasks and undesirable for inference tasks. Therefore, this feature is generally unreliable and not recommended.
 
@@ -53,7 +53,7 @@ If you want live data for debugging, you can also enable `CUDA_DEVICE_WAITS_ON_E
 
 In summary, when using the CUDA core dump feature, it is recommended to use the following combination of environment variables:
 
-`CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory' CUDA_COREDUMP_FILE="/persistent_dir/cuda_coredump_%h.%p.%t"`
+`CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory,skip_constbank_memory' CUDA_COREDUMP_FILE="/persistent_dir/cuda_coredump_%h.%p.%t"`
 
 # Example of Using CUDA Core Dump
 
@@ -311,7 +311,7 @@ Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
 
 It can be inferred that an exception occurs in a kernel within the CUDA graph. However, conventional methods can only provide information up to this point.
 
-By adding the environment variables `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory' CUDA_COREDUMP_FILE="/tmp/cuda_coredump_%h.%p.%t"`, we can clearly identify the kernel that caused the error:
+By adding the environment variables `CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory,skip_constbank_memory' CUDA_COREDUMP_FILE="/tmp/cuda_coredump_%h.%p.%t"`, we can clearly identify the kernel that caused the error:
 
 ```text
 (cuda-gdb) target cudacore /tmp/cuda_coredump_flow-matic.1929094.1754901120
