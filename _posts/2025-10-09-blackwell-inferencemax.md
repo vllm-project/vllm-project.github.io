@@ -4,7 +4,7 @@ title: "SemiAnalysis InferenceMAX: vLLM and NVIDIA Accelerate Blackwell Inferenc
 author: "vLLM Team"   
 ---
 
-### SemiAnalysis InferenceMAX: vLLM and NVIDIA Accelerate Blackwell Inference
+### Introduction
 
 Over the past several months, we’ve been collaborating closely with NVIDIA to unlock the full potential of their latest NVIDIA Blackwell GPU architecture (B200/GB200) for large language model inference using vLLM. Blackwell GPUs introduce a new class of performance and efficiency improvements, such as increased memory bandwidth and native FP4 tensor cores, opening exciting opportunities to accelerate inference workloads.
 
