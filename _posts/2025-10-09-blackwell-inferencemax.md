@@ -8,13 +8,13 @@ author: "vLLM Team"
 
 Over the past several months, we’ve been collaborating closely with NVIDIA to unlock the full potential of their latest NVIDIA Blackwell GPU architecture (B200/GB200) for large language model inference using vLLM. Blackwell GPUs introduce a new class of performance and efficiency improvements, such as increased memory bandwidth and native FP4 tensor cores, opening exciting opportunities to accelerate inference workloads.
 
-Blackwell delivers great performance out of the box, but to extract even more from the hardware, our joint optimizations refactored existing kernels and developed new ones tailored for lower-level hardware utilization, unlocking additional performance and improved efficiencies. The new [SemiAnalysis InferenceMAX](https://inferencemax.semianalysis.com/) benchmarks reflect these enhancements, demonstrating outstanding vLLM performance on Blackwell with up to **4x higher throughput** at similar latency compared to previous-generation Hopper GPUs on popular models, such as gpt-oss 120B and Llama 3.3 70B.
+Blackwell delivers great performance out of the box, but to extract even more from the hardware, our joint optimizations refactored existing kernels and developed new ones tailored for lower-level hardware utilization, unlocking additional performance and improved efficiencies. The new [SemiAnalysis InferenceMAX](https://github.com/InferenceMAX/InferenceMAX) benchmarks reflect these enhancements, demonstrating outstanding vLLM performance on Blackwell with up to **4x higher throughput** at similar latency compared to previous-generation Hopper GPUs on popular models, such as gpt-oss 120B and Llama 3.3 70B.
 
 This effort was a multi-month engineering collaboration involving over a hundred pull requests across the vLLM codebase. Together with NVIDIA, we optimized nearly every part of the inference pipeline - from custom kernels (attention, GEMM, MoE) to high-level scheduling and overhead removal. This blog provides a detailed breakdown of these optimizations and how they leverage Blackwell’s architectural features into production performance gains.
 
-### Overview of SemiAnalysis InferenceMax
+### Overview of InferenceMax
 
-[SemiAnalysis InferenceMax](https://github.com/InferenceMAX/InferenceMAX) is a new benchmark framework designed for automated, recurring tests on LLM serving performance, with results updated daily to reflect software performance changes. This approach narrows the gap between software updates and published benchmark data, using consistent test methodologies to ensure fair, reproducible comparisons.
+SemiAnalysis InferenceMax is a benchmark framework designed for automated, recurring tests on LLM serving performance, with results updated daily to reflect software performance changes. This approach narrows the gap between software updates and published benchmark data, using consistent test methodologies to ensure fair, reproducible comparisons.
 
 InferenceMAX currently evaluates vLLM with two representative open-source models:
 
