@@ -86,9 +86,9 @@ Performance improvements on Blackwell are happening every day, driven by ongoing
 We would like to give thanks to the many talented people in the vLLM community who worked together as a part of this effort:
 
 * Red Hat: Michael Goin, Alexander Matveev, Lucas Wilkinson, Luka Govedič, Wentao Ye, Ilia Markov, Matt Bonanni, Varun Sundar Rabindranath, Bill Nell, Tyler Michael Smith, Robert Shaw  
-* NVIDIA: Po-Han Huang, Pavani Majety, Shu Wang, Elvis Chen, Zihao Ye, Duncan Moss, Kaixi Hou, Siyuan Fu, Benjamin Chislett, Xin Li, Vadim Gimpelson, Minseok Lee, Amir Samani, Elfie Guo, Lee Nau, Kushan Ahmadian, Grace Ho, Pen Chun Li  
+* NVIDIA: Po-Han Huang, Pavani Majety, Shu Wang, Elvis Chen, Zihao Ye, Duncan Moss, Kaixi Hou, Siyuan Fu, Benjamin Chislett, Xin Li, Vadim Gimpelson, Minseok Lee, Amir Samani, Elfie Guo, Lee Nau, Kushan Ahmadian, Grace Ho, Pen Chun Li
+* vLLM: Chen Zhang, Yongye Zhu, Bowen Wang, Kaichao You, Simon Mo, Woosuk Kwon, Zhuohan Li
 * Meta: Yang Chen, Xiaozhu Meng, Boyuan Feng, Lu Fang  
-* vLLM: Chen Zhang, Yongye Zhu, Kaichao You, Simon Mo, Woosuk Kwon, Bowen Wang
 
 You can find all InferenceMax results at [http://inferencemax.ai](http://inferencemax.ai). The code running it is open sourced at [https://github.com/InferenceMAX/InferenceMAX](https://github.com/InferenceMAX/InferenceMAX). And their explanation of results can be found at [https://newsletter.semianalysis.com/p/inferencemax-open-source-inference](https://newsletter.semianalysis.com/p/inferencemax-open-source-inference).
 
