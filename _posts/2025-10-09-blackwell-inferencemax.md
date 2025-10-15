@@ -1,7 +1,8 @@
----  
-layout: post  
-title: "SemiAnalysis InferenceMAX: vLLM and NVIDIA Accelerate Blackwell Inference"  
-author: "vLLM Team"   
+---
+layout: post
+title: "SemiAnalysis InferenceMAX: vLLM and NVIDIA Accelerate Blackwell Inference"
+author: "vLLM Team"
+image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-1k-1k.png
 ---
 
 ### Introduction

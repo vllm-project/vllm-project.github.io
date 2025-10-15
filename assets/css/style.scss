@@ -1,0 +1,48 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+.post-list {
+  list-style: none;
+  margin-left: 0;
+}
+
+.post-item {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.post-thumbnail {
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.post-thumbnail img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.post-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-content h3 {
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .post-item {
+    flex-direction: column;
+  }
+
+  .post-thumbnail {
+    width: 100%;
+  }
+}
