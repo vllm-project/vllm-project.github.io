@@ -2,45 +2,6 @@
 layout: default
 ---
 
-<style>
-.post-list {
-  list-style: none;
-  margin-left: 0;
-}
-.post-item {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e8e8e8;
-}
-.post-thumbnail {
-  flex-shrink: 0;
-  width: 200px;
-}
-.post-thumbnail img {
-  width: 100%;
-  height: auto;
-  border-radius: 4px;
-  display: block;
-}
-.post-content {
-  flex: 1;
-  min-width: 0;
-}
-.post-content h3 {
-  margin-top: 0;
-}
-@media (max-width: 600px) {
-  .post-item {
-    flex-direction: column;
-  }
-  .post-thumbnail {
-    width: 100%;
-  }
-}
-</style>
-
 <div class="home">
   {%- if page.title -%}
     <h1 class="page-heading">{{ page.title }}</h1>
@@ -55,27 +16,46 @@ layout: default
   {% endif %}
 
   {%- if posts.size > 0 -%}
+    {%- if page.list_title -%}
+      <h2 class="post-list-heading">{{ page.list_title }}</h2>
+    {%- endif -%}
     <ul class="post-list">
       {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
       {%- for post in posts -%}
-      <li class="post-item">
+      <li>
         {%- if post.image -%}
-        <div class="post-thumbnail">
-          <a href="{{ post.url | relative_url }}">
-            <img src="{{ post.image | relative_url }}" alt="{{ post.title | escape }}">
-          </a>
-        </div>
+        <img src="{{ post.image | relative_url }}" alt="" class="post-thumbnail" />
         {%- endif -%}
-        <div class="post-content">
-          <span class="post-meta">{{ post.date | date: date_format }}</span>
-          <h3>
-            <a class="post-link" href="{{ post.url | relative_url }}">
-              {{ post.title | escape }}
-            </a>
-          </h3>
-        </div>
+        <span class="post-meta">{{ post.date | date: date_format }}</span>
+        <h3>
+          <a class="post-link" href="{{ post.url | relative_url }}">
+            {{ post.title | escape }}
+          </a>
+        </h3>
+        {%- if site.show_excerpts -%}
+          {{ post.excerpt }}
+        {%- endif -%}
       </li>
       {%- endfor -%}
     </ul>
+
+    {% if site.paginate %}
+      <div class="pager">
+        <ul class="pagination">
+        {%- if paginator.previous_page %}
+          <li><a href="{{ paginator.previous_page_path | relative_url }}" class="previous-page">{{ paginator.previous_page }}</a></li>
+        {%- else %}
+          <li><div class="pager-edge">•</div></li>
+        {%- endif %}
+          <li><div class="current-page">{{ paginator.page }}</div></li>
+        {%- if paginator.next_page %}
+          <li><a href="{{ paginator.next_page_path | relative_url }}" class="next-page">{{ paginator.next_page }}</a></li>
+        {%- else %}
+          <li><div class="pager-edge">•</div></li>
+        {%- endif %}
+        </ul>
+      </div>
+    {%- endif %}
   {%- endif -%}
+
 </div>

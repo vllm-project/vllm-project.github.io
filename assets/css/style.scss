@@ -1,0 +1,7 @@
+---
+---
+
+@import
+  "minima/skins/{{ site.minima.skin | default: 'auto' }}",
+  "minima/initialize",
+  "custom";
