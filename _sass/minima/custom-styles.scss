@@ -1,3 +1,14 @@
 img {
     background-color: $lm-background-color;
 }
+
+// Minimal thumbnail styling for blog post list
+.post-list .post-thumbnail {
+  float: left;
+  width: 80px;
+  height: 80px;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  object-fit: cover;
+}
