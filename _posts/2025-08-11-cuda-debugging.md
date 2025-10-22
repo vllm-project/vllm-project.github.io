@@ -7,7 +7,9 @@ image: /assets/logos/vllm-logo-text-light.png
 
 TL;DR: If you hit `an illegal memory access was encountered` error, you can enable CUDA core dump to debug the issue. Simply set the following environment variables and run your program again to collect the coredump file, then you can use `cuda-gdb` to debug the issue.
 
-`CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory,skip_constbank_memory' CUDA_COREDUMP_FILE="/tmp/cuda_coredump_%h.%p.%t"`
+```bash
+CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 CUDA_COREDUMP_SHOW_PROGRESS=1 CUDA_COREDUMP_GENERATION_FLAGS='skip_nonrelocated_elf_images,skip_global_memory,skip_shared_memory,skip_local_memory,skip_constbank_memory' CUDA_COREDUMP_FILE="/tmp/cuda_coredump_%h.%p.%t"
+```
 
 # Introduction
 
