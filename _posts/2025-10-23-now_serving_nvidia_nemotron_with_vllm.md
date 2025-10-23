@@ -22,7 +22,7 @@ The latest addition to this family is the [NVIDIA Nemotron Nano 2](https://huggi
   
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-vllm-nvidia-nemotron/figure1.png" width="75%">
+<img src="/assets/figures/2025-vllm-nvidia-nemotron/figure1.png" width="100%">
 </picture>
 <br>
 Figure 1: Chart showing accuracy of Nemotron Nano 2 9B on various popular benchmarks  
