@@ -20,12 +20,24 @@ The latest addition to this family is the [NVIDIA Nemotron Nano 2](https://huggi
     
 - **Efficient:** Nemotron Nano 2, thanks to the hybrid architecture, produces critical thinking tokens up to 6 times faster compared to the next best open dense model of a similar size using vLLM. Higher throughput allows the model to think faster, explore larger search space, do better self reflection, and deliver higher accuracy.  
   
-    ![image](../assets/figures/2025-vllm-nvidia-nemotron/figure1.png)
-  > Figure 1: Chart showing accuracy of Nemotron Nano 2 9B on various popular benchmarks  
+<p align="center">
+<picture>
+<img src="/assets/figures/2025-vllm-nvidia-nemotron/figure1.png" width="50%">
+</picture>
+<br>
+Figure 1: Chart showing accuracy of Nemotron Nano 2 9B on various popular benchmarks  
+</p>
+
 - **Optimized Thinking:** The model has a new feature called thinking budget which avoids agent overthinking and optimizes for predictable inference cost. The chart below shows that if left alone, models can overthink, increasing inference cost, and in certain cases also reduce accuracy. Thinking budget addresses this challenge by enabling developers to tune the model to achieve the most optimal accuracy-token generation *sweetspot* for their applications.  
 
-    ![image](../assets/figures/2025-vllm-nvidia-nemotron/figure2.png)
-    > Figure 2: Chart showing the accuracy of Nemotron Nano 2 9B model on popular benchmarks at various “Token Budget” thresholds
+
+<p align="center">
+<picture>
+<img src="/assets/figures/2025-vllm-nvidia-nemotron/figure2.png" width="50%">
+</picture>
+<br>
+Figure 2: Chart showing the accuracy of Nemotron Nano 2 9B model on popular benchmarks at various “Token Budget” thresholds
+</p>
 
 **Get started w/ Nemotron using vLLM**
 
