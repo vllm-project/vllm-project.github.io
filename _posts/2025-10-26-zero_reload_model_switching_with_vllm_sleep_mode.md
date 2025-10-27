@@ -37,7 +37,7 @@ Even with instant weight loading, every cold start pays hidden costs that Sleep 
 | 4. GPU kernel JIT compilation | DeepGEMM, FlashInfer, TorchInductor | ❌ Every time | ✅ Preserved (after initial warmup) |
 | 5. Cache warm-up | First-request overhead | ❌ Every time | ⚡ Quick re-warm |
 
-By keeping the process alive, Sleep Mode preserves infrastructure (#2-3) and avoids expensive reinitialization. This is why benchmarks show **Sleep Mode inference is 61-88% faster** than cold starts.
+By keeping the process alive, Sleep Mode preserves infrastructure (#2-4) and avoids expensive reinitialization. This is why benchmarks show **Sleep Mode inference is 61-88% faster** than cold starts.
 
 **This post covers:**
 - Comprehensive benchmarks across model sizes (0.6B to 235B) and GPUs (A4000 to A100)
@@ -465,4 +465,4 @@ The future of LLM serving is multi-model. Sleep Mode makes it practical today.
 
 ## Acknowledgements
 
-Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, **Ye Hur Cheong** and **Zhiyao Cen**, **Kaichao You** for developing the Sleep Mode feature and inspiring this blog post.
+Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, **Ye Hur Cheong**, **Zhiyao Cen** and **Kaichao You** for developing the Sleep Mode feature and this blog post.
