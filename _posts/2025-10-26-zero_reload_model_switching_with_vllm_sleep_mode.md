@@ -29,8 +29,8 @@ Even with instant weight loading, every cold start pays hidden costs that Sleep 
 | 1. VRAM load time | Copying weights to GPU | ✅ Optimized | ✅ Preserved |
 | 2. Memory allocator setup | CUDA allocator initialization | ❌ Every time | ✅ Preserved |
 | 3. CUDA graph capture | Record execution graphs | ❌ Every time | ✅ Preserved |
-| 4. GPU kernel JIT compilation | DeepGEMM, FlashInfer, TorchInductor | ❌ Every time | ⚡ Quick re-warm |
-| 5. Cache warm-up | First-request overhead | ❌ Every time | ⚡ Quick re-warm |
+| 4. GPU kernel JIT compilation | DeepGEMM, FlashInfer, TorchInductor | ❌ Every time | ✅ Preserved (after initial warmup) |
+| 5. Cache warm-up | First-request overhead | ❌ Every time | ✅ Preserved (after initial warmup) |
 
 By keeping the process alive, Sleep Mode preserves infrastructure (#2-3) and avoids expensive reinitialization. This is why benchmarks show **Sleep Mode inference is 61-88% faster** than cold starts.
 
@@ -120,6 +120,7 @@ Beyond faster model switching, Sleep Mode also delivers **faster inference times
 <div id="plotly-inference-comparison" style="width: 100%; height: 300px;"></div>
 <div style="text-align:center; color:#666; font-size:0.85rem; margin-top:0.75rem;">
   Inference time comparison showing wake mode (already warmed up) vs cold start (just loaded).<br>
+  <strong>Inference time = prefill + decode (first request after wake/load).</strong> Each request uses a different question to avoid caching, limited to 100 tokens output.<br>
   Error bars show min/max variation across multiple runs. Values displayed on bars.<br>
   GPU: A100 | vLLM 0.11.0 | Sleep Level: 1 | Compilation: <code style="font-size:0.8rem;">cudagraph_mode: FULL_AND_PIECEWISE</code>
 </div>
@@ -137,7 +138,7 @@ The 61-88% inference speedup isn't from faster weight loading—it's from **pres
 | Memory allocator (CuMemAllocator) | ✅ Yes | ❌ Reinitialize every time |
 | CUDA graphs | ✅ Yes | ❌ Re-capture every time |
 | Process state (Python, CUDA context) | ✅ Yes | ❌ Restart every time |
-| GPU kernel JIT cache | ⚡ Quick re-warm | ❌ Recompile every time |
+| GPU kernel JIT cache | ✅ Yes (after initial warmup) | ❌ Recompile every time |
 
 **The Critical Difference:**
 
@@ -149,8 +150,7 @@ The 61-88% inference speedup isn't from faster weight loading—it's from **pres
   - **Result:** First inference is **4-7x slower** (see benchmarks: 0.92s wake vs 3.72s cold start)
 
 - **With Sleep Mode:** Process stays alive → **Pre-warm-up pays off**
-  - ✅ Allocator, graphs, and process state preserved
-  - ⚡ Only JIT kernels need quick re-warm
+  - ✅ Allocator, graphs, process state, and JIT kernels all preserved after initial warmup
   - **Result:** First inference stays fast (~1s), avoiding the 3-4s cold start penalty
 
 > [!NOTE]
@@ -191,6 +191,7 @@ Sleep Mode benefits aren't limited to high-end GPUs. Here's the same workload on
 <div id="plotly-inference-a4000" style="width: 100%; height: 300px;"></div>
 <div style="text-align:center; color:#666; font-size:0.85rem; margin-top:0.75rem;">
   Inference time comparison on A4000: wake mode (already warmed up) vs cold start (just loaded).<br>
+  <strong>Inference time = prefill + decode (first request after wake/load).</strong> Each request uses a different question to avoid caching, limited to 100 tokens output.<br>
   Error bars show min/max variation across multiple runs. Values displayed on bars.<br>
   GPU: A4000 (TP=1) | vLLM 0.11.0 | Sleep Level: 1 | Compilation: <code style="font-size:0.8rem;">cudagraph_mode: FULL_AND_PIECEWISE</code>
 </div>
@@ -270,12 +271,12 @@ When you reload a model without Sleep Mode, you pay all these costs:
 | 2. Process initialization | ✅ **Skipped** | ❌ Must pay |
 | 3. Memory allocator setup | ✅ **Skipped** | ❌ Must pay |
 | 4. CUDA graph capture | ✅ **Skipped** | ❌ Must pay |
-| 5. GPU kernel JIT compilation | ⚡ Lazy recompile on first inference | ❌ Full compilation + warm-up |
+| 5. GPU kernel JIT compilation | ✅ **Preserved (already compiled)** | ❌ Full compilation + warm-up |
 
 **Level 2 Strategy:**
 - Weight reload from SSD (same as No Sleep)
-- **Everything else preserved:** Process state, allocator instance, CUDA graphs all intact
-- **JIT kernels:** Lazily recompile on first inference (no explicit warm-up overhead)
+- **Everything else preserved:** Process state, allocator instance, CUDA graphs, and compiled JIT kernels all intact
+- **No recompilation needed:** Kernels were compiled during initial warmup and remain cached
 - **Average per switch: ~2.6s** (see benchmark data above)
 
 **No Sleep Mode Reality:**
@@ -296,6 +297,7 @@ Even though both reload weights from SSD, Level 2 is **2.9x faster overall** bec
 <div id="plotly-level2-inference" style="width: 100%; height: 300px;"></div>
 <div style="text-align:center; color:#666; font-size:0.85rem; margin-top:0.75rem;">
   Inference time comparison with Sleep Level 2: wake mode vs cold start.<br>
+  <strong>Inference time = prefill + decode (first request after wake/load).</strong> Each request uses a different question to avoid caching, limited to 100 tokens output.<br>
   Error bars show min/max variation across multiple runs. Values displayed on bars.<br>
   GPU: A100 (TP=1) | vLLM 0.11.0 | Sleep Level: 2 | Compilation: <code style="font-size:0.8rem;">cudagraph_mode: FULL_AND_PIECEWISE</code>
 </div>
@@ -363,9 +365,11 @@ Does skipping the warm-up phase affect performance? Warm-up pre-compiles CUDA gr
 | **Total Time (5 switches)** | 119.5s | 119.0s | Nearly identical |
 
 **Insights:**
-- **Warm-Up is Essential for First Inference:** Without warm-up, the first inference after wake is 5-7x slower (lazy CUDA graph compilation)
-- **Subsequent Inferences Are Fast:** After the first inference compiles the graphs, performance normalizes
-- **Trade Initial Load Time for User Experience:** The 8.4s warm-up cost is amortized across all subsequent fast inferences
+- **Warm-Up Compiles Kernels Once, Benefits All Wake Cycles:** With initial warmup, JIT compilation and CUDA graph capture happen once during load and are preserved across all subsequent sleep/wake cycles
+- **Without Warm-Up, Every Wake-Up Pays Compilation Cost:** The 5-7x slowdown happens on the first inference after **every single wake-up**, not just once
+- **Compiled Kernels Are Preserved Across Sleep/Wake:** After warmup during initial load (8.4s), all subsequent wake-ups have fast first inference (0.45s, 0.93s) proving kernels stay cached
+- **Minimal Warmup Sufficient:** A single 1-token inference is enough to trigger full JIT compilation and CUDA graph capture, making warmup very cheap
+- **Trade Initial Load Time for Consistent Performance:** The 8.4s warmup cost is paid once and amortized across all model switches
 - **Recommendation: Always Use Warm-Up** for production workloads where consistent, fast inference is expected
 
 ### Impact of Quantization on Sleep Mode
@@ -388,6 +392,7 @@ Does quantization (FP8) affect Sleep Mode performance? We tested the same worklo
 <div id="plotly-ablation-inference" style="width: 100%; height: 300px;"></div>
 <div style="text-align:center; color:#666; font-size:0.85rem; margin-top:0.75rem;">
   Inference time comparison: BF16 vs FP8 quantization with Sleep Mode.<br>
+  <strong>Inference time = prefill + decode (first request after wake/load).</strong> Each request uses a different question to avoid caching, limited to 100 tokens output.<br>
   Error bars show min/max variation across multiple runs. Values displayed on bars.<br>
   GPU: A100 (TP=1) | vLLM 0.11.0 | Sleep Level: 1 | Compilation: <code style="font-size:0.8rem;">cudagraph_mode: FULL_AND_PIECEWISE</code>
 </div>
@@ -455,4 +460,4 @@ The future of LLM serving is multi-model. Sleep Mode makes it practical today.
 
 ## Acknowledgements
 
-Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, and **Kaichao You** for developing the Sleep Mode feature and inspiring this blog post.
+Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, **Ye Hur Cheong** and **Kaichao You** for developing the Sleep Mode feature and inspiring this blog post.
