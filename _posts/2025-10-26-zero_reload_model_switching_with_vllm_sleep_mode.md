@@ -30,7 +30,7 @@ Even with instant weight loading, every cold start pays hidden costs that Sleep 
 | 2. Memory allocator setup | CUDA allocator initialization | ❌ Every time | ✅ Preserved |
 | 3. CUDA graph capture | Record execution graphs | ❌ Every time | ✅ Preserved |
 | 4. GPU kernel JIT compilation | DeepGEMM, FlashInfer, TorchInductor | ❌ Every time | ✅ Preserved (after initial warmup) |
-| 5. Cache warm-up | First-request overhead | ❌ Every time | ✅ Preserved (after initial warmup) |
+| 5. Cache warm-up | First-request overhead | ❌ Every time | ⚡ Quick re-warm |
 
 By keeping the process alive, Sleep Mode preserves infrastructure (#2-3) and avoids expensive reinitialization. This is why benchmarks show **Sleep Mode inference is 61-88% faster** than cold starts.
 
