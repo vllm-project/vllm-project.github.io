@@ -2,6 +2,9 @@
 layout: post
 title: "Zero-Reload Model Switching with vLLM Sleep Mode"
 author: "Embedded LLM"
+image: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
+thumbnail-img: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
+share-img: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
 ---
 
 ## Introduction
@@ -10,6 +13,8 @@ author: "Embedded LLM"
 
 1. **Keep both models loaded** → Requires 2x the GPU memory (expensive, often impossible)
 2. **Reload models on-demand** → 30-100+ seconds per switch (slow, wasteful)
+
+![vLLM Sleep Mode](/assets/figures/2025-vllm-sleep-mode/sleepmode.png)
 
 **vLLM Sleep Mode offers a third way:** Models hibernate in seconds and wake up fast—delivering the efficiency of on-demand loading with the speed of persistent serving.
 
@@ -460,4 +465,4 @@ The future of LLM serving is multi-model. Sleep Mode makes it practical today.
 
 ## Acknowledgements
 
-Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, **Ye Hur Cheong** and **Kaichao You** for developing the Sleep Mode feature and inspiring this blog post.
+Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, **Ye Hur Cheong** and **Zhiyao Cen**, **Kaichao You** for developing the Sleep Mode feature and inspiring this blog post.
