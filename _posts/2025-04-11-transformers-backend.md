@@ -3,8 +3,6 @@ layout: post
 title: "Transformers backend integration in vLLM"
 author: "The Hugging Face Team"
 image: /assets/figures/transformers-backend/transformers-backend.png
-thumbnail-img: /assets/figures/transformers-backend/transformers-backend.png
-share-img: /assets/figures/transformers-backend/transformers-backend.png
 ---
 
 The [Hugging Face Transformers library](https://huggingface.co/docs/transformers/main/en/index)

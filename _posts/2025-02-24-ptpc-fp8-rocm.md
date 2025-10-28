@@ -3,8 +3,6 @@ layout: post
 title: "PTPC-FP8: Boosting vLLM Performance on AMD ROCm"
 author: "AMD and Embedded LLM"
 image: /assets/figures/ptpc/PTPC-tumbnail.png
-thumbnail-img: /assets/figures/ptpc/PTPC-tumbnail.png
-share-img: /assets/figures/ptpc/PTPC-tumbnail.png
 math: true
 ---
 

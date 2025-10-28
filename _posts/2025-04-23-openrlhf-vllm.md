@@ -1,10 +1,8 @@
 ---
 layout: post
 title: "Accelerating RLHF with vLLM, Best Practice from OpenRLHF"
-author: "The OpenRLHF Team"  
-image: /assets/figures/openrlhf-vllm/ray.png  
-thumbnail-img: /assets/figures/openrlhf-vllm/ray.png  
-share-img: /assets/figures/openrlhf-vllm/ray.png  
+author: "The OpenRLHF Team"
+image: /assets/figures/openrlhf-vllm/ray.png
 ---
 
 As demand grows for training reasoning-capable large language models (LLMs), Reinforcement Learning from Human Feedback (RLHF) has emerged as a cornerstone technique. However, conventional RLHF pipelines—especially those using Proximal Policy Optimization (PPO)—are often hindered by substantial computational overhead. This challenge is particularly pronounced with models that excel at complex reasoning tasks (such as OpenAI-o1 and DeepSeek-R1), where generating long chain-of-thought (CoT) outputs can account for up to 90% of total training time. These models must produce detailed, step-by-step reasoning that can span thousands of tokens, making inference significantly more time-consuming than the training phase itself. As a pioneering inference framework, vLLM provides a user-friendly interface for generating RLHF samples and updating model weights.

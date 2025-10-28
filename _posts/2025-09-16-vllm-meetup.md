@@ -1,7 +1,8 @@
 ---
 layout: post
 title: "The First vLLM Meetup in Korea"
-author: "vLLM Team" 
+author: "vLLM Team"
+image: /assets/figures/vllm-meetup/image-3.png
 ---
 
 <p align="center">
