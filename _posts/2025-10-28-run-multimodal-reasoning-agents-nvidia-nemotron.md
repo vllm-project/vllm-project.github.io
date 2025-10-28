@@ -128,8 +128,11 @@ To summarize, Nemotron Nano 2 VL helps build scalable, cost-efficient agentic AI
 
 Ready to build enterprise-ready agents? 
 
-* Download Nemotron Nano 2 VL model weights from Hugging Face \- [BF16](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-BF16), [FP8](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-FP8), [FP4-QAD](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-FP4-QAD)  
-* Run with vLLM for inference using this Jupyter Notebook
+-   Download model weights from Hugging Face - [BF16](https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16), [FP8](https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-FP8), [FP4-QAD](https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-NVFP4-QAD)
+-   Run with vLLM for inference with [this notebook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-Nano2-VL/vllm_cookbook.ipynb)
+-   [Technical report](https://research.nvidia.com/labs/adlr/files/NVIDIA-Nemotron-Nano-V2-VL-report.pdf) to build custom, optimized models with Nemotron techniques.
+-   [Training dataset](https://huggingface.co/datasets/nvidia/Nemotron-VLM-Dataset-v2) is hosted on Hugging Face. Learn more [here](https://huggingface.co/blog/nvidia/nemotron-vlm-dataset-v2).
+
 
 [*Share your ideas*](http://nemotron.ideas.nvidia.com/?ncid=so-othe-692335) *and vote on what matters to help shape the future of Nemotron.* 
 
