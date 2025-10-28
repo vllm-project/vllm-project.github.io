@@ -47,7 +47,8 @@ To isolate the problem, I devised a crucial experiment. Instead of using vLLM's 
 A deeper look revealed that the Kimi tokenizer's `apply_chat_template` function signature includes `**kwargs` to accept extra, model-specific parameters. One such parameter, `add_generation_prompt=True`, is essential for correctly formatting the prompt to signal the start of the assistant's turn, guiding it towards generating a tool call.
 
 A correct prompt should end with special tokens that prime the model to act as the assistant:
-```json
+
+```
 Correct Prompt Suffix: ...<|im_assistant|>assistant<|im_middle|>
 ```
 However, because vLLM was not passing `add_generation_prompt=True`, the prompt was truncated right after the user's message.
@@ -72,17 +73,17 @@ Kimi's Jinja-based chat template was designed to render a string `content`. When
 
 **Incorrect Prompt Snippet:**
 
-```json
+```
 ...<|im_end|><|im_assistant|>assistant<|im_middle|>[{'type': 'text', 'text': ''}]<|tool_calls_section_begin|>...
 ```
 
 **Correct Prompt Snippet:**
 
-```json
+```
 ...<|im_end|><|im_assistant|>assistant<|im_middle|><|tool_calls_section_begin|>...
 ```
 
-This seemingly small error was enough to confuse the model's generation logic.
+This critical formatting error created a malformed prompt that was enough to confuse the model's generation logic.
 
 **The Fix:**
 
@@ -94,9 +95,9 @@ Finally, I noticed that even when the model generated a syntactically correct to
 
 **The Investigation:**
 
-By inspecting the raw `text_completion` output from vLLM, the culprit became obvious. The model would occasionally generate tool-call IDs that didn't strictly conform to Kimi's official specification. For instance, consider this output:
+By inspecting the raw `text_completion` output from vLLM, the culprit became obvious. I found that in certain edge cases, particularly when misled by a malformed conversation history, the model would generate tool-call IDs that didn't strictly conform to Kimi's official specification. For instance, consider this output:
 
-```json
+```
 ...<|tool_calls_section_begin|><|tool_call_begin|>search:2<|tool_call_argument_begin|>... 
 ```
 
