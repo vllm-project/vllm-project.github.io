@@ -47,6 +47,7 @@ To isolate the problem, I devised a crucial experiment. Instead of using vLLM's 
 A deeper look revealed that the Kimi tokenizer's `apply_chat_template` function signature includes `**kwargs` to accept extra, model-specific parameters. One such parameter, `add_generation_prompt=True`, is essential for correctly formatting the prompt to signal the start of the assistant's turn, guiding it towards generating a tool call.
 
 A correct prompt should end with special tokens that prime the model to act as the assistant:
+
 ```
 Correct Prompt Suffix: ...<|im_assistant|>assistant<|im_middle|>
 ```
