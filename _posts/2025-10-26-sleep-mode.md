@@ -468,5 +468,4 @@ The future of LLM serving is multi-model. Sleep Mode makes it practical today.
 
 ## Acknowledgements
 
-
 Special thanks to **Vensen Mu**, **Jeff Aw**, **Jun Kang Chow**, **Tun Jian Tan**, **Pin Siang Tan**, **Amir Balwel**, **Ye Hur Cheong**, **Zhiyao Cen** and **Kaichao You** for developing the Sleep Mode feature and this blog post.
