@@ -96,7 +96,7 @@ curl -X POST 'localhost:8002/wake_up'
 > For Level 2 sleep, you must call `reload_weights` and `reset_prefix_cache` after waking. Level 1 sleep doesn't require these extra steps.
 
 > [!WARNING]
-> **Security:** The `/sleep`, `/wake_up`, `/collective_rpc`, and `/reset_prefix_cache` endpoints should only be exposed on trusted networks or behind your proxy with authentication. These are administrative endpoints that can disrupt service if accessed by unauthorized users.
+> **Security:** The `/sleep`, `/wake_up`, `/collective_rpc`, and `/reset_prefix_cache` endpoints require `VLLM_SERVER_DEV_MODE=1` and should only be exposed in trusted networks. These administrative endpoints can disrupt service and are intended for closed environments like training clusters or backend applications.
 
 ## Performance Overview
 
@@ -104,7 +104,10 @@ Let's see how Sleep Mode performs compared to traditional model reloading.
 
 ### Sleep Mode L1 vs No Sleep Mode Performance
 
-The interactive chart below compares the performance of vLLM with and without Sleep Mode enabled. With Level 1 Sleep Mode, models can be put to sleep and woken up without the costly reload overhead, enabling efficient GPU sharing between models.
+The interactive chart below shows the **total time to perform 5 model switches**: running inference on Model A, switching to Model B, running inference on Model B, then repeating this pattern (A→B→A→B→A→B).
+
+**With Sleep Mode:** Models sleep/wake between switches, preserving infrastructure.
+**Without Sleep Mode:** Each switch requires a full vLLM restart and reload.
 
 <div style="margin: 2rem 0;">
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
