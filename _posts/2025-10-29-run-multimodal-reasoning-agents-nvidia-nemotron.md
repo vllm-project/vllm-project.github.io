@@ -64,6 +64,7 @@ This guide demonstrates how to run Nemotron Nano 2 VL on vLLM, achieving acceler
 The support for Nemotron Nano 2 VL is available in the nightly version of vLLM. Run the command below to install vLLM:
 ```bash
 uv venv
+source .venv/bin/activate
 uv pip install vllm --extra-index-url https://wheels.vllm.ai/nightly --prerelease=allow
 ```
 
