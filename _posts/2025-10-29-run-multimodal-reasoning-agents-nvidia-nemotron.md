@@ -103,7 +103,8 @@ resp = client.chat.completions.create(
 )
 print(resp.choices[0].message.content)
 ```
-For more examples, check out our vLLM cookbook: [Nemotron-Nano2-VL/vllm_cookbook.ipynb](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-Nano2-VL/vllm_cookbook.ipynb)
+
+For more examples, check out our vLLM cookbook: [Nemotron-Nano2-VL/vllm_cookbook.ipynb](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-Nano2-VL/vllm_cookbook.ipynb).
 
 
 [*Share your ideas*](http://nemotron.ideas.nvidia.com/?ncid=so-othe-692335) *and vote on what matters to help shape the future of Nemotron.* 
