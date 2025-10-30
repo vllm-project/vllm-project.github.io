@@ -43,7 +43,7 @@ Figure 2: Accuracy trend of the Nemotron Nano 2 VL model across various token-dr
   * [CRADIOH-V2](https://huggingface.co/nvidia/C-RADIOv2-H) based Vision Encoder  
   * Efficient video sampling as token compression module  
   * Hybrid Transformer-Mamba Architecture- [Nemotron Nano 2 LLM](https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2) backbone with reasoning.   
-* Accuracy  
+* Accuracy:
   * Leading accuracy on OCRBench v2  
   * 74 on average score (compared to 64.2 with current top VL model) on the following benchmarks: MMMU, MathVista, AI2D, OCRBench, OCRBench-v2, OCR-Reasoning, ChartQA, DocVQA, and Video-MME  
 * Model size: 12B  
