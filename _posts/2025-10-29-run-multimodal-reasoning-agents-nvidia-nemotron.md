@@ -4,8 +4,6 @@ title: "Run Multimodal Reasoning Agents with NVIDIA Nemotron on vLLM"
 author: "NVIDIA Nemotron Team"   
 ---
 
-# Run Multimodal Reasoning Agents with NVIDIA Nemotron on vLLM
-
 We are excited to release [NVIDIA Nemotron Nano 2 VL](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-BF16), supported by vLLM. This open vision language model ([VLM](https://www.nvidia.com/en-us/glossary/vision-language-models/)) is built for video understanding and document intelligence.
 
 Nemotron Nano 2 VL uses a hybrid Transformer–Mamba design and delivers higher throughput while maintaining state-of-the-art multimodal reasoning accuracy. The model also features Efficient Video Sampling (EVS), a new technique that reduces redundant [tokens](https://blogs.nvidia.com/blog/ai-tokens-explained/) generation for video workloads , allowing processing of more videos with higher efficiency. 
@@ -105,6 +103,7 @@ resp = client.chat.completions.create(
 print(resp.choices[0].message.content)
 ```
 For more examples, check out our vLLM cookbook: [Nemotron-Nano2-VL/vllm_cookbook.ipynb](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-Nano2-VL/vllm_cookbook.ipynb)
+
 
 [*Share your ideas*](http://nemotron.ideas.nvidia.com/?ncid=so-othe-692335) *and vote on what matters to help shape the future of Nemotron.* 
 
