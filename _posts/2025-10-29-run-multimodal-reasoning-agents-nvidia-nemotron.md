@@ -6,7 +6,7 @@ author: "NVIDIA Nemotron Team"
 
 We are excited to release [NVIDIA Nemotron Nano 2 VL](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-BF16), supported by vLLM. This open vision language model ([VLM](https://www.nvidia.com/en-us/glossary/vision-language-models/)) is built for video understanding and document intelligence.
 
-Nemotron Nano 2 VL uses a hybrid Transformer–Mamba design and delivers higher throughput while maintaining state-of-the-art multimodal reasoning accuracy. The model also features Efficient Video Sampling (EVS), a new technique that reduces redundant [tokens](https://blogs.nvidia.com/blog/ai-tokens-explained/) generation for video workloads , allowing processing of more videos with higher efficiency. 
+Nemotron Nano 2 VL uses a hybrid Transformer–Mamba design and delivers higher throughput while maintaining state-of-the-art multimodal reasoning accuracy. The model also features **Efficient Video Sampling (EVS)**, a new technique that reduces redundant [tokens](https://blogs.nvidia.com/blog/ai-tokens-explained/) generation for video workloads, allowing processing of more videos with higher efficiency. 
 
 In this blog post, we’ll explore how Nemotron Nano 2 VL advances video understanding and document intelligence, showcase real-world use cases and benchmark results, and guide you through getting started with vLLM for inference to unlock high-efficiency multimodal AI at scale.
 
@@ -25,7 +25,7 @@ Trained on NVIDIA-curated, high-quality multimodal data, [Nemotron Nano 2 VL](ht
 Figure 1: Nemotron Nano 2 VL provides leading accuracy on various video understanding and document intelligence benchmarks
 </p>
 
-Improving Efficiency with EVS  
+### Improving Efficiency with EVS  
 With EVS, the model achieves higher throughput and faster response times without sacrificing accuracy. EVS technique prunes redundant frames, preserving semantic richness while enabling longer video processing efficiently. As a result, enterprises can analyze hours of footage, from meetings and training sessions to customer calls, in minutes, gaining actionable insights faster and at lower cost.
 
 
