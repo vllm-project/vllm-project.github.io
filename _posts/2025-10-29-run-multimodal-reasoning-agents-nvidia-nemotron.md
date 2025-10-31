@@ -6,7 +6,7 @@ author: "NVIDIA Nemotron Team"
 
 We are excited to release [NVIDIA Nemotron Nano 2 VL](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-BF16), supported by vLLM. This open vision language model ([VLM](https://www.nvidia.com/en-us/glossary/vision-language-models/)) is built for video understanding and document intelligence.
 
-Nemotron Nano 2 VL uses a hybrid Transformer–Mamba design and delivers higher throughput while maintaining state-of-the-art multimodal reasoning accuracy. The model also features **Efficient Video Sampling (EVS)**, a new technique that reduces redundant [tokens](https://blogs.nvidia.com/blog/ai-tokens-explained/) generation for video workloads, allowing processing of more videos with higher efficiency. 
+Nemotron Nano 2 VL uses a hybrid Transformer–Mamba design and delivers higher throughput while maintaining state-of-the-art multimodal reasoning accuracy. The model also features [**Efficient Video Sampling (EVS)**](https://arxiv.org/abs/2510.14624), a new technique that reduces redundant [tokens](https://blogs.nvidia.com/blog/ai-tokens-explained/) generation for video workloads, allowing processing of more videos with higher efficiency. 
 
 In this blog post, we’ll explore how Nemotron Nano 2 VL advances video understanding and document intelligence, showcase real-world use cases and benchmark results, and guide you through getting started with vLLM for inference to unlock high-efficiency multimodal AI at scale.
 
@@ -53,7 +53,7 @@ Figure 2: Accuracy trend of the Nemotron Nano 2 VL model across various token-dr
 * Get started:   
   * Download model weights from Hugging Face \- [BF16](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-BF16), [FP8](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-FP8), [FP4-QAD](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-FP4-QAD)  
   * Run with vLLM for inference  
-  * [Technical report](https://www.overleaf.com/project/68d1d48c83696e11ba669f70) to build custom, optimized models with Nemotron techniques..
+  * [Technical report](https://research.nvidia.com/labs/adlr/files/NVIDIA-Nemotron-Nano-V2-VL-report.pdf) to build custom, optimized models with Nemotron techniques..
 
 ## Run optimized inference with vLLM
 
