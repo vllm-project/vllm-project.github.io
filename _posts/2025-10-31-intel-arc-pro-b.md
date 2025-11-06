@@ -51,15 +51,16 @@ Intel® Arc™ Pro B60 GPU has 20 XeCores, each with identical resources that ca
 One observation is that each group runs a different amount of work due to the imbalance of expert routing. If a group loops fixed stride of work, there is always a group that takes the largest amount of work and another, smallest. The gap between them will accumulate up to 15% of the total MoE GEMM time. A better alternative is whoever finishes a task in one loop starts the immediate available task in the next loop.
 For a concrete example, there are 40 groups to crunch 200 GEMM blocks, static stride will result that group 0 loop through 0, 40, 80, ... group 1 loop through 1, 41, 81, etc. A caveat is that due to the nature of MoE, each GEMM block may not have same amount of compute intensity. Also, randomized access patterns will let certain groups finish work faster than others. This will limit efficiency in such a way that the groups always finished job earlier can’t help those always meet heavy loads.
 
-![thread load](/assets/figures/2025-vllm-on-intel-arc/thread-load1.png)
-![thread load](/assets/figures/2025-vllm-on-intel-arc/thread-load2.png)
+| Before | After |
+|---|---|
+| ![thread load](/assets/figures/2025-vllm-on-intel-arc/thread-load1.png) | ![thread load](/assets/figures/2025-vllm-on-intel-arc/thread-load2.png) |
 
 We mitigate the effect by letting each group compete for the next job through an atomic number. Whoever finishes computing one GEMM block will get a rank from the atomic number who decides which next block it’ll take. In this case, we eliminated small gaps in kernel looping and achieved perfect scheduling among all scenarios of experts routing.
 
 ### Optimization 3. Fast MXFP4 to BFLOAT16 algorithm with prepack for memory load efficiency
 Prepacking has long been known to improve memory load efficiency. For 4-bit memory loads, a hardware-friendly format can increase efficiency by up to 30%, as observed in our case. Also, naive FP4 to BF16 incurs too many instructions which prompt a need for better alternative (borrow from oneDNN, stride E2M1 encoding on single precision E/M position and multiple the scale difference between two types):  
 
-Bitcast-bf16 ((x << 12) >> 6 & 0x81c0) * 2^126  
+`Bitcast-bf16 ((x << 12) >> 6 & 0x81c0) * 2^126`
 
 The solution minimizes instructions needed to convert fp4 to bf16.
 
