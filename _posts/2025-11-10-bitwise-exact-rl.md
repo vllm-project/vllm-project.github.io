@@ -12,18 +12,18 @@ Discussion on this can be found on ThinkingMachine’s post Defeating Nondetermi
 
 Floating point numbers are effectively a binary scientific notation.  They utilize three components: a sign bit (s), a mantissa (M) and an exponent (e).
 <p align="center">
-  <img width="340" height="130" alt="Screenshot 2025-11-10 at 5 12 41 PM" src="https://github.com/user-attachments/assets/24275084-1b8c-45fd-b40c-6169ed04c837" />
+  <img src="/assets/figures/2025-11-10-bitwise-exact-rl/floating-point-representation.png" />
 </p>
 
 Each of these components are represented as integers and suffer from the exact same rounding errors you might expect.  In bf16, the most commonly used representation for machine learning, 7 bits are dedicated to the mantissa.  This is not very many bits!  The value 3.0 can be represented exactly, but a value like 3.6 cannot…
 
 <p align="center">
-<img width="480" height="355" alt="Screenshot 2025-11-10 at 5 13 24 PM" src="https://github.com/user-attachments/assets/1a51da11-b0b4-45fb-853d-bc19a23c1300" />
+<img src="/assets/figures/2025-11-10-bitwise-exact-rl/bf16-rounding-example.png" />
 </p>
 
 When you want a new value in bf16 you end up rounding it to the nearest available value. What’s of particular interest today is the implication of this rounding process happening at different points in a sequence of additions.
 
-<img width="944" height="414" alt="Screenshot 2025-11-10 at 5 13 56 PM" src="https://github.com/user-attachments/assets/aa334e61-778a-4a18-ab11-e88bd202d7d2" />
+![](/assets/figures/2025-11-10-bitwise-exact-rl/rounding-sequence.png)
 
 These rounding steps can cause two of the exact same inputs to generate *different* outputs!  That means the same framework on the same hardware with the same inputs and the same weights can produce distinct outputs if *any* of the logic *anywhere* in the execution dispatches a different (but still correct) kernel.
 
@@ -31,15 +31,15 @@ These rounding steps can cause two of the exact same inputs to generate *differe
 
 Reinforcement learning has been shown to amplify tiny numerical perturbations, leading to non-deterministic and unstable training behavior.  By combining the [recent work](https://github.com/pytorch/torchtitan/tree/main/torchtitan/experiments/deterministic_vllm_rl) of vLLM with TorchTitan we were able to demonstrate the stabilized training dynamics of reinforcement learning with exact bitwise parity between generator and trainer.  This has been landed as a script in TorchTitan [here](https://github.com/pytorch/torchtitan/blob/main/torchtitan/experiments/deterministic_vllm_rl/simple_rl.py).
 
-<img width="1051" height="430" alt="Screenshot 2025-11-10 at 5 14 45 PM" src="https://github.com/user-attachments/assets/6cb38cab-89d4-409f-8abf-db1aeb1e24f2" />
+![](/assets/figures/2025-11-10-bitwise-exact-rl/rl-script-demo.png)
 
 The script will download and run an RL fine-tune of Qwen3 1.7B locally and plot the reward and entropy in tensorboard.
 
-<img width="1365" height="668" alt="Screenshot 2025-11-10 at 5 16 45 PM" src="https://github.com/user-attachments/assets/86ae5415-8429-403d-8473-180c7d1cfe0b" />
+![](/assets/figures/2025-11-10-bitwise-exact-rl/tensorboard-plot.png)
 
 Running the demonstration associated with this blog post we see exactly the issue described below.  Running the generator with different kernels than the trainer (batch_inv_OFF) shows a reduced reward over 100 steps.  Enabling bitwise exact training, we see the model not only train in fewer steps, but reach a higher total reward!
 
-<img width="1319" height="473" alt="Screenshot 2025-11-10 at 5 17 16 PM" src="https://github.com/user-attachments/assets/f2c9d6aa-68c2-4064-b4ab-de425f2b78a7" />
+![](/assets/figures/2025-11-10-bitwise-exact-rl/reward-comparison.png)
 
 
 ## How It’s Done & What’s Next
