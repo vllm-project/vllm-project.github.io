@@ -1,4 +1,8 @@
-# Bitwise-exact Batch Invariant On-Policy Reinforcement Learning with vLLM and TorchTitan
+---  
+layout: post
+title: "Bitwise-exact Batch Invariant On-Policy Reinforcement Learning with vLLM and TorchTitan"
+author: "vLLM  and TorchTitan Teams"   
+---
 
 In the septillions of flops used to pre-train models, this mismatch between values has largely been avoidable.  Pre-training typically runs at a fixed batch size which induces the same reduction kernels to be run - often side-stepping the issue entirely.
 
