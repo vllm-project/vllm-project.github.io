@@ -16,13 +16,13 @@ Discussion on this can be found on ThinkingMachine’s post Defeating Nondetermi
 
 Floating point numbers are effectively a binary scientific notation.  They utilize three components: a sign bit (s), a mantissa (M) and an exponent (e).
 <p align="center">
-  <img src="/assets/figures/2025-11-10-bitwise-exact-rl/floating-point-representation.png" />
+  <img width="340" height="130" src="/assets/figures/2025-11-10-bitwise-exact-rl/floating-point-representation.png" />
 </p>
 
 Each of these components are represented as integers and suffer from the exact same rounding errors you might expect.  In bf16, the most commonly used representation for machine learning, 7 bits are dedicated to the mantissa.  This is not very many bits!  The value 3.0 can be represented exactly, but a value like 3.6 cannot…
 
 <p align="center">
-<img src="/assets/figures/2025-11-10-bitwise-exact-rl/bf16-rounding-example.png" />
+<img width="480" height="355" src="/assets/figures/2025-11-10-bitwise-exact-rl/bf16-rounding-example.png" />
 </p>
 
 When you want a new value in bf16 you end up rounding it to the nearest available value. What’s of particular interest today is the implication of this rounding process happening at different points in a sequence of additions.
