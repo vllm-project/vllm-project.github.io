@@ -1,6 +1,6 @@
 ---  
 layout: post
-title: "No More Train/Inference Mismatch: Bitwise Consistent On-Policy Reinforcement Learning with vLLM and TorchTitan"
+title: "No More Train-Inference Mismatch: Bitwise Consistent On-Policy Reinforcement Learning with vLLM and TorchTitan"
 author: "vLLM  and TorchTitan Teams"   
 ---
 
