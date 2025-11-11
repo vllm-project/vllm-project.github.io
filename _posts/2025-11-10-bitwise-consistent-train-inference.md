@@ -1,12 +1,12 @@
 ---  
 layout: post
-title: "Bitwise-exact Batch Invariant On-Policy Reinforcement Learning with vLLM and TorchTitan"
+title: "No More Train/Inference Mismatch: Bitwise Consistent On-Policy Reinforcement Learning with vLLM and TorchTitan"
 author: "vLLM  and TorchTitan Teams"   
 ---
 
-In the septillions of flops used to pre-train models, this mismatch between values has largely been avoidable.  Pre-training typically runs at a fixed batch size which induces the same reduction kernels to be run - often side-stepping the issue entirely.
+Across the septillions of FLOPs used in pre-training, numerical mismatches have had effectively imperceptible impact.  Pre-training typically runs at a fixed batch size which induces the same reduction kernels to be run - often side-stepping the issue entirely.
 
-Reinforcement learning, on the other hand, seems to almost exclusively run different reduction algorithms due to its inference-heavy (and thus largely latency and memory-bound) nature.  Kernels optimized for low-batch size inference typically run reductions all at once, whereas kernels for training models parallelize heavily to reuse data and amp up compute utilization.  That means the generators and the trainers are typically running completely different kernels!
+Reinforcement learning, on the other hand, seems to almost exclusively run different reduction algorithms due to its inference-heavy (and thus largely latency and memory-bound) nature.  Kernels optimized for low-batch size inference typically run reductions without tiling, whereas kernels for training models parallelize heavily to reuse data and amp up compute utilization.  That means the generators and the trainers are typically running completely different kernels!
 
 So intuitively, why might this be an issue?  A rudimentary explanation is that the training becomes implicitly “off-policy” because the outputs from the generator do not match the outputs a trainer might produce given the same inputs.
 
