@@ -1,8 +1,6 @@
 ---
 layout: post
-title: "High Performance and Easy Deployment of vLLM in K8S with “vLLM production-stack”"
-thumbnail-img: /assets/figures/stack/stack-thumbnail.png
-share-img: /assets/figures/stack/stack-thumbnail.png
+title: "High Performance and Easy Deployment of vLLM in K8S with vLLM production-stack"
 author: LMCache Team
 image: /assets/figures/stack/stack-thumbnail.png
 ---
