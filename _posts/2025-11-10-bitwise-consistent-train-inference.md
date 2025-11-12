@@ -37,6 +37,9 @@ We will continue to push forward on bitwise consistent training and inference. T
 
 **Wider Model Support** We plan to extend this bitwise-consistent RL framework beyond Qwen3 1.7B to support other open models. We will also generalize the auditing tools and backward implementations to cover a broader range of operator types, making bitwise training-inference consistency a scalable and reusable feature.
 
+If you're interested or would like to contribute, please join these Slack channels:
+- [#sig-post-training](https://vllm-dev.slack.com/archives/C07UUL8E61Z)
+- [#sig-batch-invariant](https://vllm-dev.slack.com/archives/C09JVU355CG)
 
 ---
 *Authors:
