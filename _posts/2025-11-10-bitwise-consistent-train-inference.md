@@ -2,7 +2,7 @@
 layout: post
 title: "No More Train-Inference Mismatch: Bitwise Consistent On-Policy Reinforcement Learning with vLLM and TorchTitan"
 author: "vLLM and TorchTitan Teams"
-image: /assets/figures/2025-11-10-bitwise-exact-rl/rl-script-demo.png
+image: /assets/figures/2025-11-10-bitwise-exact-rl/reward-comparison.png
 ---
 
 We demonstrate an open-source bitwise consistent on-policy RL run with [TorchTitan](https://github.com/pytorch/torchtitan) as the training engine and [vLLM](https://github.com/vllm-project/vllm) as the inference engine. Built on top of [vLLM's recent work on batch-invariant inference](https://docs.vllm.ai/en/latest/features/batch_invariance/), we show how to run an RL fine-tune of Qwen3 1.7B with bitwise matching training and inference numerics in [our open-sourced instructions](https://github.com/pytorch/torchtitan/tree/main/torchtitan/experiments/deterministic_vllm_rl):
