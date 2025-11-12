@@ -27,7 +27,7 @@ For the RL demo, we wrote a generic reinforcement learning script using GSM8K an
 
 ## What’s Next
 
-We will continue to push forward on bitwise consistent training and inference. To follow this work, please see the linked RFC: [#28326](https://github.com/vllm-project/vllm/issues/28326). More specifically, we will focus on the following directions:
+We will continue to push forward on bitwise consistent training and inference. To follow this work, please see the linked RFCs: [#28326](https://github.com/vllm-project/vllm/issues/28326) and [#27433](https://github.com/vllm-project/vllm/issues/27433). More specifically, we will focus on the following directions:
 
 **Unified model definition.** Although we have demonstrated the bitwise equivalent training and inference results, there are still two copies of the model code, one for training and one for inference. This is easy for our first integration but fragile for long-term maintenance: any slight change to each of the model code will break the equivalence between training and inference and lead to numerical mismatches. Having a shared model code for both training and inference frameworks will eliminate the possibility of introducing accidental human errors and make the bitwise matching property easier to maintain.
 
