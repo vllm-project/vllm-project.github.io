@@ -1,7 +1,8 @@
 ---  
-layout: post  
-title: "No More Retokenization Drift: Returning Token IDs via the OpenAI Compatible API Matters in Agent RL"  
-author: "The Agent Lightning (AGL) Team"   
+layout: post
+title: "No More Retokenization Drift: Returning Token IDs via the OpenAI Compatible API Matters in Agent RL"
+author: "The Agent Lightning (AGL) Team"
+image: /assets/figures/agent-lightning/1_rewards.png
 ---
 
 **TL;DR.** Agent often calls LLMs via OpenAI‑compatible endpoints, which previously return only string-based inputs and outputs. In **agent RL**, this can lead to inconsistencies between training and inference due to the phenomenon we call **Retokenization Drift**. This phenomenon occurs because tokens are detokenized during inference and subsequently retokenized during training; the two sets of tokens may differ even though their corresponding strings are identical. Now, you can ask vLLM’s OpenAI‑compatible endpoints to return the **exact token IDs** for both prompts and generated responses. Pass `"return_token_ids": true` to `/v1/chat/completions` or `/v1/completions` and you’ll receive `prompt_token_ids` and `token_ids` alongside the regular text output. This makes **agent RL** robust, as no more drift will happen. This pairs perfectly with Agent Lightning, where each model call is viewed as separate update sample without stitching; just log the returned IDs via `return_token_ids` enabled.

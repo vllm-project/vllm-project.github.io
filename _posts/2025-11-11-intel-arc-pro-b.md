@@ -2,6 +2,7 @@
 layout: post
 title: "Fast and Affordable LLMs serving on Intel Arc Pro B-Series GPUs with vLLM"
 author: "Intel vLLM Team"
+image: /assets/figures/2025-vllm-on-intel-arc/perf-figure1.png
 ---
 
 [Intel® Arc™ Pro B-Series GPU Family](https://www.intel.com/content/www/us/en/products/docs/discrete-gpus/arc/workstations/b-series/overview.html) GPUs deliver powerful AI capabilities with a focus on accessibility and exceptional price-to-performance ratios. Their large memory capacity and scalability with multi-GPU setups make it possible to run the latest, large and capable AI models locally, making advanced AI inference accessible to professionals looking to deploy Large Language Models (LLMs) without the premium costs typically associated with AI hardware.
@@ -51,8 +52,8 @@ Intel® Arc™ Pro B60 GPU has 20 XeCores, each with identical resources that ca
 One observation is that each group runs a different amount of work due to the imbalance of expert routing. If a group loops fixed stride of work, there is always a group that takes the largest amount of work and another, smallest. The gap between them will accumulate up to 15% of the total MoE GEMM time. A better alternative is whoever finishes a task in one loop starts the immediate available task in the next loop.
 For a concrete example, there are 40 groups to crunch 200 GEMM blocks, static stride will result that group 0 loop through 0, 40, 80, ... group 1 loop through 1, 41, 81, etc. A caveat is that due to the nature of MoE, each GEMM block may not have same amount of compute intensity. Also, randomized access patterns will let certain groups finish work faster than others. This will limit efficiency in such a way that the groups always finished job earlier can’t help those always meet heavy loads.
 
-| Before | After |
-|---|---|
+| Before                                                                  | After                                                                   |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | ![thread load](/assets/figures/2025-vllm-on-intel-arc/thread-load1.png) | ![thread load](/assets/figures/2025-vllm-on-intel-arc/thread-load2.png) |
 
 We mitigate the effect by letting each group compete for the next job through an atomic number. Whoever finishes computing one GEMM block will get a rank from the atomic number who decides which next block it’ll take. In this case, we eliminated small gaps in kernel looping and achieved perfect scheduling among all scenarios of experts routing.
@@ -85,14 +86,14 @@ Figure 3: TTFT/TPOT for llama-70B single batch with long context input from 1K t
 
 GPT-OSS: Intel® Arc™ Pro B60 GPU also demonstrates exceptional performance with OpenAI's recently launched GPT-OSS model, providing developers and enterprises with a powerful, cost-effective solution for large-scale AI inference as shown in the table below.
 
-| Model |	Data type |	TP	| Input/output seq length | Concurrency	| TTFT (s) | 	TPOT (ms) |	Output Token Throughput (toks/s) |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| GPT-OSS-20b	|MXFP4	|1	|1024/1024	|75	|7.614	|53.96	|1210.74|
-| GPT-OSS-20b	|MXFP4	|1	|2048/2048	|38	|7.823	|42.35	|818.92 |
-| GPT-OSS-20b	|MXFP4	|1	|5120/5120	|15	|8.36	|34.27	|416.94 |
-| GPT-OSS-120b	|MXFP4	|4	|1024/1024	|100|8.04	|58.78	|1495.12|
-| GPT-OSS-120b	|MXFP4	|4	|2048/2048	|50	|8.11	|41.98	|1085.58|
-| GPT-OSS-120b	|MXFP4	|4	|5120/5120	|20	|8.60	|30.60	|619.10 |
+| Model        | Data type | TP  | Input/output seq length | Concurrency | TTFT (s) | TPOT (ms) | Output Token Throughput (toks/s) |
+| ------------ | --------- | --- | ----------------------- | ----------- | -------- | --------- | -------------------------------- |
+| GPT-OSS-20b  | MXFP4     | 1   | 1024/1024               | 75          | 7.614    | 53.96     | 1210.74                          |
+| GPT-OSS-20b  | MXFP4     | 1   | 2048/2048               | 38          | 7.823    | 42.35     | 818.92                           |
+| GPT-OSS-20b  | MXFP4     | 1   | 5120/5120               | 15          | 8.36     | 34.27     | 416.94                           |
+| GPT-OSS-120b | MXFP4     | 4   | 1024/1024               | 100         | 8.04     | 58.78     | 1495.12                          |
+| GPT-OSS-120b | MXFP4     | 4   | 2048/2048               | 50          | 8.11     | 41.98     | 1085.58                          |
+| GPT-OSS-120b | MXFP4     | 4   | 5120/5120               | 20          | 8.60     | 30.60     | 619.10                           |
 
 Table 1: GPT-OSS vLLM inference throughput using 1-4 GPUs on x8 Intel® Arc™ Pro B-series System.
 

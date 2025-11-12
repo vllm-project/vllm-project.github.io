@@ -2,6 +2,7 @@
 layout: post
 title: "Chasing 100% Accuracy: A Deep Dive into Debugging Kimi K2's Tool-Calling on vLLM"
 author: "Linian Wang (Peking University)"
+image: /assets/figures/kimi-k2-accuracy/k2-vendor-verifier.jpeg
 ---
 
 **TL;DR:** For best compatibility with vLLM, use Kimi K2 models whose chat templates were updated after commit 94a4053eb8863059dd8afc00937f054e1365abbd ([Kimi-K2-0905](https://huggingface.co/moonshotai/Kimi-K2-Instruct-0905)) or commit 0102674b179db4ca5a28cd9a4fb446f87f0c1454 ([Kimi-K2](https://huggingface.co/moonshotai/Kimi-K2-Instruct)). The updates are committed per model.
@@ -151,6 +152,8 @@ This deep dive offered several invaluable lessons for anyone working at the inte
 Through systematic and collaborative debugging, we successfully resolved the critical tool-calling compatibility issues for the Kimi K2 model on vLLM, boosting its success rate by over 4x and bringing its performance in line with expectations. This process was not just a technical challenge but also a testament to the power of careful, methodical investigation in a complex software ecosystem.
 
 I hope this detailed account serves as a useful roadmap for other developers integrating complex models into vLLM and beyond. As the open-source community continues to mature, we look forward to an even more seamless model integration experience and more powerful agentic capabilities for everyone.
+
+![](/assets/figures/kimi-k2-accuracy/k2-vendor-verifier.jpeg)
 
 ### Acknowledgements
 
