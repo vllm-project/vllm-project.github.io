@@ -9,7 +9,7 @@ We demonstrate an open-source bitwise consistent on-policy RL run with [TorchTit
 
 ![](/assets/figures/2025-11-10-bitwise-exact-rl/rl-script-demo.png)
 
-Reinforcement learning has been shown to amplify tiny numerical mismatches between trainer and sampler, leading to non-deterministic and unstable training behavior ([He et al.](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/) & [Yao, Liu et al.](https://fengyao.notion.site/off-policy-rl)). We verified the impact of numerics on RL results with our results: Running the sampler with different kernels than the trainer (`batch_inv_OFF`) shows a reduced reward over 100 steps. Enabling bitwise exact training (`batch_inv_ON`, where `kl_div` always equals to 0.0), we see the model not only train in fewer steps, but reach a higher total reward.
+Reinforcement learning has been shown to amplify tiny numerical mismatches between trainer and sampler, leading to non-deterministic and unstable training behavior ([He et al.](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/), [Yao, Liu et al.](https://fengyao.notion.site/off-policy-rl) & [Liu, Li et al.](https://yingru.notion.site/When-Speed-Kills-Stability-Demystifying-RL-Collapse-from-the-Training-Inference-Mismatch-271211a558b7808d8b12d403fd15edda)). We verified the impact of numerics on RL results with our results: Running the sampler with different kernels than the trainer (`batch_inv_OFF`) shows a reduced reward over 100 steps. Enabling bitwise exact training (`batch_inv_ON`, where `kl_div` always equals to 0.0), we see the model not only train in fewer steps, but reach a higher total reward.
 
 ![](/assets/figures/2025-11-10-bitwise-exact-rl/reward-comparison.png)
 
