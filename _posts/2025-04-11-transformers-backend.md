@@ -1,21 +1,21 @@
 ---
 layout: post
-title: "Transformers backend integration in vLLM"
+title: "Transformers modeling backend integration in vLLM"
 author: "The Hugging Face Team"
 image: /assets/figures/transformers-backend/transformers-backend.png
 ---
 
 The [Hugging Face Transformers library](https://huggingface.co/docs/transformers/main/en/index)
 offers a flexible, unified interface to a vast ecosystem of model architectures. From research to
-fine-tuning on custom dataset, transformers is the go-to toolkit for all.
+fine-tuning on custom dataset, Transformers is the go-to toolkit for all.
 
 But when it comes to *deploying* these models at scale, inference speed and efficiency often take
 center stage. Enter [vLLM](https://docs.vllm.ai/en/latest/), a library engineered for high-throughput
 inference, pulling models from the Hugging Face Hub and optimizing them for production-ready performance.
 
-A recent addition to the vLLM codebase enables leveraging transformers as a backend to run models.
-vLLM will therefore optimize throughput/latency on top of existing transformers architectures.
-In this post, we’ll explore how vLLM leverages the transformers backend to combine **flexibility**
+A recent addition to the vLLM codebase enables leveraging Transformers as a backend for model implementations.
+vLLM will therefore optimize throughput/latency on top of existing Transformers architectures.
+In this post, we’ll explore how vLLM leverages the Transformers modeling backend to combine **flexibility**
 with **efficiency**, enabling you to deploy state-of-the-art models faster and smarter.
 
 ## Updates
@@ -24,10 +24,10 @@ This section will hold all the updates that have taken place since the blog post
 
 ### Support for Vision Language Models (21st July 2025)
 
-vLLM with the transformers backend now supports **Vision Language Models**. When user adds `model_impl="transformers"`,
+vLLM with the Transformers modeling backend now supports **Vision Language Models**. When user adds `model_impl="transformers"`,
 the correct class for text-only and multimodality will be deduced and loaded.
 
-Here is how one can serve a multimodal model using the transformers backend.
+Here is how one can serve a multimodal model using the Transformers modeling backend.
 ```bash
 vllm serve llava-hf/llava-onevision-qwen2-0.5b-ov-hf \
 --model_impl transformers \
@@ -119,7 +119,7 @@ for o in outputs:
 Let’s start with a simple text generation task using the `meta-llama/Llama-3.2-1B` model to see how
 these libraries stack up.
 
-**Infer with transformers**
+**Infer with Transformers**
 
 The transformers library shines in its simplicity and versatility. Using its `pipeline` API, inference is a breeze:
 
@@ -186,29 +186,29 @@ print("Completion result:", completion.choices[0].text)
 
 This compatibility slashes costs and boosts control, letting you scale inference locally with vLLM’s optimizations.
 
-## Why do we need the transformers backend?
+## Why do we need the Transformers modeling backend?
 
-The transformers library is optimized for contributions and
+The Transformers library is optimized for contributions and
 [addition of new models](https://huggingface.co/docs/transformers/en/add_new_model). Adding a new
 model to vLLM on the other hand is a little
 [more involved](https://docs.vllm.ai/en/latest/contributing/model/index.html).
 
 In the **ideal world**, we would be able to use the new model in vLLM as soon as it is added to
-transformers. With the integration of the transformers backend, we step towards that ideal world.
+Transformers. With the integration of the Transformers modeling backend, we step towards that ideal world.
 
 Here is the [official documentation](https://docs.vllm.ai/en/latest/models/supported_models.html#custom-models)
-on how to make your transformers model compatible with vLLM for the integration to kick in.
+on how to make your Transformers model compatible with vLLM for the integration to kick in.
 We followed this and made `modeling_gpt2.py` compatible with the integration! You can follow the
-changes in this [transformers pull request](https://github.com/huggingface/transformers/pull/36934).
+changes in this [Transformers pull request](https://github.com/huggingface/transformers/pull/36934).
 
-For a model already in transformers (and compatible with vLLM), this is what we would need to:
+For a model already in Transformers (and compatible with vLLM), this is what we would need to:
 
 ```py
 llm = LLM(model="new-transformers-model", model_impl="transformers")
 ```
 
 > [!NOTE]
-> It is not a strict necessity to add `model_impl` parameter. vLLM switches to the transformers
+> It is not a strict necessity to add `model_impl` parameter. vLLM switches to the Transformers
 > implementation on its own if the model is not natively supported in vLLM.
 
 Or for a custom model from the Hugging Face Hub:
@@ -218,12 +218,12 @@ llm = LLM(model="custom-hub-model", model_impl="transformers", trust_remote_code
 ```
 
 This backend acts as a **bridge**, marrying transformers’ plug-and-play flexibility with vLLM’s
-inference prowess. You get the best of both worlds: rapid prototyping with transformers
+inference prowess. You get the best of both worlds: rapid prototyping with Transformers
 and optimized deployment with vLLM.
 
 ## Case Study: Helium
 
-[Kyutai Team’s Helium](https://huggingface.co/docs/transformers/en/model_doc/helium) is not yet supported by vLLM. You might want to run optimized inference on the model with vLLM, and this is where the transformers backend shines.
+[Kyutai Team’s Helium](https://huggingface.co/docs/transformers/en/model_doc/helium) is not yet supported by vLLM. You might want to run optimized inference on the model with vLLM, and this is where the Transformers modeling backend shines.
 
 Let’s see this in action:
 
@@ -248,8 +248,8 @@ completion = client.completions.create(model="kyutai/helium-1-preview-2b", promp
 print("Completion result:", completion)
 ```
 
-Here, vLLM efficiently processes inputs, leveraging the transformers backend to load
-`kyutai/helium-1-preview-2b` seamlessly. Compared to running this natively in transformers,
+Here, vLLM efficiently processes inputs, leveraging the Transformers modeling backend to load
+`kyutai/helium-1-preview-2b` seamlessly. Compared to running this natively in Transformers,
 vLLM delivers lower latency and better resource utilization.
 
 By pairing Transformers’ model ecosystem with vLLM’s inference optimizations, you unlock a workflow
