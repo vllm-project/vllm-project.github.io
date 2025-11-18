@@ -1,3 +1,12 @@
+---  
+layout: post
+title: "Building Clean, Maintainable vLLM Modifications Using the Plugin System"
+author: "Dhruvil Bhatt (AWS SageMaker)"
+image: /assets/logos/vllm-logo-text-light.png
+---
+> [!NOTE]
+> Originally posted on this [Medium article](https://medium.com/@dhruvilbhattlm10/building-clean-maintainable-vllm-modifications-using-the-plugin-system-e80df0f62861).
+
 # Building Clean, Maintainable vLLM Modifications Using the Plugin System
 
 <p align="center">
@@ -11,7 +20,7 @@
 ---
 
 <p align="center">
-<strong><em><span style="color: #2c2c2cff;">Avoiding forks, avoiding monkey patches, and keeping sanity intact</span></em></strong>
+<strong><em>Avoiding forks, avoiding monkey patches, and keeping sanity intact</em></strong>
 </p>
 
 
