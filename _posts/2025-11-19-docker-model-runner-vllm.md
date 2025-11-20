@@ -2,7 +2,7 @@
 layout: post
 title: "Docker Model Runner Integrates vLLM for High-Throughput Inferencing"
 author: "Docker Team"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/docker-model-runner/docker-model-page.png
 ---
 
 ## Expanding Docker Model Runner's Capabilities
@@ -12,6 +12,8 @@ Today, we're excited to announce that Docker Model Runner now integrates the vLL
 When we first introduced Docker Model Runner, our goal was to make it simple for developers to run and experiment with large language models (LLMs) using Docker. We designed it to integrate multiple inference engines from day one, starting with llama.cpp, to make it easy to get models running anywhere.
 
 Now, we're taking the next step in that journey. With vLLM integration, you can scale AI workloads from low-end to high-end Nvidia hardware, without ever leaving your Docker workflow.
+
+![docker_vllm_models](/assets/figures/docker-model-runner/docker-model-page.png)
 
 ## Why vLLM?
 
