@@ -7,7 +7,6 @@ image: /assets/logos/vllm-logo-text-light.png
 > [!NOTE]
 > Originally posted on this [Medium article](https://medium.com/@dhruvilbhattlm10/building-clean-maintainable-vllm-modifications-using-the-plugin-system-e80df0f62861).
 
-# Building Clean, Maintainable vLLM Modifications Using the Plugin System
 
 <p align="center">
 <picture>
