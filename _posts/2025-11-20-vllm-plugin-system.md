@@ -10,9 +10,9 @@ image: /assets/logos/vllm-logo-text-light.png
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-11-17-vllm-plugin-system/vllm-plugin-system-arch.png" width="100%">
+<img src="/assets/figures/2025-11-20-vllm-plugin-system/vllm-plugin-system-arch.png" width="100%">
 </picture><br>
-<em>Source: <a href="https://cloud.tencent.com/developer/article/2513676" target="_blank">https://cloud.tencent.com/developer/article/2513676</a></em>
+<em>Source: <a href="https://github.com/vllm-project/vllm-ascend" target="_blank">https://github.com/vllm-project/vllm-ascend</a></em>
 </p>
 
 
@@ -79,10 +79,10 @@ For many teams, that operational load is simply unsustainable.
 Another route is building a small Python package that applies monkey patches on top of vanilla vLLM at build-time.
 
 At first glance, this seems appealing:
-- ✓ No fork
-- ✓ No divergence from vanilla vLLM
-- ✓ Patches applied dynamically
-- ✓ Small code footprint
+- ✅ No fork
+- ✅ No divergence from vanilla vLLM
+- ✅ Patches applied dynamically
+- ✅ Small code footprint
 
 …but the reality is far from ideal.
 
@@ -92,6 +92,8 @@ Monkey patching typically requires replacing entire classes or modules, even if 
 - ❌ **Every vLLM upgrade breaks your patch** - Because you replaced full files, not just the individual lines of interest
 - ❌ **Debugging becomes painful** - Is the bug in your patch? In unchanged vanilla code? Or because monkey patching rewired behavior unexpectedly?
 - ❌ **Operational complexity grows over time** - Every vLLM release forces you to diff and re-sync your copied files - exactly the same problem as maintaining a fork, just disguised inside your Python package
+- ❌ Monkey-patching certain modules (like the `Scheduler`) often **does not work** because they run inside `EngineCore` in a separate process. This can lead to process-synchronization issues, where `EngineCore` continues invoking the stale implementation of the module you intended to modify.
+
 
 Monkey patching solves the surface-level problem, but introduces long-term maintenance challenges that can become unmanageable.
 
@@ -111,6 +113,10 @@ This architecture enables:
 - ✅ No need for a maintained fork
 
 This presents a middle ground between "upstream everything" and "replace entire files."
+
+---
+
+> **Note:** vLLM provides *four* plugin groups/mechanisms — platform plugins, engine plugins, model plugins, and **general plugins**. This article specifically focuses on the **general plugin system**, which is loaded in all vLLM processes and is therefore ideal for the clean vLLM modification approach described in this article. For more details on the different plugin groups, see the vLLM docs: [Types of Supported Plugins](https://docs.vllm.ai/en/latest/design/plugin_system/#types-of-supported-plugins).
 
 ---
 
@@ -489,10 +495,10 @@ Understanding when and how patches are applied is crucial. Here's the complete l
 **Critical insight:** vLLM's architecture involves multiple processes, especially when using distributed inference with tensor parallelism, pipeline parallelism, or other parallelism techniques. To ensure consistency, vLLM automatically calls `load_general_plugins()` in **every single process** it creates before that process starts any actual work.
 
 This means:
-- ✓ Your patches are loaded in the **main process**
-- ✓ Your patches are loaded in **all worker processes**
-- ✓ Your patches are loaded in **GPU workers, CPU workers, and any auxiliary processes**
-- ✓ Loading happens **before model initialization**, before scheduler creation, and before any inference begins
+- ✅ Your patches are loaded in the **main process**
+- ✅ Your patches are loaded in **all worker processes**
+- ✅ Your patches are loaded in **GPU workers, CPU workers, and any auxiliary processes**
+- ✅ Loading happens **before model initialization**, before scheduler creation, and before any inference begins
 
 ### The Complete Startup Sequence
 
@@ -562,10 +568,19 @@ It strikes the right balance between **control**, **maintainability**, and **san
 ### Key takeaways:
 - ✅ Use `VLLMPatch[TargetClass]` for surgical, class-level modifications
 - ✅ Register via `vllm.general_plugins` entry point in `setup.py`
-- ✅ Control patches with `VLLM_CUSTOM_PATCHES` environment variable
+- ✅ Control patches with `VLLM_CUSTOM_PATCHES` environment variable. 
+    - Note: `VLLM_CUSTOM_PATCHES` is **not** an official vLLM environment variable — it’s just an example used in this article. You can choose any env var name in your own plugin package.
 - ✅ Version-guard patches with `@min_vllm_version` decorator
 - ✅ One Docker image, multiple configurations
 
 This pattern has proven effective in production environments and scales from experimental prototypes to multi-model production deployments.
 
-If you're interested in plugin-based architectures for inference systems or want to explore how to structure runtime patching in a clean way, feel free to reach out. Always happy to chat about scalable LLM deployment and design patterns.
+---
+
+### Contact Me
+
+If you're interested in plugin-based architectures for inference systems or want to explore how to structure runtime patching in a clean way, feel free to reach out. Always happy to chat about scalable LLM deployment and design patterns😊 You can reach me at:
+
+- **LinkedIn:** [https://www.linkedin.com/in/dhruvil-bhatt-uci/](https://www.linkedin.com/in/dhruvil-bhatt-uci/)
+- **Website** - [https://www.dhruvilbhatt.com/](https://www.dhruvilbhatt.com/)
+- **Email:** dhruvilbhattlm10@gmail.com
