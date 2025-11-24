@@ -5,7 +5,8 @@ author: "Richard Liaw (Anyscale/Ray), Kaichao You (vLLM)"
 image: /assets/logos/vllm-logo-text-light.png
 ---
 
-Ray now has a new command: `ray symmetric-run.` This command makes it possible to launch the **same entrypoint command** on every node in a Ray cluster, simplifying the workflow to spawn vLLM servers with multi-node models on HPC setups or in using parallel ssh tools like `mpssh`.
+
+Ray now has a new command: `ray symmetric-run`. This command makes it possible to launch the **same entrypoint command** on every node in a Ray cluster, simplifying the workflow to spawn vLLM servers with multi-node models on HPC setups or when using parallel ssh tools like `mpssh`.
 
 In this blog, we’ll talk about the issues with the current way of spawning vLLM servers with Ray; we’ll walk through a motivating example; and finally we’ll discuss how the new `symmetric-run` API from Ray will improve the launching experience.
 
