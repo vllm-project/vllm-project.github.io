@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% seo %}
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+  {% if site.google_analytics %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ site.google_analytics }}');
+  </script>
+  {% endif %}
+  {% include custom-head.html %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-content">
+      <a href="{{ '/' | relative_url }}" class="site-logo">
+        <img src="{{ site.logo | relative_url }}" alt="{{ site.title }}" width="36" height="36">
+        <span class="site-title">{{ site.title }}</span>
+      </a>
+      <nav class="site-nav">
+        <a href="https://docs.vllm.ai" target="_blank" rel="noopener">Docs</a>
+        <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    {{ content }}
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-links">
+        {% for link in site.social_links %}
+        <a href="{{ link.url }}" target="_blank" rel="noopener" title="{{ link.title }}">{{ link.title }}</a>
+        {% endfor %}
+      </div>
+      <p class="footer-copyright">{{ site.author.name }}</p>
+    </div>
+  </footer>
+</body>
+</html>

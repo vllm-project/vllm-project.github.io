@@ -4,42 +4,38 @@ layout: default
 
 <div class="home">
   <header class="home-header">
-    <h1 class="home-title">{{ site.title | escape }}</h1>
-    <p class="home-description">{{ site.description | escape }}</p>
+    <h1 class="home-title">{{ site.title }}</h1>
+    <p class="home-description">{{ site.description }}</p>
   </header>
 
-  {%- if site.posts.size > 0 -%}
+  {% if site.posts.size > 0 %}
   <div class="post-grid">
-    {%- for post in site.posts -%}
+    {% for post in site.posts %}
     <article class="post-card">
       <a href="{{ post.url | relative_url }}" class="post-card-link">
-        <div class="post-card-image{% unless post.image %} post-card-image-placeholder{% endunless %}">
-          {%- if post.image -%}
+        <div class="post-card-image{% unless post.image %} post-card-placeholder{% endunless %}">
+          {% if post.image %}
           <img src="{{ post.image | relative_url }}" alt="" loading="lazy">
-          {%- else -%}
-          <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="15,70 35,15 50,50" fill="#E5A733"/>
-            <polygon points="50,50 65,8 85,70" fill="#6FA8DC"/>
+          {% else %}
+          <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="18,68 38,18 52,48" fill="#E5A733"/>
+            <polygon points="52,48 66,12 82,68" fill="#6FA8DC"/>
           </svg>
-          {%- endif -%}
+          {% endif %}
         </div>
-        <div class="post-card-content">
+        <div class="post-card-body">
           <h2 class="post-card-title">{{ post.title | escape }}</h2>
-          <div class="post-card-meta">
-            {%- if post.author -%}
-            <span class="post-card-author">{{ post.author }}</span>
-            {%- endif -%}
-            <time class="post-card-date" datetime="{{ post.date | date_to_xmlschema }}">
-              {{ post.date | date: "%b %-d, %Y" }}
-            </time>
-          </div>
-          {%- if post.excerpt -%}
-          <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 25 }}</p>
-          {%- endif -%}
+          <p class="post-card-meta">
+            {% if post.author %}<span class="post-card-author">{{ post.author }}</span>{% endif %}
+            <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %-d, %Y" }}</time>
+          </p>
+          {% if post.excerpt %}
+          <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 24 }}</p>
+          {% endif %}
         </div>
       </a>
     </article>
-    {%- endfor -%}
+    {% endfor %}
   </div>
-  {%- endif -%}
+  {% endif %}
 </div>

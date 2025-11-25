@@ -2,27 +2,16 @@
 layout: default
 ---
 
-<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+<article class="post">
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">{{ page.title | escape }}</h1>
-    <div class="post-meta">
-      {%- if page.author -%}
-      <span class="post-author" itemprop="author" itemscope itemtype="http://schema.org/Person">
-        <span itemprop="name">{{ page.author }}</span>
-      </span>
-      <span class="post-meta-sep">&middot;</span>
-      {%- endif -%}
-      <time class="dt-published" datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
-        {{ page.date | date: "%B %-d, %Y" }}
-      </time>
-    </div>
+    <h1 class="post-title">{{ page.title | escape }}</h1>
+    <p class="post-meta">
+      {% if page.author %}<span class="post-author">{{ page.author }}</span> · {% endif %}
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>
+    </p>
   </header>
 
-  <div class="post-content e-content" itemprop="articleBody">
+  <div class="post-content">
     {{ content }}
   </div>
-
-  <footer class="post-footer">
-    <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
-  </footer>
 </article>
