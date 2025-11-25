@@ -61,6 +61,8 @@ minima:
 header_pages:
   - index.md
 
-# Set to `true` to show excerpts on the homepage.
-#
-# show_excerpts: false
+# Show excerpts on the homepage
+show_excerpts: true
+
+# Excerpt settings
+excerpt_separator: <!--more-->

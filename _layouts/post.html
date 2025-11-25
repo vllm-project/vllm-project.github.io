@@ -1,0 +1,37 @@
+---
+layout: default
+---
+
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header class="post-header">
+    <div class="post-header-accent"></div>
+    <h1 class="post-title p-name" itemprop="name headline">{{ page.title | escape }}</h1>
+    <div class="post-meta">
+      {%- if page.author -%}
+      <span class="post-author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">{{ page.author }}</span>
+      </span>
+      <span class="post-meta-sep">&middot;</span>
+      {%- endif -%}
+      <time class="dt-published" datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+        {{ page.date | date: "%B %-d, %Y" }}
+      </time>
+      {%- if page.modified_date -%}
+      <span class="post-meta-sep">&middot;</span>
+      <span class="post-updated">
+        Updated: <time class="dt-modified" datetime="{{ page.modified_date | date_to_xmlschema }}" itemprop="dateModified">
+          {{ page.modified_date | date: "%B %-d, %Y" }}
+        </time>
+      </span>
+      {%- endif -%}
+    </div>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    {{ content }}
+  </div>
+
+  <footer class="post-footer">
+    <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
+  </footer>
+</article>
