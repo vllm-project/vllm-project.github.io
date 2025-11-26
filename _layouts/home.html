@@ -1,0 +1,41 @@
+---
+layout: default
+---
+
+<div class="home">
+  <header class="home-header">
+    <h1 class="home-title">{{ site.title }}</h1>
+    <p class="home-description">{{ site.description }}</p>
+  </header>
+
+  {% if site.posts.size > 0 %}
+  <div class="post-grid">
+    {% for post in site.posts %}
+    <article class="post-card">
+      <a href="{{ post.url | relative_url }}" class="post-card-link">
+        <div class="post-card-image{% unless post.image %} post-card-placeholder{% endunless %}">
+          {% if post.image %}
+          <img src="{{ post.image | relative_url }}" alt="" loading="lazy">
+          {% else %}
+          <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="18,68 38,18 52,48" fill="#E5A733"/>
+            <polygon points="52,48 66,12 82,68" fill="#6FA8DC"/>
+          </svg>
+          {% endif %}
+        </div>
+        <div class="post-card-body">
+          <h2 class="post-card-title">{{ post.title | escape }}</h2>
+          <p class="post-card-meta">
+            {% if post.author %}<span class="post-card-author">{{ post.author }}</span>{% endif %}
+            <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %-d, %Y" }}</time>
+          </p>
+          {% if post.excerpt %}
+          <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 24 }}</p>
+          {% endif %}
+        </div>
+      </a>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
