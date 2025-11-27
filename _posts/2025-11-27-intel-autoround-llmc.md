@@ -19,7 +19,7 @@ Broader quantization schemes and model coverage are coming next—try it now and
 
 ## What Is AutoRound?
 
-**AutoRound** is an advanced post-training quantization (PTQ) algorithm designed for Large Language Models (LLMs) and Vision-Language Models (VLMs).  It introduces three trainable parameters per quantized tensor:`V` (rounding offset/adjustment),`α` and `β` (learned clipping range controls). By processing decoder layers sequentially and applying signed gradient descent, AutoRound jointly optimizes rounding and clipping to minimize block‑wise output reconstruction error.
+**AutoRound** is an advanced post-training quantization (PTQ) algorithm designed for Large Language Models (LLMs) and Vision-Language Models (VLMs).  It introduces three trainable parameters per quantized tensor: `V` (rounding offset/adjustment), `α` and `β` (learned clipping range controls). By processing decoder layers sequentially and applying signed gradient descent, AutoRound jointly optimizes rounding and clipping to minimize block‑wise output reconstruction error.
 
 Core strengths:
 
@@ -28,7 +28,7 @@ Core strengths:
 - **Mixed‑bit**, layer‑wise precision search for flexible accuracy–efficiency trade‑offs
 - Applicability across both **LLMs** and **VLMs**
 
-AutoRound enables quantized models in a range of low‑bit formats that are designed to accelerate inference on **Intel®** **Xeon****® processors**, **Intel® Gaudi® AI accelerators**, **Intel® Data Center GPUs**, **Intel® Arc™ B‑Series Graphics**, as well as other GPUs (e.g., CUDA‑based devices).
+AutoRound enables quantized models in a range of low‑bit formats that are designed to accelerate inference on **Intel® Xeon ® processors**, **Intel® Gaudi® AI accelerators**, **Intel® Data Center GPUs**, **Intel® Arc™ B‑Series Graphics**, as well as other GPUs (e.g., CUDA‑based devices).
 
 Looking forward, as Intel’s next‑generation GPUs—**including Intel® Crescent Island**—add native support for **FP8, MXFP8, and MXFP4** formats, models optimized with AutoRound will naturally scale to take advantage of these data types across the Intel AI hardware portfolio. This creates a consistent path from algorithmic innovation to real‑world deployment.
 
@@ -51,7 +51,7 @@ We completed the first stage of integration by introducing the new `AutoRoundMod
 
 ### 1. Install
 
-```Bash
+```bash
 git clone https://github.com/vllm-project/llm-compressor.git
 cd llm-compressor
 pip install -e .
@@ -59,7 +59,7 @@ pip install -e .
 
 ### 2. Load Model & Tokenizer
 
-```Python
+```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
 MODEL_ID = "Qwen/Qwen3-8B"
 model = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype="auto")
@@ -68,7 +68,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 
 ### 3. Prepare Calibration Data
 
-```Python
+```python
 from auto_round.calib_dataset import get_dataset
 NUM_CALIBRATION_SAMPLES = 128
 MAX_SEQUENCE_LENGTH = 2048
@@ -81,7 +81,7 @@ ds = get_dataset(tokenizer=tokenizer,
 
 The AutoRound quantization can run on a variety of devices, including CPUs and GPUs. Quantization and serving may not happen on the same device. For example, you can quantize on a workstation with GPU and later deploy on AIPC.
 
-```Python
+```python
 from llmcompressor import oneshot
 from llmcompressor.modifiers.autoround import AutoRoundModifier
 
@@ -112,9 +112,9 @@ In practice, **128 calibration samples + ~200 iterations** often reach stable co
 
 ### 5. Serve in vLLM
 
-Once quantization is complete, the same compressed model can be served on different hardware, independent of the device used for tuning. For example, you can serve the quantized Qwen3‑8B‑W4A16‑G128‑AutoRound model on a single **Intel®** **Arc****™ Pro B60** **GPU**:
+Once quantization is complete, the same compressed model can be served on different hardware, independent of the device used for tuning. For example, you can serve the quantized Qwen3‑8B‑W4A16‑G128‑AutoRound model on a single **Intel® Arc™ Pro B60 GPU**:
 
-```Bash
+```bash
 vllm serve Qwen3-8B-W4A16-G128-AutoRound \
     --dtype=bfloat16 \
     --enforce-eager \
@@ -127,9 +127,9 @@ Note: please install vLLM from this PR https://github.com/vllm-project/vllm/pull
 
 ### 6. Evaluate (Example: GSM8K with `lm_eval`)
 
-```Bash
+```bash
 lm_eval --model vllm \
-  --model_args pretrained="./Qwen3-8B-W4A16-G128-AutoRound,add_bos_token=truemax_model_len=8192,max_num_batched_tokens=32768,max_num_seqs=128,add_bos_token=True,gpu_memory_utilization=0.8,dtype=bfloat16,max_gen_toks=2048,enable_prefix_caching=False,enforce_eager=True" \
+  --model_args pretrained="./Qwen3-8B-W4A16-G128-AutoRound,add_bos_token=true,max_model_len=8192,max_num_batched_tokens=32768,max_num_seqs=128,add_bos_token=True,gpu_memory_utilization=0.8,dtype=bfloat16,max_gen_toks=2048,enable_prefix_caching=False,enforce_eager=True" \
   --tasks gsm8k \
   --num_fewshot 5 \
   --limit 1000 \
@@ -142,9 +142,9 @@ lm_eval --model vllm \
 
 ## Conclusion & Future Plans
 
-With this first integration, AutoRound and LLM Compressor already provide a practical, production‑oriented path to low‑bit LLMs: W4A16 quantization is supported end‑to‑end, the workflow is simple to configure, and dense models such as Llama and Qwen. The setup is robust, streamlined, and ready for practical deployment.
+With this first integration, AutoRound and LLM Compressor already provide a practical, production‑oriented path to low‑bit LLMs: W4A16 quantization is supported end‑to‑end, the workflow is simple to configure, and dense models such as Llama and Qwen are supported. The setup is robust, streamlined, and ready for practical deployment.
 
-Looking ahead, we plan to extend support to additional schemes such as FP8, MXFP4, MXFP8, and NVFP4, add automatic mixed‑bit search for fine‑grained per‑layer optimization, and cover more model families, including Mixture‑of‑Experts (MoE) models. We also aim to deepen interoperability with other algorithms in LLM Compressor. So AutoRound can be combined into richer multi‑modifier recipes that serve both community use cases and Intel production workloads.
+Looking ahead, we plan to extend support to additional schemes such as FP8, MXFP4, MXFP8, and NVFP4, add automatic mixed‑bit search for fine‑grained per‑layer optimization, and cover more model families, including Mixture‑of‑Experts (MoE) models. We also aim to deepen interoperability with other algorithms in LLM Compressor, which will allow AutoRound to combined into richer multi‑modifier recipes that serve both community use cases and Intel production workloads.
 
 If you’d like to influence which formats, models, and workflows we prioritize next, please join the discussion in [RFC #1968](https://github.com/vllm-project/llm-compressor/issues/1968) and share your benchmarks or deployment requirements, or bring your feedback to the Intel Community so we can align the roadmap with real‑world needs.
 
