@@ -134,6 +134,8 @@ lm_eval --model vllm \
   --num_fewshot 5 \
   --limit 1000 \
   --batch_size 'auto'
+```
+```bash
 |Tasks|Version|     Filter     |n-shot|  Metric   |   |Value|   |Stderr|
 |-----|------:|----------------|-----:|-----------|---|----:|---|-----:|
 |gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.908|±  |0.0091|
