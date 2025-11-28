@@ -140,12 +140,13 @@ lr-x------ 1 user user 64 Nov 27 01:50 98 -> /tmp/cuda_coredump_pipe_hostname.30
 
 ## How to trace down the source code of a complicated kernel
 
-In the previous blog post, we mentioned that compiling with `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable will embed line information into the compiled binary, so that we can trace down the exact line of code that caused the issue. After some discussion and debugging several real-world issues, we find that the default way of showing line information in `cuda-gdb` is imperfect:
+In the previous blog post, we mentioned that compiling with the `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable embeds line information into the compiled binary, enabling us to trace down the exact line of code that caused the issue. After discussing and debugging several real-world issues, we found that the default way `cuda-gdb` displays line information is imperfect:
 
-1. For some complicated kernels, `cuda-gdb` will fail to find the correct line of code that caused the issue, even if the line information is embedded into the compiled binary.
-2. Even if `cuda-gdb` can find the correct line of code, it will only show the last line of code after compiler inlining the code, which might not be the actual line of code that caused the issue. C++ code heavily relies on inlining to remove runtime function calling overhead, and we need the full inline stack of the code to understand the issue.
+1. For some complex kernels, `cuda-gdb` fails to find the correct line of code that caused the issue, even when line information is embedded in the compiled binary.
 
-Let's take a concrete example to illustrate the issue. Here is a simple Python script that can cause an illegal memory access issue:
+2. Even when `cuda-gdb` can find the correct line of code, it only shows the last line after compiler inlining, which may not be the actual line that caused the issue. Since C++ code heavily relies on inlining to remove runtime function call overhead, we need the full inline stack to understand the issue.
+
+Let's illustrate this with a concrete example. The following Python script demonstrates an illegal memory access issue:
 
 ```python
 # save as illegal_memory_access.py
@@ -177,9 +178,9 @@ index = torch.ones(10, device="cuda", dtype=torch.int32) + 100
 print(data[index])
 ```
 
-Run the code with PyTorch >= 2.9.0 (to be specific, make sure it includes [this commit](https://github.com/pytorch/pytorch/commit/dae7710bf2561e9e8a8dc76fd30c68e25bd755b8), otherwise you will see an error like `RuntimeError: The specified pointer resides on host memory and is not registered with any CUDA device.`), and you will hit an illegal memory access error.
+Run this code with PyTorch >= 2.9.0 (specifically, ensure it includes [this commit](https://github.com/pytorch/pytorch/commit/dae7710bf2561e9e8a8dc76fd30c68e25bd755b8); otherwise you will see an error like `RuntimeError: The specified pointer resides on host memory and is not registered with any CUDA device.`). This will trigger an illegal memory access error.
 
-First, let's run with CUDA core dump enabled:
+First, let's run the code with CUDA core dump enabled:
 
 ```bash
 CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 \
@@ -189,15 +190,15 @@ CUDA_COREDUMP_FILE="/tmp/cuda_coredump_%h.%p.%t" \
 python illegal_memory_access.py
 ```
 
-The core dump progress will explicitly show the kernel that caused the issue: 
+The core dump progress will explicitly identify the kernel that caused the issue: 
 
 ```text
 _ZN2at6native24index_elementwise_kernelILi128ELi4EZNS0_16gpu_index_kernelIZNS0_17index_kernel_implINS0_10OpaqueTypeILi1EEEEEvRNS_18TensorIteratorBaseEN3c108ArrayRefIlEESA_EUlPcPKclE_EEvS7_SA_SA_RKT_bEUliE_EEvlT1_
 ```
 
-From the kernel name, we can see that the issue is caused by the `index_elementwise_kernel` in PyTorch. To locate the exact line of code that caused the issue, we need to build PyTorch from source with `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable, and then run the code again.
+From the kernel name, we can see that the issue is caused by PyTorch's `index_elementwise_kernel`. To locate the exact line of code that caused the issue, we need to build PyTorch from source with the `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable, then run the code again.
 
-When the compiled GPU kernel has line information embedded, we can use `cuda-gdb` to open the core dump file, and see exactly which line of code caused the issue:
+When the compiled GPU kernel has line information embedded, we can use `cuda-gdb` to open the core dump file and see exactly which line of code caused the issue:
 
 ```text
 (cuda-gdb) target cudacore /tmp/cuda_coredump_flow-matic.3756036.1764250282
@@ -218,14 +219,14 @@ _18TensorIteratorBaseEN3c108ArrayRefIlEES8_ENKUlPcPKclE_clES9_SB_l inlined from 
 203         *reinterpret_cast<scalar_t*>(out_data) = *reinterpret_cast<const scalar_t*>(in_data + offset);
 ```
 
-Next, inside `cuda-gdb`, we can use `info symbol $errorpc` to get more information about the location of the error:
+Next, within `cuda-gdb`, we can use `info symbol $errorpc` to get more information about the error location:
 
 ```text
 (cuda-gdb) info symbol $errorpc
 void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}) + 11472 in section .text._ZN2at6native24index_elementwise_kernelILi128ELi4EZNS0_16gpu_index_kernelIZNS0_17index_kernel_implINS0_10OpaqueTypeILi1EEEEEvRNS_18TensorIteratorBaseEN3c108ArrayRefIlEESA_EUlPcPKclE_EEvS7_SA_SA_RKT_bEUliE_EEvlT1_ of /tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn
 ```
 
-This gives us more information about the location of the error. `cuda-gdb` will unpack the compiled binary file, and `/tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn` is a cubin file that contains the `index_elementwise_kernel`. The error is happening at the `0x7ff533bb91d0` location in the cubin file. We can use `nvdisasm` to disassemble the cubin file, and see exactly which line of code is causing the issue:
+This provides more information about the error location. `cuda-gdb` unpacks the compiled binary file, and `/tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn` is a cubin file containing the `index_elementwise_kernel`. The error occurs at location `0x7ff533bb91d0` in the cubin file. We can use `nvdisasm` to disassemble the cubin file and see exactly which line of code is causing the issue:
 
 ```bash
 $ nvdisasm -ndf -c -gi /tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn > output.txt
@@ -243,16 +244,16 @@ $ grep -C20 7ff533bb91d0 output.txt
 ...
 ```
 
-Now we can see the full inline stack of the code that caused the issue. What `cuda-gdb` shows by default, is only the last inline expansion.
+Now we can see the full inline stack of the code that caused the issue. By default, `cuda-gdb` only shows the last inline expansion.
 
-A bit explanation about the command:
+A brief explanation of the command:
 
 - `-ndf`: Disable dataflow analyzer after disassembly.
 - `-c`: Only print code sections.
 - `-gi`: Annotate disassembly with source line information obtained from .debug_line section along with function inlining info, if present.
-- `-C20`: a `grep` argument showing the 20 lines of context around the founded Program Counter number `7ff533bb91d0` .
+- `-C20`: a `grep` argument showing 20 lines of context around the found Program Counter address `7ff533bb91d0`.
 
-In case the cubin file contains multiple kernels with the same Program Counter number, i.e. `grep` shows multiple matches, then we need to further filter the information:
+If the cubin file contains multiple kernels with the same Program Counter address (i.e., `grep` shows multiple matches), we need to further filter the information:
 
 ```bash
 $ cuobjdump -elf /tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn > elf.txt
@@ -275,9 +276,9 @@ $ grep -C20 7ff533bb91d0 output.txt
 ...
 ```
 
-The main difference is to get the cuda function index (the `-fun` argument) from `cuobjdump`, by searching the function's elf section, which is `26a` in this case.
+The main difference is obtaining the CUDA function index (the `-fun` argument) from `cuobjdump` by searching the function's ELF section, which is `26a` in this case.
 
-Note that this is a simplified example to showcase the usage. Real-world kernels can be much more complicated. For example, here is a complicated inline case:
+Note that this is a simplified example to demonstrate the technique. Real-world kernels can be much more complex. For example, here is a complex inline case:
 
 ```text
 	//## File "/data/youkaichao/data/vllm_flash_attn/csrc/cutlass/include/cute/arch/copy_sm90.hpp", line 93 inlined at "/data/youkaichao/data/vllm_flash_attn/csrc/cutlass/include/cute/arch/util.hpp", line 158
@@ -296,7 +297,7 @@ Note that this is a simplified example to showcase the usage. Real-world kernels
         /*7eebf5e9eb90*/                   MOV R34, R26 ;
 ```
 
-In this case, the code to blame is:
+In this case, the problematic code is:
 
 <p align="center">
 <picture>
@@ -305,11 +306,11 @@ In this case, the code to blame is:
 A line of poisoned code in the attention kernel.
 </p>
 
-The faulty source code calls some cutlass functions, and the function it lives in also gets inlined by upper-level caller. In this case, we find that `cuda-gdb` cannot correctly associate the line. In fact, it does not show any line information around the error location. But even if it shows the correct line, it will only show the last inline frame, which is `File "/data/youkaichao/data/vllm_flash_attn/csrc/cutlass/include/cute/arch/copy_sm90.hpp", line 93 inlined at "/data/youkaichao/data/vllm_flash_attn/csrc/cutlass/include/cute/arch/util.hpp", line 158`, an internal inline expansion of the cutlass function, still useless to debug the underlying issue.
+The faulty source code calls some CUTLASS functions, and the function containing it also gets inlined by an upper-level caller. In this case, `cuda-gdb` cannot correctly associate the line. In fact, it does not show any line information around the error location. Even when it shows the correct line, it only displays the last inline frame, which is `File "/data/youkaichao/data/vllm_flash_attn/csrc/cutlass/include/cute/arch/copy_sm90.hpp", line 93 inlined at "/data/youkaichao/data/vllm_flash_attn/csrc/cutlass/include/cute/arch/util.hpp", line 158`—an internal inline expansion of the CUTLASS function that is still unhelpful for debugging the underlying issue.
 
-With the approach outlined above, we can uncover the full inline chain of the source code, and carefully check them one by one to see which line is guilty of the error.
+With the approach outlined above, we can uncover the full inline chain of the source code and carefully examine each frame to identify which line is responsible for the error.
 
-Warning: to get the max benefit out of CUDA core dump, line information is crucial. It is recommended to compile with `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable, as this will transparently apply to all the compiled kernels, without having to dive deep into the compilation script to find the right place to add the flag. However, the flag is so transparent, that if you use some compilation caching mechanism such as `ccache`, the `ccache` will directly ignore the flag and reuse previous compiled results without actual compilation. When compiling from source, please make sure to disable the compilation caching mechanism.
+**Warning:** To maximize the benefit of CUDA core dumps, line information is crucial. It is recommended to compile with the `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable, as this transparently applies to all compiled kernels without needing to modify compilation scripts. However, this transparency means that if you use a compilation caching mechanism such as `ccache`, it may ignore the flag and reuse previously compiled results without actual compilation. When compiling from source, ensure that the compilation caching mechanism is disabled. If you use Just-In-Time compilation, please consult the documentation of your Just-In-Time compilation tool to see how to add line information.
 
 ## Conclusion
 
