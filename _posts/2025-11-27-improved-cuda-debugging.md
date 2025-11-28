@@ -140,7 +140,7 @@ lr-x------ 1 user user 64 Nov 27 01:50 98 -> /tmp/cuda_coredump_pipe_hostname.30
 
 ## How to trace down the source code of a complicated kernel
 
-In the previous [blogpost](https://blog.vllm.ai/2025/08/11/cuda-debugging.html), we mentioned that compiling with `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable will embed line information into the compiled binary, so that we can trace down the exact line of code that caused the issue. After discussing and debugging several real-world issues, we find that the default way of showing line information in `cuda-gdb` is imperfect:
+In the previous blog post, we mentioned that compiling with `export NVCC_PREPEND_FLAGS='-lineinfo'` environment variable will embed line information into the compiled binary, so that we can trace down the exact line of code that caused the issue. After some discussion and debugging several real-world issues, we find that the default way of showing line information in `cuda-gdb` is imperfect:
 
 1. For some complicated kernels, `cuda-gdb` will fail to find the correct line of code that caused the issue, even if the line information is embedded into the compiled binary.
 2. Even if `cuda-gdb` can find the correct line of code, it will only show the last line of code after compiler inlining the code, which might not be the actual line of code that caused the issue. C++ code heavily relies on inlining to remove runtime function calling overhead, and we need the full inline stack of the code to understand the issue.
@@ -177,7 +177,7 @@ index = torch.ones(10, device="cuda", dtype=torch.int32) + 100
 print(data[index])
 ```
 
-Run the code with PyTorch >= 2.9.0 (to be specific, make sure it includes [this commit](https://github.com/pytorch/pytorch/commit/dae7710bf2561e9e8a8dc76fd30c68e25bd755b8), otherwise you will see an error like `RuntimeError: The specified pointer resides on host memory and is not registered with any CUDA device.`), and you will hit an illegal memory access issue.
+Run the code with PyTorch >= 2.9.0 (to be specific, make sure it includes [this commit](https://github.com/pytorch/pytorch/commit/dae7710bf2561e9e8a8dc76fd30c68e25bd755b8), otherwise you will see an error like `RuntimeError: The specified pointer resides on host memory and is not registered with any CUDA device.`), and you will hit an illegal memory access error.
 
 First, let's run with CUDA core dump enabled:
 
@@ -205,15 +205,7 @@ Opening GPU coredump: /tmp/cuda_coredump_flow-matic.3756036.1764250282
 [Current focus set to CUDA kernel 0, grid 4, block (0,0,0), thread (0,0,0), device 0, sm 124, warp 3, lane 0]
 
 CUDA Exception: Warp Illegal Address
-The exception was triggered at PC 0x7ff533bb91d0  void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::in
-dex_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, lon
-g)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorI
-teratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native:
-:gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>):
-:{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::nat
-ive::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{l
-ambda(int)#1})  (IndexKernel.cu:118 in _ZZN2at6native16gpu_index_kernelIZNS0_17index_kernel_implINS0_10OpaqueTypeILi1EEEEEvRNS_18TensorIterator
-BaseEN3c108ArrayRefIlEES9_EUlPcPKclE_EEvS6_S9_S9_RKT_bENKUliE_clEi inlined from IndexKernel.cu:37)
+The exception was triggered at PC 0x7ff533bb91d0  ...
 #0  void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<1> >(at
 ::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<
 long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayR
@@ -233,7 +225,7 @@ Next, inside `cuda-gdb`, we can use `info symbol $errorpc` to get more informati
 void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<1> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}) + 11472 in section .text._ZN2at6native24index_elementwise_kernelILi128ELi4EZNS0_16gpu_index_kernelIZNS0_17index_kernel_implINS0_10OpaqueTypeILi1EEEEEvRNS_18TensorIteratorBaseEN3c108ArrayRefIlEESA_EUlPcPKclE_EEvS7_SA_SA_RKT_bEUliE_EEvlT1_ of /tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn
 ```
 
-This gives us more information about the location of the error. `cuda-gdb` will unpack the compiled library, and `/tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn` is a cubin file that contains the `index_elementwise_kernel`. The error is happening at the `0x7ff533bb91d0` location in the cubin file. We can use `nvdisasm` to disassemble the cubin file, and see exactly which line of code is causing the issue:
+This gives us more information about the location of the error. `cuda-gdb` will unpack the compiled binary file, and `/tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn` is a cubin file that contains the `index_elementwise_kernel`. The error is happening at the `0x7ff533bb91d0` location in the cubin file. We can use `nvdisasm` to disassemble the cubin file, and see exactly which line of code is causing the issue:
 
 ```bash
 $ nvdisasm -ndf -c -gi /tmp/cuda-dbg/2123124/session1/elf.21407f80.24fe2940.o.4gyLzn > output.txt
