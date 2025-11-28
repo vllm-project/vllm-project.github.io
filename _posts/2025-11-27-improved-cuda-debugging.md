@@ -11,11 +11,11 @@ As adoption of the CUDA core dump technique has grown, developers have expressed
 
 ## How to find hanging kernels
 
-GPUs are becoming more and more powerful, the computation power is increasing exponentially. However, the memory bandwidth is not increasing as fast. As a result, the memory access patterns are becoming more and more complicated. In more recent years, flagship datacenter GPUs start to introduce asynchronous memory access patterns, with complicated synchronization required when implementing high-performance kernels. Such synchronization is easily prone to race conditions and deadlocks, especially in a complicated codebase.
+GPU computational power has been increasing exponentially, but memory bandwidth has not kept pace. This imbalance has led to increasingly complex memory access patterns. In recent years, flagship datacenter GPUs have introduced asynchronous memory access patterns that require sophisticated synchronization when implementing high-performance kernels. These synchronization mechanisms are prone to race conditions and deadlocks, particularly in complex codebases.
 
-When a GPU kernel hangs, the program will typically freeze or become unresponsive (even hitting Ctrl-C cannot stop it). One solution is to just kill the process. However, this is not a very effective way to debug the issue, as it does not provide any information about the root cause of the issue. People have to blindly guess the root cause of the issue, bisecting code changes and running tests until they find the root cause.
+When a GPU kernel hangs, the program typically freezes or becomes unresponsive—even pressing Ctrl-C cannot stop it. The most straightforward solution is to kill the process, but this approach provides no information about the root cause. Developers are left to guess blindly, bisecting code changes and running tests iteratively until they identify the issue.
 
-Can we do better? It turns out we can. There is a feature inside cuda driver called `user induced GPU core dump generation`: the cuda driver will open some pipes in the operating system, and we as users can trigger a core dump by writing to these pipes. When the core dump is triggered, the cuda driver will dump the GPU state to core dump files, so that we can inspect the core dump to know what's happening inside the GPU, and most importantly, which GPU kernel is hanging.
+Fortunately, there is a better way. The CUDA driver includes a feature called `user induced GPU core dump generation`: the driver opens pipes in the operating system that allow users to trigger a core dump by writing to them. When triggered, the CUDA driver dumps the GPU state to core dump files, enabling inspection of what's happening inside the GPU and, most importantly, identifying which GPU kernel is hanging.
 
 Here is a simple example of a conditional hanging kernel:
 
@@ -88,7 +88,7 @@ x = x + 2
 torch.cuda.synchronize()
 ```
 
-Directly executing the code will hang forever. We can enable the `user induced GPU core dump generation` to debug the issue:
+Directly executing the code will hang forever. We can enable the user induced GPU core dump generation to debug the issue:
 
 ```bash
 CUDA_ENABLE_COREDUMP_ON_EXCEPTION=1 \
