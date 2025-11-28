@@ -314,10 +314,10 @@ With the approach outlined above, we can uncover the full inline chain of the so
 
 ## Conclusion
 
-This blog post introduced two advanced debugging techniques for CUDA kernels. The first one is to find hanging kernels using user-triggered core dump, and the second one is to trace down the source code of a complicated kernel via tracing down the line information embedded in the compiled binary. These techniques are powerful tools to debug complicated issues in CUDA kernels, and are especially useful for debugging illegal memory access issues.
+This blog post introduced two advanced debugging techniques for CUDA kernels. The first technique uses user-triggered core dumps to identify hanging kernels, while the second traces complex kernels back to their source code by leveraging line information embedded in the compiled binary. These techniques are powerful tools for debugging complex issues in CUDA kernels, especially illegal memory access problems.
 
-The vLLM project aims to provide easy, fast, and cheap LLM serving for everyone, and easy debugging is also an important aspect. We will continue to share more debugging tips and techniques in the future, to build a strong LLM inference ecosystem together. To share your story or usage with vLLM, please submit a PR at [the blogpost repository](https://github.com/vllm-project/vllm-project.github.io).
+The vLLM project aims to provide easy, fast, and affordable LLM serving for everyone, and accessible debugging is an important aspect of this mission. We will continue to share more debugging tips and techniques in the future to build a strong LLM inference ecosystem together. To share your story or usage with vLLM, please submit a PR at [the blogpost repository](https://github.com/vllm-project/vllm-project.github.io).
 
 # Acknowledgement
 
-We would like to thank Ze Long and Sandarbh Jain from NVIDIA for their helpful discussions. Chao Hong from Moonshot AI helped providing the motivating example.
+We would like to thank Ze Long and Sandarbh Jain from NVIDIA for their helpful discussions. Chao Hong from Moonshot AI helped provide the motivating example.
