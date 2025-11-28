@@ -1,13 +1,13 @@
 ---  
 layout: post
-title: "Blaming Hanging and Complicated GPU Kernels Down To The Source Code"
+title: "Tracing Hanging and Complicated GPU Kernels Down To The Source Code"
 author: "Kaichao You (vLLM)"
 image: /assets/logos/vllm-logo-text-light.png
 ---
 
-Several months ago, we wrote a blog post about [CUDA Core Dump: An Effective Tool to Debug Memory Access Issues and Beyond](https://blog.vllm.ai/2025/08/11/cuda-debugging.html), which introduced a powerful tool to debug illegal memory access issues in CUDA kernels. That blog post itself is a huge milestone for debugging GPU kernels, as it can faithfully trace down the exact GPU kernel that caused the issue. Prior to this, due to the asynchronous nature of GPU kernels, people often have no idea which kernel caused the issue, and the error message is often misleading.
+Several months ago, we published a blog post about [CUDA Core Dump: An Effective Tool to Debug Memory Access Issues and Beyond](https://blog.vllm.ai/2025/08/11/cuda-debugging.html), introducing a powerful technique for debugging illegal memory access issues in CUDA kernels. This represented a significant milestone in GPU kernel debugging, as it enables developers to pinpoint the exact kernel responsible for a failure. Previously, due to the asynchronous nature of GPU execution, identifying the problematic kernel was nearly impossible, and error messages were often misleading.
 
-As more and more people are trying out the CUDA core dump technique, people also want to get fine-grained information about the GPU kernel, such as the exact line of code that caused the issue, so that they can fix the issue quickly. In this blog post, we will fill in a missing piece of how to find hanging kernels first, and then proceed to explain how to blame the problematic kernel down to the source code.
+As adoption of the CUDA core dump technique has grown, developers have expressed a need for more granular information—specifically, the exact line of source code that triggered the issue. In this blog post, we address this gap by first covering how to identify hanging kernels, then demonstrating how to trace problematic kernels back to their source code.
 
 ## How to find hanging kernels
 
