@@ -327,7 +327,7 @@ result = ops.cutlass_scaled_mm(
 print(result)
 ```
 
-Following the same steps as before we first rebuild vLLM with lineinfo; If vLLM was installed via an editable install (i.e. `-e .`) this can be done using:
+Following the same steps as before we first rebuild vLLM with lineinfo; if vLLM was installed via an editable install (i.e. `-e .`) this can be done using:
 
 ```bash
 NVCC_PREPEND_FLAGS="-lineinfo" python setup.py build_ext --inplace
@@ -404,7 +404,7 @@ This reveals a deep inline call chain:
         /*7f5687bbb580*/                   UTMALDG.3D [UR8], [UR14], desc[UR16] ;
 ```
 
-Now we can trace the issue back through the full call chain — from ptx instruction we saw before all the way up to where it is instantiated in vLLM. Following the call chain we can get to a contextually useful line, in this case that is in CUTLASS's collective mainloop (`sm90_mma_tma_gmma_ss_warpspecialized.hpp`): 
+Now we can trace the issue back through the full call chain — from ptx instruction we saw before all the way to the device_kernel entry point. Following the call chain we can get to a contextually useful line, in this case that is in CUTLASS's collective mainloop (`sm90_mma_tma_gmma_ss_warpspecialized.hpp`): 
 ```c++
 copy(mainloop_params.tma_load_a.with(*tma_barrier, mcast_mask_a), tAgA(_,_,_,*k_tile_iter), tAsA(_,_,_,write_stage));
 ```
@@ -416,8 +416,7 @@ This is more helpful as it informs us the issue is with loading the A matrix spe
 
 ## Conclusion
 
-This blog post introduced two advanced debugging techniques for CUDA kernels. The first technique uses user-triggered core dumps to identify hanging kernels, while the second traces complex kernels back to their source code by leveraging line information embedded in the compiled binary. These techniques are powerful tools for debugging complex issues in CUDA kernels, especially illegal memory access problems.
-Using both the `user induced GPU core dump generation` and `nvdisasm` techniques we were able to recently debug a hard-to-reproduce and tricky hang in the CUTLASS MLA attention backend: https://github.com/vllm-project/vllm/pull/26026 (this bug actually stemmed from the upstream CUTLASS code example and has since been fixed in [v4.3.0](https://github.com/NVIDIA/cutlass/commit/b1d6e2c9b334dfa811e4183dfbd02419249e4b52)).
+This blog post introduced two advanced debugging techniques for CUDA kernels. The first technique uses user-triggered core dumps to identify hanging kernels, while the second traces complex kernels back to their source code by leveraging line information embedded in the compiled binary. These techniques are powerful tools for debugging complex issues in CUDA kernels, especially illegal memory access problems. Using both in tandem we were able to recently debug a hard-to-reproduce and tricky hang in the CUTLASS MLA attention backend: https://github.com/vllm-project/vllm/pull/26026 (this bug actually stemmed from the upstream CUTLASS code example and has since been fixed in [v4.3.0](https://github.com/NVIDIA/cutlass/commit/b1d6e2c9b334dfa811e4183dfbd02419249e4b52)).
 
 The vLLM project aims to provide easy, fast, stable, and affordable LLM serving for everyone, and accessible debugging is an important aspect of this mission. We will continue to share more debugging tips and techniques in the future to build a strong LLM inference ecosystem together. To share your story or usage with vLLM, please submit a PR at [the blogpost repository](https://github.com/vllm-project/vllm-project.github.io).
 
