@@ -96,14 +96,13 @@ __global__ void illegalMemoryAccessKernel(int* data, int size) {
     }
 }
 
-// Kernel with illegal memory access - accesses memory beyond allocated bounds
+// Simple kernel with no errors
 __global__ void normalKernel(int* data, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     
-    // This will cause illegal memory access - accessing beyond allocated memory
-    // We allocate 'size' elements but access up to size * 2
-    if (idx < size) {  // Access twice the allocated size
-        data[idx] = idx;   // 
+
+    if (idx < size) {
+        data[idx] = idx; 
     }
 }
 
