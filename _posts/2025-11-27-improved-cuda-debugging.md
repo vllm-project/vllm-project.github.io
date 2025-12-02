@@ -327,7 +327,7 @@ result = ops.cutlass_scaled_mm(
 print(result)
 ```
 
-Following the same steps as before we first rebuild vLLM with lineinfo; if vLLM was installed via an editable install (i.e. `-e .`) this can be done using:
+Following the same steps as before we first rebuild vLLM with lineinfo; if vLLM was installed via an editable install (i.e. `-e . --no-build-isolation`) this can be done using:
 
 ```bash
 NVCC_PREPEND_FLAGS="-lineinfo" python setup.py build_ext --inplace
