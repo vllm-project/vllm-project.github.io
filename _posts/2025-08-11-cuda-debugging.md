@@ -151,7 +151,7 @@ int main() {
 }
 ```
 
-This code launches two kernels consecutively (`illegalMemoryAccessKernel` and `normalKernel`). During normal execution, you would encounter an error message: `CUDA Error at test.cu:62 - cudaMemcpy(h_data, d_data, size * sizeof(int), cudaMemcpyDeviceToHost): an illegal memory access was encountered`, and the error would only be detected in the return value of `cudaMemcpy`. Even with `CUDA_LAUNCH_BLOCKING=1`, it is still impossible to identify the specific kernel that caused the error.
+This code launches two kernels consecutively (`illegalMemoryAccessKernel` and `normalKernel`). During execution, you would encounter an error message: `CUDA Error at test.cu:62 - cudaMemcpy(h_data, d_data, size * sizeof(int), cudaMemcpyDeviceToHost): an illegal memory access was encountered`, and the error would only be detected in the return value of `cudaMemcpy`. Even with `CUDA_LAUNCH_BLOCKING=1`, it is still impossible to identify the specific kernel that caused the error.
 
 By adding the CUDA core dump-related environment variables, we can observe:
 
