@@ -134,8 +134,8 @@ lm_eval --model vllm \
 
 |Tasks|Version|     Filter     |n-shot|  Metric   |   |Value|   |Stderr|
 |-----|------:|----------------|-----:|-----------|---|----:|---|-----:|
-|gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.908|±  |0.0091|
-|     |       |strict-match    |     5|exact_match|↑  |0.907|±  |0.0092|
+|gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.911|±  | 0.009|
+|     |       |strict-match    |     5|exact_match|↑  |0.911|±  | 0.009|
 ```
 Note: The results may fluctuate due to non-determinism.
 
