@@ -153,11 +153,4 @@ We wish to acknowledge the contributions of the LLM Compressor community. Specif
 
 #### Related RFCs and PRs
 
-RFC: https://github.com/vllm-project/llm-compressor/issues/1968
-
-PRs: 
-
-- https://github.com/vllm-project/llm-compressor/pull/1994
-- https://github.com/vllm-project/llm-compressor/pull/2055
-- https://github.com/vllm-project/llm-compressor/pull/2062
-- https://github.com/vllm-project/vllm/pull/29484/ (Under Review)
+[llm-compressor#1968](https://github.com/vllm-project/llm-compressor/issues/1968)， [llm-compressor#1994](https://github.com/vllm-project/llm-compressor/pull/1994), [llm-compressor#2055](https://github.com/vllm-project/llm-compressor/pull/2055), [llm-compressor#2062](https://github.com/vllm-project/llm-compressor/pull/2062), [vllm#29484](https://github.com/vllm-project/vllm/pull/29484) (Under Review).
