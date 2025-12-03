@@ -27,7 +27,7 @@ Core strengths:
 - **Mixed‑bit**, layer‑wise precision search for flexible accuracy–efficiency trade‑offs
 - Applicability across both **LLMs** and **VLMs**
 
-AutoRound enables quantized models in a range of low‑bit formats that are designed to accelerate inference on **Intel® Xeon ® processors**, **Intel® Gaudi® AI accelerators**, **Intel® Data Center GPUs**, **Intel® Arc™ B‑Series Graphics**, as well as other GPUs (e.g., CUDA‑based devices).
+AutoRound enables quantized models in a range of low‑bit formats that are designed to accelerate inference on **Intel® Xeon® processors**, **Intel® Gaudi® AI accelerators**, **Intel® Data Center GPUs**, **Intel® Arc™ B‑Series Graphics**, as well as other GPUs (e.g., CUDA‑based devices).
 
 Looking forward, Intel is adding native support for FP8, MXFP8, and MXFP4 formats to its next-generation **Data Center GPUs, codenamed Crescent Island**. Models quantized with AutoRound will naturally scale to take advantage of these data types across the Intel AI hardware portfolio. This creates a consistent path from algorithmic innovation to real‑world deployment.
 
