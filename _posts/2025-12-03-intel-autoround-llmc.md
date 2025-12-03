@@ -126,13 +126,12 @@ Note: please install vLLM from this PR https://github.com/vllm-project/vllm/pull
 
 ```bash
 lm_eval --model vllm \
-  --model_args pretrained="./Qwen3-8B-W4A16-G128-AutoRound,add_bos_token=true,max_model_len=8192,max_num_batched_tokens=32768,max_num_seqs=128,add_bos_token=True,gpu_memory_utilization=0.8,dtype=bfloat16,max_gen_toks=2048,enable_prefix_caching=False,enforce_eager=True" \
+  --model_args pretrained="./Qwen3-8B-W4A16-G128-AutoRound,max_model_len=8192,max_num_batched_tokens=32768,max_num_seqs=128,gpu_memory_utilization=0.8,dtype=bfloat16,max_gen_toks=2048,enable_prefix_caching=False,enforce_eager=True" \
   --tasks gsm8k \
   --num_fewshot 5 \
   --limit 1000 \
-  --batch_size 'auto'
-```
-```bash
+  --batch_size 128
+
 |Tasks|Version|     Filter     |n-shot|  Metric   |   |Value|   |Stderr|
 |-----|------:|----------------|-----:|-----------|---|----:|---|-----:|
 |gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.908|±  |0.0091|
