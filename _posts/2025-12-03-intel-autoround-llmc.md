@@ -1,8 +1,7 @@
 ---  
 layout: post
-title: "Advancing Low‑Bit Quantization for LLMs: AutoRound x LLM Compressor [Draft]"
-author: "Intel Neural Compressor Team"
-image: /assets/figures/2025-vllm-on-intel-arc/perf-figure1.png
+title: "Advancing Low‑Bit Quantization for LLMs: AutoRound x LLM Compressor"
+author: "Intel Neural Compressor Team, Red Hat AI Model Optimization Team"
 ---
 
 
@@ -30,13 +29,13 @@ Core strengths:
 
 AutoRound enables quantized models in a range of low‑bit formats that are designed to accelerate inference on **Intel® Xeon ® processors**, **Intel® Gaudi® AI accelerators**, **Intel® Data Center GPUs**, **Intel® Arc™ B‑Series Graphics**, as well as other GPUs (e.g., CUDA‑based devices).
 
-Looking forward, as Intel’s next‑generation GPUs—**including Intel® Crescent Island**—add native support for **FP8, MXFP8, and MXFP4** formats, models optimized with AutoRound will naturally scale to take advantage of these data types across the Intel AI hardware portfolio. This creates a consistent path from algorithmic innovation to real‑world deployment.
+Looking forward, Intel is adding native support for FP8, MXFP8, and MXFP4 formats to its next-generation **Data Center GPUs, codenamed Crescent Island**. Models quantized with AutoRound will naturally scale to take advantage of these data types across the Intel AI hardware portfolio. This creates a consistent path from algorithmic innovation to real‑world deployment.
 
 For more details, please refer to the paper [AutoRound (EMNLP 2024)](https://aclanthology.org/2024.findings-emnlp.662.pdf) and the GitHub repository [intel/auto-round](https://github.com/intel/auto-round).
 
 ## Why Integrate Into LLM Compressor?
 
-**LLM** **Compressor** already provides a unified, modular system for compression primitives such as quantization, pruning, and distillation. Integrating AutoRound into this ecosystem:
+**LLM** **Compressor** already provides a unified, modular system for compression primitives such as quantization and pruning. Integrating AutoRound into this ecosystem:
 
 - Aligns with the existing modifier architecture (e.g., `GPTQModifier`)  
 - Reuses the sequential calibration and layer‑onloading infrastructure  
@@ -90,8 +89,6 @@ recipe = AutoRoundModifier(
     scheme="W4A16",
     ignore=["lm_head"],
     iters=200,
-    enable_torch_compile=False,
-    batch_size=2,
 )
 
 oneshot(
@@ -141,6 +138,7 @@ lm_eval --model vllm \
 |gsm8k|      3|flexible-extract|     5|exact_match|↑  |0.908|±  |0.0091|
 |     |       |strict-match    |     5|exact_match|↑  |0.907|±  |0.0092|
 ```
+Note: The results may fluctuate due to non-determinism.
 
 ## Conclusion & Future Plans
 
@@ -152,7 +150,7 @@ If you’d like to influence which formats, models, and workflows we prioritize 
 
 ### Acknowledgements
 
-We’d like to thank the **vLLM / LLM Compressor** community for extensive early discussions on the proposal and for their thoughtful reviews of the pull requests.
+We wish to acknowledge the contributions of the LLM Compressor community. Specifically, we thank Kyle Sayers, Dipika Sikka, Brian Dellabetta, Charles Hernandez, and Robert Shaw for their invaluable feedback on the early proposal and their diligent review of the pull requests.
 
 #### Related RFCs and PRs
 
@@ -162,5 +160,5 @@ PRs:
 
 - https://github.com/vllm-project/llm-compressor/pull/1994
 - https://github.com/vllm-project/llm-compressor/pull/2055
-- https://github.com/vllm-project/llm-compressor/pull/2062 (Under Review)
+- https://github.com/vllm-project/llm-compressor/pull/2062
 - https://github.com/vllm-project/vllm/pull/29484/ (Under Review)
