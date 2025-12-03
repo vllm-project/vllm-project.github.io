@@ -96,14 +96,13 @@ __global__ void illegalMemoryAccessKernel(int* data, int size) {
     }
 }
 
-// Kernel with illegal memory access - accesses memory beyond allocated bounds
+// Simple kernel with no errors
 __global__ void normalKernel(int* data, int size) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     
-    // This will cause illegal memory access - accessing beyond allocated memory
-    // We allocate 'size' elements but access up to size * 2
-    if (idx < size) {  // Access twice the allocated size
-        data[idx] = idx;   // 
+
+    if (idx < size) {
+        data[idx] = idx; 
     }
 }
 
@@ -152,7 +151,7 @@ int main() {
 }
 ```
 
-This code launches two kernels consecutively (`illegalMemoryAccessKernel` and `normalKernel`). During normal execution, you would encounter an error message: `CUDA Error at test.cu:62 - cudaMemcpy(h_data, d_data, size * sizeof(int), cudaMemcpyDeviceToHost): an illegal memory access was encountered`, and the error would only be detected in the return value of `cudaMemcpy`. Even with `CUDA_LAUNCH_BLOCKING=1`, it is still impossible to identify the specific kernel that caused the error.
+This code launches two kernels consecutively (`illegalMemoryAccessKernel` and `normalKernel`). During execution, you would encounter an error message: `CUDA Error at test.cu:62 - cudaMemcpy(h_data, d_data, size * sizeof(int), cudaMemcpyDeviceToHost): an illegal memory access was encountered`, and the error would only be detected in the return value of `cudaMemcpy`. Even with `CUDA_LAUNCH_BLOCKING=1`, it is still impossible to identify the specific kernel that caused the error.
 
 By adding the CUDA core dump-related environment variables, we can observe:
 
