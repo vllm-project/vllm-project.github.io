@@ -39,9 +39,9 @@ For more details, please refer to the paper [AutoRound (EMNLP 2024)](https://acl
 
 **LLM** **Compressor** already provides a unified, modular system for compression primitives such as quantization and pruning. Integrating AutoRound into this ecosystem:
 
-- Aligns with the existing modifier architecture (e.g., `GPTQModifier`)  
-- Reuses the sequential calibration and layer‑onloading infrastructure  
-- Enables future interoperability with richer multi‑modifier recipes  
+- Aligns with the existing modifier architecture (e.g., `GPTQModifier`)
+- Reuses the sequential calibration and layer‑onloading infrastructure
+- Enables future interoperability with richer multi‑modifier recipes
 - Produces quantized models that are ready for vLLM serving, enabling a clean workflow from compression to deployment
 
 ## Integration Overview
