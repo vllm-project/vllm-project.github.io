@@ -46,7 +46,7 @@ For more details, please refer to the paper [AutoRound (EMNLP 2024)](https://acl
 
 ## Integration Overview
 
-We completed the first stage of integration by introducing the new `AutoRoundModifier` into LLM Compressor, enabling production of `wNa16` (e.g., W4A16) compressed models that seamlessly load in vLLM, as implemented in [PR #1994](https://github.com/vllm-project/llm-compressor/pull/1994). With a straightforward configuration—just specify your model and calibration data—you can quickly generate high‑quality low‑bit checkpoints. This initial stage supports quantizing a range of dense LLMs, including the **Llama** and **Qwen** model families, and demonstrates robust compatibility for practical deployment.
+We completed the first stage of integration by introducing the new `AutoRoundModifier` into LLM Compressor, enabling production of `W{n}A16` (e.g., W4A16) compressed models that seamlessly load in vLLM, as implemented in [PR #1994](https://github.com/vllm-project/llm-compressor/pull/1994). With a straightforward configuration—just specify your model and calibration data—you can quickly generate high‑quality low‑bit checkpoints. This initial stage supports quantizing a range of dense LLMs, including the **Llama** and **Qwen** model families, and demonstrates robust compatibility for practical deployment.
 
 ## Try It Now (Quickstart)
 
