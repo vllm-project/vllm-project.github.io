@@ -116,10 +116,8 @@ Once quantization is complete, the same compressed model can be served on differ
 ```bash
 vllm serve Qwen3-8B-W4A16-G128-AutoRound \
     --dtype=bfloat16 \
-    --enforce-eager \
-    --gpu-memory-util=0.8 \
-    --no-enable-prefix-caching \
-    --max-num-batched-tokens=8192 
+    --gpu-memory-utilization 0.8 \
+    --max-num-batched-tokens 8192 
 ```
 
 Note: please install vLLM from this PR https://github.com/vllm-project/vllm/pull/29484/
