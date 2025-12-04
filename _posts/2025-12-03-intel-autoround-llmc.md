@@ -4,6 +4,7 @@ title: "Advancing Low‑Bit Quantization for LLMs: AutoRound x LLM Compressor"
 author: "Intel Neural Compressor Team, Red Hat AI Model Optimization Team"
 ---
 
+**Achieve faster, more efficient LLM serving without sacrificing accuracy!**
 
 ## TL;DR
 
@@ -13,6 +14,7 @@ We’re excited to announce that **[AutoRound](https://aclanthology.org/2024.fin
 - Lightweight tuning (hundreds of steps, not thousands)
 - Zero additional inference overhead
 - Seamless compatibility with `compressed-tensors` and direct serving in [vLLM](https://github.com/vllm-project/vllm)
+- Streamlined workflow: quantize and serve models with just a few lines of code
 
 Broader quantization schemes and model coverage are coming next—try it now and help shape what we build.
 
