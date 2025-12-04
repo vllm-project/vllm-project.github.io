@@ -120,7 +120,7 @@ vllm serve Qwen3-8B-W4A16-G128-AutoRound \
     --max-num-batched-tokens 8192 
 ```
 
-Note: Please install vLLM from PR #29484. When serving on XPU, you must run vLLM with the --enforce-eager flag.
+Note: Please install vLLM from PR #29484. When serving on XPU, you must run vLLM with the `--enforce-eager` flag.
 
 ### 6. Evaluate (Example: GSM8K with `lm_eval`)
 
