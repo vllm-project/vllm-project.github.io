@@ -149,7 +149,7 @@ If you’d like to influence which formats, models, and workflows we prioritize 
 
 ### Acknowledgements
 
-We wish to acknowledge the contributions of the LLM Compressor community. Specifically, we thank Kyle Sayers, Dipika Sikka, Brian Dellabetta, Charles Hernandez, and Robert Shaw for their invaluable feedback on the early proposal and their diligent review of the pull requests.
+We wish to acknowledge the LLM Compressor and vLLM community. Specifically, we thank Kyle Sayers, Dipika Sikka, Brian Dellabetta, Charles Hernandez, Robert Shaw and Kunshang Ji for their invaluable feedback on the early proposal and their diligent review of the pull requests.
 
 #### Related RFCs and PRs
 
