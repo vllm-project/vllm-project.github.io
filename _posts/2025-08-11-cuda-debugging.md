@@ -92,7 +92,9 @@ __global__ void illegalMemoryAccessKernel(int* data, int size) {
     // This will cause illegal memory access - accessing beyond allocated memory
     // We allocate 'size' elements but access up to size * 2
     if (idx < size * 2) {  // Access twice the allocated size
-        data[idx - 1000000000] = idx;   // This will cause illegal access for idx == 0
+        for (int i = 0; i < 10000; i++) {
+            data[idx - 1000000000 + i] = idx;   // This will cause illegal access for idx == 0
+        }
     }
 }
 
@@ -156,14 +158,13 @@ This code launches two kernels consecutively (`illegalMemoryAccessKernel` and `n
 By adding the CUDA core dump-related environment variables, we can observe:
 
 ```text
-[00:40:46.606413] coredump: SM 123/132 has finished state collection
-[00:40:46.606419] coredump: SM 124/132 has finished state collection
-[00:40:46.611453] coredump: Detected an exception of type CUDBG_EXCEPTION_WARP_ILLEGAL_ADDRESS (14)
-[00:40:46.611458] coredump:   - Device: 0
-[00:40:46.611460] coredump:   - SM: 124
-[00:40:46.611462] coredump:   - Warp: exception was detected after the warp has exited
-[00:40:46.611465] coredump:   - PC 0x7f31abb9f6d0
-[00:40:46.611467] coredump: SM 125/132 has finished state collection
+[06:43:15.209195] coredump: Detected an exception of type CUDBG_EXCEPTION_WARP_ILLEGAL_ADDRESS (14)
+[06:43:15.209202] coredump:   - Device: 0
+[06:43:15.209206] coredump:   - SM: 124
+[06:43:15.209208] coredump:   - Warp: 0
+[06:43:15.209210] coredump:   - PC 0x7462c3bac310
+[06:43:15.209477] coredump: Stack trace (lane masks: active 0xFFFFFFFF, valid 0xFFFFFFFF):
+[06:43:15.209486] coredump:   #0	0x7462c3bac620	_Z25illegalMemoryAccessKernelPii
 
 [00:40:46.806153] coredump: Writing ELF file to /tmp/cuda_coredump_xxx.1799919.1754898045
 
