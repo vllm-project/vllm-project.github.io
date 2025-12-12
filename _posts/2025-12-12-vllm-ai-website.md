@@ -33,4 +33,4 @@ In addition to the new website, we've added several new email addresses for comm
 * **collaboration@vllm.ai** - For partner companies interested in accessing resumes, organizing meetups, or technical partnerships. We are open to collaborating with any company interested in using vLLM in their products or services. This will gradually replace the existing functionality of vllm-questions@lists.berkeley.edu.
 * **social-promotion@vllm.ai** - For social media promotion collaborations (Twitter/X, LinkedIn, Reddit). If you have anything interesting to share about vLLM, please send an email to this address, and we will review and promote it.
 
-From a research project to a widely-used production inference engine, vLLM would not be where it is today without the immense support from the community. Please stay tuned for a more exciting future!
+From a research project to a widely used production inference engine, vLLM would not be where it is today without the incredible support from our community. We're excited to continue building the future of LLM inference together!
