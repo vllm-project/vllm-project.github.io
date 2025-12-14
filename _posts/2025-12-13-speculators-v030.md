@@ -4,6 +4,7 @@ title: "Diving into end-to-end speculative decoding training support for vLLM wi
 author: "Fynn Schmitt-Ulms, Helen Zhao, Rahul Tuli and Dipika Sikka (Red Hat AI Model Optimization Team)
 ---
 
+
 ## Key Highlights 
 
 - Speculative decoding serves as an optimization to improve inference performance; however, training a unique draft model for each LLM can be difficult and time-consuming, while production-ready training utilities for generating models for vLLM are scarce
@@ -105,7 +106,7 @@ Once training is complete, the library generates a complete model artifact with 
 vllm serve RedHatAI/Llama-3.1-8B-Instruct-speculator.eagle3
 ```
 
-When running this command, vLLM will read the speculative decoding settings (e.g., the name of the verifier model) stored in the `speculators_config`. This information is used to load both the draft model and the verifier model into the same server and set up speculative decoding. The `speculators_config` provides a standardized configuration format, enabling a self-contained model that knows how it should run while making deployment of speculative decoding models as simple as running any other LLM. For further details on the `speculators_config`, [see an example below](#appendix).
+When running this command, vLLM will read the speculative decoding settings (e.g., the name of the verifier model) stored in the `speculators_config`. This information is used to load both the draft model and the verifier model into the same server and set up speculative decoding. The `speculators_config` provides a standardized configuration format, enabling a self-contained model that knows how it should run while making deployment of speculative decoding models as simple as running any other LLM. For further details on the `speculators_config`, [see an example below](#speculators_config).
 
 While the simplified one-command deployment is perfect for getting started, vLLM also provides a long-form syntax when you need more control. This is useful for:
 
