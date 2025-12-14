@@ -1,7 +1,8 @@
 ---
 layout: post
-title: "Diving into end-to-end speculative decoding training support for vLLM with Speculators v0.3.0"
+title: "Diving into speculative decoding training support for vLLM with Speculators v0.3.0"
 author: "Fynn Schmitt-Ulms, Helen Zhao, Rahul Tuli and Dipika Sikka (Red Hat AI Model Optimization Team)"
+image: /assets/figures/2025-12-13-speculators-v030/cropped_workflow.png
 ---
 
 ## Key Highlights 
