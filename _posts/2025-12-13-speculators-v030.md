@@ -148,10 +148,10 @@ Speculators will be focusing on the following next set of features:
 Interested in learning more about speculative decoding? Check out the [Speculators repository](https://github.com/vllm-project/speculators) and help grow the repository by checking out [First Good Issues](https://github.com/vllm-project/speculators/issues)!
 
 For additional resources, documentation, and slack channels, check out:
-- Speculators Documentation: https://docs.vllm.ai/projects/Speculators/en/latest/
-- vLLM slack channels: `#speculators`, `#feat-spec-decode`
-- Data Generation and Training Scripts: https://github.com/vllm-project/speculators/blob/main/scripts/README.md
-- End-to-end examples: https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training
+- **Speculators Documentation**: https://docs.vllm.ai/projects/Speculators/en/latest/
+- **vLLM slack channels**: `#speculators`, `#feat-spec-decode`
+- **Data Generation and Training Scripts**: https://github.com/vllm-project/speculators/blob/main/scripts/README.md
+- **End-to-end examples**: https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training
 - For a list of already trained Speculators models, check out the [Red Hat AI Hub](https://huggingface.co/collections/RedHatAI/speculator-models)
 
 ## Appendix
