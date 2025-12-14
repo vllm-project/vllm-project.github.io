@@ -1,9 +1,8 @@
 ---
 layout: post
 title: "Diving into end-to-end speculative decoding training support for vLLM with Speculators v0.3.0"
-author: "Fynn Schmitt-Ulms, Helen Zhao, Rahul Tuli and Dipika Sikka (Red Hat AI Model Optimization Team)
+author: "Fynn Schmitt-Ulms, Helen Zhao, Rahul Tuli and Dipika Sikka (Red Hat AI Model Optimization Team)"
 ---
-
 
 ## Key Highlights 
 
@@ -202,7 +201,7 @@ This config defines the speculator as a complete model with:
     - `transformer_layer_config`: Full specification of the draft model's transformer layers
     - `draft_vocab_size`: Reduced vocabulary size for efficient draft generation (typically 10k-32k tokens)
     - Model-specific configuration options
-- Speculative Decoding Configuration (Speculators_config):
+- Speculative Decoding Configuration:
     - `algorithm`: The spec decoding algorithm (EAGLE3)
     - `proposal_methods`: Token generation strategies with parameters
         - `speculative_tokens`: Number of draft tokens to generate per step
