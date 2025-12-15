@@ -150,7 +150,7 @@ Speculators will be focusing on the following next set of features:
 Interested in learning more about speculative decoding? Check out the [Speculators repository](https://github.com/vllm-project/speculators) and help grow the repository by checking out [Good First Issues](https://github.com/vllm-project/speculators/issues)!
 
 For additional resources, documentation, and slack channels, check out:
-- **Speculators Documentation**: [https://docs.vllm.ai/projects/speculators/en/latest//](https://docs.vllm.ai/projects/speculators/en/latest/)
+- **Speculators Documentation**: [https://docs.vllm.ai/projects/speculators/en/latest/](https://docs.vllm.ai/projects/speculators/en/latest/)
 - **vLLM slack channels**: `#speculators`, `#feat-spec-decode`
 - **Data Generation and Training Scripts**: [https://github.com/vllm-project/speculators/blob/main/scripts/README.md](https://github.com/vllm-project/speculators/blob/main/scripts/README.md)
 - **End-to-end examples**: [https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training](https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training)
