@@ -13,7 +13,7 @@ The vLLM Router is derived from a fork of the [SGLang model gateway](https://git
 
 ## Core Architecture and Capabilities
 
-The vllm-router is designed to solve two primary challenges in large-scale serving: intelligent load balancing and support for prefill/decode aggregation.
+The vllm-router is designed to solve two primary challenges in large-scale serving: intelligent load balancing and support for prefill/decode disaggregation.
 
 ### 1. Intelligent Load Balancing Strategies
 
