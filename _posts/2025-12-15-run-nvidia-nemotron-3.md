@@ -5,8 +5,6 @@ author: "NVIDIA Nemotron Team"
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
 ---
 
-# Run Highly Efficient and Accurate AI Agents with NVIDIA Nemotron 3 Nano on vLLM
-
 We are excited to release the NVIDIA Nemotron 3 Nano, supported by vLLM. 
 
 Nemotron 3 Nano is part of the newly announced Nemotron 3 family of most efficient open models with leading accuracy for building agentic AI applications. The Nemotron 3 family of models use a hybrid Mamba-Transformer MoE architecture and 1M token context length. This enables developers to build reliable, high-throughput agents across complex, multi-document, and long-duration operations. 
