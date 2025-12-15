@@ -11,6 +11,7 @@ image: /assets/figures/2025-12-13-speculators-v030/cropped_workflow.png
 - [Speculators v0.3.0](https://github.com/vllm-project/speculators/releases/tag/v0.3.0) provides end-to-end training support for Eagle3 draft models that can seamlessly run with vLLM 
 - Support for training includes offline data generation using vLLM as well as training capabilities for single- and multi-layer draft models, for both MoE and non-MoE verifiers
 
+## Inference at scale
 Over the past decade, LLMs have expanded rapidly in both scale and capability, bringing with it  increasing demands on inference performance. As LLMs generate tokens sequentially—with each token requiring a full forward pass through billions of parameters—the cost of generation scales quickly. As model sizes continue to rise, this sequential computation becomes a significant bottleneck, making today’s LLMs incredibly capable yet often slow. 
 
 One promising optimization to alleviate this challenge is speculative decoding, which accelerates generation by allowing smaller draft models to propose tokens that the larger model can quickly verify.
@@ -100,7 +101,7 @@ Together these components make Speculators Eagle3 model training fast and memory
 
 ## Running Speculators models in vLLM
 
-Once training is complete, the library generates a complete model artifact with an extended config.json file that includes a speculators_config. Models can then be run seamlessly in vLLM using a simple vllm serve command:
+Once training is complete, the library generates a complete model artifact with an extended config.json file that includes a `speculators_config`. Models can then be run seamlessly in vLLM using a simple vllm serve command:
 
 ```bash
 vllm serve RedHatAI/Llama-3.1-8B-Instruct-speculator.eagle3
@@ -146,13 +147,13 @@ Speculators will be focusing on the following next set of features:
 
 ## Get involved!
 
-Interested in learning more about speculative decoding? Check out the [Speculators repository](https://github.com/vllm-project/speculators) and help grow the repository by checking out [First Good Issues](https://github.com/vllm-project/speculators/issues)!
+Interested in learning more about speculative decoding? Check out the [Speculators repository](https://github.com/vllm-project/speculators) and help grow the repository by checking out [Good First Issues](https://github.com/vllm-project/speculators/issues)!
 
 For additional resources, documentation, and slack channels, check out:
-- **Speculators Documentation**: https://docs.vllm.ai/projects/Speculators/en/latest/
+- **Speculators Documentation**: [https://docs.vllm.ai/projects/speculators/en/latest//](https://docs.vllm.ai/projects/speculators/en/latest/)
 - **vLLM slack channels**: `#speculators`, `#feat-spec-decode`
-- **Data Generation and Training Scripts**: https://github.com/vllm-project/speculators/blob/main/scripts/README.md
-- **End-to-end examples**: https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training
+- **Data Generation and Training Scripts**: [https://github.com/vllm-project/speculators/blob/main/scripts/README.md](https://github.com/vllm-project/speculators/blob/main/scripts/README.md)
+- **End-to-end examples**: [https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training](https://github.com/vllm-project/Speculators/tree/main/examples/data_generation_and_training)
 - For a list of already trained Speculators models, check out the [Red Hat AI Hub](https://huggingface.co/collections/RedHatAI/speculator-models)
 
 ## Appendix
