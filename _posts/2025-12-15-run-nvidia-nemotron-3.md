@@ -1,6 +1,6 @@
 ---  
 layout: post
-title: "Run Highly Efficient and Accurate AI Agents with NVIDIA Nemotron 3 Nano on vLLM"
+title: "Now Serving NVIDIA Nemotron with vLLM"
 author: "NVIDIA Nemotron Team"
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
 ---
@@ -13,17 +13,14 @@ Nemotron 3 Nano is part of the newly announced Nemotron 3 family of most efficie
 
 Nemotron 3 Nano is fully open with open-weights, datasets and recipes so developers can easily customize, optimize, and deploy the model on their infrastructure for maximum privacy and security. The chart below shows that Nemotron 3 Nano leads is in the most attractive quadrant in Artificial Analysis Openness vs Intelligence Index 
 
-<p align="center">
-<picture>
-<img src="/assets/figures/2025-12-15-run-nvidia-nemotron-3/figure_1.png" width="100%">
-</picture>
-<br>
-Figure 1: NVIDIA Nemotron 3 Sets a New Standard for Open Source AI
-</p>
+![][image1]
+
+**Title:** NVIDIA Nemotron 3 Sets a New Standard for Open Source AI  
+**Alt text:** Chart showing Nemotron 3 Nano in the most attractive quadrant in Artificial Analysis Openness vs Intelligence Index 
 
 Nemotron 3 Nano excels in coding, reasoning, and agentic tasks, and leads on benchmarks such as SWE Bench Verified, GPQA Diamond, AIME 2025, Arena Hard v2, and IFBench. 
 
-In this blog post, we'll share how to get started with Nemotron 3 Nano using vLLM for inference to unlock high-efficiency AI agents at scale.
+In this blog post, we’ll share how to get started with Nemotron 3 Nano using vLLM for inference to unlock high-efficiency AI agents at scale.
 
 ## About Nemotron 3 Nano
 
@@ -126,23 +123,14 @@ Nemotron 3 Nano builds upon the hybrid Mamba-Transformer architecture of our Nem
 
 With hybrid Mamba-Transformer architecture, Nemotron 3 Nano delivers up to 4x higher token throughput, enabling the model to think faster and provide higher accuracy simultaneously. The "thinking budget" feature prevents the model from overthinking and optimizes for a lower, predictable inference cost.
 
-<p align="center">
-<picture>
-<img src="/assets/figures/2025-12-15-run-nvidia-nemotron-3/figure_2.png" width="100%">
-</picture>
-<br>
-Figure 2: Nemotron 3 Nano delivers higher throughput and leading accuracy among open reasoning models
-</p>
+![][image2]**Title:** Nemotron 3 Nano delivers higher throughput and leading accuracy among open reasoning models  
+**Alt text:** Chart showing higher throughput for Nemotron 3 Nano compared to other popular open reasoning models
 
 Trained on NVIDIA-curated, high-quality data, Nemotron 3 Nano leads on benchmarks such as SWE Bench Verified, GPQA Diamond, AIME 2025, Arena Hard v2, and IFBench delivering top-tier accuracy in coding, [reasoning](https://www.nvidia.com/en-us/glossary/ai-reasoning/), math and instruction following. This makes it ideal for building AI agents for various enterprise use cases including finance, cybersecurity, software development and retail. 
 
-<p align="center">
-<picture>
-<img src="/assets/figures/2025-12-15-run-nvidia-nemotron-3/figure_3.png" width="100%">
-</picture>
-<br>
-Figure 3: Nemotron 3 Nano provides leading accuracy on various popular academic benchmarks among open small reasoning models
-</p>
+![][image3]  
+**Title:** Nemotron 3 Nano provides leading accuracy on various popular academic benchmarks among open small reasoning models  
+**Alt text:** Bar graph comparing accuracy of Nemotron 3 Nano with other popular open small reasoning models on popular academic benchmarks
 
 ## Get Started
 
