@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "AMD × vLLM Semantic Router: Building the System Intelligence Together"
-author: "Andy Luo @AMD AI Product Marketing, Haichen Zhang@AMD AI Product Marketing, Xunzhuo Liu @vLLM-SR, Huamin Chen @vLLM-SR"
+author: "The AMD and vLLM Semantic Router Team,"
 image: /assets/logos/vllm-logo-text-light.png
 ---
 
@@ -151,8 +151,6 @@ This is what the AMD × vLLM Semantic Router collaboration is really about: buil
 
 ## Long-Term Vision and Ongoing Work
 
-![](/assets/figures/semantic-router/amd-4.svg)
-
 Our collaboration with AMD extends beyond near-term deployment to building the foundation for next-generation AI infrastructure. We're working on several long-term initiatives:
 
 ### Training a Next-Generation Router Model on AMD GPUs
@@ -207,9 +205,7 @@ For model vendors, tool builders, and platform providers, this becomes a **neutr
 - Benchmark under realistic routing and governance constraints
 - Showcase capabilities within a transparent, observable system
 
-![](/assets/figures/semantic-router/amd-5.png)
-
-## Why This Collaboration Matters？
+## Why This Collaboration Matters
 
 Through the AMD × vLLM Semantic Router collaboration, we are aiming beyond “does this model run on this GPU”.
 
@@ -234,12 +230,13 @@ The technical roadmap—hallucination detection, online learning, multi-model or
 We would like to thank the many talented people who have contributed to this collaboration:
 
 - **AMD**: Andy Luo, Haichen Zhang, and the AMD AI Product Marketing and Engineering teams
+- **vLLM SR**: Xunzhuo Liu, Huamin Chen, Chen Wang, Yue Zhu and the vLLM Semantic Router OSS team.
 
 We're excited to keep refining and expanding our optimizations to unlock even greater capabilities in the weeks and months ahead!
 
 ## Join Us
 
-**Looking for Collaborations !** Calling all passionate community developers and researchers: join us in training the next-generation router model on AMD GPUs and building the future of trustworthy AI infrastructure.
+**Looking for Collaborations!** Calling all passionate community developers and researchers: join us in training the next-generation router model on AMD GPUs and building the future of trustworthy AI infrastructure.
 
 Interested? Reach out to us:
 - Haichen Zhang: haichzha@amd.com
