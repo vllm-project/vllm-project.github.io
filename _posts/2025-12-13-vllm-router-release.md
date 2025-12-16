@@ -47,8 +47,8 @@ The vllm-router is built with production-grade features for maintaining high ava
 
 We benchmarked the new vLLM Router against two widely used alternatives:
 
-*   **[llm-d](https://github.com/llm-d):** A Kubernetes-native routing framework that utilizes default queue-aware load balancing.
-*   **vLLM-native:** The standard K8s native load balancer, which employs a basic round-robin strategy. Crucially, this option is *not* aware of Prefill/Decode states, treating all pods as identical vLLM replicas.
+*   **[llm-d](https://github.com/llm-d/llm-d):** A Kubernetes-native routing framework that utilizes default queue-aware load balancing.
+*   **vLLM-native:** The standard [K8s native load balancer](https://kubernetes.io/docs/concepts/services-networking/), which employs a basic round-robin strategy. Crucially, this option is *not* aware of Prefill/Decode states, treating all pods as identical vLLM replicas.
 
 **Note on Exclusion:** We excluded the vLLM built-in DP/EP coordinator—the recommended [External Load Balancing](https://docs.vllm.ai/en/stable/serving/data_parallel_deployment.html#external-load-balancing) solution for vLLM clusters—from the benchmark. Its throughput was only 1/8 of the others due to a known [performance issue](https://github.com/vllm-project/vllm/issues/24461).
 
