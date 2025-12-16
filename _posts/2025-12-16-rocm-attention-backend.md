@@ -8,9 +8,9 @@ math: true
 
 ## Introduction
 
-Large Language Models (LLMs) are revolutionizing how we interact with technology, but their immense computational demands can be a barrier. What if you could run these powerful models faster and more efficiently on your AMD GPUs, without sacrificing accuracy? Now you can! This post introduces a breakthrough: PTPC-FP8 quantization in vLLM, optimized for AMD's ROCm platform. Get ready for near-BF16 accuracy at FP8 speeds, directly using Hugging Face models – no pre-quantization needed! We'll show you how it works, benchmark its performance, and get you started.
+Attention backend is one of the most compilicated module in vLLM, which is deeply bound to the hardware platform. Even in the same hardware platform, there are some different attention backends to support different user scenarios delivering different performance. In this post, we will introduce the attention backends on AMD's ROCm platform. We will elaborate the implementation priciples of the attention backend, along with the corrsponding benchmarking perform, aiming to provide a reference for users to select attention backends.  
 
-Attention backend is the most compilicated module in vLLM. Different attention backends support different scenario with different performance. In this post, we will introduce different attention backends for AMD's ROCm platform. Till now, there are four multi-head attention (MHA) backend and two Multi-Latent Attention (MLA) backend supported on AMD's platform, which can be summarized as following and users and enable each of them with the corresponding backend selection.
+Generally, the attention modules of common large language models can be categorized into two main types: Multi-Head Attention (MHA) and Multi-Latent Attention. Qwen/Llama are using MHA module, while Deepseek/Kimi are using MLA module. In vLLM, both the two kinds of attention modules are supported on ROCm backend. Even more, there are four multi-head attention (MHA) backend and two Multi-Latent Attention (MLA) backend supported on AMD's platform, which can be summarized as following and users and enable each of them with the corresponding backend selection.
 
 | Category | Backend | How to enable |
 |:----------|:----------------|:--------------|
@@ -21,6 +21,7 @@ Attention backend is the most compilicated module in vLLM. Different attention b
 | MLA | TRITON_MLA | export VLLM_ATTENTION_BACKEND=TRITON_MLA |
 | MLA | ROCM_AITER_MLA | export VLLM_ATTENTION_BACKEND=ROCM_AITER_MLA |
 
+## Multi-Head Attention Backend
 
 ### The Unified Attention backend 
 
@@ -55,12 +56,40 @@ def extend_forward():
     merge_attn_states()
 ```
 
+## Multi Latent Attention Backend
 ### TRITON MLA Backend
 The Common.py vllm/vllm/v1/attention/backends/mla/common.py at v0.11.2 · vllm-project/vllm 是所有硬件backend计算MLA Prefill的入口。对于long context的计算，整体逻辑与Multi-head attention接近。
 
 query_len=3616, kv_cache_len=20000
 
 ```python
+def _forward_prefill():
+    # Stage 1: Attention for new tokens
+    _run_prefill_new_tokens()  3616x3616x3616
+
+    # Stage 2: Context Chunk Loop Processing  
+    for chunk in context_chunks:  16384被切成多份循环
+        gather_and_maybe_dequant_cache()
+        _run_prefill_context_chunk()  # _run_prefill_context_chunk_fa in rocm backend
+        merge_attn_states()
+
+    # Stage 3: Get the final result
+    merge_attn_states()
+```
+
+### ROCM AITER MLA Backend
+如果选择使用aiter mla backend，aiter mla backend会重载_flash_attn_varlen_diff_headdims核心函数，使用AITER MHA kernel进行attention计算。
+
+
+## Performance Benchmark
+
+### MHA attention performance comparision
+### MLA attention performance comparision
+
+
+
+## Get Started
+
 
 
 
@@ -70,7 +99,7 @@ PTPC-FP8 (Per-Token-Activation, Per-Channel-Weight FP8) addresses this challenge
 
 1. Outliers consistently appear in the same channels
 2. Channel magnitudes within a token vary widely
-3. The same channel's magnitude across different tokens remains relatively stable
+3553. The same channel's magnitude across different tokens remains relatively stable
 
 This insight led to a dual-granularity approach:
 * **Per-Token Activation Quantization**: Each input token receives its own scaling factor
