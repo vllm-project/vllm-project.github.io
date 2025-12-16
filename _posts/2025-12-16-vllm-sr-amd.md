@@ -229,8 +229,8 @@ The technical roadmap—hallucination detection, online learning, multi-model or
 
 We would like to thank the many talented people who have contributed to this collaboration:
 
-- **AMD**: Andy Luo, Haichen Zhang, and the AMD AI Product Marketing and Engineering teams
-- **vLLM SR**: Xunzhuo Liu, Huamin Chen, Chen Wang, Yue Zhu and the vLLM Semantic Router OSS team.
+- **AMD**: Andy Luo, Haichen Zhang, and the AMD AIG Teams.
+- **vLLM SR**: Xunzhuo Liu, Huamin Chen, Chen Wang, Yue Zhu, and the vLLM Semantic Router OSS team.
 
 We're excited to keep refining and expanding our optimizations to unlock even greater capabilities in the weeks and months ahead!
 
@@ -247,3 +247,5 @@ Interested? Reach out to us:
 - [AMD ROCm™ Software](https://www.amd.com/en/products/software/rocm.html)
 - [vLLM Semantic Router GitHub Repo](https://github.com/vllm-project/semantic-router)
 - [vLLM Semantic Router Documentation](https://vllm-semantic-router.com)
+
+**Join the discussion**: Share your use cases and feedback in #semantic-router channel on [vLLM Slack](https://vllm-dev.slack.com/archives/C09CTGF8KCN)
