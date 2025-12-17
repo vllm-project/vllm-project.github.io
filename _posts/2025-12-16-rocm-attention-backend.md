@@ -41,6 +41,9 @@ unified_attention(new_qeury, KV-Cache, ...)  kv_cache_len=20000
 
 This attention backend utilizes the AITER high-performance MHA kernel for computation, hence named as AITER Multi-head Attention backend. This backend can be employed by models with MHA/GQA structured attention modules during the prefill phase, such as Llama and Qwen models. 
 
+**Design Overview** 
+![AITER FA Backend](assets/figures/2025-12-16-rocm-attention-backend/AiterFaBackend.png)
+
 The backend's performance leap stems from two fundamental design choices that re-think standard attention computation:
 
 ***Request Routing***: It dynamically categorizes and processes incoming requests into three distinct paths: Prefill, Decode, and Extend. This allows for specialized, optimized kernels to be applied to each specific workload type.
@@ -83,6 +86,7 @@ def extend_forward():
     # Stage 3: Get the final result
     merge_attn_states()
 ```
+
 All those designs and implementation can unlock significant AMD GPU performance.
 
 ## Multi Latent Attention Backend
