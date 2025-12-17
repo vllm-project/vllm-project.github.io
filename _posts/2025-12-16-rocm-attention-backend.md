@@ -39,8 +39,36 @@ unified_attention(new_qeury, KV-Cache, ...)  kv_cache_len=20000
 
 ### The ROCM AITER FA backend 
 
-This attention backend utilizes the AITER high-performance MHA kernel for computation, hence named as AITER Multi-head Attention backend. This backend can be employed by models with MHA/GQA structured attention modules during the prefill phase, such as Llama and Qwen models. It invokes the AITER flash_attn_varlen_func function and launches ASM kernel for attention computation. For long-context with prefix-caching or chunked-prefill scenarios, it will goes into the extend_forward path vllm/vllm/v1/attention/backends/rocm_aiter_fa.py at v0.11.2 · vllm-project/vllm. The corresponding pseudocode of the workflow can be represented by
+This attention backend utilizes the AITER high-performance MHA kernel for computation, hence named as AITER Multi-head Attention backend. This backend can be employed by models with MHA/GQA structured attention modules during the prefill phase, such as Llama and Qwen models. 
 
+The backend's performance leap stems from two fundamental design choices that re-think standard attention computation:
+
+***Request Routing***: It dynamically categorizes and processes incoming requests into three distinct paths: Prefill, Decode, and Extend. This allows for specialized, optimized kernels to be applied to each specific workload type.
+
+***Hardware-Optimized KV Cache Layout***: The backend abandons the standard KV cache layout in favor of a shuffled format designed for aiter's `pa_asm` (an assembly-optimized paged attention kernel). The new layouts are:
+
+`k_cache: [num_blocks, num_heads, head_dim // x, block_size, x]`
+
+`v_cache: [num_blocks, num_heads, block_size // x, head_dim, x]`
+This reorganization ensures the `pa_asm` kernel experiences the most efficient memory access patterns possible, minimizing latency.
+
+**Performance-Optimized Processing Paths**
+Requests are reordered and processed in a decode:extend:prefill sequence, with each type taking a distinct, optimized path:
+
+🔁 **Decode Path (For Single Token Generation)**: Leverages the new shuffled KV cache layout directly. A custom `reshape_and_cache` kernel ensures the cache is always in the optimal format, allowing the backend to call pa_asm with zero layout conversion overhead. This is the source of the **15-20% decode throughput improvement**.
+
+✨ **Prefill Path (For Processing New Prompts)**: Uses the highly optimized `flash_attn_varlen_func` directly, as the standard `[num_tokens, num_heads, head_dim]` layout is already ideal for this operation. Results are written in-place to avoid any extra memory copies.
+
+🔄 **Extend Path (For Context Extension)**: Presents a unique challenge. The shuffled layout is poor for long-sequence computation, but we don't want to lose its decode benefits. Our solution is a KV Cache Fetcher:
+
+- New tokens are computed using `flash_attn_varlen_func`.
+
+- The existing context is fetched in chunks, reordered into a prefill-friendly layout, and computed.
+
+- `Attention outputs (attn_out)` and `log-sum-exp values (lse)` from new and cached tokens are merged to produce the final, correct output.
+This chunked, buffered approach prevents out-of-memory (OOM) errors with extremely long sequences while maintaining high performance.
+
+**Pseudo-Code for the Extend Path** :
 ```python
 def extend_forward():
     # Stage 1: Attention for new tokens
@@ -55,6 +83,7 @@ def extend_forward():
     # Stage 3: Get the final result
     merge_attn_states()
 ```
+All those designs and implementation can unlock significant AMD GPU performance.
 
 ## Multi Latent Attention Backend
 ### TRITON MLA Backend
