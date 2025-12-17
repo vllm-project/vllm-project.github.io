@@ -75,10 +75,10 @@ This chunked, buffered approach prevents out-of-memory (OOM) errors with extreme
 ```python
 def extend_forward():
     # Stage 1: Attention for new tokens
-    flash_attn_varlen_func()  3616x3616x3616
+    flash_attn_varlen_func()
 
     # Stage 2: Context Chunk Loop Processing
-    for chunk in context_chunks:  16384被切成多份循环
+    for chunk in context_chunks: 
         flash_attn_varlen_func() 
         cp_mha_gather_cache()
         merge_attn_states()
