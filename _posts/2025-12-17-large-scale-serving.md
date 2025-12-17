@@ -7,7 +7,7 @@ image: /assets/logos/vllm-logo-only-light.png
 
 # Introduction
 
-In v0.11.0, the last code from vLLM V0 engine was removed, marking the complete migration to the improved [V1 engine](https://blog.vllm.ai/2025/01/27/v1-alpha-release.html) architecture. This achievement would not be possible without vLLM’s community of 1800+ contributors, authoring 889 commits in the past month.
+In v0.11.0, the last code from vLLM V0 engine was removed, marking the complete migration to the improved [V1 engine](https://blog.vllm.ai/2025/01/27/v1-alpha-release.html) architecture. This achievement would not be possible without vLLM’s community of 1,969 contributors, authoring 976 commits in the past month.
 
 These efforts have been validated by vLLM’s inclusion in the SemiAnalysis open source InferenceMax performance [benchmarks](https://inferencemax.semianalysis.com/). In addition, vLLM is proud to be trusted in production by teams at Meta, LinkedIn, Red Hat, Mistral, and HuggingFace.
 
@@ -28,7 +28,9 @@ For further reference, we recommend these excellent writeups by the llm-d, PyTor
 
 Recent [community benchmarks](https://llm-d.ai/blog/llm-d-v0.3-expanded-hardware-faster-perf-and-igw-ga#wide-ep-performance) on a Coreweave H200 cluster connected using Infiniband with ConnectX-7 NICs now show a sustained throughput of 2.2k tokens/s per H200 GPU in production-like, multi-node deployments.
 
-This marks a significant increase from earlier results that were around 1.5k tokens/s per GPU. This gain is a direct result of ongoing optimization work, including kernel improvements (silu-mul-quant fusion, Cutlass QKV kernels, TP attention bug fixes) and the implementation of Dual Batch Overlap (DBO) for decode. This performance allows operators to realize immediate benefits by consolidating workloads and reducing the number of replicas needed for a target QPS, ultimately lowering token-per-dollar cost.
+This marks a significant increase over earlier benchmarks, which showed ~1.5k tokens/s per GPU. This gain is a direct result of ongoing optimization work, including kernel improvements (silu-mul-quant fusion, Cutlass QKV kernels, TP attention bug fixes) and the implementation of Dual Batch Overlap (DBO) for decode.
+
+This performance allows operators to realize immediate benefits by consolidating workloads and reducing the number of replicas needed for a target QPS, ultimately lowering token-per-dollar cost.
 
 <p align="center">
 <img src="/assets/figures/2025-12-17-large-scale-serving/prefill_throughput.png" width="100%">
@@ -46,12 +48,12 @@ This marks a significant increase from earlier results that were around 1.5k tok
 
 ## Wide-EP
 
-Deploying frontier models like the DeepSeek-V3 model family used in large scale serving setups requires two major considerations:
+Deploying frontier models like the DeepSeek-V3 model family for large scale serving requires two major considerations:
 
 - Sparse expert activation: in DeepSeek-R1, only 37B of the model’s 671B total parameters are active with each forward pass  
-- KV cache management: tensor parallel deployment is not optimal for DeepSeek’s multi-head latent attention (MLA) attention architecture since latent projections are duplicated across shards
+- KV cache management: tensor parallel deployment is not optimal for DeepSeek’s multi-head latent attention (MLA) attention architecture, since latent projections are duplicated across shards
 
-Expert parallelism (EP) is a deployment pattern that leverages these characteristics to maximize useful KV cache, and is supported by vLLM via the `--enable-expert-parallel` flag. In this pattern, a single set of experts are shared across ranks in the deployment. During a forward pass, tokens are routed between ranks to be processed by the appropriate expert.
+Expert parallelism (EP) is a deployment pattern that leverages these characteristics to maximize effective KV cache, and is supported in vLLM via the `--enable-expert-parallel` flag. In this pattern, a single set of experts are shared across ranks in the deployment. During a forward pass, tokens are routed between ranks to be processed by the appropriate expert.
 
 <p align="center">
 <img src="/assets/figures/2025-12-17-large-scale-serving/wide_ep.gif" width="100%">
@@ -61,13 +63,13 @@ Expert parallelism (EP) is a deployment pattern that leverages these characteris
 
 Wide-EP combines EP with data parallelism (DP). Data parallel deployments can be launched with either the `mp` or `ray` data parallel backends, offering simpler setup within a Ray cluster. The benefit over tensor parallelism is shown in the following figure, which shows memory usage per GPU for DeepSeek-V3 using tensor parallel and expert parallel sharding strategies. 
 
-The TP strategy shows 34GB free device memory per H200, but for MLA models, each rank has to duplicate latent attention projections. For a DP deployment, the attention layers are duplicated, but latent projections are independent across ranks, increasing the effective batch size across the deployment.
+The TP strategy shows 34GB free device memory per H200, but for MLA models, each rank must duplicate latent attention projections. In a DP deployment, attention layers are duplicated so that latent projections are independent across ranks, increasing effective batch size across the deployment.
 
 <p align="center">
 <img src="/assets/figures/2025-12-17-large-scale-serving/kv_cache.png" width="100%">
 </p>
 
-Increasing the expert parallelism degree increases synchronization overhead between ranks. To address this, vLLM has integrated support for the [DeepEP](https://github.com/deepseek-ai/DeepEP) high throughput and low latency all-to-all GPU kernels. In addition, vLLM supports Perplexity [MoE kernels](https://github.com/perplexityai/pplx-kernels) and a NCCL-based AllGather-ReduceScatter all-to-all. See the vLLM MoE [kernel docs](https://docs.vllm.ai/en/latest/design/moe_kernel_features/) for information on the all-to-all backends available in vLLM.
+Increasing the expert parallelism degree increases synchronization overhead between ranks. To address this, vLLM has integrated support for the [DeepEP](https://github.com/deepseek-ai/DeepEP) high throughput and low latency all-to-all kernels. In addition, vLLM supports Perplexity [MoE kernels](https://github.com/perplexityai/pplx-kernels) and a NCCL-based AllGather-ReduceScatter all-to-all. See the vLLM MoE [kernel docs](https://docs.vllm.ai/en/latest/design/moe_kernel_features/) for information on the all-to-all backends available in vLLM.
 
 <div style="width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;">
 <p align="center">
@@ -81,9 +83,9 @@ Increasing the expert parallelism degree increases synchronization overhead betw
 
 vLLM has integrated support for DeepSeek’s [microbatching strategy](https://github.com/deepseek-ai/profile-data) as dual batch overlap (DBO), available via `--enable-dbo` flag from the command line. This strategy overlaps compute and collective communication to increase GPU utilization. In particular, vLLM implements this as follows:
 
-1. A collective `all_reduce` across ranks to agree microbatching will be beneficial, with minimum threshold adjustable via `--dbo-decode-token-threshold`.  
+1. A collective `all_reduce` across ranks to agree microbatching will be beneficial, with minimum threshold adjustable via `--dbo-decode-token-threshold`
 2. The main thread creates microbatch worker threads, which complete CUDA graph capture  
-3. vLLM’s modular MoE all-to-all kernel base class coordinates microbatch worker launches, yielding control while waiting for GPU work to finish.
+3. vLLM’s modular MoE all-to-all kernel base class coordinates microbatch worker launches, yielding control while waiting for GPU work to complte
 
 Below is a profiling trace from a DeepSeek decode workload **without** DBO. The “MoE Dispatch/Combine” section shows the outsize duration spent in collective communication, despite the small compute load.
 
@@ -93,7 +95,7 @@ Below is a profiling trace from a DeepSeek decode workload **without** DBO. The 
 <em>Before DBO</em>
 </p>
 
-The following trace shows the same workload **with** DBO. The first microbatch worker thread initiates and completes MoE dispatch, then immediately yields to the second microbatch worker thread. The second thread completes its own dispatch, yielding back to the first thread once it completes. Then, the first worker completes its combine before yielding back to the second microbatch worker.
+The following trace shows the same workload **with** DBO. The first microbatch worker thread initiates and completes MoE dispatch, then immediately yields to the second microbatch worker thread. Next, the second thread completes its own dispatch, yielding back to the first thread once it completes. Finally, the first worker completes its combine before yielding back to the second microbatch worker.
 
 This results in higher GPU utilization in deployments where communication overhead is high, as is the case in deployments with high expert parallelism degree.
 
@@ -115,7 +117,7 @@ In a wide-EP setup, this means some EP ranks could stay idle, while others proce
 <em>EPLB in action</em>
 </p>
 
-In vLLM, each MoE forward pass records per-token load, and a sliding window aggregates these statistics across EP ranks. When the rebalance interval is reached, the load balancer computes a new logical-to-physical expert mapping and orchestrates a weight shuffle so the new placement takes effect without restarting the model.
+To implement EPLB, each MoE forward pass records per-token load, and a sliding window aggregates these statistics across EP ranks. When the rebalance interval is reached, the load balancer computes a new logical-to-physical expert mapping and orchestrates a weight shuffle so the new placement takes effect without restarting the model.
 
 ## Disaggregated Serving
 
