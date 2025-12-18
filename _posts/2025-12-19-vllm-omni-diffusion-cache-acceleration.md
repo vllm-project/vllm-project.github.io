@@ -1,4 +1,7 @@
-
+___
+layout: post
+title: "vLLM-Omni Diffusion Cache Acceleration"
+author: "vLLM-Omni Team"
 ---
 
 # Turbocharge Your Diffusion Inference: vLLM-Omni Integrates Cache-DiT and TeaCache
@@ -40,6 +43,23 @@ We benchmarked these methods on NVIDIA H200 GPUs using **Qwen-Image** (1024x1024
 | **Qwen-Image** | **TeaCache** | `rel_l1_thresh=0.2` | 10.47s | **1.91x** ⚡ |
 | **Qwen-Image** | **Cache-DiT** | DBCache + TaylorSeer | 10.8s | **1.85x** ⚡ |
 
+<div style="display: flex; gap: 3%;">
+  <div style="flex: 1;">
+    ![No Cache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat.png)
+    <p style="text-align: center; margin-top: 8px;">no cache</p>
+  </div>
+  
+  <div style="flex: 1;">
+    ![TeaCache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat_tea_cache.png)
+    <p style="text-align: center; margin-top: 8px;">TeaCache</p>
+  </div>
+  
+  <div style="flex: 1;">
+    ![Cache-DiT](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat_cache_dit.png)
+    <p style="text-align: center; margin-top: 8px;">Cache-DiT</p>
+  </div>
+</div>
+
 ### The "Edit" model
 For image editing tasks, Cache-DiT shines even brighter. On **Qwen-Image-Edit**, Cache-DiT achieved a massive **2.38x speedup**, dropping generation time from 51.5s down to just 21.6s.
 
@@ -48,6 +68,23 @@ For image editing tasks, Cache-DiT shines even brighter. On **Qwen-Image-Edit**,
 | **Qwen-Image-Edit** | Baseline | None | 51.5s | 1.0x |
 | **Qwen-Image-Edit** | **TeaCache** | `rel_l1_thresh=0.2` | 35.0s | **1.47x** ⚡ |
 | **Qwen-Image-Edit** | **Cache-DiT** | DBCache + TaylorSeer | 21.6s | **2.38x** ⚡ |
+
+<div style="display: flex; gap: 3%;">
+  <div style="flex: 1;">
+    ![No Cache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_base.png)
+    <p style="text-align: center; margin-top: 8px;">no cache</p>
+  </div>
+  
+  <div style="flex: 1;">
+    ![TeaCache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_tea_cache.png)
+    <p style="text-align: center; margin-top: 8px;">TeaCache</p>
+  </div>
+  
+  <div style="flex: 1;">
+    ![Cache-DiT](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_cache_dit.png)
+    <p style="text-align: center; margin-top: 8px;">Cache-DiT</p>
+  </div>
+</div>
 
 ## Supported Models
 
