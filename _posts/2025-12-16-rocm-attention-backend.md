@@ -114,7 +114,7 @@ def _forward_prefill():
 
 `AiterMLABackend` is a performance-optimized attention backend designed for models like DeepSeek that utilize MLA for their attention computation. This backend delivers significant inference speedups on AMD hardware through deeply optimized assembly kernels, `flash_attn_varlen_func` for the prefill phase, `mla_decode_fwd` for the decode phase
 
-Beyond raw kernel performance, this backend inherits the full feature set of the FlashMLABackend, including PIECEWISE_AND_FULL CUDA graph support and MTP (Multi-Tensor Parallelism) support.one other advantage is its near-identical performance across virtually any KV cache block size. In practice, this means you can treat every token as prefix cache without worrying about the performance penalties typically associated with fine-grained caching—enabling highly efficient long-context and multi-turn deployments.
+Beyond raw kernel performance, this backend inherits the full feature set of the FlashMLABackend, including PIECEWISE_AND_FULL CUDA graph support and MTP support.one other advantage is its near-identical performance across virtually any KV cache block size. In practice, this means you can treat every token as prefix cache without worrying about the performance penalties typically associated with fine-grained caching—enabling highly efficient long-context and multi-turn deployments.
 
 
 ## Performance Benchmark
