@@ -5,7 +5,7 @@
 
 We are thrilled to announce a major performance update for **vLLM-Omni**.
 
-vLLM-Omni now supports various cache acceleration methods to speed up diffusion model inference with minimal quality degradation, e.g.,  **Cache-DiT** and **TeaCache**. These cache methods that intelligently cache intermediate computations to avoid redundant work across diffusion timesteps.
+vLLM-Omni now supports various cache acceleration methods to speed up diffusion model inference with minimal quality degradation, e.g.,  **Cache-DiT** and **TeaCache**. These cache methods intelligently cache intermediate computations to avoid redundant work across diffusion timesteps.
 
 With this update, users can now achieve **1.5x to over 2x speedups** in image generation tasks with minimal configuration and negligible quality loss.
 
