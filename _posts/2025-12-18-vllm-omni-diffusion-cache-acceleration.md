@@ -1,10 +1,10 @@
-___
+---
 layout: post
 title: "vLLM-Omni Diffusion Cache Acceleration"
 author: "vLLM-Omni Team"
 ---
 
-# Turbocharge Your Diffusion Inference: vLLM-Omni Integrates Cache-DiT and TeaCache
+# Turbocharge Your Diffusion Inference
 
 We are thrilled to announce a major performance update for **vLLM-Omni**.
 
@@ -31,7 +31,7 @@ vLLM-Omni now supports two distinct caching backends to suit your specific needs
 
 
 ### 2. TeaCache: Simple & Adaptive
-TeaCache offers a hook-based, adaptive caching mechanism. It monitors the difference between inputs and dynamically decides when to reuse the transformer computations from the previous timestep.
+TeaCache is implemented natively within vLLM-Omni, providing a hook-based, adaptive caching mechanism. It monitors the difference between inputs and dynamically decides when to reuse the transformer computations from the previous timestep.
 
 ## Performance Benchmarks
 
@@ -43,20 +43,21 @@ We benchmarked these methods on NVIDIA H200 GPUs using **Qwen-Image** (1024x1024
 | **Qwen-Image** | **TeaCache** | `rel_l1_thresh=0.2` | 10.47s | **1.91x** ⚡ |
 | **Qwen-Image** | **Cache-DiT** | DBCache + TaylorSeer | 10.8s | **1.85x** ⚡ |
 
-<div style="display: flex; gap: 3%;">
-  <div style="flex: 1;">
-    ![No Cache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat.png)
-    <p style="text-align: center; margin-top: 8px;">no cache</p>
+<div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start;">
+  
+  <div style="flex: 1; text-align: center;">
+    <img src="/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat.png" alt="No Cache" style="max-width: 100%; height: auto;">
+    <p style="margin-top: 8px;">No Cache</p>
   </div>
   
-  <div style="flex: 1;">
-    ![TeaCache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat_tea_cache.png)
-    <p style="text-align: center; margin-top: 8px;">TeaCache</p>
+  <div style="flex: 1; text-align: center;">
+    <img src="/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat_tea_cache.png" alt="TeaCache" style="max-width: 100%; height: auto;">
+    <p style="margin-top: 8px;">TeaCache</p>
   </div>
   
-  <div style="flex: 1;">
-    ![Cache-DiT](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat_cache_dit.png)
-    <p style="text-align: center; margin-top: 8px;">Cache-DiT</p>
+  <div style="flex: 1; text-align: center;">
+    <img src="/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/cat_cache_dit.png" alt="Cache-DiT" style="max-width: 100%; height: auto;">
+    <p style="margin-top: 8px;">Cache-DiT</p>
   </div>
 </div>
 
@@ -69,20 +70,21 @@ For image editing tasks, Cache-DiT shines even brighter. On **Qwen-Image-Edit**,
 | **Qwen-Image-Edit** | **TeaCache** | `rel_l1_thresh=0.2` | 35.0s | **1.47x** ⚡ |
 | **Qwen-Image-Edit** | **Cache-DiT** | DBCache + TaylorSeer | 21.6s | **2.38x** ⚡ |
 
-<div style="display: flex; gap: 3%;">
-  <div style="flex: 1;">
-    ![No Cache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_base.png)
-    <p style="text-align: center; margin-top: 8px;">no cache</p>
+<div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start;">
+  
+  <div style="flex: 1; text-align: center;">
+    <img src="/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_base.png" alt="No Cache" style="max-width: 100%; height: auto;">
+    <p style="margin-top: 8px;">No Cache</p>
   </div>
   
-  <div style="flex: 1;">
-    ![TeaCache](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_tea_cache.png)
-    <p style="text-align: center; margin-top: 8px;">TeaCache</p>
+  <div style="flex: 1; text-align: center;">
+    <img src="/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_tea_cache.png" alt="TeaCache" style="max-width: 100%; height: auto;">
+    <p style="margin-top: 8px;">TeaCache</p>
   </div>
   
-  <div style="flex: 1;">
-    ![Cache-DiT](/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_cache_dit.png)
-    <p style="text-align: center; margin-top: 8px;">Cache-DiT</p>
+  <div style="flex: 1; text-align: center;">
+    <img src="/assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_cache_dit.png" alt="Cache-DiT" style="max-width: 100%; height: auto;">
+    <p style="margin-top: 8px;">Cache-DiT</p>
   </div>
 </div>
 
