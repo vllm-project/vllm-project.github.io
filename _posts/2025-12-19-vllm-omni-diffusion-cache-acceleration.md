@@ -32,7 +32,7 @@ TeaCache offers a hook-based, adaptive caching mechanism. It monitors the differ
 
 ## Performance Benchmarks
 
-We benchmarked these methods on NVIDIA H800 GPUs using **Qwen-Image** (1024x1024 generation). The results are impressive:
+We benchmarked these methods on NVIDIA H200 GPUs using **Qwen-Image** (1024x1024 generation). The results are impressive:
 
 | Model | Backend | Configuration | Time | Speedup |
 | :--- | :--- | :--- | :--- | :--- |
