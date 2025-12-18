@@ -7,7 +7,7 @@ image: /assets/logos/vllm-logo-only-light.png
 
 # Introduction
 
-In v0.11.0, the last code from vLLM V0 engine was removed, marking the complete migration to the improved [V1 engine](https://blog.vllm.ai/2025/01/27/v1-alpha-release.html) architecture. This achievement would not be possible without vLLM’s community of 1,969 contributors, authoring 976 commits in the past month.
+In v0.11.0, the last code from vLLM V0 engine was removed, marking the complete migration to the improved [V1 engine](https://blog.vllm.ai/2025/01/27/v1-alpha-release.html) architecture. This achievement would not have been possible without vLLM’s community of 1,969 contributors, authoring over 950 commits in the past month (as of 12/18/25).
 
 These efforts have been validated by vLLM’s inclusion in the SemiAnalysis open source InferenceMax performance [benchmarks](https://inferencemax.semianalysis.com/). In addition, vLLM is proud to be trusted in production by teams at Meta, LinkedIn, Red Hat, Mistral, and HuggingFace.
 
@@ -85,7 +85,7 @@ vLLM has integrated support for DeepSeek’s [microbatching strategy](https://gi
 
 1. A collective `all_reduce` across ranks to agree microbatching will be beneficial, with minimum threshold adjustable via `--dbo-decode-token-threshold`
 2. The main thread creates microbatch worker threads, which complete CUDA graph capture  
-3. vLLM’s modular MoE all-to-all kernel base class coordinates microbatch worker launches, yielding control while waiting for GPU work to complte
+3. vLLM’s modular MoE all-to-all kernel base class coordinates microbatch worker launches, yielding control while waiting for GPU work to complete
 
 Below is a profiling trace from a DeepSeek decode workload **without** DBO. The “MoE Dispatch/Combine” section shows the outsize duration spent in collective communication, despite the small compute load.
 
@@ -181,13 +181,3 @@ For the most up-to-date reference, see [roadmap.vllm.ai](http://roadmap.vllm.ai)
 * vLLM has fully migrated to the V1 engine, which demonstrates high throughput for DeepSeek-style MoE deployments and achieving 2.2k tok/s/H200 with wide-EP.  
 * Wide-EP maximizes KV cache efficiency for MLA architectures, while dual-batch overlap and EPLB reduce communication bottlenecks and load imbalance.  
 * Disaggregated prefill/decode further optimizes prefill and decode deployments for MoE workloads, with deployment options such as llm-d, Dynamo, and Ray Serve LLM.
-
-## Acknowledgments
-
-We would like to thank the vLLM community contributors who made these optimizations possible, including work on DBO, EPLB, DeepEP integration, and kernel improvements. Special thanks to the following teams for their collaboration on deployment paths:
-
-* llm-d: [Robert Shaw](https://github.com/robertgshaw2-redhat), [Tyler Michael Smith](https://github.com/tlrmchlsmth), [Michael Goin](https://github.com/mgoin)
-* NVIDIA Dynamo: [Alec Flowers](https://github.com/alec-flowers), [Harry Kim](https://github.com/harryskim)
-* Anyscale: [Seiji Eicher](https://github.com/eicherseiji), [Kourosh Hakhamaneshi](https://github.com/kouroshHakha), [Richard Liaw](https://github.com/richardliaw)
-
-Animation source code: [eicherseiji/animations](https://github.com/eicherseiji/animations)
