@@ -101,7 +101,7 @@ def _forward_prefill():
     _run_prefill_new_tokens()  3616x3616x3616
 
     # Stage 2: Context Chunk Loop Processing  
-    for chunk in context_chunks:  16384被切成多份循环
+    for chunk in context_chunks:
         gather_and_maybe_dequant_cache()
         _run_prefill_context_chunk()  # _run_prefill_context_chunk_fa in rocm backend
         merge_attn_states()
@@ -111,7 +111,10 @@ def _forward_prefill():
 ```
 
 ### ROCM AITER MLA Backend
-如果选择使用aiter mla backend，aiter mla backend会重载_flash_attn_varlen_diff_headdims核心函数，使用AITER MHA kernel进行attention计算。
+
+`AiterMLABackend` is a performance-optimized attention backend designed for models like DeepSeek that utilize MLA for their attention computation. This backend delivers significant inference speedups on AMD hardware through deeply optimized assembly kernels, `flash_attn_varlen_func` for the prefill phase, `mla_decode_fwd` for the decode phase
+
+Beyond raw kernel performance, this backend inherits the full feature set of the FlashMLABackend, including PIECEWISE_AND_FULL CUDA graph support and MTP support.one other advantage is its near-identical performance across virtually any KV cache block size. In practice, this means you can treat every token as prefix cache without worrying about the performance penalties typically associated with fine-grained caching—enabling highly efficient long-context and multi-turn deployments.
 
 
 ## Performance Benchmark
