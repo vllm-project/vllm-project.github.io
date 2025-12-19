@@ -88,6 +88,8 @@ For image editing tasks, Cache-DiT shines even brighter. On **Qwen-Image-Edit**,
   </div>
 </div>
 
+These caching optimization techniques show equally impressive results on heterogeneous platforms like Ascend NPU. For instance, Qwen-Image-Edit inference on Ascend NPU was accelerated using Cache-DiT from 142.38s down to 64.07s, achieving over a 2.2x speedup.
+
 ## Supported Models
 
 | Model | TeaCache | Cache-DiT |
@@ -138,3 +140,5 @@ Ready to speed up your diffusion pipelines? Check out our detailed documentation
 
 *   [Cache-DiT Acceleration Guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/user_guide/acceleration/cache_dit_acceleration/)
 *   [TeaCache Guide](https://docs.vllm.ai/projects/vllm-omni/en/latest/user_guide/acceleration/teacache/)
+
+Beyond caching, we are also actively developing optimizations in parallelization, kernel fusion, and quantization. Stay tuned for more powerful features!
