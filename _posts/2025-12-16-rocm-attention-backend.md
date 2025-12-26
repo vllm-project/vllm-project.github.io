@@ -21,6 +21,7 @@ In vLLM for AMD ROCm backend, there are four multi-head attention (MHA) implemen
 | MHA | ROCM_ATTN | --attn-backend ROCM_ATTN |
 | MHA | ROCM_AITER_FA | --attn-backend ROCM_AITER_FA |
 | MLA | TRITON_MLA | --attn-backend TRITON_MLA |
+| MLA | ROCM_AITER_TRITON_MLA | --attn-backend ROCM_AITER_TRITON_MLA |
 | MLA | ROCM_AITER_MLA | --attn-backend ROCM_AITER_MLA |
 
 ## Multi-Head Attention Backend
@@ -126,18 +127,15 @@ All those designs and implementation can unlock significant AMD GPU performance.
 For model with MLA structure will choose this attention backend. In vLLM, the general MLA backend is the `TRITON_MLA` backend and will be enabled by default for ROCm platform. Besides, we have defined a new backend as `ROCM_AITER_MLA` backend to leverage the performant kernel in AITER.
 
 ### TRITON MLA Backend
-The implementation principle of the `TRITON_MLA` backend are similar to the `ROCM_ATIER_FA` backend. It seperates the decode path from the prefill/extend path and use different kernel for computation.
+The implementation principle of the `TRITON_MLA` backend are similar to the `ROCM_ATIER_FA` backend. It seperates the decode path from the prefill/extend path and use different implementation recipe. For prefill/extend path, the non-absorbed recipe is adopt and it use the standard MHA for computation. However, for decode, it use the absorbed recipe and use the MLA kernel for computation. The `TRITON_MLA` backend use the vLLM default Triton kernel for MHA computation in prefill phase, while it doesn't provide the decode implementation and leave it to the `ROCM_AITER_MLA` backend.
 
-The Common.py vllm/vllm/v1/attention/backends/mla/common.py at v0.11.2 · vllm-project/vllm 是所有硬件backend计算MLA Prefill的入口。对于long context的计算，整体逻辑与Multi-head attention接近。
-
-query_len=3616, kv_cache_len=20000
-
+**Pseudo-Code for the Prefill/Extend Path** :
 ```python
 def _forward_prefill():
     # Stage 1: Attention for new tokens
-    _run_prefill_new_tokens()  3616x3616x3616
+    _run_prefill_new_tokens()  
 
-    # Stage 2: Context Chunk Loop Processing  
+    # Stage 2: for extend path, Context Chunk Loop Processing  
     for chunk in context_chunks:
         gather_and_maybe_dequant_cache()
         _run_prefill_context_chunk()  # _run_prefill_context_chunk_fa in rocm backend
