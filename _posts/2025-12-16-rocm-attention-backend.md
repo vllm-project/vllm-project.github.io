@@ -27,6 +27,9 @@ In vLLM for AMD ROCm backend, there are four MHA implementations and three Multi
 
 ### The scheduling results in vLLM
 
+In each vLLM inference step, a batch of requests containing of prefill/extend/decode requests are batched together for forward step computation. A bucket of requests in each forward step may be consists of different numbers of prefill/extend/decode requests. Figure 1 illustrates an example of contiguous batching with max-concurrency=5, from which we can see that, step 1~5 have different numbers of prefill/extend/decode requests, among which the batch requests in step4 contains three decode, 1 prefill and 1 extend inference. Actually, the sequence of the prefill/extend/decode are randomly arranged in a real online serving. Then for each attention backend, it should provide the calculation logics for all the prefill/extend/decode scenarios.
+
+![Contiguous-Batching Example](/assets/figures/2025-12-16-rocm-attention-backend/contiguous-batching.png)
 
 ## Multi-Head Attention Backend
 
