@@ -41,6 +41,8 @@ In addition to the new website, we've added several new email addresses for comm
 
 ## New Community Tools
 
-To help the community keep track of vLLM's progress, we've created a new repository called [vLLM Daily](https://github.com/vllm-project/vllm-daily). It summarizes the changes in vLLM every day. You can subscribe to the updates by adding https://github.com/vllm-project/vllm-daily/commits/main.atom to your favorite RSS reader.
+To help the community keep track of vLLM's progress, we've created a new repository called [vLLM Daily](https://github.com/vllm-project/vllm-daily). It summarizes the changes in vLLM every day. You can subscribe to the updates by adding [https://github.com/vllm-project/vllm-daily/commits/main.atom](https://github.com/vllm-project/vllm-daily/commits/main.atom) to your favorite RSS reader.
+
+## Conclusion
 
 From a research project to a widely used production inference engine, vLLM would not be where it is today without the incredible support from our community. We're excited to continue building the future of LLM inference together!
