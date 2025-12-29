@@ -101,10 +101,10 @@ Requests are reordered and processed in a decode:extend:prefill sequence, with e
     ```
 
 ## Multi Latent Attention Backend
-For model with MLA structure will choose this attention backend. In vLLM, the general MLA backend is the `TRITON_MLA` backend and will be enabled by default for ROCm platform. Besides, we have defined a new backend as `ROCM_AITER_MLA` backend to leverage the performant kernel in AITER.
+Model with MLA structure will choose this attention backend. In vLLM, the general MLA backend is the `TRITON_MLA` backend and will be enabled by default on AMD ROCm platform. Besides, we have defined a new backend as `ROCM_AITER_MLA` backend to leverage the performant kernel in AITER.
 
 ### TRITON MLA Backend
-The implementation principle of the `TRITON_MLA` backend are similar to the `ROCM_ATIER_FA` backend. It seperates the decode path from the prefill/extend path and use different implementation recipe. For prefill/extend path, the non-absorbed recipe is adopt and it use the standard MHA for computation. However, for decode, it use the absorbed recipe and use the MLA kernel for computation. The `TRITON_MLA` backend use the vLLM default Triton kernel for MHA computation in prefill phase, while it doesn't provide the decode implementation and leave it to the `ROCM_AITER_MLA` backend.
+The implementation principle of the `TRITON_MLA` backend are similar to the `ROCM_ATIER_FA` backend. It seperates the Decode/Extend/Prefill paths and use different implementation recipes. For Prefill/Extend paths, the non-absorbed recipe is adopt using the standard MHA for computation. However, for decode, it uses the absorbed recipe with the MLA kernel. The `TRITON_MLA` backend use the vLLM default Triton kernel for MHA computation in prefill phase, while it doesn't provide the decode implementation and leave it to the `ROCM_AITER_MLA` backend.
 
 **Pseudo-Code for the Prefill/Extend Path** :
 ```python
