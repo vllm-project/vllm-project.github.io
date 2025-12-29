@@ -61,11 +61,13 @@ The implementation recipe of `unified attention` is concise and general, which l
 
 ### The ROCM AITER FA backend 
 
+**Fundemental Design**
+
 The `ROCM AITER FA` backend's implemention relies on two fundamental design compared with the `Unified Attention`.
 
-- ***Request Routing***: It dynamically categorizes and processes incoming request tokens into three distinct paths: Decode, Extend and Prefill. This allows for specialized and optimized kernels to be applied to each specific task.
+- ***Request Routing***: It dynamically categorizes and processes the incoming request tokens into three distinct paths: Decode, Extend and Prefill. This allows for specialized and optimized kernels to be applied to each specific task.
 
-- ***Hardware-Optimized KV Cache Layout***: The backend adopts the preshuffled the KV cache layout instead of the standard version to leverage the performant kernel in AITER. The preshuffled layout represents as:
+- ***Hardware-Optimized KV Cache Layout***: The ROCm backend adopts the preshuffled the KV cache layout instead of the standard version to leverage the performant kernel in AITER. The preshuffled layout represents as:
 
     ```python
     k_cache: [num_blocks, num_heads, head_dim // x, block_size, x]
@@ -73,38 +75,30 @@ The `ROCM AITER FA` backend's implemention relies on two fundamental design comp
     ```
 
 **Performance-Optimized Processing Paths**
-Requests are reordered and processed in a decode:extend:prefill sequence, with each type taking a distinct, highly performant kernels:
 
-🔁 **Decode Path (For Single Token Generation)**: Leverages the new shuffled KV cache layout directly. A custom `reshape_and_cache` kernel ensures the cache is always in the optimal format, allowing the backend to call pa_asm with zero layout conversion overhead. This is the source of the **15-20% decode throughput improvement**.
+Requests are reordered and processed in a decode:extend:prefill sequence, with each type taking a distinct, highly performant kernels with different Key/Value layout, which can help unlock significant AMD GPU performance. The detailed optimization recipes for different paths are elaborated as follow. 
 
-✨ **Prefill Path (For Processing New Prompts)**: Uses the highly optimized `flash_attn_varlen_func` directly, as the standard `[num_tokens, num_heads, head_dim]` layout is already ideal for this operation. Results are written in-place to avoid any extra memory copies.
+- **Decode Path**: Leverages the shuffled KV cache layout directly. A custom `reshape_and_cache_flush` operator ensures the cache always in the shuffled layout, allowing the attention backend to call AITER performant paged_attention kernel with zero layout conversion overhead. Compared with the standard KV Cache layout, the shuffled layout can help boost **15-20% decode throughput improvement**.
 
-🔄 **Extend Path (For Context Extension)**: Presents a unique challenge. The shuffled layout is poor for long-sequence computation, but we don't want to lose its decode benefits. Our solution is a KV Cache Fetcher:
+- **Prefill Path**: The Qeury/Key/Value are in the standard `[num_tokens, num_heads, head_dim]` layout to align with the highly optimized AITER MHA kernel and avoid any extra memory copy operations.
 
-- New tokens are computed using `flash_attn_varlen_func`.
+- **Extend Path**: This is more challenging than Prefill/Decode paths. The new tokens should compute the attention with the context tokens, which is stored in KV-Cache buffer in shuffled layout as mentioned above. The shuffled layout is incompatible with AITER MHA kernel that we want to use for long-context computation at extend phase. Then we will insert an extra KV Cache fetching operator to fetch and convert the context Key/Value to the standard layout. In addition, considering the extra buffer used in KV Cache fetching, the long context will be chunked into serveral segments for computation.
 
-- The existing context is fetched in chunks, reordered into a prefill-friendly layout, and computed.
+    **Pseudo-Code for the Extend Path** :
+    ```python
+    def extend_forward():
+        # Stage 1: Attention for new tokens
+        flash_attn_varlen_func()  # calling AITER MHA
 
-- `Attention outputs (attn_out)` and `log-sum-exp values (lse)` from new and cached tokens are merged to produce the final, correct output.
-This chunked, buffered approach prevents out-of-memory (OOM) errors with extremely long sequences while maintaining high performance.
+        # Stage 2: Context Chunk Loop Processing
+        for chunk in context_chunks: 
+            cp_mha_gather_cache()
+            flash_attn_varlen_func()  # calling AITER MHA
+            merge_attn_states()
 
-**Pseudo-Code for the Extend Path** :
-```python
-def extend_forward():
-    # Stage 1: Attention for new tokens
-    flash_attn_varlen_func()
-
-    # Stage 2: Context Chunk Loop Processing
-    for chunk in context_chunks: 
-        cp_mha_gather_cache()
-        flash_attn_varlen_func()
+        # Stage 3: Get the final result
         merge_attn_states()
-
-    # Stage 3: Get the final result
-    merge_attn_states()
-```
-
-All those designs and implementation can unlock significant AMD GPU performance.
+    ```
 
 ## Multi Latent Attention Backend
 For model with MLA structure will choose this attention backend. In vLLM, the general MLA backend is the `TRITON_MLA` backend and will be enabled by default for ROCm platform. Besides, we have defined a new backend as `ROCM_AITER_MLA` backend to leverage the performant kernel in AITER.
