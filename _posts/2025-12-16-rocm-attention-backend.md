@@ -222,6 +222,12 @@ Beyond raw kernel performance, this backend inherits the full feature set of Fla
 ![MHA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tpot_comparison.png)
 _ROCM_AITER_FA delivers 2.7-3.2x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
 
+![MHA TTFT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_ttft_comparison.png)
+_TTFT (Time To First Token) comparison shows ROCM_AITER_FA and ROCM_AITER_UNIFIED lead in prefill performance._
+
+![MHA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tps_comparison.png)
+_Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.5-3x higher throughput than legacy ROCM_ATTN._
+
 **TPOT (ms) - lower is better:**
 
 | Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
@@ -244,8 +250,14 @@ The speedup is consistent across GPU generations. Note that `ROCM_AITER_UNIFIED_
 
 **Model**: DeepSeek-R1-0528, TP8 | **Workload**: ISL=10K, OSL=1K, 128 concurrent
 
-![MLA TPS Scaling](/assets/figures/2025-12-16-rocm-attention-backend/mla_tps_scaling.png)
-_MLA throughput scales across MI300X → MI325X → MI355X, with ROCM_AITER_TRITON_MLA consistently outperforming alternatives._
+![MLA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tpot_comparison.png)
+_ROCM_AITER_TRITON_MLA delivers 1.4-1.5x faster TPOT compared to TRITON_MLA across MI300X/MI325X/MI355X._
+
+![MLA TTFT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_ttft_comparison.png)
+_TTFT comparison shows ROCM_AITER_MLA leads on MI355X, while all backends perform similarly on MI300X._
+
+![MLA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tps_comparison.png)
+_Output throughput (TPS) shows ROCM_AITER_TRITON_MLA achieving up to 1.5x higher throughput than TRITON_MLA._
 
 **TPOT (ms) - lower is better:**
 
