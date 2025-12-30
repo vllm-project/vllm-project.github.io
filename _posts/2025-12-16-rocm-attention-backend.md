@@ -234,7 +234,7 @@ _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.5-3x hi
 | MI325X   | **74.86**     | 77.46                   | 95.00       | 241.63    |
 | MI355X   | **68.87**     | 70.61                   | 84.57       | 184.85    |
 
-**Relative to ROCM_AITER_FA:**
+**Relative to ROCM_AITER_FA (higher = slower):**
 
 | Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
 | -------- | ------------- | ----------------------- | ----------- | --------- |
@@ -265,7 +265,7 @@ _Output throughput (TPS) shows ROCM_AITER_TRITON_MLA achieving up to 1.5x higher
 | MI325X   | **102.85**            | 118.14         | 148.52     |
 | MI355X   | **72.74**             | 79.32          | 109.31     |
 
-**Relative to ROCM_AITER_TRITON_MLA:**
+**Relative to ROCM_AITER_TRITON_MLA (higher = slower):**
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
