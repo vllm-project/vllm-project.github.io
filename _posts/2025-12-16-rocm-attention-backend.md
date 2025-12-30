@@ -12,7 +12,7 @@ For a long time, enabling AMD support meant "porting": just making code run. **T
 
 With CDNA 3 hardware (MI300X, MI325X, MI355X) and complex model architectures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
 
-vLLM now provides 7 attention backends on AMD ROCm. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how the recommended options (`ROCM_AITER_FA` for MHA, `ROCM_AITER_TRITON_MLA` for MLA) deliver **1.5-3x performance gains** through AMD's AITER primitives and vLLM's kernel orchestration.
+vLLM now provides 7 attention backends on AMD ROCm. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.5-3x performance gains** through AMD's AITER primitives and vLLM's kernel orchestration.
 
 ---
 
@@ -37,17 +37,18 @@ This mixed-workload scenario is exactly what `ROCM_AITER_FA`'s 3-path routing ad
 
 ---
 
-## The Unified Attention Approach (and Its Limits)
+## Other MHA Backends
 
-Before `ROCM_AITER_FA`, unified attention backends processed all tokens through a single kernel path:
+Before diving into `ROCM_AITER_FA`, let's understand the other MHA backends available:
+
+### Unified Attention Backends
+
+These backends process all tokens (prefill/extend/decode) through a single kernel path:
 
 | Backend                                                                                                                         | Kernel Source                                                                                                            | Use Case                 |
 | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
 | [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/attention/ops/triton_unified_attention.py#L57)  | Default fallback         |
 | [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/unified_attention.py#L55) | Single-kernel AITER path |
-| [ROCM_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_attn.py)                             | Legacy implementation                                                                                                    | Compatibility            |
-
-The unified approach is concise:
 
 ```python
 def forward():
@@ -57,7 +58,20 @@ def forward():
     unified_attention_kernel(new_query, KV-Cache, ...)
 ```
 
-This works, but leaves performance on the table. `ROCM_AITER_FA` takes a different approach.
+### ROCM_ATTN: Legacy 2-Path Backend
+
+[ROCM_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_attn.py) uses 2-path routing with different kernels per phase:
+
+- **Prefill**: Triton kernel
+- **Decode**: HIP kernel
+
+This backend has two important characteristics:
+
+1. **Better TTFT in some workloads**: Our benchmarks show ROCM_ATTN achieves faster Time-To-First-Token than TRITON_ATTN in 5 out of 6 test cases, due to its optimized Triton prefill path.
+
+2. **Radeon GPU support**: Along with `TRITON_ATTN`, this backend supports **Radeon GPUs**—useful for consumer hardware deployments where AITER primitives aren't available.
+
+However, its HIP decode kernel is slower than alternatives, resulting in higher TPOT for decode-heavy workloads (like our ISL=10K, OSL=1K benchmark).
 
 ---
 
@@ -313,15 +327,15 @@ For different workloads, we recommend running your own benchmarks to select the 
 
 vLLM provides 7 attention backends on AMD ROCm, each optimized for different scenarios:
 
-| Category | Backend                   | How to enable                                 | Notes                   |
-| :------- | :------------------------ | :-------------------------------------------- | :---------------------- |
-| MHA      | TRITON_ATTN               | `--attention-backend TRITON_ATTN`             | Default fallback        |
-| MHA      | ROCM_AITER_UNIFIED_ATTN   | `--attention-backend ROCM_AITER_UNIFIED_ATTN` | AITER unified kernel    |
-| MHA      | ROCM_ATTN                 | `--attention-backend ROCM_ATTN`               | Legacy                  |
-| MHA      | **ROCM_AITER_FA**         | `--attention-backend ROCM_AITER_FA`           | **Recommended**         |
-| MLA      | TRITON_MLA                | `--attention-backend TRITON_MLA`              | Default for MLA         |
-| MLA      | ROCM_AITER_MLA            | `--attention-backend ROCM_AITER_MLA`          | CK prefill + ASM decode |
-| MLA      | **ROCM_AITER_TRITON_MLA** | `--attention-backend ROCM_AITER_TRITON_MLA`   | **Recommended**         |
+| Category | Backend                 | How to enable                                 | Notes                                     |
+| :------- | :---------------------- | :-------------------------------------------- | :---------------------------------------- |
+| MHA      | TRITON_ATTN             | `--attention-backend TRITON_ATTN`             | Baseline, Radeon support                  |
+| MHA      | ROCM_AITER_UNIFIED_ATTN | `--attention-backend ROCM_AITER_UNIFIED_ATTN` | AITER unified kernel                      |
+| MHA      | ROCM_ATTN               | `--attention-backend ROCM_ATTN`               | Radeon support, better TTFT               |
+| MHA      | **ROCM_AITER_FA**       | `--attention-backend ROCM_AITER_FA`           | **Recommended**, auto-selected with AITER |
+| MLA      | TRITON_MLA              | `--attention-backend TRITON_MLA`              | Baseline, Radeon support                  |
+| MLA      | ROCM_AITER_MLA          | `--attention-backend ROCM_AITER_MLA`          | Auto-selected with AITER                  |
+| MLA      | ROCM_AITER_TRITON_MLA   | `--attention-backend ROCM_AITER_TRITON_MLA`   | Best for ISL=10K/OSL=1K                   |
 
 ---
 
