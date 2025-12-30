@@ -71,8 +71,6 @@ This backend has two important characteristics:
 
 2. **Radeon GPU support**: Along with `TRITON_ATTN`, this backend supports **Radeon GPUs**—useful for consumer hardware deployments where AITER primitives aren't available.
 
-However, its HIP decode kernel is slower than alternatives, resulting in higher TPOT for decode-heavy workloads (like our ISL=10K, OSL=1K benchmark).
-
 ---
 
 ## The ROCM_AITER_FA Backend: Kernel Orchestration for AMD
@@ -244,7 +242,7 @@ _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.5-3x hi
 | MI325X   | 1.00x         | 1.03x                   | 1.27x       | 3.23x     |
 | MI355X   | 1.00x         | 1.03x                   | 1.23x       | 2.68x     |
 
-The speedup is consistent across GPU generations. Note that `ROCM_AITER_UNIFIED_ATTN` (single-kernel path) is only ~3% slower than `ROCM_AITER_FA` (3-path routing) in this uniform workload scenario.
+The relative performance is consistent across GPU generations. Note that `ROCM_AITER_UNIFIED_ATTN` (single-kernel path) is only ~3% slower than `ROCM_AITER_FA` (3-path routing) in this uniform workload scenario.
 
 ### MLA Benchmark Results
 
