@@ -10,7 +10,7 @@ math: true
 
 For a long time, enabling AMD support meant "porting": just making code run. **That era is over.**
 
-With CDNA 3 hardware (MI300X, MI325X, MI355X) and complex model architectures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
+With CDNA 3 architecture hardwares (MI300X, MI325X, MI355X) and complex model structures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
 
 vLLM now provides 7 attention backends on AMD ROCm. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.5-3x performance gains** through AMD's AITER primitives and vLLM's kernel orchestration.
 
@@ -77,7 +77,7 @@ This backend has two important characteristics:
 
 `ROCM_AITER_FA` isn't just a kernel wrapper—it's a sophisticated orchestration layer that routes requests to specialized kernels, combining vLLM's high-level management with AMD's AITER primitives.
 
-![AITER FA Backend](/assets/figures/2025-12-16-rocm-attention-backend/vLLM-Attention.png)
+![AITER FA Backend](/assets/figures/2025-12-16-rocm-attention-backend/ROCm-Attention.png)
 _Figure 2: (a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths._
 
 ### Key Innovations
@@ -87,7 +87,7 @@ _Figure 2: (a) Unified attention processes all tokens through one kernel. (b) RO
 ![Three-Path Architecture](/assets/figures/2025-12-16-rocm-attention-backend/three_path_architecture.png)
 _Each path uses specialized kernels optimized for its workload characteristics._
 
-- **Decode**: Single token generation uses `paged_attention_v1`—an assembly kernel optimized for memory bandwidth
+- **Decode**: Single token generation uses AITER highly optimized kernel for memory bandwidth
 - **Prefill**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
 - **Extend**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
 
@@ -161,7 +161,7 @@ vLLM provides two AITER-based MLA backends with different prefill implementation
 | Backend                 | Prefill Kernel               | Decode Kernel  |
 | ----------------------- | ---------------------------- | -------------- |
 | `TRITON_MLA`            | vLLM Triton                  | vLLM Triton    |
-| `ROCM_AITER_MLA`        | AITER CK (Composable Kernel) | AITER Assembly |
+| `ROCM_AITER_MLA`        | AITER Assembly | AITER Assembly |
 | `ROCM_AITER_TRITON_MLA` | AITER Triton                 | AITER Assembly |
 
 The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. Between the two AITER backends, `ROCM_AITER_TRITON_MLA` uses Triton for prefill, offering better occupancy tuning flexibility on CDNA hardware—especially important for long input sequences.
@@ -364,6 +364,13 @@ The era of "just porting" is over. This post covered all 7 attention backends av
 This is what native AMD optimization looks like: not ported, purpose-built. The 3-path routing architecture reflects a deliberate design choice—explicit workload separation at the software layer, with each path calling hardware-optimized AITER primitives. The result is a system that's debuggable, portable across GPU generations, and ready for the mixed workloads of production LLM serving.
 
 ---
+
+## Acknowledgements
+We would like to thank the many talented people who have contributed to this collaborations:
+
+**AMD**: Peng Sun, Hattie Wu, Yi Gan, Zejun Chen, Carlus Huang, Lingpeng Jin, and the AITER team.
+
+**Embedded LLM**: Pin Siang Tan, Tun Jian Tan, and the Embedded LLM team.
 
 ## References
 
