@@ -6,7 +6,7 @@ author: micytao
 categories: [community, tools]
 ---
 
-We're excited to announce **[vLLM Playground](https://github.com/micytao/vllm-playground)** – a modern, feature-rich web interface for managing and interacting with vLLM servers. Whether you're developing locally on macOS, testing on Linux with GPUs, or deploying to enterprise Kubernetes/OpenShift clusters, vLLM Playground provides a unified, intuitive experience for working with vLLM.
+As a passionate vLLM community member who wants to see vLLM thrive and reach even more developers, I'm excited to announce **[vLLM Playground](https://github.com/micytao/vllm-playground)** – a modern, feature-rich web interface for managing and interacting with vLLM servers. Whether you're developing locally on macOS, testing on Linux with GPUs, or deploying to enterprise Kubernetes/OpenShift clusters, vLLM Playground provides a unified, intuitive experience for working with vLLM.
 
 <p align="center">
 <picture>
@@ -22,6 +22,18 @@ Setting up and managing vLLM servers often requires command-line expertise, cont
 - **One-Click Operations**: Start/stop servers, switch models, and adjust configurations through an intuitive UI
 - **Cross-Platform Support**: Works on macOS (Apple Silicon), Linux (CPU/GPU), and enterprise Kubernetes environments
 - **Same UI Everywhere**: Identical experience from local development to cloud deployment
+
+## Vision and Roadmap
+
+The goal of vLLM Playground is simple: **keep pace with the official vLLM project and make every new feature accessible and easy to try out**.
+
+vLLM is evolving rapidly with powerful capabilities—structured outputs, tool calling, speculative decoding, multi-modal support, and more. However, exploring these features often requires diving into documentation, writing scripts, and managing configurations. vLLM Playground bridges that gap by providing a visual, interactive interface where you can experiment with new vLLM features the moment they're released.
+
+**What's next on the roadmap:**
+
+- **🔗 MCP Server Integration**: Model Context Protocol for enhanced tool capabilities
+- **➕ RAG Support**: Retrieval-Augmented Generation for knowledge-grounded responses
+- **🎯 Feature Parity**: Continuously adding UI support for new vLLM capabilities as they land
 
 ## Quick Start
 
@@ -185,20 +197,13 @@ vllm-playground stop               # Stop running instance
 vllm-playground status             # Check if running
 ```
 
-## Coming Soon
-
-We're actively developing:
-
-- **🔗 MCP Server Integration**: Model Context Protocol for enhanced tool capabilities
-- **➕ RAG Support**: Retrieval-Augmented Generation for knowledge-grounded responses
-
 ## Get Involved
 
 vLLM Playground is open source (Apache-2.0 license) and contributions are welcome!
 
 - **GitHub**: [https://github.com/micytao/vllm-playground](https://github.com/micytao/vllm-playground)
 - **PyPI**: [https://pypi.org/project/vllm-playground/](https://pypi.org/project/vllm-playground/)
-- **Issues & PRs**: We welcome bug reports, feature requests, and pull requests
+- **Issues & PRs**: Bug reports, feature requests, and pull requests are welcome
 
 Try it today:
 
@@ -207,5 +212,5 @@ pip install vllm-playground
 vllm-playground
 ```
 
-We hope vLLM Playground makes your vLLM development and deployment experience smoother and more enjoyable. Happy serving! 🚀
+I hope vLLM Playground makes your vLLM development and deployment experience smoother and more enjoyable. Happy serving! 🚀
 
