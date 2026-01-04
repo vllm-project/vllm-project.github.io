@@ -23,6 +23,8 @@ In Greek mythology, Iris (Ἶρις) served as the divine messenger who bridged 
 
 **Now:** We've introduced the **Signal-Decision Driven Plugin Chain Architecture**, a complete reimagining of semantic routing that scales from 14 fixed categories to unlimited intelligent routing decisions.
 
+![](/assets/figures/semantic-router/iris-2.png)
+
 The new architecture extracts **six types of signals** from user queries:
 
 - **Domain Signals**: MMLU-trained classification with LoRA extensibility
@@ -49,6 +51,8 @@ This modular design enables unlimited extensibility—new signals, plugins, and 
 
 In collaboration with the **Hugging Face Candle team**, we've completely refactored the router's inference kernel. The previous implementation required loading and running multiple fine-tuned models independently—computational cost grew linearly with the number of classification tasks.
 
+![](/assets/figures/semantic-router/iris-3.png)
+
 **The breakthrough:** By adopting **Low-Rank Adaptation (LoRA)**, we now share base model computation across all classification tasks:
 
 | Approach | Workload                                         | Scalability     |
@@ -67,6 +71,8 @@ Beyond request-time safety (jailbreak, PII), v0.1 introduces **HaluGate**—a th
 **Stage 2: HaluGate Detector** – Token-level detection identifying exactly which tokens in the response are unsupported by the provided context.
 
 **Stage 3: HaluGate Explainer** – NLI-based classification explaining *why* each flagged span is problematic (CONTRADICTION vs NEUTRAL).
+
+![](/assets/figures/semantic-router/iris-4.png)
 
 HaluGate integrates seamlessly with function-calling workflows—tool results serve as ground truth for verification. Detection results are propagated via HTTP headers, enabling downstream systems to implement custom policies. Dive deeper in our [HaluGate blog post](https://blog.vllm.ai/2025/12/14/halugate.html).
 
@@ -149,6 +155,8 @@ Intelligent tool management for agentic workflows:
 
 While v0.1 Iris establishes a solid foundation, we're already planning significant enhancements for v0.2:
 
+![](/assets/figures/semantic-router/iris-5.png)
+
 ### Signal-Decision Architecture Enhancements
 
 - **More Signal Types**: Extract additional valuable signals from user queries
@@ -199,7 +207,7 @@ Building on the Signal-Decision foundation, we're researching intelligent model 
 
 ### Evaluation
 
-- Working with Rice University on comprehensive router evaluation frameworks
+- Working with RouterArena Team on comprehensive router evaluation frameworks
 
 ---
 
@@ -238,9 +246,9 @@ We believe the future of intelligent routing is built together. Whether you're a
 
 Every contribution matters—from fixing a typo to architecting a new feature. Join us in shaping the next generation of semantic routing infrastructure.
 
-📖 **Documentation**: [vllm-semantic-router.com](https://vllm-semantic-router.com)
-💻 **GitHub**: [vllm-project/semantic-router](https://github.com/vllm-project/semantic-router)
-🤗 **Models**: [Hugging Face](https://huggingface.co/llm-semantic-router)
-💬 **Community**: Join us on Slack in [vLLM Slack](https://vllm-dev.slack.com/archives/C09CTGF8KCN)
+- 📖 **Documentation**: [vllm-semantic-router.com](https://vllm-semantic-router.com)
+- 💻 **GitHub**: [vllm-project/semantic-router](https://github.com/vllm-project/semantic-router)
+- 🤗 **Models**: [Hugging Face](https://huggingface.co/llm-semantic-router)
+- 💬 **Community**: Join us on Slack in [vLLM Slack](https://vllm-dev.slack.com/archives/C09CTGF8KCN)
 
 *The rainbow bridge is now open. Welcome to Iris.* 🌈
