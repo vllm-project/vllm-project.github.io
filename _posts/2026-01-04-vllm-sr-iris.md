@@ -169,6 +169,8 @@ While v0.1 Iris establishes a solid foundation, we're already planning significa
 
 ### Model Selection Algorithms
 
+![](/assets/figures/semantic-router/iris-8.png)
+
 Building on the Signal-Decision foundation, we're researching intelligent model selection algorithms:
 
 - **ML-based Techniques**: KNN, KMeans, MLP, SVM, Matrix Factorization
@@ -221,7 +223,7 @@ vLLM Semantic Router v0.1 Iris represents a truly global collaboration. We grate
 
 We're proud to welcome our growing committer community:
 
-**Senan Zedan, samzong, Liav Weiss, Asaad Balum, Yehudit, Noa Limoy, JaredforReal, Abdallah Samara, Hen Schwartz, Srinivas A, carlory, Yossi Ovadia, Jintao Zhang, yuluo-yx, cryo-zd, OneZero-Y, aeft*
+*Senan Zedan, samzong, Liav Weiss, Asaad Balum, Yehudit, Noa Limoy, JaredforReal, Abdallah Samara, Hen Schwartz, Srinivas A, carlory, Yossi Ovadia, Jintao Zhang, yuluo-yx, cryo-zd, OneZero-Y, aeft*
 
 And to the **50+ contributors** who helped make this release possible—thank you!
 
