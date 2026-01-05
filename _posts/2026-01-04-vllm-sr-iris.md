@@ -31,8 +31,8 @@ The new architecture extracts **six types of signals** from user queries:
 - **Keyword Signals**: Fast, interpretable regex-based pattern matching
 - **Embedding Signals**: Scalable semantic similarity using neural embeddings
 - **Factual Signals**: Fact-check classification for hallucination detection
-- **Feedback Signals**: User preference and satisfaction indicators
-- **Preference Signals**: Personalization based on user history
+- **Feedback Signals**: User satisfaction/dissatisfaction indicators
+- **Preference Signals**: Personalization based on user defined preferences
 
 These signals serve as inputs to a **flexible decision engine** that combines them using AND/OR logic with priority-based selection. Previously static features like jailbreak detection, PII protection, and semantic caching are now configurable **plugins** that users can enable per-decision:
 
@@ -84,6 +84,8 @@ HaluGate integrates seamlessly with function-calling workflows—tool results se
 pip install vllm-sr
 ```
 
+![](/assets/figures/semantic-router/iris-7.png)
+
 Get started in seconds with a single pip command. The package includes all core dependencies for quickstart.
 
 **Kubernetes Deployment:**
@@ -113,6 +115,8 @@ vLLM Semantic Router v0.1 integrates seamlessly with the broader AI infrastructu
 - [Istio](https://github.com/istio/istio) – Open-source service mesh for enterprise deployments with traffic management, security, and observability
 
 ### 6. MoM (Mixture of Models) Family
+
+![](/assets/figures/semantic-router/iris-6.png)
 
 We're proud to introduce the **MoM Family**—a comprehensive suite of specialized models purpose-built for semantic routing:
 
