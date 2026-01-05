@@ -5,6 +5,8 @@ author: "vLLM Semantic Router Team"
 image: /assets/logos/vllm-logo-text-light.png
 ---
 
+[vLLM Semantic Router](https://github.com/vllm-project/semantic-router) is the **System Level Intelligence** for Mixture-of-Models (MoM), bringing **Collective Intelligence** into LLM systems. It lives between users and models, capturing signals from requests, responses, and context to make intelligent routing decisions—including model selection, safety filtering (jailbreak, PII), semantic caching, and hallucination detection. For more background, see our [initial announcement blog post](https://blog.vllm.ai/2025/09/11/semantic-router.html).
+
 We are thrilled to announce the release of **vLLM Semantic Router v0.1**, codename **Iris**—our first major release that marks a transformative milestone for intelligent LLM routing. Since our experimental launch in September 2025, we've witnessed extraordinary community growth: over **600 Pull Requests** merged, **300+ Issues** addressed, and contributions from more than **50 outstanding engineers worldwide**. As we kick off 2026, we're excited to deliver a production-ready semantic routing platform that has evolved dramatically from its origins.
 
 ![](/assets/figures/semantic-router/iris-0.png)
@@ -60,6 +62,8 @@ In collaboration with the **Hugging Face Candle team**, we've completely refacto
 | Before   | N full model forward passes                      | O(n)            |
 | After    | 1 base model pass + N lightweight LoRA adapters  | O(1) + O(n×ε)   |
 
+> **Note:** Here ε represents the relative cost of a LoRA adapter forward pass compared to the full base model—typically ε << 1, making the additional overhead negligible.
+
 This architecture delivers **significant latency reduction** while enabling multi-task classification on the same input. See the full technical details in our [Modular LoRA blog post](https://blog.vllm.ai/2025/10/27/semantic-router-modular.html).
 
 ### 3. Safety Enhancement: HaluGate Hallucination Detection
@@ -87,6 +91,26 @@ pip install vllm-sr
 ![](/assets/figures/semantic-router/iris-7.png)
 
 Get started in seconds with a single pip command. The package includes all core dependencies for quickstart.
+
+> **Configuration:** After installation, run `vllm-sr init` to generate the default `config.yaml`. Then configure your LLM backends in the `providers` section:
+>
+> ```yaml
+> providers:
+>   models:
+>     - name: "openai/gpt-oss-120b"       # Local vLLM endpoint
+>       endpoints:
+>         - endpoint: "localhost:8000"
+>           protocol: "http"
+>       access_key: "your-vllm-api-key"
+>     - name: "openai/gpt-4"              # External provider
+>       endpoints:
+>         - endpoint: "api.openai.com"
+>           protocol: "https"
+>       access_key: "sk-xxxxxx"
+>   default_model: "openai/gpt-oss-120b"
+> ```
+>
+> See the [configuration documentation](https://vllm-semantic-router.com/docs/installation/) for full details.
 
 **Kubernetes Deployment:**
 
