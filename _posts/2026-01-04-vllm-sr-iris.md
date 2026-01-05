@@ -221,7 +221,7 @@ vLLM Semantic Router v0.1 Iris represents a truly global collaboration. We grate
 
 We're proud to welcome our growing committer community:
 
-Senan Zedan, samzong, Liav Weiss, Asaad Balum, Yehudit, Noa Limoy, JaredforReal, Abdallah Samara, Hen Schwartz, Srinivas A, carlory, Yossi Ovadia, Jintao Zhang, yuluo-yx, cryo-zd, OneZero-Y, aeft
+**Senan Zedan, samzong, Liav Weiss, Asaad Balum, Yehudit, Noa Limoy, JaredforReal, Abdallah Samara, Hen Schwartz, Srinivas A, carlory, Yossi Ovadia, Jintao Zhang, yuluo-yx, cryo-zd, OneZero-Y, aeft*
 
 And to the **50+ contributors** who helped make this release possible—thank you!
 
@@ -243,16 +243,16 @@ We believe the future of intelligent routing is built together. Whether you're a
 
 **Ways to contribute:**
 
-- 🏢 **Organizations**: Partner with us on integrations, sponsor development, or contribute engineering resources
-- 🔬 **Researchers**: Collaborate on papers, propose new algorithms, or help benchmark performance
-- 👩‍💻 **Developers**: Submit PRs, report issues, improve documentation, or build community plugins
-- 🌍 **Community**: Share use cases, write tutorials, translate docs, or help answer questions
+- **Organizations**: Partner with us on integrations, sponsor development, or contribute engineering resources
+- **Researchers**: Collaborate on papers, propose new algorithms, or help benchmark performance
+- **Developers**: Submit PRs, report issues, improve documentation, or build community plugins
+- **Community**: Share use cases, write tutorials, translate docs, or help answer questions
 
 Every contribution matters—from fixing a typo to architecting a new feature. Join us in shaping the next generation of semantic routing infrastructure.
 
-- 📖 **Documentation**: [vllm-semantic-router.com](https://vllm-semantic-router.com)
-- 💻 **GitHub**: [vllm-project/semantic-router](https://github.com/vllm-project/semantic-router)
-- 🤗 **Models**: [Hugging Face](https://huggingface.co/llm-semantic-router)
-- 💬 **Community**: Join us on Slack in [vLLM Slack](https://vllm-dev.slack.com/archives/C09CTGF8KCN)
+- **Documentation**: [vllm-semantic-router.com](https://vllm-semantic-router.com)
+- **GitHub**: [vllm-project/semantic-router](https://github.com/vllm-project/semantic-router)
+- **Models**: [Hugging Face](https://huggingface.co/llm-semantic-router)
+- **Community**: Join us on Slack in [vLLM Slack](https://vllm-dev.slack.com/archives/C09CTGF8KCN)
 
 *The rainbow bridge is now open. Welcome to Iris.* 🌈
