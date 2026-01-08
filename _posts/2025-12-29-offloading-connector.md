@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Inside vLLM’s New Offloading Connector: Smarter Memory Transfer for Maximizing Inference Throughput"
+title: "Inside vLLM’s New KV Offloading Connector: Smarter Memory Transfer for Maximizing Inference Throughput"
 author: "Or Ozeri, Danny Harnik (vLLM Team at IBM Research)"
 image: /assets/logos/vllm-logo-only-light.png
 ---
