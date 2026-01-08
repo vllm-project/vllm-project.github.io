@@ -67,7 +67,7 @@ In our first benchmark, we measure the latency of processing a single prefill re
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-12-29-offloading-connector/figure1.png" width="100%">
+<img src="/assets/figures/2026-01-08-kv-offloading-connector/figure1.png" width="100%">
 </picture><br>
 <b>Figure 1</b>: Single request TTFT (Llama-3.1-8B-Instruct, NVIDIA H100).
 </p>
@@ -82,7 +82,7 @@ We measure the time to handle these requests (omitting the time to warm-up the C
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-12-29-offloading-connector/figure2.png" width="100%">
+<img src="/assets/figures/2026-01-08-kv-offloading-connector/figure2.png" width="100%">
 </picture><br>
 <b>Figure 2</b>: Concurrent requests throughput (Llama-3.1-8B-Instruct, NVIDIA H100, 10000 prefill requests of 512 tokens).
 </p>
@@ -123,14 +123,14 @@ Our first test measures the throughput for a single transfer of 1000 blocks, tes
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-12-29-offloading-connector/figure3.png" width="100%">
+<img src="/assets/figures/2026-01-08-kv-offloading-connector/figure3.png" width="100%">
 </picture><br>
 <b>Figure 3</b>: Single GPU -> CPU transfer throughput  (NVIDIA H100, Single transfer of 1000 blocks).
 </p>
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-12-29-offloading-connector/figure4.png" width="100%">
+<img src="/assets/figures/2026-01-08-kv-offloading-connector/figure4.png" width="100%">
 </picture><br>
 <b>Figure 4</b>: Single CPU -> GPU transfer throughput  (NVIDIA H100, Single transfer of 1000 blocks).
 </p>
@@ -192,7 +192,7 @@ We purposely chose to present results with **the worst case scenario for the off
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-12-29-offloading-connector/figure5.png" width="100%">
+<img src="/assets/figures/2026-01-08-kv-offloading-connector/figure5.png" width="100%">
 </picture><br>
 <b>Figure 5</b>: Single request TTFT (Llama-3.2-1B-Instruct, NVIDIA H100).
 </p>
@@ -201,7 +201,7 @@ For the single request benchmark, we see the **custom kernel yielding slightly b
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2025-12-29-offloading-connector/figure6.png" width="100%">
+<img src="/assets/figures/2026-01-08-kv-offloading-connector/figure6.png" width="100%">
 </picture><br>
 <b>Figure 6</b>: Concurrent requests throughput (Llama-3.2-1B-Instruct, NVIDIA H100, 10000 prefill requests of 512 tokens).
 </p>
