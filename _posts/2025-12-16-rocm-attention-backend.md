@@ -217,7 +217,7 @@ Beyond raw kernel performance, this backend inherits the full feature set of Fla
 
 ### MHA Benchmark Results
 
-**Model**: ![Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-FP8), TP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
+**Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-FP8), TP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
 
 ![MHA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tpot_comparison.png)
 _ROCM_AITER_FA delivers 2.7-3.2x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
@@ -248,7 +248,7 @@ The relative performance is consistent across GPU generations. Note that `ROCM_A
 
 ### MLA Benchmark Results
 
-**Model**: DeepSeek-R1-0528, TP8, block_size=16 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
+**Model**: [DeepSeek-R1-0528](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528), TP8, block_size=16 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
 
 ![MLA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tpot_comparison.png)
 _ROCM_AITER_TRITON_MLA delivers 1.27-1.54x faster TPOT compared to TRITON_MLA across MI300X/MI325X/MI355X._
