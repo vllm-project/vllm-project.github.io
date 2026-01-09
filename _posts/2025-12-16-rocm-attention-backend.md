@@ -213,7 +213,7 @@ Beyond raw kernel performance, this backend inherits the full feature set of Fla
 
 ## Performance Benchmarks
 
-**Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260107`. For AITER backends, results are from the second run to eliminate JIT compilation overhead.
+**Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260107`. Results are from the second run to eliminate JIT compilation overhead.
 
 ### MHA Benchmark Results
 
