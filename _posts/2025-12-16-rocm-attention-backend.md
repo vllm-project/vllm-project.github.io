@@ -48,7 +48,7 @@ These backends process all tokens (prefill/extend/decode) through a single kerne
 | Backend                                                                                                                         | Kernel Source                                                                                                            | Use Case                 |
 | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
 | [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/attention/ops/triton_unified_attention.py#L57)  | Default fallback         |
-| [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/unified_attention.py#L55) | Single-kernel AITER path |
+| [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/attention/unified_attention.py#L54) | Single-kernel AITER path |
 
 ```python
 def forward():
