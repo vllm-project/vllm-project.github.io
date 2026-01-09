@@ -207,7 +207,7 @@ During **decode**, the model generates one token at a time. The compressed KV ca
 
 The **1.27-1.39x speedup** primarily comes from the assembly decode kernel. TPOT is decode-heavy (1K iterations), so optimizing decode yields the largest throughput gains.
 
-Beyond raw kernel performance, this backend inherits the full feature set of FlashMLABackend, including PIECEWISE_AND_FULL CUDA graph support and MTP support. Another advantage is its near-identical performance across virtually any KV cache block size—you can treat every token as prefix cache without worrying about performance penalties typically associated with fine-grained caching.
+Beyond raw kernel performance, this backend inherits the full feature set of FlashMLABackend, including FULL_AND_PIECEWISE CUDA graph support and MTP support. Another advantage is its near-identical performance across virtually any KV cache block size—you can treat every token as prefix cache without worrying about performance penalties typically associated with fine-grained caching.
 
 ---
 
@@ -217,7 +217,7 @@ Beyond raw kernel performance, this backend inherits the full feature set of Fla
 
 ### MHA Benchmark Results
 
-**Model**: Qwen3-235B-A22B FP8, TP4 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
+**Model**: ![Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-FP8), TP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
 
 ![MHA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tpot_comparison.png)
 _ROCM_AITER_FA delivers 2.7-3.2x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
