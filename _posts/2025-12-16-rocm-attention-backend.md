@@ -161,16 +161,18 @@ vLLM provides two AITER-based MLA backends with different prefill implementation
 | Backend                 | Prefill Kernel | Decode Kernel  |
 | ----------------------- | -------------- | -------------- |
 | `TRITON_MLA`            | vLLM Triton    | vLLM Triton    |
-| `ROCM_AITER_MLA`        | AITER Assembly | AITER Assembly |
-| `ROCM_AITER_TRITON_MLA` | AITER Triton   | AITER Assembly |
+| `ROCM_AITER_MLA`        | AITER MHA (CK on gfx942, ASM on gfx950) | AITER Assembly |
+| `ROCM_AITER_TRITON_MLA` | AITER Triton MHA | AITER Assembly |
 
-The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. Between the two AITER backends, `ROCM_AITER_TRITON_MLA` uses Triton for prefill, offering better occupancy tuning flexibility on CDNA hardware—especially important for long input sequences.
+The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). On gfx942 (MI300X/MI325X), AITER MHA resolves to CK kernels; on gfx950 (MI355X), it resolves to the newer assembly MHA kernels.
 
-**Why Triton over CK for MLA prefill?** Two reasons:
+**Why the prefill winner flips by architecture?** Two reasons:
 
-1. **XCD-aware scheduling**: MI300X has 8 XCDs (chiplets). The AITER Triton kernel explicitly remaps head distribution across XCDs via `remap_xcd()`, ensuring balanced load. The CK path doesn't expose this logic at the Python level.
+1. **gfx942 (MI300X/MI325X): XCD-aware scheduling**: The AITER Triton kernel explicitly remaps head distribution across XCDs via `remap_xcd()`, ensuring balanced load. The CK path doesn't expose this logic at the Python level.
 
-2. **Runtime config flexibility**: Triton selects architecture-specific configs at runtime (e.g., `BLOCK_M=128, BLOCK_N=64` for MI300X), while CK uses a fixed set of pre-generated kernels.
+2. **gfx942 (MI300X/MI325X): Runtime config flexibility**: Triton selects architecture-specific configs at runtime (e.g., `BLOCK_M=128, BLOCK_N=64` for MI300X), while CK uses a fixed set of pre-generated kernels.
+
+On **gfx950 (MI355X)**, AITER MHA switches to the assembly kernel, which is hand-tuned for MI355X and tends to beat the Triton MHA path. That is why `ROCM_AITER_MLA` often pulls ahead on TTFT even when TPOT stays close.
 
 ### Absorbed vs Non-Absorbed Recipe
 
@@ -291,7 +293,7 @@ _Output throughput (TPS) shows ROCM_AITER_TRITON_MLA achieving up to 1.5x higher
 | MI325X   | 1.00x                 | 1.04x          | 1.33x      |
 | MI355X   | 1.00x                 | 1.02x          | 1.39x      |
 
-`ROCM_AITER_TRITON_MLA` (Triton prefill + ASM decode) shows marginal TPOT improvement (1-4%) over `ROCM_AITER_MLA` (CK prefill + ASM decode). However, `ROCM_AITER_MLA` achieves the best TTFT on MI355X at 128 concurrency. Both AITER MLA backends deliver similar overall performance—the auto-selected `ROCM_AITER_MLA` is recommended for most workloads. Users who want to squeeze out maximum TPOT can try `ROCM_AITER_TRITON_MLA`.
+`ROCM_AITER_TRITON_MLA` (Triton prefill + ASM decode) shows marginal TPOT improvement (1-4%) over `ROCM_AITER_MLA`. On gfx942, this is mostly Triton beating CK; on gfx950, the gap narrows because `ROCM_AITER_MLA` uses the AITER assembly MHA prefill. `ROCM_AITER_MLA` achieves the best TTFT on MI355X at 128 concurrency. Both AITER MLA backends deliver similar overall performance—the auto-selected `ROCM_AITER_MLA` is recommended for most workloads. Users who want to squeeze out maximum TPOT can try `ROCM_AITER_TRITON_MLA`.
 
 _Note: These benchmarks use uniform request sizes. Production workloads with prefix caching, mixed context lengths, and varied request patterns would exercise the 3-path routing architecture more fully._
 
