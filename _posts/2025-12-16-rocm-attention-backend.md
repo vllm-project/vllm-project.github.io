@@ -148,6 +148,29 @@ def extend_forward():
 
 Each chunk produces an output and LSE (log-sum-exp). The LSE captures the softmax denominator, enabling numerically stable merging—chunks with higher attention scores naturally dominate the final result.
 
+### Interactive Animation: ROCM_AITER_FA Request Flow
+
+The following animation demonstrates how multiple requests flow through the ROCM_AITER_FA backend across 7 iterations. Use the controls to start, pause, or jump to specific iterations.
+
+<div style="width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; overflow-x: auto; padding: 20px 0;">
+<div style="display: flex; justify-content: center; min-width: 1420px;">
+<iframe src="/assets/figures/2025-12-16-rocm-attention-backend/rocm_aiter_fa_flow_animated_new.html" width="1400" height="850" style="border: 1px solid #dee2e6; border-radius: 12px;" frameborder="0"></iframe>
+</div>
+</div>
+
+**Iteration Guide:**
+
+| Iteration | Key Events |
+|-----------|------------|
+| **1** | R1 enters → tokenization → scheduler queue → QKV projection → **Prefill Path** → sample 1 token. R2 arrives mid-iteration, waits in queue. |
+| **2** | R1 + R2 batched together. R1 → **Decode Path**, R2 → **Prefill Path**. R3, R4 arrive and enter queue. |
+| **3** | 4 requests batched. Token budget = 100, so R3 schedules 100 tokens (180 remaining). R3 output = 0 (not all prompt tokens computed yet). |
+| **4** | R3 enters **Extend Path** to continue computing remaining prompt tokens. Batch reordering: tensors reordered to [decode > extend > prefill]. |
+| **5** | Batch reordering continues: [decode > extend] order. R5 finishes extend, transitions to decode. |
+| **6-7** | All requests in **Decode Path**, generating tokens until stop signal. |
+
+_The animation shows how ROCM_AITER_FA dynamically routes requests through Prefill → Extend → Decode paths based on their state, enabling efficient batched processing of mixed workloads._
+
 ---
 
 ## The ROCM_AITER_TRITON_MLA Backend: Hybrid Strategy for DeepSeek
