@@ -400,7 +400,7 @@ We would like to thank the many talented people who have contributed to this col
 
 **AMD**: Peng Sun, Hattie Wu, Yi Gan, Zejun Chen, Carlus Huang, Lingpeng Jin, and the AITER team.
 
-**Embedded LLM**: Pin Siang Tan, Tun Jian Tan, and the Embedded LLM team.
+**Embedded LLM**: Pin Siang Tan, Tun Jian Tan, Jun Kang Chow, and the Embedded LLM team.
 
 ## Resources
 
