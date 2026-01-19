@@ -333,11 +333,11 @@ Our benchmarks show `ROCM_AITER_TRITON_MLA` provides marginal improvement (1-4%)
 
 ### Hardware Support
 
-| GPU    | Memory      | Status        |
-| ------ | ----------- | ------------- |
-| MI300X | 192GB HBM3  | ✅ Production |
-| MI325X | 256GB HBM3e | ✅ Production |
-| MI355X | 288GB HBM3e | ✅ Production |
+| GPU    | Memory      | Architecture |
+| ------ | ----------- | ------------ |
+| MI300X | 192GB HBM3  | gfx942       |
+| MI325X | 256GB HBM3e | gfx942       |
+| MI355X | 288GB HBM3e | gfx950       |
 
 ### Complete Backend Reference
 
