@@ -91,10 +91,20 @@ _Each path uses specialized kernels optimized for its workload characteristics._
 - **Prefill**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
 - **Extend**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
 
+<div style="display: flex; justify-content: center; margin: 20px 0;">
+<iframe src="/assets/figures/2025-12-16-rocm-attention-backend/iteration2_attention_backend_routing.html" width="600" height="420" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
+</div>
+<p style="text-align: center; font-style: italic; color: #6c757d; margin-top: -10px;">Animation: R1 (decode token) routes to Decode Path, R2 (prefill tokens) routes to Prefill Path.</p>
+
 **2. Batch Reordering**: Requests are reordered to `[decode:extend:prefill]` for contiguous memory access, eliminating redundant KV cache fetches.
 
 ![Batch Reordering](/assets/figures/2025-12-16-rocm-attention-backend/batch_reordering.png)
 _Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches._
+
+<div style="display: flex; justify-content: center; margin: 20px 0;">
+<iframe src="/assets/figures/2025-12-16-rocm-attention-backend/iteration4_batch_reordering_extend.html" width="600" height="670" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
+</div>
+<p style="text-align: center; font-style: italic; color: #6c757d; margin-top: -10px;">Animation: Batch reordering reorders requests to [decode > extend > prefill], then routes R3 to Extend Path.</p>
 
 **3. Chunked Context Processing**: Long sequences are processed in chunks sized by a fixed per-iteration token budget (~32K tokens total), split across extend requests; LSE-based merging ensures numerical stability.
 
