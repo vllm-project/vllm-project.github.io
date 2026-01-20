@@ -45,9 +45,9 @@ Before diving into `ROCM_AITER_FA`, let's understand the other MHA backends avai
 
 These backends process all tokens (prefill/extend/decode) through a single kernel path:
 
-| Backend                                                                                                                         | Kernel Source                                                                                                            | Use Case                 |
-| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
-| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/attention/ops/triton_unified_attention.py#L57)  | Default fallback         |
+| Backend                                                                                                                         | Kernel Source                                                                                                                      | Use Case                 |
+| ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/attention/ops/triton_unified_attention.py#L57)            | Default fallback         |
 | [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/attention/unified_attention.py#L54) | Single-kernel AITER path |
 
 ```python
@@ -170,14 +170,14 @@ The following animation demonstrates how multiple requests flow through the ROCM
 
 **Iteration Guide:**
 
-| Iteration | Key Events |
-|-----------|------------|
-| **1** | R1 enters → tokenization → scheduler queue → QKV projection → **Prefill Path** → sample 1 token. R2 arrives mid-iteration, waits in queue. |
-| **2** | R1 + R2 batched together. R1 → **Decode Path**, R2 → **Prefill Path**. R3, R4 arrive and enter queue. |
-| **3** | 4 requests batched. Token budget = 100, so R3 schedules 100 tokens (180 remaining). R3 output = 0 (not all prompt tokens computed yet). |
-| **4** | R3 enters **Extend Path** to continue computing remaining prompt tokens. Batch reordering: tensors reordered to [decode > extend > prefill]. |
-| **5** | Batch reordering continues: [decode > extend] order. R5 finishes extend, transitions to decode. |
-| **6-7** | All requests in **Decode Path**, generating tokens until stop signal. |
+| Iteration | Key Events                                                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1**     | R1 enters → tokenization → scheduler queue → QKV projection → **Prefill Path** → sample 1 token. R2 arrives mid-iteration, waits in queue.   |
+| **2**     | R1 + R2 batched together. R1 → **Decode Path**, R2 → **Prefill Path**. R3, R4 arrive and enter queue.                                        |
+| **3**     | 4 requests batched. Token budget = 100, so R3 schedules 100 tokens (180 remaining). R3 output = 0 (not all prompt tokens computed yet).      |
+| **4**     | R3 enters **Extend Path** to continue computing remaining prompt tokens. Batch reordering: tensors reordered to [decode > extend > prefill]. |
+| **5**     | Batch reordering continues: [decode > extend] order. R5 finishes extend, transitions to decode.                                              |
+| **6-7**   | All requests in **Decode Path**, generating tokens until stop signal.                                                                        |
 
 _The animation shows how ROCM_AITER_FA dynamically routes requests through Prefill → Extend → Decode paths based on their state, enabling efficient batched processing of mixed workloads._
 
@@ -191,11 +191,11 @@ DeepSeek and Kimi's MLA architecture compresses the KV cache to **576 dimensions
 
 vLLM provides two AITER-based MLA backends with different prefill implementations:
 
-| Backend                 | Prefill Kernel | Decode Kernel  |
-| ----------------------- | -------------- | -------------- |
-| `TRITON_MLA`            | vLLM Triton    | vLLM Triton    |
+| Backend                 | Prefill Kernel                          | Decode Kernel  |
+| ----------------------- | --------------------------------------- | -------------- |
+| `TRITON_MLA`            | vLLM Triton                             | vLLM Triton    |
 | `ROCM_AITER_MLA`        | AITER MHA (CK on gfx942, ASM on gfx950) | AITER Assembly |
-| `ROCM_AITER_TRITON_MLA` | AITER Triton MHA | AITER Assembly |
+| `ROCM_AITER_TRITON_MLA` | AITER Triton MHA                        | AITER Assembly |
 
 The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). On gfx942 (MI300X/MI325X), AITER MHA resolves to CK kernels; on gfx950 (MI355X), it resolves to the newer assembly MHA kernels.
 
@@ -408,7 +408,7 @@ This is what native AMD optimization looks like: not ported, purpose-built. The 
 
 We would like to thank the many talented people who have contributed to this collaborations:
 
-**AMD**: Peng Sun, Hattie Wu, Yi Gan, Zejun Chen, Carlus Huang, Lingpeng Jin, and the AITER team.
+**AMD**: Hattie Wu, Yi Gan, Zejun Chen, Carlus Huang, Lingpeng Jin, Peng Sun and the AITER team.
 
 **Embedded LLM**: Pin Siang Tan, Tun Jian Tan, Jun Kang Chow, and the Embedded LLM team.
 
