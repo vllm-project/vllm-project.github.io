@@ -19,8 +19,6 @@ The core questions we're addressing:
 
 With **vLLM Semantic Router (vLLM-SR) v0.1**, we've deployed a live MoM system on AMD **MI300X/MI355X** GPUs that demonstrates these capabilities in action—routing queries across 6 specialized models using 8 signal types and 11 decision rules with the performance boost.
 
-![](/assets/figures/semantic-router/iris-0.png)
-
 **🎮 Try it live: [https://play.vllm-semantic-router.com](https://play.vllm-semantic-router.com)**
 
 ## Table of Contents
@@ -374,8 +372,12 @@ We would like to thank the following teams and individuals for their contributio
 - **AMD AIG Team**: Andy Luo, Haichen Zhang
 - **vLLM Semantic Router OSS team**: Xunzhuo Liu, Huamin Chen, Senan Zedan, Yehudit Kerido, Hao Wu, and the vLLM Semantic Router OSS team
 
-## Join the Discussion
+## Join Us
+
+**Looking for Collaborations!** Calling all passionate community developers and researchers: join us in building the system intelligence on AMD GPUs.
+
+Interested? Reach out to us:
+- Haichen Zhang: haichzha@amd.com
+- Xunzhuo Liu: xunzhuo@vllm-semantic-router.ai
 
 Share your use cases and feedback in **#semantic-router** channel on [vLLM Slack](https://vllm-dev.slack.com/archives/C09CTGF8KCN)
-
-![](/assets/figures/semantic-router/amd-0.png)
