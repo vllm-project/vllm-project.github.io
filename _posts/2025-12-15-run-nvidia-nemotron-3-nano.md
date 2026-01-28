@@ -5,6 +5,8 @@ author: "NVIDIA Nemotron Team"
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
 ---
 
+**Jan 28th Update**: NVIDIA just released their Nemotron 3 Nano model in NVFP4 precision. This model is supported by vLLM out of the box and it uses a new method called Quantization-Aware Distillation (QAD) to maintain accuracy on NVFP4 while delivering 4x throughput on B200 compared to FP8-H100. You can download the NVFP4 checkpoints [here](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4) and run them using this [NVIDIA Brev launchable](https://brev.nvidia.com/launchable/deploy?launchableID=env-386KFyCvmg3y22JIf0q8BUh6jia).
+
 We are excited to release the NVIDIA Nemotron 3 Nano, supported by vLLM. 
 
 Nemotron 3 Nano is part of the newly announced Nemotron 3 family of most efficient open models with leading accuracy for building agentic AI applications. The Nemotron 3 family of models use a hybrid Mamba-Transformer MoE architecture and 1M token context length. This enables developers to build reliable, high-throughput agents across complex, multi-document, and long-duration operations. 
