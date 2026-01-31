@@ -42,13 +42,16 @@ Not all models can support true streaming inference. Two key requirements must b
 
 The attention mechanism determines whether a model can process input incrementally or must wait for the entire sequence.
 
-Causal attention (triangular mask) restricts each position t to attend only to tokens at positions ≤ t. Because future tokens are explicitly excluded, the model’s output at time t is final once token t arrives. This makes true streaming possible: each new token can be processed immediately, and earlier outputs never need to be revised.
+- Causal attention (uni-directional mask) restricts each position t to attend only to tokens at positions ≤ t. Because future tokens are excluded, the model’s output token at time t is final once token t arrives. This makes true streaming possible: each new token can be processed immediately, and earlier outputs never need to be revised.
 
-Bidirectional attention (full mask) allows every position to attend to both past and future tokens. As a result, the representation at position t is defined in terms of tokens that may not have arrived yet. Until the full input sequence is known, the model cannot compute a stable output for any position, because future tokens could change how earlier tokens are interpreted.
+- Bidirectional attention (full mask) allows every position to attend to both past and future tokens. As a result, the model's output token at position t is conditions on tokens that may not have arrived yet. Until the full input sequence is known, the model cannot compute a stable output for any position, because future tokens could change how earlier tokens are interpreted.
 
 For this reason, bidirectional attention inherently requires access to the complete input sequence before producing outputs, which makes it incompatible with streaming or online processing.
 
-Causal attention is therefore a necessary condition for streaming, but on its own it is not sufficient.
+For long-running or infinite streaming, standard causal attention is not enough. If each token attends to the entire past, computation and memory grow without bound, which is impractical. In practice, past context must be truncated. 
+A common architectural solution is sliding-window attention, where each token attends only to a fixed-size window of recent tokens, keeping compute and memory bounded while supporting streaming. Hence, causal attention with a sliding window is often the architecture of choice for modern streaming models.
+
+Using causal attention with a sliding window and training the model with standard next-token prediction is not enough for true streaming applications. Vanilla next-token prediction loss does not allow the model to learn to incorporate new input while generating output, so it may still rely on seeing future context, preventing fully streamable behavior.
 
 ### Training for Token-by-Token Processing
 
