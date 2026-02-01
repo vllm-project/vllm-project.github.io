@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Streaming Requests & Realtime API in vLLM"
-author: "vLLM Team"
+author: "TODO"
 image: /assets/figures/2026-01-31-streaming-realtime/architecture.png
 ---
 
@@ -51,15 +51,35 @@ For this reason, bidirectional attention inherently requires access to the compl
 For long-running or infinite streaming, standard causal attention is not enough. If each token attends to the entire past, computation and memory grow without bound, which is impractical. In practice, past context must be truncated. 
 A common architectural solution is sliding-window attention, where each token attends only to a fixed-size window of recent tokens, keeping compute and memory bounded while supporting streaming. Hence, causal attention with a sliding window is often the architecture of choice for modern streaming models.
 
-Using causal attention with a sliding window and training the model with standard next-token prediction is not enough for true streaming applications. Vanilla next-token prediction loss does not allow the model to learn to incorporate new input while generating output, so it may still rely on seeing future context, preventing fully streamable behavior.
+### Training for Streaming inputs
 
-### Training for Token-by-Token Processing
+However, having a fully streamable architecture is not sufficient on its own: the model must also be trained to support **true streaming input**.
 
-A model with causal attention can still fail at streaming if it wasn't trained to process input incrementally. Consider a speech recognition model trained on complete utterances: given a full audio clip, it produces a transcript. Even if this model uses causal attention internally, it expects the entire input before generating meaningful output—it has learned to "wait" for context that won't arrive in a streaming setting.
+Let \( X = (x_0, x_1, \ldots, x_T) \) denote the input sequence and \( Y = (y_0, y_1, \ldots, y_{T'}) \) the output sequence. In streaming applications, the model should generate the output \( y_t \) corresponding to input \( x_t \) at time step \( t \), with as little latency as possible. Concretely, one can think of \( y_t \) as the transcription of an audio frame \( x_t \) that is streamed into the model at time \( t \).
 
-True streaming models like [Moshi]( ) or [Voxtral Realtime](Link) are trained differently. They learn to produce useful output after each input token, refining their predictions as more context arrives. This requires training data and objectives that reward incremental accuracy, not just final-output quality.
+The standard next-token training objective typically conditions the distribution of the next token on the *entire* input sequence:
+\[
+P(y_i \mid y_{i-1}, \ldots, y_0, x_T, x_{T-1}, \ldots, x_0).
+\]
+This formulation is unsuitable for streaming, because generating \( y_i \) requires processing the full input sequence \( X \), which is not available in real time.
 
-The distinction matters for deployment: you cannot simply take any causal model and expect it to stream well. The model must be designed and trained for the streaming use case from the start.
+Instead, a streaming model must be able to predict \( y_i \) using only past inputs and, optionally, a small amount of future context:
+\[
+P(y_i \mid y_{i-1}, \ldots, y_0, x_{i+\delta}, \ldots, x_i, \ldots, x_0),
+\]
+where \( \delta \) is a lookahead parameter that should be as small as possible. In theory, \( \delta \) could be set to zero; in practice, a small delay is usually necessary to achieve reasonable performance.
+
+As a result, training a streaming model requires:
+- **i)** aligning input and output sequences such that \( T' = T \), and each \( y_i \) is the correct output corresponding to \( x_i \);
+- **ii)** using an architecture that can process new inputs \( x_{i+1} \) while previous inputs \( x_i, \ldots, x_0 \) have already been processed.
+
+An intuitive architecture, used in [Moshi](https://arxiv.org/abs/2410.00037) and [Voxtral-Realtime](TODO), sum-pools input embeddings (e.g., speech embeddings) and output embeddings (e.g., text embeddings) into a single sequence of embeddings. The model then predicts
+\[
+P(y_i \mid y'_{i-1}, \ldots, y'_0),
+\]
+where \( y'_k = \mathrm{sum}(y_k, x_{k+\delta}) \).
+
+This distinction is important for deployment: one cannot simply take an arbitrary causal model and expect it to perform well in a streaming setting. To be fully streamable, the model must be explicitly trained with the above alignment and architectural constraints, ensuring that both conditions **i)** and **ii)** are satisfied.
 
 ## Why Model Architecture Matters for Serving
 
@@ -69,14 +89,11 @@ Equally important, the serving infrastructure must support incremental input. Ev
 
 ### Further Reading
 
-For more background on streaming transformer architectures:
-
-- [Transformer Transducer: A Streamable Speech Recognition Model with Transformer Encoders and RNN-T Loss](https://arxiv.org/abs/2002.02562) - foundational work on transformer streaming
-- [Adaptive Non-causal Transformers for Streaming](https://arxiv.org/abs/2305.04159) - ANCAT architecture
-- [Conformer: Convolution-augmented Transformer for Speech Recognition](https://arxiv.org/abs/2005.08100) - state-of-the-art streaming ASR
-- [SpeechBrain Conformer Streaming Tutorial](https://speechbrain.readthedocs.io/en/v1.0.3/tutorials/nn/conformer-streaming-asr.html)
+....
 
 # Streaming Input Support in vLLM
+
+TODO(Needs rewriting / restructuring)
 
 With [PR #28973](https://github.com/vllm-project/vllm/pull/28973), vLLM now supports streaming input for inference. This enables the incremental processing described above, where input arrives over time and output is generated continuously.
 
@@ -108,13 +125,6 @@ Internally, vLLM handles streaming input by treating each chunk as a separate re
 
 This design means that output tokens generated between input chunks may be revised as more context becomes available. The final output reflects the complete input.
 
-<p align="center">
-<picture>
-<img src="/assets/figures/2026-01-31-streaming-realtime/streaming-input-flow.png" width="90%">
-</picture><br>
-<b>Figure 3</b>: StreamingInput objects yield incrementally as ASR chunks arrive. vLLM accumulates context and reuses KV cache across chunks for efficient processing.
-</p>
-
 ## Example Flow
 
 Consider a voice assistant receiving speech incrementally:
@@ -140,50 +150,11 @@ The key insight is that early output tokens provide immediate feedback to the us
 
 ## Code Example
 
-Here is a complete example of using streaming input:
-
-```python
-import asyncio
-from vllm import AsyncLLM
-from vllm.inputs import StreamingInput
-
-async def input_generator():
-    """Simulate incremental input arriving over time."""
-    yield StreamingInput(prompt="The weather in")
-    await asyncio.sleep(0.1)  # Simulate ASR latency
-
-    yield StreamingInput(prompt="The weather in Paris today is")
-    await asyncio.sleep(0.1)
-
-    yield StreamingInput(prompt="The weather in Paris today is sunny. What should I wear?")
-
-async def main():
-    llm = AsyncLLM(model="mistralai/Voxtral-Mini-3B-Realtime-2602")
-
-    async for output in llm.generate(input_generator()):
-        # Output arrives incrementally as input chunks are processed
-        print(output.outputs[0].text, flush=True)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-In practice, the `input_generator()` would be connected to an ASR system that yields text as speech is recognized.
+...
 
 ## KV Cache Efficiency
 
-A critical optimization is that the KV cache computed for earlier chunks is reused when processing subsequent chunks. When the second chunk arrives, vLLM doesn't recompute attention for the prefix—it retrieves the cached KV values and only computes attention for the new tokens.
-
-This is essential for performance. Without KV cache reuse, each new chunk would require reprocessing the entire cumulative prompt, making streaming input prohibitively expensive.
-
-The prefix caching mechanism works seamlessly with streaming input:
-
-1. When the first chunk arrives, vLLM computes KV values and caches them
-2. When subsequent chunks arrive, vLLM matches the prefix against the cache
-3. Only the new tokens require fresh computation
-4. Output generation continues with minimal redundant work
-
-This means that even for long conversations, the marginal cost of processing each new chunk remains proportional to the chunk size, not the cumulative context length. For a typical ASR system producing 10-20 tokens per chunk, this represents a substantial efficiency gain over recomputing from scratch.
+...
 
 # Realtime API with WebSockets
 
@@ -192,13 +163,6 @@ While streaming input support provides the core capability, production applicati
 ## Architecture
 
 The Realtime API provides a WebSocket endpoint that enables bidirectional streaming between clients and the vLLM server. Clients send audio data, and the server responds with transcribed text and model outputs.
-
-<p align="center">
-<picture>
-<img src="/assets/figures/2026-01-31-streaming-realtime/realtime-architecture.png" width="90%">
-</picture><br>
-<b>Figure 4</b>: The Realtime API bridges WebSocket messages to vLLM's streaming input interface, enabling bidirectional audio-to-text pipelines.
-</p>
 
 The architecture consists of:
 
@@ -223,62 +187,7 @@ The server exposes a WebSocket endpoint at `ws://localhost:8000/v1/realtime`.
 
 Here's a basic client that sends audio and receives responses:
 
-```python
-import asyncio
-import websockets
-import json
-import base64
-
-async def realtime_client(audio_stream):
-    """
-    Connect to vLLM Realtime API and process audio.
-
-    Args:
-        audio_stream: Iterator yielding audio chunks (bytes)
-    """
-    uri = "ws://localhost:8000/v1/realtime"
-
-    async with websockets.connect(uri) as ws:
-        # Create session
-        await ws.send(json.dumps({
-            "type": "session.create",
-            "model": "mistralai/Voxtral-Mini-3B-Realtime-2602"
-        }))
-
-        # Wait for session confirmation
-        response = await ws.recv()
-        session = json.loads(response)
-        print(f"Session created: {session['session_id']}")
-
-        # Send audio chunks
-        for audio_chunk in audio_stream:
-            await ws.send(json.dumps({
-                "type": "input_audio_buffer.append",
-                "audio": base64.b64encode(audio_chunk).decode()
-            }))
-
-            # Check for responses (non-blocking)
-            try:
-                response = await asyncio.wait_for(ws.recv(), timeout=0.01)
-                data = json.loads(response)
-                if data["type"] == "response.text.delta":
-                    print(data["delta"], end="", flush=True)
-            except asyncio.TimeoutError:
-                pass  # No response yet, continue sending audio
-
-        # Signal end of input
-        await ws.send(json.dumps({
-            "type": "input_audio_buffer.commit"
-        }))
-
-        # Receive remaining responses
-        async for message in ws:
-            data = json.loads(message)
-            if data["type"] == "response.text.delta":
-                print(data["delta"], end="", flush=True)
-            elif data["type"] == "response.done":
-                break
-```
+...
 
 ## Message Types
 
@@ -306,149 +215,20 @@ The vLLM repository includes ready-to-use example clients:
 
 These examples demonstrate how to capture audio from system microphone and stream it to vLLM in real time.
 
-# End-to-End Example: Voice Assistant
-
-Combining streaming input and the Realtime API, we can build a complete voice assistant that responds to speech in real time.
-
-```python
-import asyncio
-import json
-import base64
-import websockets
-import pyaudio
-
-class VoiceAssistant:
-    """Real-time voice assistant using vLLM."""
-
-    def __init__(self, server_url="ws://localhost:8000/v1/realtime"):
-        self.server_url = server_url
-        self.audio_format = pyaudio.paInt16
-        self.channels = 1
-        self.rate = 16000
-        self.chunk_size = 1024
-
-    async def run(self):
-        """Start the voice assistant."""
-        async with websockets.connect(self.server_url) as ws:
-            # Create session
-            await ws.send(json.dumps({
-                "type": "session.create",
-                "model": "mistralai/Voxtral-Mini-3B-Realtime-2602"
-            }))
-
-            # Run send and receive concurrently
-            await asyncio.gather(
-                self._send_audio(ws),
-                self._receive_responses(ws)
-            )
-
-    async def _send_audio(self, ws):
-        """Capture and send audio from microphone."""
-        audio = pyaudio.PyAudio()
-        stream = audio.open(
-            format=self.audio_format,
-            channels=self.channels,
-            rate=self.rate,
-            input=True,
-            frames_per_buffer=self.chunk_size
-        )
-
-        print("Listening... (Ctrl+C to stop)")
-
-        try:
-            while True:
-                # Read audio chunk
-                chunk = stream.read(self.chunk_size, exception_on_overflow=False)
-
-                # Send to server
-                await ws.send(json.dumps({
-                    "type": "input_audio_buffer.append",
-                    "audio": base64.b64encode(chunk).decode()
-                }))
-
-                # Small delay to prevent overwhelming the connection
-                await asyncio.sleep(0.01)
-
-        finally:
-            stream.stop_stream()
-            stream.close()
-            audio.terminate()
-
-    async def _receive_responses(self, ws):
-        """Receive and display responses from the server."""
-        async for message in ws:
-            data = json.loads(message)
-
-            if data["type"] == "response.text.delta":
-                # Print text as it arrives
-                print(data["delta"], end="", flush=True)
-
-            elif data["type"] == "response.audio.delta":
-                # Handle audio output (for TTS-capable models)
-                audio_data = base64.b64decode(data["audio"])
-                # Play audio_data through speakers...
-
-            elif data["type"] == "error":
-                print(f"\nError: {data['message']}")
-
-async def main():
-    assistant = VoiceAssistant()
-    await assistant.run()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-This example demonstrates the power of combining vLLM's streaming capabilities with the Realtime API. The user speaks naturally, and responses begin appearing before they finish speaking.
-
 ## Performance Considerations
 
-When deploying real-time applications, consider:
-
-**Latency**: The primary goal is minimizing time-to-first-token. Streaming input reduces this by beginning processing before input is complete. In our testing, streaming pipelines can begin generating responses within 100-200ms of the first audio arriving, compared to seconds of delay when waiting for complete input.
-
-**Memory**: Long-running sessions accumulate context. Configure `max_model_len` appropriately and consider implementing context windowing for very long sessions. For voice assistants, a 32K context window typically provides ample room for extended conversations.
-
-**Concurrency**: WebSocket connections are persistent. Plan capacity based on expected concurrent sessions rather than requests per second. Each active session maintains state on the server, so monitor memory usage as concurrent connections scale.
-
-**Audio Format**: The examples use 16kHz mono PCM audio. Ensure your audio capture matches the expected format for your model. Voxtral expects 16kHz sample rate with 16-bit signed integer samples.
-
-**Chunk Size**: The audio chunk size affects latency and network efficiency. Smaller chunks (512-1024 samples) provide lower latency but higher overhead. Larger chunks (2048-4096 samples) are more efficient but add buffering latency. A chunk size of 1024 samples at 16kHz corresponds to 64ms of audio, which is a reasonable balance.
-
-**Error Handling**: Real-time systems must handle network interruptions gracefully. Implement reconnection logic and consider buffering audio locally during brief disconnections to avoid losing user input.
-
-# Conclusion
-
-Streaming input and the Realtime API represent a significant expansion of vLLM's capabilities. Together, they enable a new class of low-latency applications that were previously impractical with batch-oriented inference.
-
-## Summary
-
-- **Streaming Input**: `AsyncLLM.generate()` now accepts an `AsyncGenerator` of `StreamingInput` objects, enabling incremental prompt processing
-- **Realtime WebSocket API**: Production-ready bidirectional streaming interface for audio and text
-- **KV Cache Efficiency**: Prefix caching ensures incremental input doesn't require recomputation
+...
 
 ## Current Limitations
 
-The initial release focuses on speech-to-text with streaming-capable models like Voxtral. Some features are not yet supported:
-
-- Pooling models
-- `n > 1` (multiple completions)
-- `output_kind == FINAL_ONLY`
-- Stop strings with streaming input
+...
 
 ## Future Directions
 
-We are actively developing:
-
-- Expanded model support beyond Voxtral
-- Additional modalities (video streaming, multimodal output)
-- Integration with [vLLM-Omni](https://github.com/vllm-project/vllm-omni) for full omni-modal pipelines
+...
 
 ## Get Involved
 
-- [PR #28973 - Streaming Input Support](https://github.com/vllm-project/vllm/pull/28973)
-- [PR #33187 - Realtime API](https://github.com/vllm-project/vllm/pull/33187)
-- [vLLM Documentation](https://docs.vllm.ai)
-- Join **#feat-realtime-api** on [slack.vllm.ai](https://slack.vllm.ai)
+...
 
 We welcome feedback and contributions as we continue to develop vLLM's real-time capabilities.
