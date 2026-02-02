@@ -5,9 +5,9 @@ author: "The vLLM and NVIDIA team"
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 ---
 
-**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput (+38%) and minimum latency(+13%). 
+**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput (+38%) and best interactivity(+13%). 
 
-This post details the engineering journey, technical breakthroughs, and instructions to reproduce the results. All of the results and reproducing instructions are available on **[SemiAnalysis Inference MAX](https://inferencemax.semianalysis.com/) and [vLLM Recipes](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)**. 
+This post details the engineering journey, technical breakthroughs, and instructions to reproduce the results. Continuous benchmarks are also available on **[SemiAnalysis Inference MAX](https://inferencemax.semianalysis.com/) and [vLLM Recipes](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)**. 
 
 ## Table of Contents
 
@@ -44,18 +44,18 @@ To maximize the utilization of Blackwell’s tensor cores, vLLM leverages **Flas
 * **SiluMul  \+ Quantization:** We fused the SiluMul activation function with NVFP4 quantization operations to further reduce latency, details please see [PR23671](https://github.com/vllm-project/vllm/pull/23671).
 * **Pad \+ Quant & Finalize \+ Slice:** We are actively rolling out the [fusion passes, PR30647](https://github.com/vllm-project/vllm/pull/30647) for padding/quantization and finalize/slice operations to further streamline the MoE execution path, with an expected 6% performance gain.
 
-As we idenfity and develop new fused operations, the team will continue to deliver automatic performance gains via this infrasturecture.
+As we identify and develop new fused operations, the team will continue to deliver automatic performance gains via this infrastructure.
 
 ## Runtime Improvements <a name="runtime"></a>
 
-On next-generation hardware like Blackwell, the GPU is so fast that the CPU (host) often becomes the bottleneck, struggling to dispatch kernels quickly enough to keep the GPU busy. In addition, `prepare\_batch`, request scheduling and sampling logic also requires heavy CPU side logic. This "host overhead" manifests as gaps between kernel executions, degrading performance and overall GPU utilization.
+On next-generation hardware like Blackwell, the GPU is so fast that the CPU (host) often becomes the bottleneck, struggling to dispatch kernels quickly enough to keep the GPU busy. In addition, `prepare\_batch`, request scheduling and sampling logic also require heavy CPU side logic. This "host overhead" manifests as gaps between kernel executions, degrading performance and overall GPU utilization.
 
-To address this, we implemented both **Async Scheduler** and **Stream Interval** to vLLM that effectively eliminates host-side overhead
+To address this, we implemented both **Async Scheduler** and **Stream Interval** to vLLM that effectively eliminate host-side overhead.
 
 [Async Scheduler](https://github.com/vllm-project/vllm/pull/23569):
 
 * **Mechanism:** This scheduler decouples the CPU's request scheduling from the GPU's execution. By allowing the CPU to prepare the next batch of requests while the GPU is still processing the current batch, we effectively hide the host overhead.  
-* **Impact:** This optimization is crucial for the `gpt-oss` model, particularly in both high-throughput and min-latency scenarios. On more capable GPUs (H200s, B200s, GB200s), you can expect around 10% performance gain.
+* **Impact:** This optimization is crucial for the `gpt-oss` model, particularly in both high-throughput and min-latency scenarios. On more capable GPUs (H200s, B200s, GB200s), you can expect around a 10% performance gain.
 * **Configuration:** Users can enable this feature using the `--async-scheduling` flag, which is now supported in conjunction with many key features such as speculative decoding and structured outputs. 
 
 [Stream Interval](https://github.com/vllm-project/vllm/pull/27869):
