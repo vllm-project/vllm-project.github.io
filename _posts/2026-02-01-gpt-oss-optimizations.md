@@ -5,9 +5,21 @@ author: "The vLLM and NVIDIA team"
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 ---
 
-**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs with MXFP4. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput and minimum latency. 
+**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput and minimum latency. 
 
 All of the results and reproducing instructions are available on **[SemiAnalysis Inference MAX](https://inferencemax.semianalysis.com/) and [vLLM Recipes](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)**. This post details the engineering journey, technical breakthroughs, and instructions to reproduce the results.
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [FlashInfer + torch.compile](#fi-tc)
+- [Runtime Improvements](#runtime)
+- [Deployment Recipes](#recipes)
+- [Results](#results)
+- [Next Steps](#next-steps)
+- [Acknowledgements](#acknowledgements)
+
+---
 
 ## Introduction:
 
@@ -17,7 +29,7 @@ One of the key use-cases is serving OpenAI’s `gpt-oss-120b` model, an natively
 
 The heart of the optimizations is extreme hardware-software co-design. The NVIDIA B200/GB200 GPUs introduce powerful features like native FP4 TensorCores and 192GB HBM per GPU, which are critical for serving large MoE models like `gpt-oss`. To leverage this hardware fully, vLLM and NVIDIA teams have integrated with **FlashInfer** and adopted a rigorous optimization strategy focusing on kernel fusion, communication overhead reduction, and host-device overlapping.
 
-## FlashInfer Integration and torch.compile based fusion
+## FlashInfer Integration and torch.compile based fusion <a name="fi-tc"></a>
 
 To maximize the utilization of Blackwell’s tensor cores, vLLM leverages **FlashInfer** as its primary kernel backend for attention, MoE, and other compute-intensive and fused operations. 
 
@@ -34,7 +46,7 @@ To maximize the utilization of Blackwell’s tensor cores, vLLM leverages **Flas
 
 As we idenfity and develop new fused operations, the team will continue to deliver automatic performance gains via this infrasturecture.
 
-## Runtime Improvements
+## Runtime Improvements <a name="runtime"></a>
 
 On next-generation hardware like Blackwell, the GPU is so fast that the CPU (host) often becomes the bottleneck, struggling to dispatch kernels quickly enough to keep the GPU busy. In addition, `prepare\_batch`, request scheduling and sampling logic also requires heavy CPU side logic. This "host overhead" manifests as gaps between kernel executions, degrading performance and overall GPU utilization.
 
@@ -52,7 +64,7 @@ Stream Interval:
 * **Impact:** By reducing the frequency of HTTP/gRPC response dispatching, this significantly lowers the CPU overhead associated with network I/O and serialization. In high-concurrency benchmarks (e.g., `gpt-oss-20b` with 1024 concurrent requests), this optimization relieved output queue bottlenecks, resulting in a **57% end-to-end performance gain** and improved Time Per Output Token (TPOT).  
 * **Configuration:** Users can configure this behavior using the `--stream-interval <num_tokens>` argument. The default value is `1` (standard streaming), but increasing this value (e.g., to `10`) is highly effective for reducing host overhead in high-throughput deployments.
 
-## Deployment Recipes 
+## Deployment Recipes <a name="recipes"></a>
 
 To reproduce the optimized performance for `gpt-oss` on Blackwell GPUs (B200/GB200), we recommend the following configurations in your vLLM deployment recipes. These settings enable the specific kernels and scheduling optimizations discussed above.
 
@@ -80,7 +92,7 @@ The combined effect of the optimizations has resulted in a significant uptick of
 Such improvements are not just for a single use-case, but rather across the entire Pareto curve to behefit the vLLM community at large. 
 
 
-## Next steps: 
+## Next steps
 
 Our work on `gpt-oss` is ongoing. Here is a look at the active engineering tracks to further push the Pareto frontier. The list can also be found in [Issue 30758](https://github.com/vllm-project/vllm/issues/30758).
 
@@ -111,7 +123,3 @@ We would like to give thanks to the many talented people in the vLLM community w
 * Meta: Yang Chen, Xiaozhu Meng, Boyuan Feng, Lu Fang  
 
 You can find all InferenceMax results at [http://inferencemax.ai](http://inferencemax.ai). The code running it is open sourced at [https://github.com/InferenceMAX/InferenceMAX](https://github.com/InferenceMAX/InferenceMAX). And their explanation of results can be found at [https://newsletter.semianalysis.com/p/inferencemax-open-source-inference](https://newsletter.semianalysis.com/p/inferencemax-open-source-inference).
-
-We sincerely thank the SemiAnalysis team for pushing hardware and open-source software co-design to greater heights with the intent of offering fair measurements and comparison for the community. Thank you to Kimbo Chen, Dylan Patel, and others.
-
-We’re excited to keep refining and expanding our optimizations to unlock even greater capabilities in the weeks and months ahead!
