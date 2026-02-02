@@ -2,7 +2,7 @@
 layout: post
 title: "Optimizing across the pareto: a deep-dive on gpt-oss performance optimizations on NVIDIA’s Blackwell GPU."
 author: "The vLLM and NVIDIA team"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 ---
 
 **TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs with MXFP4. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput and minimum latency. 
