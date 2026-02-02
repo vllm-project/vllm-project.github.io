@@ -5,9 +5,9 @@ author: "The vLLM and NVIDIA team"
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 ---
 
-**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput and minimum latency. 
+**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput (+38%) and minimum latency(+13%). 
 
-All of the results and reproducing instructions are available on **[SemiAnalysis Inference MAX](https://inferencemax.semianalysis.com/) and [vLLM Recipes](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)**. This post details the engineering journey, technical breakthroughs, and instructions to reproduce the results.
+This post details the engineering journey, technical breakthroughs, and instructions to reproduce the results. All of the results and reproducing instructions are available on **[SemiAnalysis Inference MAX](https://inferencemax.semianalysis.com/) and [vLLM Recipes](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)**. 
 
 ## Table of Contents
 
@@ -35,14 +35,14 @@ To maximize the utilization of Blackwell’s tensor cores, vLLM leverages **Flas
 
 **1\. Key Compute Kernel Integration**:
 
-* **MoE Backends:** We enabled both [`trtllm-gen`](https://github.com/vllm-project/vllm/pull/23819) and [`cutlass`](https://github.com/vllm-project/vllm/pull/23696) backends for MoE operations within the FlashInfer library. This allows vLLM to select the most performant kernel for expert routing and computation, which is critical given `gpt-oss`'s specific expert architecture. In addition to providing the best-performing kernels for LLMs, FlashInfer also includes jit-in-time compilation, auto-tuning, and kernel caching, which greatly improves the user experience for any developer with high-performance kernel needs.    
-* **FP8 KV-Cache:**  Storing kv-cache in FP8 precision allows the engine to serve more concurrent requests with the same kv-cache budget. Moreover, carrying out some of the attention operations in FP8 precision also reduces the compute/memory complexity of the attention operation. To achieve the best performance for this use case, vLLM has integrated [FlashInfer’s optimized attention kernels](https://github.com/vllm-project/vllm/pull/25674/). 
+* **MoE Backends:** We enabled both `trtllm-gen` [(PR23819)](https://github.com/vllm-project/vllm/pull/23819) and `cutlass` [(PR23696)](https://github.com/vllm-project/vllm/pull/23696) backends for MoE operations with FlashInfer. This allows vLLM to select the most performant kernel for expert routing and computation. In addition to providing the best-performing kernels for LLMs, FlashInfer also includes jit-in-time compilation, auto-tuning, and kernel caching, which greatly improves the user experience for any developer with high-performance kernel needs.    
+* **FP8 KV-Cache:**  Storing kv-cache in FP8 precision allows the engine to serve more concurrent requests with the same kv-cache budget. Moreover, carrying out some of the attention operations in FP8 precision also reduces the compute/memory complexity of the attention operation. To achieve the best performance for this use case, vLLM has integrated [FlashInfer’s optimized attention kernels in PR25674](https://github.com/vllm-project/vllm/pull/25674/). 
 
 **2\. Graph Fusions via torch.compile** A significant portion of our optimization effort focused on kernel fusion to reduce memory access and kernel launch overhead. Instead of hard-coded fusion optimizations, vLLM has built an [extensive infrastructure](https://github.com/vllm-project/vllm/tree/main/vllm/compilation) based on `torch.compile` to conduct kernel fusion automatically. This approach not only improves performance, but significantly reduces the effort to enable, generalize, and maintain such improvements. 
 
-* **AR \+ Norm Fusion:** We implemented the fusion of AllReduce (AR) and RMSNorm operations. This is particularly important for tensor-parallel (TP) deployments, where communication overhead can become a bottleneck.  
-* **SiluMul  \+ Quantization:** We fused the SiluMul activation function with NVFP4 quantization operations to further reduce latency.
-* **Pad \+ Quant & Finalize \+ Slice:** We are actively rolling out the [fusion passes](https://github.com/vllm-project/vllm/pull/30647) for padding/quantization and finalize/slice operations to further streamline the MoE execution path, with an expected 6% performance gain.
+* **AR \+ Norm Fusion:** We implemented the fusion of AllReduce (AR) and RMSNorm operations. This is particularly important for tensor-parallel (TP) deployments, where communication overhead can become a bottleneck, details please see [PR20691](https://github.com/vllm-project/vllm/pull/20691).  
+* **SiluMul  \+ Quantization:** We fused the SiluMul activation function with NVFP4 quantization operations to further reduce latency, details please see [PR23671](https://github.com/vllm-project/vllm/pull/23671).
+* **Pad \+ Quant & Finalize \+ Slice:** We are actively rolling out the [fusion passes, PR30647](https://github.com/vllm-project/vllm/pull/30647) for padding/quantization and finalize/slice operations to further streamline the MoE execution path, with an expected 6% performance gain.
 
 As we idenfity and develop new fused operations, the team will continue to deliver automatic performance gains via this infrasturecture.
 
@@ -52,13 +52,13 @@ On next-generation hardware like Blackwell, the GPU is so fast that the CPU (hos
 
 To address this, we implemented both **Async Scheduler** and **Stream Interval** to vLLM that effectively eliminates host-side overhead
 
-Async Scheduler:
+[Async Scheduler](https://github.com/vllm-project/vllm/pull/23569):
 
 * **Mechanism:** This scheduler decouples the CPU's request scheduling from the GPU's execution. By allowing the CPU to prepare the next batch of requests while the GPU is still processing the current batch, we effectively hide the host overhead.  
 * **Impact:** This optimization is crucial for the `gpt-oss` model, particularly in both high-throughput and min-latency scenarios. On more capable GPUs (H200s, B200s, GB200s), you can expect around 10% performance gain.
 * **Configuration:** Users can enable this feature using the `--async-scheduling` flag, which is now supported in conjunction with many key features such as speculative decoding and structured outputs. 
 
-Stream Interval:
+[Stream Interval](https://github.com/vllm-project/vllm/pull/27869):
 
 * **Mechanism:** This feature reduces the granularity of network responses by buffering generated tokens before sending them to the client. Instead of triggering a network call for every single token, the engine waits until a specified buffer size (the "interval") is reached. Crucially, the implementation preserves responsiveness by ensuring the **first token is always sent immediately** (keeping Time-To-First-Token low), while subsequent tokens are batched.  
 * **Impact:** By reducing the frequency of HTTP/gRPC response dispatching, this significantly lowers the CPU overhead associated with network I/O and serialization. In high-concurrency benchmarks (e.g., `gpt-oss-20b` with 1024 concurrent requests), this optimization relieved output queue bottlenecks, resulting in a **57% end-to-end performance gain** and improved Time Per Output Token (TPOT).  
@@ -66,7 +66,7 @@ Stream Interval:
 
 ## Deployment Recipes <a name="recipes"></a>
 
-To reproduce the optimized performance for `gpt-oss` on Blackwell GPUs (B200/GB200), we recommend the following configurations in your vLLM deployment recipes. These settings enable the specific kernels and scheduling optimizations discussed above.
+To reproduce the optimized performance for `gpt-oss` on Blackwell GPUs (B200/GB200), we recommend the following configurations in your vLLM deployment recipes. They can also be found under [vLLM Recipes page](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html).
 
 **Recommended Configuration Flags:**
 
@@ -112,7 +112,6 @@ We have identified a few performance optimization opportunities for min-latency 
 * The router gemm and fc\_qkv/fc\_o\_proj gemms: we can use specialized tiny gemm kernels with better performance and PDL support.
 
 
-
 ## Acknowledgements 
 
 We would like to give thanks to the many talented people in the vLLM community who worked together as a part of this effort:
@@ -121,5 +120,3 @@ We would like to give thanks to the many talented people in the vLLM community w
 * NVIDIA: Po-Han Huang, Pavani Majety, Shu Wang, Elvis Chen, Zihao Ye, Duncan Moss, Kaixi Hou, Siyuan Fu, Benjamin Chislett, Xin Li, Vadim Gimpelson, Minseok Lee, Amir Samani, Elfie Guo, Lee Nau, Kushan Ahmadian, Grace Ho, Pen Chun Li
 * vLLM: Chen Zhang, Yongye Zhu, Bowen Wang, Kaichao You, Simon Mo, Woosuk Kwon, Zhuohan Li
 * Meta: Yang Chen, Xiaozhu Meng, Boyuan Feng, Lu Fang  
-
-You can find all InferenceMax results at [http://inferencemax.ai](http://inferencemax.ai). The code running it is open sourced at [https://github.com/InferenceMAX/InferenceMAX](https://github.com/InferenceMAX/InferenceMAX). And their explanation of results can be found at [https://newsletter.semianalysis.com/p/inferencemax-open-source-inference](https://newsletter.semianalysis.com/p/inferencemax-open-source-inference).
