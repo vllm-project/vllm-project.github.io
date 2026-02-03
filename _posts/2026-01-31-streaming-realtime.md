@@ -56,7 +56,7 @@ A common architectural solution is sliding-window attention, where each token at
 
 However, having a fully streamable architecture is not sufficient on its own: the model must also be trained to support **true streaming input**.
 
-Let $$ X = (x_0, x_1, \ldots, x_T) $$ denote the input sequence and $ Y = (y_0, y_1, \ldots, y_{T'}) $ the output sequence. In streaming applications, the model should generate the output $ y_t $ corresponding to input $ x_t $ at time step $ t $, with as little latency as possible. Concretely, one can think of $ y_t $ as the transcription of an audio frame $ x_t $ that is streamed into the model at time $ t $.
+Let $X = (x_0, x_1, \ldots, x_T)$ denote the input sequence and $ Y = (y_0, y_1, \ldots, y_{T'}) $ the output sequence. In streaming applications, the model should generate the output $ y_t $ corresponding to input $ x_t $ at time step $ t $, with as little latency as possible. Concretely, one can think of $ y_t $ as the transcription of an audio frame $ x_t $ that is streamed into the model at time $ t $.
 
 The standard next-token training objective typically conditions the distribution of the next token on the *entire* input sequence:
 
