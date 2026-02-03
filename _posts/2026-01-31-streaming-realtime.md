@@ -78,7 +78,7 @@ As a result, training a streaming model requires:
 - **i)** aligning input and output sequences such that $T' = T$, and each $y_i$ is the correct output corresponding to $x_i$;
 - **ii)** using an architecture that can process new inputs $x_{i+1}$ while previous inputs $x_i, \ldots, x_0$ have already been processed.
 
-An intuitive architecture, used in [Moshi](https://arxiv.org/abs/2410.00037) and [Voxtral-Realtime](TODO), sum-pools input embeddings (e.g., speech embeddings) and output embeddings (e.g., text embeddings) into a single sequence of embeddings. The model then predicts
+An intuitive architecture, as pioneered by [Delayed Streams Modeling](https://arxiv.org/pdf/2509.08753) and picked up by [Voxtral-Realtime](TODO), sum-pools input embeddings (e.g., speech embeddings) and output embeddings (e.g., text embeddings) into a single sequence of embeddings. The model then predicts
 
 $$
 P(y_i \mid y'_{i-1}, \ldots, y'_0),
@@ -100,11 +100,12 @@ Equally important, the serving infrastructure must support incremental input. Ev
 
 ### Further Reading
 
-....
+- [Transformer Transducer](https://arxiv.org/abs/2002.02562) is a well-known and one of the most successful modeling approaches for training streamable speech recognition systems.
+- [Streaming Sequence-to-Sequence Learning with Delayed Streams Modeling](https://arxiv.org/abs/2509.08753) by the Kyutai folks is a great read on further diving into streaming architectures as explained above.
+- [Streaming Simultaneous Speech Translation with Augmented Memory Transformer](https://arxiv.org/abs/2011.00033) on streaming speech translation. Translation is not as "monotonic" as speech, which makes the problem of performant streaming more difficult.
+- [Voxtral-Realtime]( ) (TODO) add link
 
 # Streaming Input Support in vLLM
-
-TODO(Needs rewriting / restructuring)
 
 With [PR #28973](https://github.com/vllm-project/vllm/pull/28973), vLLM now supports streaming input for inference. This enables the incremental processing described above, where input arrives over time and output is generated continuously.
 
@@ -243,14 +244,6 @@ Output stream: D1, C2, D2, E2, C3, D3
 
 The key insight is that early output tokens provide immediate feedback to the user, even though they may be revised as more context arrives. This dramatically reduces perceived latency.
 
-## Code Example
-
-...
-
-## KV Cache Efficiency
-
-...
-
 # Realtime API with WebSockets
 
 While streaming input support provides the core capability, production applications need a convenient API for real-time communication. [PR #33187](https://github.com/vllm-project/vllm/pull/33187) introduces a WebSocket-based Realtime API inspired by [OpenAI's Realtime API](https://platform.openai.com/docs/guides/realtime).
@@ -271,18 +264,70 @@ The architecture consists of:
 Starting a vLLM server with Realtime API support:
 
 ```bash
-vllm serve mistralai/Voxtral-Mini-3B-Realtime-2602 \
-    --gpu_memory_utilization 0.8 \
-    --max_model_len 32768
+vllm serve mistralai/Voxtral-Mini-4B-Realtime-2602 --enforce-eager
 ```
 
 The server exposes a WebSocket endpoint at `ws://localhost:8000/v1/realtime`.
 
 ## Client Example
 
-Here's a basic client that sends audio and receives responses:
+Here's a basic client that streams an audio file and receives transcription:
 
-...
+```python
+import asyncio
+import base64
+import json
+import librosa
+import numpy as np
+import websockets
+
+def load_audio_as_pcm16(audio_path: str) -> bytes:
+    """Load audio file and convert to PCM16 @ 16kHz."""
+    audio, _ = librosa.load(audio_path, sr=16000, mono=True)
+    return (audio * 32767).astype(np.int16).tobytes()
+
+async def stream_audio_file(audio_path: str, server_url: str = "ws://localhost:8000/v1/realtime"):
+    async with websockets.connect(server_url) as ws:
+        response = json.loads(await ws.recv())
+
+        # Load and convert audio to PCM16
+        pcm_audio = load_audio_as_pcm16(audio_path)
+
+        # Validate model
+        await ws.send(json.dumps({"type": "session.update", "model": model}))
+
+        # Signal start of audio stream
+        await ws.send(json.dumps({"type": "input_audio_buffer.commit"}))
+
+        # Stream audio in 4KB chunks
+        for i in range(0, len(pcm_audio), 4096):
+            chunk = pcm_audio[i:i + 4096]
+            await ws.send(json.dumps({
+                "type": "input_audio_buffer.append",
+                "audio": base64.b64encode(chunk).decode()
+            }))
+
+        # Signal end of audio stream
+        await ws.send(json.dumps({"type": "input_audio_buffer.commit", "final": True}))
+
+        # Receive transcription
+        async for message in ws:
+            data = json.loads(message)
+            if data["type"] == "transcription.delta":
+                print(data["delta"], end="", flush=True)
+            elif data["type"] == "transcription.done":
+                break
+
+asyncio.run(stream_audio_file("audio.wav"))
+```
+
+This example demonstrates the core workflow for realtime audio streaming:
+
+- **Load and convert audio**: The audio file is loaded and converted to PCM16 format at 16kHz, which is the expected input format for the realtime API
+- **Establish WebSocket connection**: Connect to the server's `/v1/realtime` endpoint and send a `session.update` message to validate the model
+- **Stream audio in chunks**: The audio is sent in 4KB chunks using `input_audio_buffer.append` messages, with `input_audio_buffer.commit` signals to mark the start and end of the stream
+- **Receive transcription incrementally**: The server responds with `transcription.delta` messages containing partial transcriptions, which are printed in real-time until `transcription.done` is received
+- **Note on realtime behavior**: While this example sends all audio before listening for transcriptions (for simplicity), the WebSocket protocol enables fully asynchronous communication—audio chunks can be sent and transcriptions received simultaneously. In a production realtime service, transcription would begin immediately as the first audio chunk arrives, with both sending and receiving happening concurrently for true low-latency speech recognition
 
 ## Message Types
 
@@ -305,10 +350,11 @@ The Realtime API uses a message-based protocol. Key message types include:
 
 The vLLM repository includes ready-to-use example clients:
 
-- `examples/online_serving/openai_realtime_client.py`: Basic WebSocket client
-- `examples/online_serving/openai_realtime_microphone_client.py`: Microphone integration
+- [examples/online_serving/openai_realtime_client.py](https://docs.vllm.ai/en/latest/examples/online_serving/openai_realtime_client/?h=realtime#openai-realtime-client): Basic WebSocket client
+- [examples/online_serving/openai_realtime_microphone_client.py](https://docs.vllm.ai/en/latest/examples/online_serving/openai_realtime_microphone_client/#openai-realtime-microphone-client): Microphone integration
 
 These examples demonstrate how to capture audio from system microphone and stream it to vLLM in real time.
+
 
 ## Performance Considerations
 
@@ -320,10 +366,12 @@ These examples demonstrate how to capture audio from system microphone and strea
 
 ## Future Directions
 
-...
+We are excited about the potential for streaming input support in vLLM. As more model providers open-source fully streamable model weights that are compatible with our input streaming design, we expect the ecosystem of realtime applications to grow significantly.
+
+Since streaming input is still a novel capability in LLM serving, we anticipate adapting and extending our implementation to support a maximum number of different architectures and use cases. This includes exploring tighter integration with various audio and video encoders, optimizing the anchor request pattern for different latency requirements, and expanding support for multi-modal streaming scenarios.
 
 ## Get Involved
 
-...
+We encourage you to try out vLLM's input streaming functionality and Realtime API. Your feedback is invaluable in helping us improve these features. Please share your experiences, report issues, or suggest enhancements on the [vLLM GitHub repository](https://github.com/vllm-project/vllm).
 
 We welcome feedback and contributions as we continue to develop vLLM's real-time capabilities.
