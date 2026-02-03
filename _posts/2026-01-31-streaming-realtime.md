@@ -138,12 +138,12 @@ Internally, vLLM implements streaming input through a *sticky session* mechanism
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           STREAMING SESSION                                  │
+│                           STREAMING SESSION                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
+│                                                                             │
 │   User's AsyncGenerator              Scheduler                              │
 │   ═══════════════════               ═════════                               │
-│                                                                              │
+│                                                                             │
 │   ┌──────────────┐                                                          │
 │   │   Chunk 1    │ ──────────────►  Add ANCHOR REQUEST                      │
 │   │   [A, B, C]  │                  ┌────────────────────────────────┐      │
@@ -167,18 +167,18 @@ Internally, vLLM implements streaming input through a *sticky session* mechanism
 │   └──────────────┘                  │  │[D, E] │→│[F, G] │→ ...      │      │
 │                                     │  └───────┘ └───────┘           │      │
 │                                     └────────────────────────────────┘      │
-│                                                                              │
+│                                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                     WHEN ANCHOR FINISHES CURRENT CHUNK                       │
+│                     WHEN ANCHOR FINISHES CURRENT CHUNK                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
+│                                                                             │
 │   Engine signals: chunk complete (stopped = True)                           │
 │          │                                                                  │
 │          ▼                                                                  │
 │   ┌────────────────────────────────────────────────────────────────┐        │
-│   │  _handle_stopped_request() pops first item from queue         │        │
+│   │  _handle_stopped_request() pops first item from queue          │        │
 │   │                                                                │        │
-│   │  streaming_queue: [[D,E], [F,G]]  ──►  [[F,G]]                │        │
+│   │  streaming_queue: [[D,E], [F,G]]  ──►  [[F,G]]                 │        │
 │   │                      ▲                                         │        │
 │   │                      │                                         │        │
 │   │                    pop!                                        │        │
@@ -206,9 +206,9 @@ Internally, vLLM implements streaming input through a *sticky session* mechanism
 │                          │                                                  │
 │                          ▼                                                  │
 │   ┌────────────────────────────────────────────────────────────────┐        │
-│   │  Anchor returns to waiting queue → scheduled again → ENGINE   │        │
+│   │  Anchor returns to waiting queue → scheduled again → ENGINE    │        │
 │   └────────────────────────────────────────────────────────────────┘        │
-│                                                                              │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
