@@ -378,7 +378,7 @@ We welcome feedback and contributions as we continue to develop vLLM's real-time
 
 ## Acknowledgements
 
-This feature was made possible through collaborative efforts across multiple teams:
+Streaming input support and the Realtime API were made possible through collaborative efforts across multiple teams:
 
 **Mistral AI:** Patrick von Platen, Andy Lo
 
@@ -386,4 +386,4 @@ This feature was made possible through collaborative efforts across multiple tea
 
 **vLLM Core:** Nick Hill, Roger Wang, Woosuk Kwon
 
-We would also like to acknowledge previous implementations that inspired this work: Tao He (Alibaba Qwen), Edward Wibowo (Brown University), Deepti Raghavan (Brown University), and Luis Gaspar Schroeder (UC Berkeley).
+We would also like to acknowledge other implementations of streaming input in vLLM: Tao He (Alibaba Qwen), Edward Wibowo (Brown University), Deepti Raghavan (Brown University), and Luis Gaspar Schroeder (UC Berkeley).
