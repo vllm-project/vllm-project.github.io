@@ -8,7 +8,7 @@ math: true
 
 Large language model inference has traditionally operated on a simple premise: the user submits a complete prompt (request), the model processes it, and returns a response (either streaming or at once). This paradigm works well for text-based chatbots and batch processing workloads, but it falls short when dealing with realtime applications, such as streaming audio or video. 
 
-vLLM has recently added support for **streamable inputs** to its engine as well as a **Realtime WebSocket API** building on top of it.
+vLLM has recently added support for **streamable inputs** to its engine as well as a **Realtime WebSocket API** building on top of it, exposing a new `/v1/realtime` endpoint in the server.
 
 In this post, we motivate the need for realtime inference and introduce the two new features in vLLM that unlock these capabilities: **streaming input support** and the **Realtime WebSocket API**.
 
@@ -119,7 +119,7 @@ class StreamingInput:
     sampling_params: SamplingParams | None = None
 ```
 
-Rather than passing a fixed prompt to `AsyncLLM.generate()`, you now pass an `AsyncGenerator` that yields `StreamingInput` objects over time. Each `StreamingInput` contains the cumulative prompt up to that point.
+Rather than passing a fixed prompt to `AsyncLLM.generate()`, you can now pass an `AsyncGenerator` that yields `StreamingInput` objects over time. Each `StreamingInput` contains the cumulative prompt up to that point.
 
 ## How It Works
 
@@ -132,7 +132,7 @@ Internally, vLLM handles streaming input by treating each chunk as a separate re
 
 This design means that output tokens generated between input chunks may be revised as more context becomes available. The final output reflects the complete input.
 
-Internally, vLLM implements streaming input through a *sticky session* mechanism. The first input chunk creates an **anchor request** that persists throughout the session. Subsequent chunks with the same request ID are queued and processed in order.
+Internally, vLLM implements streaming input through a *sticky session* mechanism. The first input chunk creates an **anchor request** that persists throughout the session. Subsequent chunks with the same internal request ID are queued and processed in order.
 
 ### The Anchor Request Pattern
 
