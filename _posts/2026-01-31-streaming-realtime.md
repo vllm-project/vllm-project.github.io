@@ -3,6 +3,7 @@ layout: post
 title: "Streaming Requests & Realtime API in vLLM"
 author: "TODO"
 image: /assets/figures/2026-01-31-streaming-realtime/architecture.png
+math: true
 ---
 
 Large language model inference has traditionally operated on a simple premise: the user submits a complete prompt (request), the model processes it, and returns a response (either streaming or at once). This paradigm works well for text-based chatbots and batch processing workloads, but it falls short when dealing with realtime applications, such as streaming audio or video. 
@@ -55,29 +56,29 @@ A common architectural solution is sliding-window attention, where each token at
 
 However, having a fully streamable architecture is not sufficient on its own: the model must also be trained to support **true streaming input**.
 
-Let \( X = (x_0, x_1, \ldots, x_T) \) denote the input sequence and \( Y = (y_0, y_1, \ldots, y_{T'}) \) the output sequence. In streaming applications, the model should generate the output \( y_t \) corresponding to input \( x_t \) at time step \( t \), with as little latency as possible. Concretely, one can think of \( y_t \) as the transcription of an audio frame \( x_t \) that is streamed into the model at time \( t \).
+Let $X = (x_0, x_1, \ldots, x_T)$ denote the input sequence and $Y = (y_0, y_1, \ldots, y_{T'})$ the output sequence. In streaming applications, the model should generate the output $y_t$ corresponding to input $x_t$ at time step $t$, with as little latency as possible. Concretely, one can think of $y_t$ as the transcription of an audio frame $x_t$ that is streamed into the model at time $t$.
 
 The standard next-token training objective typically conditions the distribution of the next token on the *entire* input sequence:
-\[
+$$
 P(y_i \mid y_{i-1}, \ldots, y_0, x_T, x_{T-1}, \ldots, x_0).
-\]
-This formulation is unsuitable for streaming, because generating \( y_i \) requires processing the full input sequence \( X \), which is not available in real time.
+$$
+This formulation is unsuitable for streaming, because generating $y_i$ requires processing the full input sequence $X$, which is not available in real time.
 
-Instead, a streaming model must be able to predict \( y_i \) using only past inputs and, optionally, a small amount of future context:
-\[
+Instead, a streaming model must be able to predict $y_i$ using only past inputs and, optionally, a small amount of future context:
+$$
 P(y_i \mid y_{i-1}, \ldots, y_0, x_{i+\delta}, \ldots, x_i, \ldots, x_0),
-\]
-where \( \delta \) is a lookahead parameter that should be as small as possible. In theory, \( \delta \) could be set to zero; in practice, a small delay is usually necessary to achieve reasonable performance.
+$$
+where $\delta$ is a lookahead parameter that should be as small as possible. In theory, $\delta$ could be set to zero; in practice, a small delay is usually necessary to achieve reasonable performance.
 
 As a result, training a streaming model requires:
-- **i)** aligning input and output sequences such that \( T' = T \), and each \( y_i \) is the correct output corresponding to \( x_i \);
-- **ii)** using an architecture that can process new inputs \( x_{i+1} \) while previous inputs \( x_i, \ldots, x_0 \) have already been processed.
+- **i)** aligning input and output sequences such that $T' = T$, and each $y_i$ is the correct output corresponding to $x_i$;
+- **ii)** using an architecture that can process new inputs $x_{i+1}$ while previous inputs $x_i, \ldots, x_0$ have already been processed.
 
 An intuitive architecture, used in [Moshi](https://arxiv.org/abs/2410.00037) and [Voxtral-Realtime](TODO), sum-pools input embeddings (e.g., speech embeddings) and output embeddings (e.g., text embeddings) into a single sequence of embeddings. The model then predicts
-\[
+$$
 P(y_i \mid y'_{i-1}, \ldots, y'_0),
-\]
-where \( y'_k = \mathrm{sum}(y_k, x_{k+\delta}) \).
+$$
+where $y'_k = \mathrm{sum}(y_k, x_{k+\delta})$.
 
 This distinction is important for deployment: one cannot simply take an arbitrary causal model and expect it to perform well in a streaming setting. To be fully streamable, the model must be explicitly trained with the above alignment and architectural constraints, ensuring that both conditions **i)** and **ii)** are satisfied.
 
