@@ -87,7 +87,7 @@ $$
 where
 
 $$
-y'_k = \operatorname{sum}(y_k, x_{k+\delta}).
+y'_k = \{sum}(y_k, x_{k+\delta}).
 $$
 
 This distinction is important for deployment: one cannot simply take an arbitrary causal model and expect it to perform well in a streaming setting. To be fully streamable, the model must be explicitly trained with the above alignment and architectural constraints, ensuring that both conditions **i)** and **ii)** are satisfied.
