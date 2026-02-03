@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "Optimizing across the pareto: a deep-dive on gpt-oss performance optimizations on NVIDIA’s Blackwell GPU."
+title: "GPT-OSS Performance Optimizations on NVIDIA Blackwell: Pushing the Pareto Frontier"
 author: "The vLLM and NVIDIA team"
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 ---
 
-**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput (+38%) and best interactivity(+13%). 
+**TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput (+38%) and best interactivity (+13%). 
 
 This post details the engineering journey, technical breakthroughs, and instructions to reproduce the results. Continuous benchmarks are also available on **[SemiAnalysis Inference MAX](https://inferencemax.semianalysis.com/) and [vLLM Recipes](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html)**. 
 
@@ -21,11 +21,11 @@ This post details the engineering journey, technical breakthroughs, and instruct
 
 ---
 
-## Introduction:
+## Introduction
 
 Optimizing for a single metric—like maximum throughput or single-batch latency—is often insufficient for real-world deployments. Different use cases require different latency constraints and request concurrency. As a result, the real challenge lies in optimizing the **Pareto frontier**: the curve that represents the best possible trade-off between **Tokens Per Second (TPS) per GPU** (TCO, total cost of ownership) and **TPS per User** (interactivity). Pushing this curve upwards and to the right means delivering faster generation for individual users while allowing more users to share the hardware. [SemiAnalysis InferenceMAX](https://inferencemax.semianalysis.com/) has identified this critical need to measure, report and improve performance data for such LLM inference workloads on modern GPUs.
 
-One of the key use-cases is serving OpenAI’s `gpt-oss-120b` model, an natively 4-bit quantized (MXFP4) Mixture-of-Experts (MoE) LLM. It has achieved SoTA model accuracy for its size along with strong agentic capabilities. At the recent SemiAnalysis InferenceMAX showcase, vLLM demonstrated its capability to handle this workload efficiently on NVIDIA’s latest Blackwell (B200/GB200) architecture.
+One of the key use-cases is serving OpenAI’s `gpt-oss-120b` model, a natively 4-bit quantized (MXFP4) Mixture-of-Experts (MoE) LLM. It has achieved SoTA model accuracy for its size along with strong agentic capabilities. At the recent SemiAnalysis InferenceMAX showcase, vLLM demonstrated its capability to handle this workload efficiently on NVIDIA’s latest Blackwell (B200/GB200) architecture.
 
 The heart of the optimizations is hardware-software co-design. The NVIDIA B200/GB200 GPUs introduce powerful features like native FP4 TensorCores and 192GB HBM per GPU, which are critical for serving large MoE models like `gpt-oss`. To leverage this hardware fully, vLLM and NVIDIA teams have integrated with **FlashInfer** and adopted a rigorous optimization strategy focusing on kernel fusion, communication overhead reduction, and host-device overlapping.
 
@@ -74,10 +74,10 @@ To reproduce the optimized performance for `gpt-oss` on Blackwell GPUs (B200/GB2
   * `--cudagraph-mode FULL_AND_PIECEWISE # already applied by default since vLLM 0.12.0`  
   * `--cuda-graph-capture-size 2048`  
 * **Scheduling:**  
-  * `--async-scheduling` (to hide host overhead).  
+  * `--async-scheduling` (to hide host overhead). This has already been applied by default as of vllm==0.14.0. 
   * `--api-server-count 20` or `--stream-interval 20`: This helps decouple the HTTP API server overhead from the inference engine, stabilizing performance at high concurrency.  
 * **MoE Backend:**  
-  * Explicitly enable the optimized Cutlass backend for FP8/FP4 MoE to ensure maximum throughput: `VLLM_USE_FlashInfer_MOE_MXFP4_MXFP8=1`.  
+  * Explicitly enable the optimized Cutlass backend for FP8/FP4 MoE to ensure maximum throughput: `VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8=1`.  
 
 ## Results
 
@@ -89,7 +89,7 @@ The combined effect of the optimizations has resulted in a significant uptick of
 </picture><br>
 </p>
 
-Such improvements are not just for a single use-case, but rather across the entire Pareto curve to behefit the vLLM community at large. 
+Such improvements are not just for a single use-case, but rather **across the entire Pareto curve to benefit the vLLM community at large**. 
 
 
 ## Next steps
@@ -100,11 +100,11 @@ Our work on `gpt-oss` is ongoing. Here is a look at the active engineering track
 
 By separating the Prefill stage and the Decode stage on to different GPUs, we can potentially achieve better throughput per GPU. We are currently experimenting with this setup and find the correct configs that achieve better performance.
 
-### DEP performance:
+### Data+Expert parallel performance
 
 Our projection shows that using DEP2 (Attention DP \+ MoE EP on 2 GPUs) can potentially achieve higher throughput per GPU compared to TP1 and TP2 at the same latency (TPS/user). However, currently the DEP2 performance is worse than TP1/TP2 mainly due to the MoE kernel selection issue. We are actively working on this to resolve it.
 
-### Min-latency:
+### Minimum latency performance
 
 We have identified a few performance optimization opportunities for min-latency scenario, or TP8 concurrency 8 more specifically:
 
