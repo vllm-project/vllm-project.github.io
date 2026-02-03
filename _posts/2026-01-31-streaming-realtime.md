@@ -375,3 +375,15 @@ Since streaming input is still a novel capability in LLM serving, we anticipate 
 We encourage you to try out vLLM's input streaming functionality and Realtime API. Your feedback is invaluable in helping us improve these features. Please share your experiences, report issues, or suggest enhancements on the [vLLM GitHub repository](https://github.com/vllm-project/vllm).
 
 We welcome feedback and contributions as we continue to develop vLLM's real-time capabilities.
+
+## Acknowledgements
+
+This feature was made possible through collaborative efforts across multiple teams:
+
+**Mistral AI:** Patrick von Platen, Andy Lo
+
+**Meta:** Joshua Deng, Jiatong Zhou, Zhuohan Li, Yu Luo, Jeremy Teboul
+
+**vLLM Core:** Nick Hill, Roger Wang, Woosuk Kwon
+
+We would also like to acknowledge previous implementations that inspired this work: Tao He (Alibaba Qwen), Edward Wibowo (Brown University), Deepti Raghavan (Brown University), and Luis Gaspar Schroeder (UC Berkeley).
