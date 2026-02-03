@@ -25,9 +25,9 @@ This post details the engineering journey, technical breakthroughs, and instruct
 
 Optimizing for a single metric—like maximum throughput or single-batch latency—is often insufficient for real-world deployments. Different use cases require different latency constraints and request concurrency. As a result, the real challenge lies in optimizing the **Pareto frontier**: the curve that represents the best possible trade-off between **Tokens Per Second (TPS) per GPU** (TCO, total cost of ownership) and **TPS per User** (interactivity). Pushing this curve upwards and to the right means delivering faster generation for individual users while allowing more users to share the hardware. [SemiAnalysis InferenceMAX](https://inferencemax.semianalysis.com/) has identified this critical need to measure, report and improve performance data for such LLM inference workloads on modern GPUs.
 
-One of the key use-cases is serving OpenAI’s `gpt-oss-120b` model, an natively 4-bit quantized (MXFP4) Mixture-of-Experts (MoE) LLM. It has achieved SoTA model accuracy along with strong agentic capabilities. At the recent SemiAnalysis InferenceMAX showcase, vLLM demonstrated its capability to handle this workload efficiently on NVIDIA’s latest Blackwell (B200/GB200) architecture.
+One of the key use-cases is serving OpenAI’s `gpt-oss-120b` model, an natively 4-bit quantized (MXFP4) Mixture-of-Experts (MoE) LLM. It has achieved SoTA model accuracy for its size along with strong agentic capabilities. At the recent SemiAnalysis InferenceMAX showcase, vLLM demonstrated its capability to handle this workload efficiently on NVIDIA’s latest Blackwell (B200/GB200) architecture.
 
-The heart of the optimizations is extreme hardware-software co-design. The NVIDIA B200/GB200 GPUs introduce powerful features like native FP4 TensorCores and 192GB HBM per GPU, which are critical for serving large MoE models like `gpt-oss`. To leverage this hardware fully, vLLM and NVIDIA teams have integrated with **FlashInfer** and adopted a rigorous optimization strategy focusing on kernel fusion, communication overhead reduction, and host-device overlapping.
+The heart of the optimizations is hardware-software co-design. The NVIDIA B200/GB200 GPUs introduce powerful features like native FP4 TensorCores and 192GB HBM per GPU, which are critical for serving large MoE models like `gpt-oss`. To leverage this hardware fully, vLLM and NVIDIA teams have integrated with **FlashInfer** and adopted a rigorous optimization strategy focusing on kernel fusion, communication overhead reduction, and host-device overlapping.
 
 ## FlashInfer Integration and torch.compile based fusion <a name="fi-tc"></a>
 
@@ -50,13 +50,13 @@ As we identify and develop new fused operations, the team will continue to deliv
 
 On next-generation hardware like Blackwell, the GPU is so fast that the CPU (host) often becomes the bottleneck, struggling to dispatch kernels quickly enough to keep the GPU busy. In addition, `prepare\_batch`, request scheduling and sampling logic also require heavy CPU side logic. This "host overhead" manifests as gaps between kernel executions, degrading performance and overall GPU utilization.
 
-To address this, we implemented both **Async Scheduler** and **Stream Interval** to vLLM that effectively eliminate host-side overhead.
+To address this, we implemented both **Async Scheduling** and **Stream Interval** to vLLM that effectively eliminate host-side overhead.
 
-[Async Scheduler](https://github.com/vllm-project/vllm/pull/23569):
+[Async Scheduling](https://github.com/vllm-project/vllm/pull/23569):
 
 * **Mechanism:** This scheduler decouples the CPU's request scheduling from the GPU's execution. By allowing the CPU to prepare the next batch of requests while the GPU is still processing the current batch, we effectively hide the host overhead.  
 * **Impact:** This optimization is crucial for the `gpt-oss` model, particularly in both high-throughput and min-latency scenarios. On more capable GPUs (H200s, B200s, GB200s), you can expect around a 10% performance gain.
-* **Configuration:** Users can enable this feature using the `--async-scheduling` flag, which is now supported in conjunction with many key features such as speculative decoding and structured outputs. 
+* **Configuration:** This has been turned on by default in recent vLLM releases. 
 
 [Stream Interval](https://github.com/vllm-project/vllm/pull/27869):
 
