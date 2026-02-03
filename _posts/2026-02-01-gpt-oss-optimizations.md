@@ -66,15 +66,13 @@ To address this, we implemented both **Async Scheduling** and **Stream Interval*
 
 ## Deployment Recipes <a name="recipes"></a>
 
-To reproduce the optimized performance for `gpt-oss` on Blackwell GPUs (B200/GB200), we recommend the following configurations in your vLLM deployment recipes. They can also be found under [vLLM Recipes page](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html).
+Most of the optimizations are already applied by default on the latest vLLM release. In addition, to reproduce the optimized performance for `gpt-oss` on Blackwell GPUs (B200/GB200), we recommend the following configurations in your vLLM deployment recipes. They can also be found under [vLLM Recipes page](https://docs.vllm.ai/projects/recipes/en/latest/OpenAI/GPT-OSS.html).
 
 **Recommended Configuration Flags:**
 
-* **Graph Capture:** `FULL_AND_PIECEWISE` mode is recommended to maximize CUDA graph usage for both prefill and decode phases.  
-  * `--cudagraph-mode FULL_AND_PIECEWISE # already applied by default since vLLM 0.12.0`  
+* **Graph Capture:** 
   * `--cuda-graph-capture-size 2048`  
 * **Scheduling:**  
-  * `--async-scheduling` (to hide host overhead). This has already been applied by default as of vllm==0.14.0. 
   * `--api-server-count 20` or `--stream-interval 20`: This helps decouple the HTTP API server overhead from the inference engine, stabilizing performance at high concurrency.  
 * **MoE Backend:**  
   * Explicitly enable the optimized Cutlass backend for FP8/FP4 MoE to ensure maximum throughput: `VLLM_USE_FLASHINFER_MOE_MXFP4_MXFP8=1`.  
