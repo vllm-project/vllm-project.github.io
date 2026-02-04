@@ -124,16 +124,47 @@ class StreamingInput:
     sampling_params: SamplingParams | None = None
 ```
 
-Rather than passing a fixed prompt to `AsyncLLM.generate()`, you can now pass an `AsyncGenerator` that yields `StreamingInput` objects over time. Each `StreamingInput` contains the cumulative prompt up to that point.
+Rather than passing a fixed prompt to `AsyncLLM.generate()`, you can now pass an `AsyncGenerator` that yields `StreamingInput` objects over time. Each `StreamingInput` contains the next input chunk to be appended to a cumulative prompt. Here is an example of how it can be used:
+
+```python
+import asyncio
+from vllm.inputs.data import StreamingInput
+from vllm.v1.engine.async_llm import AsyncLLM
+from vllm.sampling_params import SamplingParams
+
+async def streaming_input_example():
+    async_llm = AsyncLLM.from_engine_args(...)
+    
+    # Input queue can consume inputs in separate async task
+    input_queue = asyncio.Queue[list[int]]()
+    
+    async def input_generator():
+        # Loop until empty list encountered => input finished
+        while new_tokens := input_queue.get():
+            yield StreamingInput(prompt=new_tokens)
+
+    output_generator = async_llm.generate(
+        prompt=input_generator(),
+        sampling_params=SamplingParams(temperature=0.0, max_tokens=1),
+    )
+    
+    # Consume outputs
+    async for output in output_generator:
+        # ...
+
+asyncio.run(streaming_input_example())
+```
+
+You can wait until the output corresponding to the last input has completed before sending the next input, but it's not required (input chunks are queued internally). Termination of the input stream is indicated by exiting from the async input generator or closing it using the `aclose` function. The returned outputs generator won't complete until all received inputs have been processed _and_ the input generator has completed. 
 
 ## How It Works
 
 Internally, vLLM handles streaming input by treating each chunk as a separate request with a cumulative prompt. As new chunks arrive, the engine:
 
 1. Extends the prompt with the new content
-2. Reuses cached KV values for the prefix (via prefix caching)
+2. Reuses cached KV values for the prefix
 3. Generates output tokens based on the current cumulative prompt
-4. Optionally discards speculative output when new input arrives
+4. Optionally discards output when new input arrives
 
 This design means that output tokens generated between input chunks may be revised as more context becomes available. The final output reflects the complete input.
 
@@ -234,11 +265,11 @@ Input chunks: [A1, B1, C1], [A2, B2], [A3, B3]
    -> Model generates [D1]
 
 2. Second chunk [A2, B2] arrives
-   -> Cumulative prompt: [A1, B1, C1, A2, B2]
-   -> Model generates [C2, D2, E2] (D1 discarded as speculative)
+   -> Cumulative prompt: [A1, B1, C1, A2, B2] (D1 discarded)
+   -> Model generates [C2, D2, E2]
 
 3. Third chunk [A3, B3] arrives
-   -> Cumulative prompt: [A1, B1, C1, A2, B2, C2, D2, A3, B3]
+   -> Cumulative prompt: [A1, B1, C1, A2, B2, C2, D2, A3, B3] (E2 discarded)
    -> Model generates [C3, D3]
 
 Output stream: D1, C2, D2, E2, C3, D3
@@ -360,7 +391,11 @@ These examples demonstrate how to capture audio from system microphone and strea
 
 ## Performance Considerations
 
-...
+An advantage of using the dedicated `AsyncGenerator`-based session interface over just sending separate requests is that the KV cache for the session is preserved as-is. This is preferable to relying on vLLMs automatic prefix caching because:
+- It ensures that the corresponding cache blocks won't be evicted while waiting for the next input chunk
+- Prefix caching works at a block-level granularity (typically 16 tokens), meaning that a small number of existing tokens would otherwise be re-computed for each new input
+
+However, this also means that additional care must be taken to avoid holding sessions open as they will be blocking the corresponding memory from being used by other requests, potentially harming overall capacity/throughput. Currently, vLLM will not preempt "idle" streaming input sessions - this behaviour will be improved in a future update.
 
 ## Current Limitations
 
