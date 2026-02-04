@@ -41,7 +41,6 @@ To maximize the utilization of Blackwell’s tensor cores, vLLM leverages **Flas
 **2\. Graph Fusions via torch.compile** A significant portion of our optimization effort focused on kernel fusion to reduce memory access and kernel launch overhead. Instead of hard-coded fusion optimizations, vLLM has built an [extensive infrastructure](https://github.com/vllm-project/vllm/tree/main/vllm/compilation) based on `torch.compile` to conduct kernel fusion automatically. This approach not only improves performance, but significantly reduces the effort to enable, generalize, and maintain such improvements. 
 
 * **AR \+ Norm Fusion:** We implemented the fusion of AllReduce (AR) and RMSNorm operations. This is particularly important for tensor-parallel (TP) deployments, where communication overhead can become a bottleneck, details please see [PR20691](https://github.com/vllm-project/vllm/pull/20691).  
-* **SiluMul  \+ Quantization:** We fused the SiluMul activation function with NVFP4 quantization operations to further reduce latency, details please see [PR23671](https://github.com/vllm-project/vllm/pull/23671).
 * **Pad \+ Quant & Finalize \+ Slice:** We are actively rolling out the [fusion passes, PR30647](https://github.com/vllm-project/vllm/pull/30647) for padding/quantization and finalize/slice operations to further streamline the MoE execution path, with an expected 6% performance gain.
 
 As we identify and develop new fused operations, the team will continue to deliver automatic performance gains via this infrastructure.
