@@ -269,15 +269,15 @@ _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.6-4.3x 
 | -------- | ------------- | ----------------------- | ----------- | --------- |
 | MI300X   | **1.00x**     | 1.06x                   | 1.28x       | 4.13x     |
 | MI325X   | **1.00x**     | 1.02x                   | 1.17x       | 4.65x     |
-| MI355X   | **1.00x**     | 0.94x                   | 1.05x       | 3.81x     |
+| MI355X   | **1.00x**     | 0.94x                   | 1.05x       | 3.83x     |
 
 **TPOT relative to ROCM_AITER_FA (higher = slower, 128 concurrent):**
 
 | Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
 | -------- | ------------- | ----------------------- | ----------- | --------- |
-| MI300X   | **1.00x**     | 1.05x                   | 1.36x       | 2.77x     |
-| MI325X   | **1.00x**     | 1.01x                   | 1.27x       | 3.30x     |
-| MI355X   | **1.00x**     | 1.01x                   | 1.23x       | 3.01x     |
+| MI300X   | **1.00x**     | 1.05x                   | 1.36x       | 2.78x     |
+| MI325X   | **1.00x**     | 1.00x                   | 1.27x       | 3.29x     |
+| MI355X   | **1.00x**     | 1.01x                   | 1.23x       | 3.02x     |
 
 The relative performance is consistent across GPU generations. `ROCM_AITER_UNIFIED_ATTN` (single-kernel path) is within 1-6% of `ROCM_AITER_FA` (3-path routing) in this uniform workload scenario—the 3-path routing advantage would be more visible with mixed workloads containing prefix cache hits.
 
@@ -300,17 +300,17 @@ _Output throughput (TPS) shows AITER MLA backends achieving up to 1.5x higher th
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
-| MI300X   | **1.00x**             | 1.02x          | 1.40x      |
-| MI325X   | **1.00x**             | 1.02x          | 1.49x      |
-| MI355X   | **1.00x**             | 0.99x          | 1.55x      |
+| MI300X   | **1.00x**             | 1.03x          | 1.40x      |
+| MI325X   | **1.00x**             | 1.03x          | 1.50x      |
+| MI355X   | **1.00x**             | 0.99x          | 1.54x      |
 
 **TPOT relative to ROCM_AITER_TRITON_MLA (higher = slower, 128 concurrent):**
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
-| MI300X   | **1.00x**             | 1.03x          | 1.28x      |
-| MI325X   | **1.00x**             | 1.03x          | 1.32x      |
-| MI355X   | **1.00x**             | 0.99x          | 1.35x      |
+| MI300X   | **1.00x**             | 1.03x          | 1.27x      |
+| MI325X   | **1.00x**             | 1.04x          | 1.32x      |
+| MI355X   | **1.00x**             | 1.00x          | 1.36x      |
 
 Both AITER MLA backends deliver similar overall performance. On gfx942 (MI300X/MI325X), `ROCM_AITER_TRITON_MLA` shows marginal TPOT improvement (2-3%) due to Triton beating CK in prefill. On gfx950 (MI355X), `ROCM_AITER_MLA` matches or beats `ROCM_AITER_TRITON_MLA` because it uses the AITER assembly MHA prefill. `ROCM_AITER_MLA` also achieves the best TTFT on MI355X. The auto-selected `ROCM_AITER_MLA` is recommended for all workloads.
 
