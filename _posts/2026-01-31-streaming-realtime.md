@@ -219,7 +219,9 @@ Internally, vLLM implements streaming input through a *sticky session* mechanism
 
 **Why is the last token (Y) discarded?**
 
-In streaming models, the final sampled token for each chunk can be typically considered as a special token that signals "I'm done processing this input chunk and waiting for more." When the next input chunk arrives, this speculative token becomes meaningless—it was a placeholder indicating "waiting for input" that is now superseded by actual new input. The model will generate a fresh continuation based on the new context, so the speculative token is discarded rather than kept in the prompt. Note, This behavior is model-specific behavior and can be changed if needed.
+The last sampled token hasn't been processed as input to the model yet—it was just output from the most recent forward pass. Since the KV cache only contains entries for tokens that have been processed, this token has no KV cache entry. Discarding it is essentially "free": we're not invalidating any cached state, and it would need to be recomputed anyway if we kept it.
+
+*Caveat:* Some models emit special stop tokens that the model requires to properly continue generation. In such cases, the scheduling logic needs to accommodate +1 token to recompute the stop token before processing the new input chunk.
 
 ## Example Flow
 
