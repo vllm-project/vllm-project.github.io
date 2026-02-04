@@ -391,9 +391,9 @@ These examples demonstrate how to capture audio from system microphone and strea
 
 ## Performance Considerations
 
-An advantage of using the dedicated `AsyncGenerator`-based session interface over just sending separate requests is that the KV cache for the session is preserved as-is. This is preferable to relying on vLLMs automatic prefix caching because:
+An advantage of using the dedicated `AsyncGenerator`-based session interface over just sending separate requests is that the KV cache for the session is preserved as-is. This is preferable to relying on vLLM's automatic prefix caching because:
 - It ensures that the corresponding cache blocks won't be evicted while waiting for the next input chunk
-- Prefix caching works at a block-level granularity (typically 16 tokens), meaning that a small number of existing tokens would otherwise be re-computed for each new input
+- Prefix caching works at a block-level (typically 16 tokens), meaning that a small number of existing tokens would otherwise be re-computed for each new input
 
 However, this also means that additional care must be taken to avoid holding sessions open as they will be blocking the corresponding memory from being used by other requests, potentially harming overall capacity/throughput. Currently, vLLM will not preempt "idle" streaming input sessions - this behaviour will be improved in a future update.
 
