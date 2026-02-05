@@ -12,7 +12,7 @@ For a long time, enabling AMD support meant "porting": just making code run. **T
 
 With AMD CDNA 3 architecture hardwares (MI300X, MI325X, MI355X) and complex model structures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
 
-vLLM now provides 7 attention backends on AMD ROCm. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.3-4.7x performance gains** through AMD's AITER primitives and vLLM's kernel orchestration.
+vLLM now provides 7 attention backends on AMD ROCm. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.3-4.4x higher throughput (TPS)** through AMD's AITER primitives and vLLM's kernel orchestration.
 
 ---
 
@@ -240,7 +240,7 @@ Both AITER MLA backends (`ROCM_AITER_MLA` and `ROCM_AITER_TRITON_MLA`) share the
 | **Prefill** | AITER MHA or Triton (varies) | Triton flash attention        |
 | **Decode**  | Assembly `mla_decode_fwd`    | Triton `decode_attention_fwd` |
 
-The **1.3-1.6x speedup** primarily comes from the shared assembly decode kernel. Since TPOT is decode-heavy (1K iterations for OSL=1K), optimizing decode yields the largest throughput gains. The prefill kernel difference between the two AITER backends has minimal impact on overall performance.
+The **1.3-1.5x speedup** primarily comes from the shared assembly decode kernel. Since TPOT is decode-heavy (1K iterations for OSL=1K), optimizing decode yields the largest throughput gains. The prefill kernel difference between the two AITER backends has minimal impact on overall performance.
 
 Beyond raw kernel performance, these backends inherit the full feature set of FlashMLABackend, including FULL_AND_PIECEWISE CUDA graph support and MTP support. Another advantage is near-identical performance across virtually any KV cache block size—you can treat every token as prefix cache without worrying about performance penalties typically associated with fine-grained caching.
 
@@ -255,40 +255,40 @@ Beyond raw kernel performance, these backends inherit the full feature set of Fl
 **Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8), TP8+EP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
 
 ![MHA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tpot_comparison.png)
-_ROCM_AITER_FA delivers 2.8-4.7x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
+_ROCM_AITER_FA delivers 2.8-4.6x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
 
 ![MHA TTFT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_ttft_comparison.png)
 _TTFT (Time To First Token) comparison shows ROCM_AITER_FA and ROCM_AITER_UNIFIED lead in prefill performance at 64 and 128 concurrency levels._
 
 ![MHA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tps_comparison.png)
-_Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.6-4.3x higher throughput than legacy ROCM_ATTN._
+_Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.2-4.4x higher throughput than legacy ROCM_ATTN._
 
-**TPOT relative to ROCM_AITER_FA (higher = slower, 64 concurrent):**
-
-| Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
-| -------- | ------------- | ----------------------- | ----------- | --------- |
-| MI300X   | **1.00x**     | 1.06x                   | 1.28x       | 4.13x     |
-| MI325X   | **1.00x**     | 1.02x                   | 1.17x       | 4.65x     |
-| MI355X   | **1.00x**     | 0.94x                   | 1.05x       | 3.83x     |
-
-**TPOT relative to ROCM_AITER_FA (higher = slower, 128 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_FA (64 concurrent):**
 
 | Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
 | -------- | ------------- | ----------------------- | ----------- | --------- |
-| MI300X   | **1.00x**     | 1.05x                   | 1.36x       | 2.78x     |
-| MI325X   | **1.00x**     | 1.00x                   | 1.27x       | 3.29x     |
-| MI355X   | **1.00x**     | 1.01x                   | 1.23x       | 3.02x     |
+| MI300X   | **1.00x**     | 1.05x                   | 1.30x       | 2.25x     |
+| MI325X   | **1.00x**     | 1.02x                   | 1.19x       | 4.36x     |
+| MI355X   | **1.00x**     | 0.95x                   | 1.08x       | 3.61x     |
 
-The relative performance is consistent across GPU generations. `ROCM_AITER_UNIFIED_ATTN` (single-kernel path) is within 1-6% of `ROCM_AITER_FA` (3-path routing) in this uniform workload scenario—the 3-path routing advantage would be more visible with mixed workloads containing prefix cache hits.
+**How many times slower in TPS vs ROCM_AITER_FA (128 concurrent):**
 
-_Note: ROCM_ATTN shows 2.8-4.7x slower performance because Qwen3-235B has unsupported KV head sizes for HIP paged attention, forcing it to fall back to Triton decode kernels. Models with supported head sizes would see smaller gaps._
+| Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
+| -------- | ------------- | ----------------------- | ----------- | --------- |
+| MI300X   | **1.00x**     | 1.05x                   | 1.36x       | 2.65x     |
+| MI325X   | **1.00x**     | 1.00x                   | 1.28x       | 3.12x     |
+| MI355X   | **1.00x**     | 1.01x                   | 1.23x       | 2.88x     |
+
+The relative performance is consistent across GPU generations. `ROCM_AITER_UNIFIED_ATTN` (single-kernel path) is within 5% of `ROCM_AITER_FA` (3-path routing) in this uniform workload scenario—the 3-path routing advantage would be more visible with mixed workloads containing prefix cache hits.
+
+_Note: ROCM_ATTN shows 2.2-4.4x slower TPS because Qwen3-235B has unsupported KV head sizes for HIP paged attention, forcing it to fall back to Triton decode kernels. Models with supported head sizes would see smaller gaps._
 
 ### MLA Benchmark Results
 
 **Model**: [DeepSeek-R1-0528](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528), TP8, block_size=16 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
 
 ![MLA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tpot_comparison.png)
-_AITER MLA backends deliver 1.3-1.6x faster TPOT compared to TRITON_MLA across MI300X/MI325X/MI355X, thanks to the shared assembly decode kernel._
+_AITER MLA backends deliver 1.3-1.5x faster TPOT compared to TRITON_MLA across MI300X/MI325X/MI355X, thanks to the shared assembly decode kernel._
 
 ![MLA TTFT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_ttft_comparison.png)
 _TTFT comparison shows ROCM_AITER_MLA achieves the best TTFT on MI355X at 128 concurrency._
@@ -296,23 +296,23 @@ _TTFT comparison shows ROCM_AITER_MLA achieves the best TTFT on MI355X at 128 co
 ![MLA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tps_comparison.png)
 _Output throughput (TPS) shows AITER MLA backends achieving up to 1.5x higher throughput than TRITON_MLA._
 
-**TPOT relative to ROCM_AITER_TRITON_MLA (higher = slower, 64 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (64 concurrent):**
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
-| MI300X   | **1.00x**             | 1.03x          | 1.40x      |
-| MI325X   | **1.00x**             | 1.03x          | 1.50x      |
-| MI355X   | **1.00x**             | 0.99x          | 1.54x      |
+| MI300X   | **1.00x**             | 1.03x          | 1.37x      |
+| MI325X   | **1.00x**             | 1.02x          | 1.44x      |
+| MI355X   | **1.00x**             | 0.97x          | 1.48x      |
 
-**TPOT relative to ROCM_AITER_TRITON_MLA (higher = slower, 128 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (128 concurrent):**
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
-| MI300X   | **1.00x**             | 1.03x          | 1.27x      |
-| MI325X   | **1.00x**             | 1.04x          | 1.32x      |
-| MI355X   | **1.00x**             | 1.00x          | 1.36x      |
+| MI300X   | **1.00x**             | 1.03x          | 1.28x      |
+| MI325X   | **1.00x**             | 1.04x          | 1.28x      |
+| MI355X   | **1.00x**             | 0.99x          | 1.35x      |
 
-Both AITER MLA backends deliver similar overall performance. On gfx942 (MI300X/MI325X), `ROCM_AITER_TRITON_MLA` shows marginal TPOT improvement (2-3%) due to Triton beating CK in prefill. On gfx950 (MI355X), `ROCM_AITER_MLA` matches or beats `ROCM_AITER_TRITON_MLA` because it uses the AITER assembly MHA prefill. `ROCM_AITER_MLA` also achieves the best TTFT on MI355X. The auto-selected `ROCM_AITER_MLA` is recommended for all workloads.
+Both AITER MLA backends deliver similar overall performance. On gfx942 (MI300X/MI325X), `ROCM_AITER_TRITON_MLA` shows 2-4% higher TPS due to Triton beating CK in prefill. On gfx950 (MI355X), `ROCM_AITER_MLA` matches or beats `ROCM_AITER_TRITON_MLA` because it uses the AITER assembly MHA prefill. `ROCM_AITER_MLA` also achieves the best TTFT on MI355X. The auto-selected `ROCM_AITER_MLA` is recommended for all workloads.
 
 _Note: These benchmarks use uniform request sizes. Production workloads with prefix caching, mixed context lengths, and varied request patterns would exercise the 3-path routing architecture more fully._
 
@@ -394,8 +394,8 @@ The era of "just porting" is over. This post covered all 7 attention backends av
 
 **Key Results (ISL=10K, OSL=1K benchmark):**
 
-- `ROCM_AITER_FA`: **2.8-4.7x** faster than ROCM_ATTN on MHA models
-- `ROCM_AITER_MLA`: **1.3-1.6x** faster than TRITON_MLA on DeepSeek MLA via assembly decode kernel
+- `ROCM_AITER_FA`: **2.2-4.4x** higher TPS than ROCM_ATTN on MHA models
+- `ROCM_AITER_MLA`: **1.3-1.5x** higher TPS than TRITON_MLA on DeepSeek MLA via assembly decode kernel
 - Performance scales across MI300X → MI325X → MI355X
 
 **Our recommendation**: Simply use `export VLLM_ROCM_USE_AITER=1` and let vLLM auto-select the optimal backends. The defaults (`ROCM_AITER_FA` for MHA, `ROCM_AITER_MLA` for MLA) deliver excellent performance across all tested workloads.
