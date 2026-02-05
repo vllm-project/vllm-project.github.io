@@ -18,6 +18,7 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-gfm-admonitions
+  - jekyll-redirect-from
 
 # Theme-specific settings
 
