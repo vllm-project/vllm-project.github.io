@@ -118,7 +118,7 @@ k_cache: [num_blocks, num_heads, head_dim // x, block_size, x]
 v_cache: [num_blocks, num_heads, block_size // x, head_dim, x]
 ```
 
-This layout aligns memory access patterns with AMD's CDNA architecture, enabling the decode path to call AITER's `paged_attention` kernel with **zero layout conversion overhead**—delivering **15-20% decode throughput improvement** compared to standard KV cache layouts.
+This layout aligns memory access patterns with AMD's CDNA architecture, enabling the decode path to call AITER's `pa_fwd_asm` kernel with **zero layout conversion overhead**—delivering **15-20% decode throughput improvement** compared to standard KV cache layouts.
 
 ### Why Explicit 3-Path Routing?
 
@@ -135,7 +135,7 @@ The extend path is particularly important: prefix caching and multi-turn convers
 
 ### Three-Path Processing in Detail
 
-**Decode Path**: Leverages the shuffled KV cache layout directly. A custom `reshape_and_cache_flush` operator ensures the cache is always in the shuffled layout, allowing the attention backend to call AITER's performant `paged_attention` kernel with zero layout conversion overhead.
+**Decode Path**: Leverages the shuffled KV cache layout directly. A custom `reshape_and_cache_flush` operator ensures the cache is always in the shuffled layout, allowing the attention backend to call AITER's performant `pa_fwd_asm` kernel with zero layout conversion overhead.
 
 **Prefill Path**: Query/Key/Value are in the standard `[num_tokens, num_heads, head_dim]` layout to align with the highly optimized AITER MHA kernel and avoid any extra memory copy operations.
 
@@ -248,11 +248,11 @@ Beyond raw kernel performance, these backends inherit the full feature set of Fl
 
 ## Performance Benchmarks
 
-**Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260115` with ROCm 7.0.0. We warm up kernels with initial requests first; reported results exclude the first run to eliminate JIT compilation overhead.
+**Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260115` with ROCm 7.0.0. This is a nightly Docker image built from the main branch of https://github.com/vllm-project/vllm on January 15, 2026. We warmed up kernels with initial requests first; reported results exclude the first run to eliminate JIT compilation overhead.
 
 ### MHA Benchmark Results
 
-**Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8), TP8+EP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
+**Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8), TP8+EP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent requests
 
 ![MHA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tpot_comparison.png)
 _ROCM_AITER_FA delivers 2.8-4.6x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
@@ -263,7 +263,7 @@ _TTFT (Time To First Token) comparison shows ROCM_AITER_FA and ROCM_AITER_UNIFIE
 ![MHA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tps_comparison.png)
 _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.2-4.4x higher throughput than legacy ROCM_ATTN._
 
-**How many times slower in TPS vs ROCM_AITER_FA (64 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_FA (64 concurrent requests):**
 
 | Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
 | -------- | ------------- | ----------------------- | ----------- | --------- |
@@ -271,7 +271,7 @@ _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.2-4.4x 
 | MI325X   | **1.00x**     | 1.02x                   | 1.19x       | 4.36x     |
 | MI355X   | **1.00x**     | 0.95x                   | 1.08x       | 3.61x     |
 
-**How many times slower in TPS vs ROCM_AITER_FA (128 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_FA (128 concurrent requests):**
 
 | Hardware | ROCM_AITER_FA | ROCM_AITER_UNIFIED_ATTN | TRITON_ATTN | ROCM_ATTN |
 | -------- | ------------- | ----------------------- | ----------- | --------- |
@@ -281,11 +281,11 @@ _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.2-4.4x 
 
 The relative performance is consistent across GPU generations. `ROCM_AITER_UNIFIED_ATTN` (single-kernel path) is within 5% of `ROCM_AITER_FA` (3-path routing) in this uniform workload scenario—the 3-path routing advantage would be more visible with mixed workloads containing prefix cache hits.
 
-_Note: ROCM_ATTN shows 2.2-4.4x slower TPS because Qwen3-235B has unsupported KV head sizes for HIP paged attention, forcing it to fall back to Triton decode kernels. Models with supported head sizes would see smaller gaps._
+_Note: ROCM_ATTN shows 2.2-4.4x slower TPS because Qwen3-235B has unsupported KV head sizes for HIP paged attention, forcing it to fall back to Triton decode kernels. `ROCM_ATTN` is faster than `TRITON_ATTN` for models with supported head sizes._
 
 ### MLA Benchmark Results
 
-**Model**: [DeepSeek-R1-0528](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528), TP8, block_size=16 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent
+**Model**: [DeepSeek-R1-0528](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528), TP8, block_size=16 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent requests
 
 ![MLA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tpot_comparison.png)
 _AITER MLA backends deliver 1.3-1.5x faster TPOT compared to TRITON_MLA across MI300X/MI325X/MI355X, thanks to the shared assembly decode kernel._
@@ -296,7 +296,7 @@ _TTFT comparison shows ROCM_AITER_MLA achieves the best TTFT on MI355X at 128 co
 ![MLA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tps_comparison.png)
 _Output throughput (TPS) shows AITER MLA backends achieving up to 1.5x higher throughput than TRITON_MLA._
 
-**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (64 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (64 concurrent requests):**
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
@@ -304,7 +304,7 @@ _Output throughput (TPS) shows AITER MLA backends achieving up to 1.5x higher th
 | MI325X   | **1.00x**             | 1.02x          | 1.44x      |
 | MI355X   | **1.00x**             | 0.97x          | 1.48x      |
 
-**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (128 concurrent):**
+**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (128 concurrent requests):**
 
 | Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
 | -------- | --------------------- | -------------- | ---------- |
@@ -376,15 +376,15 @@ Our benchmarks show both AITER MLA backends deliver similar performance since th
 
 vLLM provides 7 attention backends on AMD ROCm, each optimized for different scenarios:
 
-| Category | Backend                 | How to enable                                 | Notes                                     |
-| :------- | :---------------------- | :-------------------------------------------- | :---------------------------------------- |
-| MHA      | TRITON_ATTN             | `--attention-backend TRITON_ATTN`             | Baseline, Radeon support                  |
-| MHA      | ROCM_AITER_UNIFIED_ATTN | `--attention-backend ROCM_AITER_UNIFIED_ATTN` | AITER unified kernel                      |
-| MHA      | ROCM_ATTN               | `--attention-backend ROCM_ATTN`               | Legacy 2-path, Radeon support             |
-| MHA      | **ROCM_AITER_FA**       | `--attention-backend ROCM_AITER_FA`           | **Recommended**, auto-selected with AITER |
-| MLA      | TRITON_MLA              | `--attention-backend TRITON_MLA`              | Baseline, Radeon support                  |
-| MLA      | **ROCM_AITER_MLA**      | `--attention-backend ROCM_AITER_MLA`          | **Recommended**, auto-selected with AITER |
-| MLA      | ROCM_AITER_TRITON_MLA   | `--attention-backend ROCM_AITER_TRITON_MLA`   | Alternative AITER MLA backend             |
+| Category | Backend                 | How to enable                                                               | Notes                                     |
+| :------- | :---------------------- | :-------------------------------------------------------------------------- | :---------------------------------------- |
+| MHA      | TRITON_ATTN             | `--attention-backend TRITON_ATTN`                                           | Baseline, Radeon support                  |
+| MHA      | ROCM_AITER_UNIFIED_ATTN | `--attention-backend ROCM_AITER_UNIFIED_ATTN`                               | AITER unified kernel                      |
+| MHA      | ROCM_ATTN               | `--attention-backend ROCM_ATTN`                                             | Legacy 2-path, Radeon support             |
+| MHA      | **ROCM_AITER_FA**       | `--attention-backend ROCM_AITER_FA` + `VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT=1` | **Recommended**, auto-selected with AITER |
+| MLA      | TRITON_MLA              | `--attention-backend TRITON_MLA`                                            | Baseline, Radeon support                  |
+| MLA      | **ROCM_AITER_MLA**      | `--attention-backend ROCM_AITER_MLA`                                        | **Recommended**, auto-selected with AITER |
+| MLA      | ROCM_AITER_TRITON_MLA   | `--attention-backend ROCM_AITER_TRITON_MLA`                                 | Alternative AITER MLA backend             |
 
 ---
 
