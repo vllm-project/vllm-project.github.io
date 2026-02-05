@@ -351,23 +351,23 @@ _TTFT comparison shows ROCM_AITER_MLA achieves the best TTFT on MI355X at 128 co
 ![MLA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tps_comparison.png)
 _Output throughput (TPS) shows AITER MLA backends achieving up to 1.5x higher throughput than TRITON_MLA._
 
-**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (64 concurrent requests):**
+**How many times slower in TPS vs ROCM_AITER_MLA (64 concurrent requests):**
 
-| Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
-| -------- | --------------------- | -------------- | ---------- |
-| MI300X   | **1.00x**             | 1.03x          | 1.37x      |
-| MI325X   | **1.00x**             | 1.02x          | 1.44x      |
-| MI355X   | **1.00x**             | 0.97x          | 1.48x      |
+| Hardware | ROCM_AITER_MLA | ROCM_AITER_TRITON_MLA | TRITON_MLA |
+| -------- | -------------- | --------------------- | ---------- |
+| MI300X   | **1.00x**      | 0.98x                 | 1.33x      |
+| MI325X   | **1.00x**      | 0.98x                 | 1.41x      |
+| MI355X   | **1.00x**      | 1.03x                 | 1.52x      |
 
-**How many times slower in TPS vs ROCM_AITER_TRITON_MLA (128 concurrent requests):**
+**How many times slower in TPS vs ROCM_AITER_MLA (128 concurrent requests):**
 
-| Hardware | ROCM_AITER_TRITON_MLA | ROCM_AITER_MLA | TRITON_MLA |
-| -------- | --------------------- | -------------- | ---------- |
-| MI300X   | **1.00x**             | 1.03x          | 1.28x      |
-| MI325X   | **1.00x**             | 1.04x          | 1.28x      |
-| MI355X   | **1.00x**             | 0.99x          | 1.35x      |
+| Hardware | ROCM_AITER_MLA | ROCM_AITER_TRITON_MLA | TRITON_MLA |
+| -------- | -------------- | --------------------- | ---------- |
+| MI300X   | **1.00x**      | 0.97x                 | 1.24x      |
+| MI325X   | **1.00x**      | 0.97x                 | 1.24x      |
+| MI355X   | **1.00x**      | 1.01x                 | 1.35x      |
 
-Both AITER MLA backends deliver similar overall performance. On gfx942 (MI300X/MI325X), `ROCM_AITER_TRITON_MLA` shows 2-4% higher TPS due to Triton beating CK in prefill. On gfx950 (MI355X), `ROCM_AITER_MLA` matches or beats `ROCM_AITER_TRITON_MLA` because it uses the AITER assembly MHA prefill. `ROCM_AITER_MLA` also achieves the best TTFT on MI355X. The auto-selected `ROCM_AITER_MLA` is recommended for all workloads.
+Both AITER MLA backends deliver similar overall performance. On gfx942 (MI300X/MI325X), `ROCM_AITER_TRITON_MLA` shows 2-3% higher TPS due to Triton beating CK in prefill. On gfx950 (MI355X), `ROCM_AITER_MLA` matches or beats `ROCM_AITER_TRITON_MLA` because it uses the AITER assembly MHA prefill. `ROCM_AITER_MLA` also achieves the best TTFT on MI355X. The auto-selected `ROCM_AITER_MLA` is recommended for all workloads.
 
 _Note: These benchmarks use uniform request sizes. Production workloads with prefix caching, mixed context lengths, and varied request patterns would exercise the 3-path routing architecture more fully._
 
