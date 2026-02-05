@@ -131,7 +131,7 @@ This explicit approach offers:
 - **Extensibility**: New workload types or kernel variants can be added without redesigning the core architecture
 - **Predictability**: Execution paths are deterministic, making performance analysis straightforward
 
-The extend path is particularly important: prefix caching and multi-turn conversations are now standard in production deployments. Having a dedicated path with chunked context attention (rather than treating it as a special case of prefill) ensures these workloads get first-class optimization.
+The extend path is particularly important: prefix caching and multi-turn conversations are now standard in production deployments. Having a dedicated path with chunked context attention ensures these workloads get first-class optimization.
 
 ### Three-Path Processing in Detail
 
@@ -249,6 +249,61 @@ Beyond raw kernel performance, these backends inherit the full feature set of Fl
 ## Performance Benchmarks
 
 **Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260115` with ROCm 7.0.0. This is a nightly Docker image built from the main branch of https://github.com/vllm-project/vllm on January 15, 2026. We warmed up kernels with initial requests first; reported results exclude the first run to eliminate JIT compilation overhead.
+
+<details markdown="1">
+<summary><strong>Benchmark Scripts (click to expand)</strong></summary>
+
+**MHA Benchmark (Qwen3-235B):**
+
+```bash
+export SAFETENSORS_FAST_GPU=1
+export VLLM_ROCM_USE_AITER=1
+export VLLM_RPC_TIMEOUT=1800000
+export VLLM_ROCM_SHUFFLE_KV_CACHE_LAYOUT=1
+
+# Choose backend: TRITON_ATTN, ROCM_ATTN, ROCM_AITER_FA, ROCM_AITER_UNIFIED_ATTN
+ATTN_BACKEND="ROCM_AITER_FA"
+
+model_path=Qwen/Qwen3-235B-A22B-Instruct-2507-FP8
+vllm serve $model_path \
+    --tensor-parallel-size 8 \
+    --max-num-batched-tokens 16384 \
+    --trust-remote-code \
+    --no-enable-prefix-caching \
+    --enable-expert-parallel \
+    --disable-log-requests \
+    --gpu_memory_utilization 0.9 \
+    --attention-backend ${ATTN_BACKEND} \
+    --compilation-config '{"cudagraph_mode": "FULL_AND_PIECEWISE"}' \
+    --async-scheduling \
+    --port 1234
+```
+
+**MLA Benchmark (DeepSeek-R1):**
+
+```bash
+export SAFETENSORS_FAST_GPU=1
+export VLLM_ROCM_USE_AITER=1
+export VLLM_RPC_TIMEOUT=1800000
+
+# Choose backend: TRITON_MLA, ROCM_AITER_MLA, ROCM_AITER_TRITON_MLA
+ATTN_BACKEND="ROCM_AITER_MLA"
+
+model_path=deepseek-ai/DeepSeek-R1-0528
+vllm serve $model_path \
+    --tensor-parallel-size 8 \
+    --max-num-batched-tokens 16384 \
+    --trust-remote-code \
+    --no-enable-prefix-caching \
+    --disable-log-requests \
+    --gpu_memory_utilization 0.9 \
+    --attention-backend ${ATTN_BACKEND} \
+    --compilation-config '{"cudagraph_mode": "FULL_AND_PIECEWISE"}' \
+    --async-scheduling \
+    --port 1234
+```
+
+</details>
 
 ### MHA Benchmark Results
 
