@@ -251,7 +251,7 @@ Beyond raw kernel performance, these backends inherit the full feature set of Fl
 **Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260115` with ROCm 7.0.0. This is a nightly Docker image built from the main branch of https://github.com/vllm-project/vllm on January 15, 2026. We warmed up kernels with initial requests first; reported results exclude the first run to eliminate JIT compilation overhead.
 
 <details markdown="1">
-<summary><strong>Benchmark Scripts (click to expand)</strong></summary>
+<summary><strong>Benchmark Server Commands (click to expand)</strong></summary>
 
 **MHA Benchmark (Qwen3-235B):**
 
