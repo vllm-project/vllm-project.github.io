@@ -2,7 +2,6 @@
 layout: post
 title: "Streaming Requests & Realtime API in vLLM"
 author: "TODO"
-image: /assets/figures/2026-01-31-streaming-realtime/architecture.png
 math: true
 ---
 
