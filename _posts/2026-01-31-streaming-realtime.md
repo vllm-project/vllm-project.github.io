@@ -11,6 +11,9 @@ vLLM has recently added support for **streamable inputs** to its engine as well 
 
 In this post, we motivate the need for realtime inference and introduce the two new features in vLLM that unlock these capabilities: **streaming input support** and the **Realtime WebSocket API**.
 
+_Note_: If you wish to know how to use the new streaming input or realtime API with vLLM, please refer to the following references:
+- [Streaming input](https://github.com/vllm-project/vllm/tree/main/tests/v1/streaming_input)
+- [Realtime WebSocket API](https://docs.vllm.ai/en/latest/serving/openai_compatible_server/?h=realtime+api#realtime-api)
 
 # Why Realtime is Needed
 
