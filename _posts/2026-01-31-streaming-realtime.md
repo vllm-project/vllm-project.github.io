@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Streaming Requests & Realtime API in vLLM"
-author: "TODO"
+author: "Meta, Mistral AI as well as the vLLM team"
 math: true
 ---
 
@@ -166,9 +166,9 @@ You can wait until the output corresponding to the last input has completed befo
 
 Internally, vLLM handles streaming input by treating each chunk as a separate request with a cumulative prompt. As new chunks arrive, the engine:
 
-1. Extends the prompt with the new content
-2. Reuses cached KV values for the prefix
-3. Generates output tokens based on the current cumulative prompt
+1. Extends `prompt_token_ids` with `max_tokens - 1` generated `output_tokens` as well as new incoming `prompt_token_ids`.
+2. Reuses all cached KV values
+3. Generates output tokens based on the current cumulative prompt and the indicated `max_tokens`
 4. Optionally discards output when new input arrives
 
 This design means that output tokens generated between input chunks may be revised as more context becomes available. The final output reflects the complete input.
@@ -190,6 +190,7 @@ Internally, vLLM implements streaming input through a *sticky session* mechanism
 │   │   [A, B, C]  │                  ┌────────────────────────────────┐      │
 │   └──────────────┘                  │  Request (id="session_1")      │      │
 │                                     │  ├── resumable: true           │      │
+│                                     │  ├── max_tokens: 2             │      │
 │                                     │  ├── streaming_queue: deque()  │      │
 │                                     │  ├── status: RUNNING           │      │
 │                                     │  └── prompt_token_ids: [A,B,C] │      │
@@ -253,18 +254,24 @@ Internally, vLLM implements streaming input through a *sticky session* mechanism
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Why is the last token (Y) discarded?**
+**Why is the last token (Y) discarded for the next `prompt_token_ids`?**
 
-The last sampled token hasn't been processed as input to the model yet—it was just output from the most recent forward pass. Since the KV cache only contains entries for tokens that have been processed, this token has no KV cache entry. Discarding it is essentially "free": we're not invalidating any cached state, and it would need to be recomputed anyway if we kept it.
+When receiving a resumable request, what we really care about is computing the KV cache for all `prompt_token_ids` as well as `max_tokens - 1` generated tokens. Note that the user indicates with `max_tokens` that `max_tokens - 1` generated tokens of the first request are final and shall be re-used. The final token of the `output_token_ids` tensor is simply the result of the most recent forward pass, which does not yet have corresponding KV cache states. It is up to the user to decide what do to with it, but as it does not have any corresponding KV cache states, it will 
+be discarded for the `prompt_token_ids` of the updated anchor request.
+Discarding it is essentially "free": we're not invalidating any cached state, and it would need to be recomputed anyway if we kept it.
+
+As is done in the [Realtime API](https://github.com/vllm-project/vllm/blob/a2443de5fa4a0605607f6c3d9219022c7f6ac480/vllm/entrypoints/openai/realtime/connection.py#L209), in most application, `max_tokens` shall be set to `1` so that each resumable request computes the KV cache states only for the `prompt_token_ids` and it is up to the user to decide how to make use of the generated single token in `output_token_ids`. As an example, for [Voxtral Realtime](https://mistral.ai/news/voxtral), the generated single token in `output_token_ids` will be combined with the incoming new audio chunk to form the next resumable request.
 
 *Caveat:* Some models emit special stop tokens that the model requires to properly continue generation. In such cases, the scheduling logic needs to accommodate +1 token to recompute the stop token before processing the new input chunk.
 
+
 ## Example Flow
 
-Consider a voice assistant receiving speech incrementally:
+For illustrative purposes, multiple resumable requests with different `max_tokens` can be streamed as inputs.
+In such a case, the generation logic would function as follows:
 
 ```
-Input chunks: [A1, B1, C1], [A2, B2], [A3, B3]
+Input chunks: ([A1, B1, C1], max_tokens=1), ([A2, B2], max_tokens=2), ([A3], max_tokens=2)
 
 1. First chunk [A1, B1, C1] arrives
    -> Model generates [D1]
@@ -273,14 +280,12 @@ Input chunks: [A1, B1, C1], [A2, B2], [A3, B3]
    -> Cumulative prompt: [A1, B1, C1, A2, B2] (D1 discarded)
    -> Model generates [C2, D2, E2]
 
-3. Third chunk [A3, B3] arrives
-   -> Cumulative prompt: [A1, B1, C1, A2, B2, C2, D2, A3, B3] (E2 discarded)
+3. Third chunk [A3] arrives
+   -> Cumulative prompt: [A1, B1, C1, A2, B2, C2, D2, A3] (E2 discarded)
    -> Model generates [C3, D3]
 
 Output stream: D1, C2, D2, E2, C3, D3
 ```
-
-Early output tokens provide immediate feedback to the user, even though they may be revised as more context arrives. This dramatically reduces perceived latency.
 
 # Realtime API with WebSockets
 
@@ -402,10 +407,6 @@ An advantage of using the dedicated `AsyncGenerator`-based session interface ove
 
 However, this also means that additional care must be taken to avoid holding sessions open as they will be blocking the corresponding memory from being used by other requests, potentially harming overall capacity/throughput. Currently, vLLM will not preempt "idle" streaming input sessions - this behaviour will be improved in a future update.
 
-## Current Limitations
-
-...
-
 ## Future Directions
 
 We are excited about the potential for streaming input support in vLLM. As more model providers open-source fully streamable model weights that are compatible with our input streaming design, we expect the ecosystem of realtime applications to grow significantly.
@@ -427,6 +428,5 @@ Streaming input support and the Realtime API were made possible through collabor
 **Mistral AI:** Patrick von Platen, Andy Lo
 
 **vLLM Team:** Nick Hill, Roger Wang, Cyrus Leung, Nicolò Lucchesi, Woosuk Kwon
-
 
 We would also like to acknowledge other implementations of streaming input in vLLM: Tao He (Alibaba Qwen), Edward Wibowo (Brown University), Deepti Raghavan (Brown University), and Luis Gaspar Schroeder (UC Berkeley).
