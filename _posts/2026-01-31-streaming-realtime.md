@@ -37,7 +37,7 @@ This problem appears across many domains:
 For these applications, the traditional batch paradigm introduces unacceptable delays. Infrastructure is needed that can process input incrementally and begin generating output before all input has arrived.
 
 _Note_: Even for traditional applications, where the full input needs to be read in order to generate the first output token, the ability to stream input as it becomes available can still be beneficial.
-By default, vLLM makes use of [chunked prefill](https://docs.vllm.ai/en/stable/cli/serve/?h=max+num+b#-enable-chunked-prefill-no-enable-chunked-prefill) and therefore processes an input of $N$ tokens in $N // M$ forward passes with $M$ being [`max_num_batched_tokens`](https://docs.vllm.ai/en/stable/cli/serve/?h=max+num+b#-max-num-batched-tokens). In case $N // M > 1$ streaming the input as it becomes available reduces the overall TTFT because the first prefill forward pass can be scheduled earlier.
+By default, vLLM makes use of [chunked prefill](https://docs.vllm.ai/en/stable/cli/serve/?h=max+num+b#-enable-chunked-prefill-no-enable-chunked-prefill) and therefore processes an input of $N$ tokens in $N \div M$ forward passes with $M$ being [`max_num_batched_tokens`](https://docs.vllm.ai/en/stable/cli/serve/?h=max+num+b#-max-num-batched-tokens). In case $N \div M > 1$ streaming the input as it becomes available reduces the overall TTFT because the first prefill forward pass can be scheduled earlier.
 
 ## Requirements for Streaming
 
