@@ -17,15 +17,17 @@ In this post, we motivate the need for realtime inference and introduce the two 
 
 ## The Traditional Batch Paradigm in vLLM
 
-Traditional LLM inference assumes that complete prompts are available upfront. The user submits their full request *e.g.* via a `ChatCompletionRequest`, waits for the model to process it entirely, and then receives the complete response. While vLLM has long supported *output* streaming—emitting tokens as they are generated—the *input* side was always fixed: you had to provide the entire request before inference could begin.
+Traditional LLM inference assumes that complete prompts are available upfront. The user submits their full request *e.g.* via a [`ChatCompletionRequest`](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create), waits for the model to process it entirely, and then receives the complete response. While vLLM has long supported *output* streaming—emitting tokens as they are generated—the *input* side was always fixed: you had to provide the entire request before inference could begin.
 
 This approach is sufficient for most applications. Text-based chatbots, document summarization, and code generation all fit naturally into this model. But a growing class of applications cannot wait for complete input before processing begins.
 
 ## The Importance of Streaming
 
-Consider a voice assistant to control a computer or phone. Instead of using a keyboard and mouse or touchpad, all actions are controlled by voice. Speech is recorded by a microphone and sent as a stream of audio to your LLM which acts as the voice assistant model. The LLM needs to continuously process the audio stream and generate actions in realtime. For such applications latency matters—a user does not want to wait more than a second to open an application, type text into a search bar, etc. For the most natural, human-like voice assistant, it needs to be able to listen and speak at the same time, i.e., the LLM needs to be able to process the audio stream and generate actions simultaneously.
+Consider a voice assistant to control a computer or phone. Instead of using a keyboard and mouse or touchpad, all actions are controlled by voice. Speech is recorded by a microphone and sent as a stream of audio to your LLM which acts as the voice assistant model. 
+The LLM needs to continuously process the audio stream and generate actions in realtime. 
+For such applications latency, or more precisely [Time-To-First-Token (TTFT)](https://www.emergentmind.com/topics/time-to-first-token-ttft), matters—a user does not want to wait more than a second to open an application, type text into a search bar, etc. For the most natural, human-like voice assistant, it needs to be able to listen and speak at the same time, i.e., the LLM needs to be able to process the audio stream and generate actions simultaneously.
 
-A natural question is whether streaming behavior can be approximated using non-streaming LLMs by processing the input in chunks. In principle, audio can be buffered into segments, each segment processed independently, and the resulting outputs concatenated. In practice, this approach introduces several limitations. Achieving sub-second latency requires highly performant chunk detection, i.e., accurately determining when to segment the audio stream such that no relevant information is lost. Poor segmentation can introduce additional latency or degrade model performance by fragmenting meaningful temporal context. Chunk-based processing also precludes true bidirectional interaction: each chunk must be fully processed before a response can be generated, preventing listening and speaking from occurring concurrently. This results in a turn-based interaction model rather than the continuous, overlapping communication characteristic of human conversation.
+A natural question is whether streaming behavior can be approximated using non-streaming LLMs by processing the input in chunks. In principle, audio can be buffered into segments, each segment processed independently, and the resulting outputs concatenated. In practice, this approach introduces several limitations. Achieving sub-second TTFT requires highly performant chunk detection, i.e., accurately determining when to segment the audio stream such that no relevant information is lost. Poor segmentation can lead to an increased TTFT or degrade model performance by fragmenting meaningful temporal context. Chunk-based processing also precludes true bidirectional interaction: each chunk must be fully processed before a response can be generated, preventing listening and speaking from occurring concurrently. This results in a turn-based interaction model rather than the continuous, overlapping communication characteristic of human conversation.
 
 This problem appears across many domains:
 
@@ -33,9 +35,12 @@ This problem appears across many domains:
 - **Live transcription services** need to display text as speech is recognized
 - **Robotics and embodied AI** need to process continuous sensor streams (cameras, microphones, LIDAR) and generate control actions with minimal delay to interact safely with the physical world
 
-For these applications, the traditional batch paradigm introduces unacceptable delays. We need infrastructure that can process input incrementally and begin generating output before all input has arrived.
+For these applications, the traditional batch paradigm introduces unacceptable delays. Infrastructure is needed that can process input incrementally and begin generating output before all input has arrived.
 
-## Architectural Requirements for Streaming
+_Note_: Even for traditional applications, where the full input needs to be read in order to generate the first output token, the ability to stream input as it becomes available can still be beneficial.
+By default, vLLM makes use of [chunked prefill](https://docs.vllm.ai/en/stable/cli/serve/?h=max+num+b#-enable-chunked-prefill-no-enable-chunked-prefill) and therefore processes an input of $N$ tokens in $N // M$ forward passes with $M$ being [`max_num_batched_tokens`](https://docs.vllm.ai/en/stable/cli/serve/?h=max+num+b#-max-num-batched-tokens). In case $N // M > 1$ streaming the input as it becomes available reduces the overall TTFT because the first prefill forward pass can be scheduled earlier.
+
+## Requirements for Streaming
 
 Not all models can support true streaming inference. Two key requirements must be met: the right attention pattern and training for incremental processing.
 
@@ -43,9 +48,9 @@ Not all models can support true streaming inference. Two key requirements must b
 
 The attention mechanism determines whether a model can process input incrementally or must wait for the entire sequence.
 
-- Causal attention (uni-directional mask) restricts each position t to attend only to tokens at positions ≤ t. Because future tokens are excluded, the model’s output token at time t is final once token t arrives. This makes true streaming possible: each new token can be processed immediately, and earlier outputs never need to be revised.
+- Causal attention (uni-directional mask) restricts each position $t$ to attend only to tokens at positions $j$ with $j \le t$. Because future tokens are excluded, the model’s output token at time $t$ is final once token $t$ arrives. This makes true streaming possible: each new token can be processed immediately, and earlier outputs never need to be revised.
 
-- Bidirectional attention (full mask) allows every position to attend to both past and future tokens. As a result, the model's output token at position t is conditions on tokens that may not have arrived yet. Until the full input sequence is known, the model cannot compute a stable output for any position, because future tokens could change how earlier tokens are interpreted.
+- Bidirectional attention (full mask) allows every position to attend to both past and future tokens. As a result, the model's output token at position $t$ is conditions on tokens that may not have arrived yet. Until the full input sequence is known, the model cannot compute a stable output for any position, because future tokens could change how earlier tokens are interpreted.
 
 For this reason, bidirectional attention inherently requires access to the complete input sequence before producing outputs, which makes it incompatible with streaming or online processing.
 
@@ -96,14 +101,15 @@ This distinction is important for deployment: one cannot simply take an arbitrar
 
 vLLM can serve any model, but true streaming requires architecturally-causal models. Models like [Voxtral](https://mistral.ai/news/voxtral) are designed from the ground up for streaming, using causal attention mechanisms that support incremental processing.
 
-Equally important, the serving infrastructure must support incremental input. Even with a streaming-capable model, if the server requires the complete prompt before beginning inference, you lose the latency benefits. This is why vLLM now supports streaming input alongside its existing output streaming capabilities.
+Equally important, the serving infrastructure must support incremental input. Even with a streaming-capable model, if the server requires the complete prompt before beginning inference, you lose the latency benefits. 
+This is why vLLM now supports streaming input alongside its existing output streaming capabilities.
 
-### Further Reading
+### Further Reading on Streaming architecture
 
 - [Transformer Transducer](https://arxiv.org/abs/2002.02562) is a well-known and one of the most successful modeling approaches for training streamable speech recognition systems.
 - [Streaming Sequence-to-Sequence Learning with Delayed Streams Modeling](https://arxiv.org/abs/2509.08753) by the Kyutai folks is a great read on further diving into streaming architectures as explained above.
 - [Streaming Simultaneous Speech Translation with Augmented Memory Transformer](https://arxiv.org/abs/2011.00033) on streaming speech translation. Translation is not as "monotonic" as speech, which makes the problem of performant streaming more difficult.
-- [Voxtral-Realtime]( ) (TODO) add link
+- [Voxtral-Realtime](https://mistral.ai/news/voxtral) is a massively pretrained and open-sourced streaming model competitive with most offline speech recognition models.
 
 # Streaming Input Support in vLLM
 
@@ -275,7 +281,7 @@ Input chunks: [A1, B1, C1], [A2, B2], [A3, B3]
 Output stream: D1, C2, D2, E2, C3, D3
 ```
 
-The key insight is that early output tokens provide immediate feedback to the user, even though they may be revised as more context arrives. This dramatically reduces perceived latency.
+Early output tokens provide immediate feedback to the user, even though they may be revised as more context arrives. This dramatically reduces perceived latency.
 
 # Realtime API with WebSockets
 
