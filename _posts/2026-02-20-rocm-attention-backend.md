@@ -31,7 +31,7 @@ These request types arrive randomly and are batched together for efficiency.
 <p align="center">
 <img src="/assets/figures/2026-02-20-rocm-attention-backend/contiguous-batching.png" width="100%">
 <br>
-<em>Figure 1: Online serving with 5 concurrent requests. Step 4 shows prefill, extend, and decode tokens batched together.</em>
+<em>Online serving with 5 concurrent requests. Step 4 shows prefill, extend, and decode tokens batched together.</em>
 </p>
 
 The optimization challenge: prefill wants large tile sizes and maximum ALU utilization, while decode wants coalesced memory access and minimal cache fetches. **A kernel tuned for one workload leaves performance on the table for the other.**
@@ -50,7 +50,7 @@ These backends process all tokens (prefill/extend/decode) through a single kerne
 
 | Backend                                                                                                                         | Kernel Source                                                                                                                      | Use Case                 |
 | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/attention/ops/triton_unified_attention.py#L57)            | Default fallback         |
+| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/ops/triton_unified_attention.py#L884)            | Default fallback         |
 | [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/attention/unified_attention.py#L54) | Single-kernel AITER path |
 
 ```python
@@ -83,7 +83,7 @@ This backend has two important characteristics:
 <p align="center">
 <img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png" width="100%">
 <br>
-<em>Figure 2: (a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths.</em>
+<em>(a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths.</em>
 </p>
 
 ### Key Innovations
@@ -93,7 +93,7 @@ This backend has two important characteristics:
 <p align="center">
 <img src="/assets/figures/2026-02-20-rocm-attention-backend/three_path_architecture.png" width="80%">
 <br>
-<em>Figure 3: Each path uses specialized kernels optimized for its workload characteristics.</em>
+<em>Each path uses specialized kernels optimized for its workload characteristics.</em>
 </p>
 
 - **Decode**: Single token generation uses AITER highly optimized kernel for memory bandwidth
@@ -110,7 +110,7 @@ This backend has two important characteristics:
 <p align="center">
 <img src="/assets/figures/2026-02-20-rocm-attention-backend/batch_reordering.png" width="80%">
 <br>
-<em>Figure 4: Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches.</em>
+<em>Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches.</em>
 </p>
 
 
@@ -131,7 +131,7 @@ This backend has two important characteristics:
 
 ```python
 k_cache: [num_blocks, num_heads, head_dim // x, block_size, x]
-v_cache: [num_blocks, num_heads, block_size // x, head_dim, x]
+v_cache: [num_blocks, num_heads, block_size // X, head_dim, X]
 ```
 
 This layout aligns memory access patterns with AMD's CDNA architecture, enabling the decode path to call AITER's `pa_fwd_asm` kernel with **zero layout conversion overhead**—delivering **15-20% decode throughput improvement** compared to standard KV cache layouts.
@@ -264,15 +264,6 @@ Beyond raw kernel performance, these backends inherit the full feature set of Fl
 
 ## Performance Benchmarks
 
-**Hardware Configuration**: We benchmark the attention backend performance on MI300X, MI325X and MI355X GPU nodes.
-
-- **MI300X**: AMD EPYC 9654 96-Core Processor server with 8x AMD Instrinct MI300X (192GB, 750W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2.
-
-- **MI325X**: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI325X (256GB, 1000W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2.
-
-- **MI355X**: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI355X (288GB, 1400W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2.
-
-
 **Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260115` with ROCm 7.0.0. This is a nightly Docker image built from the main branch of https://github.com/vllm-project/vllm on January 15, 2026. We warmed up kernels with initial requests first; reported results exclude the first run to eliminate JIT compilation overhead.
 
 <details markdown="1">
@@ -332,7 +323,7 @@ vllm serve $model_path \
 
 ### MHA Benchmark Results
 
-**Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8), TP8+EP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent requests
+**Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8), TP8 for Attention + EP8 for MoE | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent requests
 
 ![MHA TPOT Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mha_tpot_comparison.png)
 _ROCM_AITER_FA delivers 2.8-4.6x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
@@ -520,3 +511,4 @@ Ubuntu 22.04LTS with Linux kernel 5.15.0-116-generic, ROCm 7.0 version SW, PyTor
 
 Server manufacturers may vary configurations, yielding different results. Performance may vary based on configuration, software, vLLM version, and the use of the latest drivers and optimizations.
 
+---
