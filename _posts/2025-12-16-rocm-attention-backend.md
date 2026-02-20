@@ -10,9 +10,9 @@ math: true
 
 For a long time, enabling AMD support meant "porting": just making code run. **That era is over.**
 
-With AMD CDNA 3 architecture hardwares (MI300X, MI325X, MI355X) and complex model structures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
+With AMD CDNA<sup>TM</sup> 3 architecture hardware (AMD Instinct<sup>TM</sup> MI300X, Instinct MI325X, Instinct MI355X GPUs) and complex model structures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
 
-vLLM now provides 7 attention backends on AMD ROCm. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.2-4.4x higher throughput (TPS)** through AMD's AITER primitives and vLLM's kernel orchestration.
+vLLM now provides 7 attention backends on AMD ROCm<sup>TM</sup> software. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.2-4.4x higher throughput (TPS)** through AMD's AITER primitives and vLLM's kernel orchestration.
 
 ---
 
@@ -197,7 +197,7 @@ vLLM provides two AITER-based MLA backends with different prefill implementation
 | `ROCM_AITER_MLA`        | AITER MHA (CK on gfx942, ASM on gfx950) | AITER Assembly |
 | `ROCM_AITER_TRITON_MLA` | AITER Triton MHA                        | AITER Assembly |
 
-The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). On gfx942 (MI300X/MI325X), AITER MHA resolves to CK kernels; on gfx950 (MI355X), it resolves to the newer assembly MHA kernels.
+The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). On gfx942 (MI300X/MI325X GPUs), AITER MHA resolves to CK kernels; on gfx950 (MI355X), it resolves to the newer assembly MHA kernels.
 
 **Why the prefill winner flips by architecture?** Two reasons:
 
@@ -205,7 +205,7 @@ The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases
 
 2. **gfx942 (MI300X/MI325X): Runtime config flexibility**: Triton selects architecture-specific configs at runtime (e.g., `BLOCK_M=128, BLOCK_N=64` for MI300X), while CK uses a fixed set of pre-generated kernels.
 
-On **gfx950 (MI355X)**, AITER MHA switches to the assembly kernel, which is hand-tuned for MI355X and tends to beat the Triton MHA path. That is why `ROCM_AITER_MLA` often pulls ahead on TTFT even when TPOT stays close.
+On **gfx950 (MI355X)**, AITER MHA switches to the assembly kernel, which is hand-tuned for the MI355X GPU and tends to beat the Triton MHA path. That is why `ROCM_AITER_MLA` often pulls ahead on TTFT even when TPOT stays close.
 
 ### Absorbed vs Non-Absorbed Recipe
 
@@ -247,6 +247,15 @@ Beyond raw kernel performance, these backends inherit the full feature set of Fl
 ---
 
 ## Performance Benchmarks
+
+**Hardware Configuration**: We benchmark the attention backend performance on MI300X, MI325X and MI355X GPU nodes.
+
+- **MI300X**: AMD EPYC 9654 96-Core Processor server with 8x AMD Instrinct MI300X (192GB, 750W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2.
+
+- **MI325X**: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI325X (256GB, 1000W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2.
+
+- **MI355X**: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI355X (288GB, 1400W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2.
+
 
 **Benchmark Methodology**: All benchmarks were run using `rocm/vllm-dev:nightly_main_20260115` with ROCm 7.0.0. This is a nightly Docker image built from the main branch of https://github.com/vllm-project/vllm on January 15, 2026. We warmed up kernels with initial requests first; reported results exclude the first run to eliminate JIT compilation overhead.
 
