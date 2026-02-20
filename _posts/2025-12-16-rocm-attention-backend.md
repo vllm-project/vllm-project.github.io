@@ -2,7 +2,7 @@
 layout: post
 title: "Beyond Porting: How vLLM Orchestrates High-Performance Inference on AMD ROCm"
 author: "AMD and Embedded LLM"
-image: /assets/figures/2025-12-16-rocm-attention-backend/vLLM-Attention.png
+image: /assets/figures/2026-02-20-rocm-attention-backend/vLLM-Attention.png
 math: true
 ---
 
@@ -28,8 +28,11 @@ In production LLM serving, each inference step processes a mixed batch of tokens
 
 These request types arrive randomly and are batched together for efficiency.
 
-![Contiguous-Batching Example](/assets/figures/2025-12-16-rocm-attention-backend/contiguous-batching.png)
-_Figure 1: Online serving with 5 concurrent requests. Step 4 shows prefill, extend, and decode tokens batched together._
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/contiguous-batching.png" width="80%">
+<br>
+<em>Figure 1: Online serving with 5 concurrent requests. Step 4 shows prefill, extend, and decode tokens batched together.</em>
+</p>
 
 The optimization challenge: prefill wants large tile sizes and maximum ALU utilization, while decode wants coalesced memory access and minimal cache fetches. **A kernel tuned for one workload leaves performance on the table for the other.**
 
@@ -77,39 +80,52 @@ This backend has two important characteristics:
 
 `ROCM_AITER_FA` isn't just a kernel wrapper—it's a sophisticated orchestration layer that routes requests to specialized kernels, combining vLLM's high-level management with AMD's AITER primitives.
 
-![AITER FA Backend](/assets/figures/2025-12-16-rocm-attention-backend/ROCm-Attention.png)
-_Figure 2: (a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths._
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png" width="80%">
+<br>
+<em>Figure 2: (a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths.</em>
+</p>
 
 ### Key Innovations
 
 **1. Three-Path Routing**: Requests are dynamically categorized into Decode, Prefill, and Extend paths—each with optimized kernels:
 
-![Three-Path Architecture](/assets/figures/2025-12-16-rocm-attention-backend/three_path_architecture.png)
-_Each path uses specialized kernels optimized for its workload characteristics._
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/three_path_architecture.png" width="50%">
+<br>
+<em>Figure 3: Each path uses specialized kernels optimized for its workload characteristics.</em>
+</p>
 
 - **Decode**: Single token generation uses AITER highly optimized kernel for memory bandwidth
 - **Prefill**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
 - **Extend**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
 
 <div style="display: flex; justify-content: center; margin: 20px 0;">
-<iframe src="/assets/figures/2025-12-16-rocm-attention-backend/iteration2_attention_backend_routing.html" width="600" height="420" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
+<iframe src="/assets/figures/2026-02-20-rocm-attention-backend/iteration2_attention_backend_routing.html" width="600" height="420" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
 </div>
 <p style="text-align: center; font-style: italic; color: #6c757d; margin-top: -10px;">Animation: R1 (decode token) routes to Decode Path, R2 (prefill tokens) routes to Prefill Path.</p>
 
 **2. Batch Reordering**: Requests are reordered to `[decode:extend:prefill]` for contiguous memory access, eliminating redundant KV cache fetches.
 
-![Batch Reordering](/assets/figures/2025-12-16-rocm-attention-backend/batch_reordering.png)
-_Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches._
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/batch_reordering.png" width="50%">
+<br>
+<em>Figure 4: Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches.</em>
+</p>
+
 
 <div style="display: flex; justify-content: center; margin: 20px 0;">
-<iframe src="/assets/figures/2025-12-16-rocm-attention-backend/iteration4_batch_reordering_extend.html" width="600" height="670" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
+<iframe src="/assets/figures/2026-02-20-rocm-attention-backend/iteration4_batch_reordering_extend.html" width="600" height="670" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
 </div>
 <p style="text-align: center; font-style: italic; color: #6c757d; margin-top: -10px;">Animation: Batch reordering reorders requests to [decode > extend > prefill], then routes R3 to Extend Path.</p>
 
 **3. Chunked Context Processing**: Long sequences are processed in chunks sized by a fixed per-iteration token budget (~32K tokens total), split across extend requests; LSE-based merging ensures numerical stability.
 
-![Chunked Context Flow](/assets/figures/2025-12-16-rocm-attention-backend/chunked_context_flow.png)
-_100K+ token contexts are processed in 32K chunks with LSE-based merging for numerical stability._
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/chunked_context_flow.png" width="50%">
+<br>
+<em>100K+ token contexts are processed in 32K chunks with LSE-based merging for numerical stability.</em>
+</p>
 
 **4. Hardware-Optimized KV Cache Layout**: Uses a preshuffled KV cache layout designed by AMD's AITER kernel team:
 
@@ -164,7 +180,7 @@ The following animation demonstrates how multiple requests flow through the ROCM
 
 <div style="width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; overflow-x: auto; padding: 20px 0;">
 <div style="display: flex; justify-content: center; min-width: 1420px;">
-<iframe src="/assets/figures/2025-12-16-rocm-attention-backend/rocm_aiter_fa_flow_animated_new.html" width="1400" height="850" style="border: 1px solid #dee2e6; border-radius: 12px;" frameborder="0"></iframe>
+<iframe src="/assets/figures/2026-02-20-rocm-attention-backend/rocm_aiter_fa_flow_animated_new.html" width="1400" height="850" style="border: 1px solid #dee2e6; border-radius: 12px;" frameborder="0"></iframe>
 </div>
 </div>
 
@@ -318,13 +334,13 @@ vllm serve $model_path \
 
 **Model**: [Qwen3-235B-A22B-FP8](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507-FP8), TP8+EP8 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent requests
 
-![MHA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tpot_comparison.png)
+![MHA TPOT Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mha_tpot_comparison.png)
 _ROCM_AITER_FA delivers 2.8-4.6x faster TPOT compared to legacy ROCM_ATTN across MI300X/MI325X/MI355X._
 
-![MHA TTFT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_ttft_comparison.png)
+![MHA TTFT Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mha_ttft_comparison.png)
 _TTFT (Time To First Token) comparison shows ROCM_AITER_FA and ROCM_AITER_UNIFIED lead in prefill performance at 64 and 128 concurrency levels._
 
-![MHA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mha_tps_comparison.png)
+![MHA TPS Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mha_tps_comparison.png)
 _Output throughput (TPS) mirrors TPOT results—ROCM_AITER_FA achieves 2.7-4.4x higher throughput than legacy ROCM_ATTN._
 
 **How many times slower in TPS vs ROCM_AITER_FA (64 concurrent requests):**
@@ -351,13 +367,13 @@ _Note: ROCM_ATTN shows 2.7-4.4x slower TPS because Qwen3-235B has unsupported KV
 
 **Model**: [DeepSeek-R1-0528](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528), TP8, block_size=16 | **Workload**: ISL=10K, OSL=1K, 64 & 128 concurrent requests
 
-![MLA TPOT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tpot_comparison.png)
+![MLA TPOT Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mla_tpot_comparison.png)
 _AITER MLA backends deliver 1.2-1.6x faster TPOT compared to TRITON_MLA across MI300X/MI325X/MI355X, thanks to the shared assembly decode kernel._
 
-![MLA TTFT Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_ttft_comparison.png)
+![MLA TTFT Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mla_ttft_comparison.png)
 _TTFT comparison shows ROCM_AITER_MLA achieves the best TTFT on MI355X at 128 concurrency._
 
-![MLA TPS Comparison](/assets/figures/2025-12-16-rocm-attention-backend/mla_tps_comparison.png)
+![MLA TPS Comparison](/assets/figures/2026-02-20-rocm-attention-backend/mla_tps_comparison.png)
 _Output throughput (TPS) shows AITER MLA backends achieving up to 1.5x higher throughput than TRITON_MLA._
 
 **How many times slower in TPS vs ROCM_AITER_MLA (64 concurrent requests):**
@@ -386,7 +402,7 @@ _Note: These benchmarks use uniform request sizes. Production workloads with pre
 
 The performance gains don't come from a single optimization—they emerge from how vLLM's orchestration layer and AMD's AITER primitives work together. Understanding this collaboration explains why "just porting" falls short.
 
-<img src="/assets/figures/2025-12-16-rocm-attention-backend/system_stack.png" alt="System Stack" style="width: 80%;">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/system_stack.png" alt="System Stack" style="width: 80%;">
 
 _The complete system stack: from user request through vLLM orchestration to AITER primitives on AMD hardware._
 
@@ -394,7 +410,7 @@ _The complete system stack: from user request through vLLM orchestration to AITE
 
 Where does the performance come from? Both layers working together:
 
-![Innovation Attribution](/assets/figures/2025-12-16-rocm-attention-backend/innovation_attribution.png)
+![Innovation Attribution](/assets/figures/2026-02-20-rocm-attention-backend/innovation_attribution.png)
 _vLLM orchestration handles routing and chunking; AITER provides hardware-optimized primitives._
 
 **The key insight**: AITER provides highly optimized attention primitives purpose-built for CDNA. vLLM's orchestration layer adds workload-aware routing and chunked processing that unlock the final performance tier. Neither alone achieves optimal results.
@@ -484,3 +500,20 @@ We would like to thank the many talented people who have contributed to this col
 - [DeepSeek-R1 Model](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528)
 
 ---
+
+## Disclaimer
+
+Testing by AMD AI Framework team as of Jan. 29, 2026, measuring the inference performance in TPS on AMD Instinct MI300X, MI325X, MI355X platforms.
+
+**Hardware Configuration**
+- MI300x: AMD EPYC 9654 96-Core Processor server with 8x AMD Instrinct MI300X (192GB, 750W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2
+
+- MI325X: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI325X (256GB, 1000W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2
+
+- MI355X: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI355X (288GB, 1400W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2
+
+**Software Configuration(s)**
+Ubuntu 22.04LTS with Linux kernel 5.15.0-116-generic, ROCm 7.0 version SW, PyTorch 2.9.0a0, vLLM 0.14.0rc2 (from Jan 15, 2026) 
+
+Server manufacturers may vary configurations, yielding different results. Performance may vary based on configuration, software, vLLM version, and the use of the latest drivers and optimizations.
+
