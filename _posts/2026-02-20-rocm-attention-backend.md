@@ -29,7 +29,7 @@ In production LLM serving, each inference step processes a mixed batch of tokens
 These request types arrive randomly and are batched together for efficiency.
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/contiguous-batching.png" width="80%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/contiguous-batching.png" width="100%">
 <br>
 <em>Figure 1: Online serving with 5 concurrent requests. Step 4 shows prefill, extend, and decode tokens batched together.</em>
 </p>
@@ -81,7 +81,7 @@ This backend has two important characteristics:
 `ROCM_AITER_FA` isn't just a kernel wrapper—it's a sophisticated orchestration layer that routes requests to specialized kernels, combining vLLM's high-level management with AMD's AITER primitives.
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png" width="80%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png" width="100%">
 <br>
 <em>Figure 2: (a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths.</em>
 </p>
@@ -91,7 +91,7 @@ This backend has two important characteristics:
 **1. Three-Path Routing**: Requests are dynamically categorized into Decode, Prefill, and Extend paths—each with optimized kernels:
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/three_path_architecture.png" width="50%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/three_path_architecture.png" width="80%">
 <br>
 <em>Figure 3: Each path uses specialized kernels optimized for its workload characteristics.</em>
 </p>
@@ -108,7 +108,7 @@ This backend has two important characteristics:
 **2. Batch Reordering**: Requests are reordered to `[decode:extend:prefill]` for contiguous memory access, eliminating redundant KV cache fetches.
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/batch_reordering.png" width="50%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/batch_reordering.png" width="80%">
 <br>
 <em>Figure 4: Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches.</em>
 </p>
@@ -122,7 +122,7 @@ This backend has two important characteristics:
 **3. Chunked Context Processing**: Long sequences are processed in chunks sized by a fixed per-iteration token budget (~32K tokens total), split across extend requests; LSE-based merging ensures numerical stability.
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/chunked_context_flow.png" width="50%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/chunked_context_flow.png" width="80%">
 <br>
 <em>100K+ token contexts are processed in 32K chunks with LSE-based merging for numerical stability.</em>
 </p>
@@ -402,9 +402,12 @@ _Note: These benchmarks use uniform request sizes. Production workloads with pre
 
 The performance gains don't come from a single optimization—they emerge from how vLLM's orchestration layer and AMD's AITER primitives work together. Understanding this collaboration explains why "just porting" falls short.
 
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/system_stack.png" alt="System Stack" style="width: 80%;">
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/system_stack.png" width="80%">
+<br>
+<em>The complete system stack: from user request through vLLM orchestration to AITER primitives on AMD hardware.</em>
+</p>
 
-_The complete system stack: from user request through vLLM orchestration to AITER primitives on AMD hardware._
 
 ### Innovation Attribution
 
