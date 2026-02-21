@@ -210,18 +210,10 @@ vLLM provides two AITER-based MLA backends with different prefill implementation
 | Backend                 | Prefill Kernel                          | Decode Kernel  |
 | ----------------------- | --------------------------------------- | -------------- |
 | `TRITON_MLA`            | vLLM Triton                             | vLLM Triton    |
-| `ROCM_AITER_MLA`        | AITER MHA (CK on gfx942, ASM on gfx950) | AITER Assembly |
+| `ROCM_AITER_MLA`        | AITER MHA                               | AITER Assembly |
 | `ROCM_AITER_TRITON_MLA` | AITER Triton MHA                        | AITER Assembly |
 
-The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). On gfx942 (MI300X/MI325X GPUs), AITER MHA resolves to CK kernels; on gfx950 (MI355X), it resolves to the newer assembly MHA kernels.
-
-**Why the prefill winner flips by architecture?** Two reasons:
-
-1. **gfx942 (MI300X/MI325X): XCD-aware scheduling**: The AITER Triton kernel explicitly remaps head distribution across XCDs via `remap_xcd()`, ensuring balanced load. The CK path doesn't expose this logic at the Python level.
-
-2. **gfx942 (MI300X/MI325X): Runtime config flexibility**: Triton selects architecture-specific configs at runtime (e.g., `BLOCK_M=128, BLOCK_N=64` for MI300X), while CK uses a fixed set of pre-generated kernels.
-
-On **gfx950 (MI355X)**, AITER MHA switches to the assembly kernel, which is hand-tuned for the MI355X GPU and tends to beat the Triton MHA path. That is why `ROCM_AITER_MLA` often pulls ahead on TTFT even when TPOT stays close.
+The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA automatically dispatch to CK or Assembly kernels), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). 
 
 ### Absorbed vs Non-Absorbed Recipe
 
