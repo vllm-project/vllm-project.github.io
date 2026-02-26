@@ -3,8 +3,6 @@ layout: post
 title: "Inside vLLM’s New KV Offloading Connector: Smarter Memory Transfer for Maximizing Inference Throughput"
 author: "Or Ozeri, Danny Harnik (vLLM Team at IBM Research)"
 image: /assets/figures/2026-01-08-kv-offloading-connector/figure2.png
-tags:
-  - performance
 ---
 
 In this post, we will describe the new KV cache offloading feature that was introduced in vLLM 0.11.0. We will focus on offloading to CPU memory (DRAM) and its benefits to improving overall inference throughput. In the second part of the blog, we deep dive into our efforts in optimizing host-to-device and device-to-host throughput for KV offloading.

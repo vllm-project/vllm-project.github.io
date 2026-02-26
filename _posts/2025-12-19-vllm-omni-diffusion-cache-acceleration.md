@@ -3,10 +3,6 @@ layout: post
 title: "vLLM-Omni Diffusion Cache Acceleration"
 author: "vLLM-Omni Team"
 image: /assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_bear_base.png
-tags:
-  - multimodal
-  - performance
-  - ecosystem
 ---
 
 # Turbocharge Your Diffusion Inference

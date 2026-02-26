@@ -3,8 +3,6 @@ layout: post
 title: "vLLM Semantic Router v0.1 Iris: The First Major Release"
 author: "vLLM Semantic Router Team"
 image: /assets/figures/semantic-router/iris-0.png
-tags:
-  - ecosystem
 ---
 
 [vLLM Semantic Router](https://github.com/vllm-project/semantic-router) is the **System Level Intelligence** for Mixture-of-Models (MoM), bringing **Collective Intelligence** into LLM systems. It lives between users and models, capturing signals from requests, responses, and context to make intelligent routing decisions—including model selection, safety filtering (jailbreak, PII), semantic caching, and hallucination detection. For more background, see our [initial announcement blog post](https://blog.vllm.ai/2025/09/11/semantic-router.html).

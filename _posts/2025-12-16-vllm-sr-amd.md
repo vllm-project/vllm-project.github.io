@@ -3,9 +3,6 @@ layout: post
 title: "AMD × vLLM Semantic Router: Building the System Intelligence Together"
 author: "The AMD and vLLM Semantic Router Team"
 image: /assets/figures/semantic-router/amd-0.png
-tags:
-  - hardware
-  - ecosystem
 ---
 
 ## Introduction
