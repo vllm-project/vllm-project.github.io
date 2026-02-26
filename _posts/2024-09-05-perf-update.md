@@ -3,6 +3,8 @@ layout: post
 title: "vLLM v0.6.0: 2.7x Throughput Improvement and 5x Latency Reduction"
 author: "vLLM Team"
 image: /assets/figures/perf-v060/llama8B_comparison.png
+tags:
+  - performance
 ---
 
 **TL;DR:** vLLM achieves 2.7x higher throughput and 5x faster TPOT (time per output token) on Llama 8B model, and 1.8x higher throughput and 2x less TPOT on Llama 70B model.
