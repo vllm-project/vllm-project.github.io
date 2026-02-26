@@ -2,7 +2,7 @@
 layout: post
 title: "Installing and Developing vLLM with Ease"
 author: "vLLM Team"
-image: /assets/logos/vllm-logo-only-light.png
+image: /assets/logos/vllm-logo-text-light.png
 ---
 
 The field of LLM inference is advancing at an unprecedented pace. With new models and features emerging weekly, the traditional software release pipeline often struggles to keep up. At vLLM, we aim to provide more than just a software package. We’re building a system—a trusted, trackable, and participatory ecosystem for LLM inference. This blog post highlights how vLLM enables users to install and develop with ease while staying at the forefront of innovation.

@@ -4,6 +4,7 @@ title: "Introducing vLLM Playground: A Modern Web Interface for Managing and Int
 date: 2026-01-02
 author: micytao
 categories: [community, tools]
+image: /assets/figures/vllm-playground/vllm-playground-newUI.png
 ---
 
 As a passionate vLLM community member who wants to see vLLM thrive and reach even more developers, I'm excited to announce **[vLLM Playground](https://github.com/micytao/vllm-playground)** – a modern, feature-rich web interface for managing and interacting with vLLM servers. Whether you're developing locally on macOS, testing on Linux with GPUs, or deploying to enterprise Kubernetes/OpenShift clusters, vLLM Playground provides a unified, intuitive experience for working with vLLM.

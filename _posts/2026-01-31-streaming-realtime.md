@@ -2,7 +2,7 @@
 layout: post
 title: "Streaming Requests & Realtime API in vLLM"
 author: "Meta, Mistral AI as well as the vLLM team"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/2026-01-31-streaming-realtime/streaming-realtime.png
 math: true
 ---
 
