@@ -59,11 +59,7 @@ Through our collaboration with the vLLM community, we implemented and open-sourc
 <img src="/assets/figures/2026-multilora/otps.png" width="100%">
 </picture><br>
 </p>
-<p align="center">
-<picture>
-<img src="/assets/figures/2026-multilora/ttft.png" width="100%">
-</picture><br>
-</p>
+
 *Figure 3: Output tokens per second (OTPS) and time to first token (TTFT) for GPT-OSS 20B multi-LoRA inference: 1/ Initial implementation in vLLM 0.11.1rc3; 2/ with vLLM 0.15.0; 3/ with vLLM 0.15.0 and AWS custom kernel tuning. Experiments used 1600 input tokens and 600 output tokens with LoRA rank 32 and 8 adapters loaded in parallel.*
 
 ### Acknowledgments
