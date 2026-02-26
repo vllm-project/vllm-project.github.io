@@ -2,7 +2,7 @@
 layout: post
 title: "Introducing AIBrix: A Scalable, Cost-Effective Control Plane for vLLM"
 author: "AIBrix Team"
-image: /assets/logos/vllm-logo-only-light.png
+image: /assets/figures/2025-02-21-aibrix-release/aibrix-architecture-v1.jpeg
 ---
 
 Today, we are excited to announce [vllm-project/aibrix](https://github.com/vllm-project/aibrix): a battery-included vLLM Kubernetes serving stack developed by Bytedance. Started in early 2024, AIBrix has been successfully deployed to support multiple business use cases across ByteDance, demonstrating its scalability and effectiveness in large-scale deployments.

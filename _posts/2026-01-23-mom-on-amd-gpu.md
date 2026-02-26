@@ -2,7 +2,7 @@
 layout: post
 title: "Building Mixture-of-Models on AMD GPUs with vLLM-SR"
 author: "The AMD and vLLM Semantic Router Team"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/semantic-router/mom-0.png
 ---
 
 ## Why System Intelligence for LLMs?
