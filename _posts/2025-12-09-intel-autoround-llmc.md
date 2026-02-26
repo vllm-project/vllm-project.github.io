@@ -2,6 +2,7 @@
 layout: post
 title: "Advancing Low‑Bit Quantization for LLMs: AutoRound x LLM Compressor"
 author: "Intel Neural Compressor Team, Red Hat AI Model Optimization Team"
+image: /assets/figures/2025-12-09-intel-autoround-llmc/autoround-llmc.png
 ---
 
 **Achieve faster, more efficient LLM serving without sacrificing accuracy!**

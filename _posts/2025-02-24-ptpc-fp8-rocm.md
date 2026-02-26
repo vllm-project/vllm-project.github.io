@@ -4,6 +4,9 @@ title: "PTPC-FP8: Boosting vLLM Performance on AMD ROCm"
 author: "AMD and Embedded LLM"
 image: /assets/figures/ptpc/PTPC-tumbnail.png
 math: true
+tags:
+  - quantization
+  - hardware
 ---
 
 **TL;DR**: vLLM on AMD ROCm now has better FP8 performance!

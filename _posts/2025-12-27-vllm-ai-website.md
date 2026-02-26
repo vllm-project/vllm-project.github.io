@@ -3,6 +3,8 @@ layout: post
 title: "Announcing vllm.ai Website and Some Community Updates"
 author: "vLLM Team"
 image: /assets/figures/2025-vllm-website/homepage.jpg
+tags:
+  - frontend
 ---
 
 For a long time, [vllm.ai](https://vllm.ai) simply redirected to the [vLLM GitHub page](https://github.com/vllm-project/vllm). Thanks to our community, we now have a brand-new [vllm.ai](https://vllm.ai) website, drawing inspiration from the [PyTorch website](https://pytorch.org).

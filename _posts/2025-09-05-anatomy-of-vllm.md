@@ -2,7 +2,10 @@
 layout: post
 title: "Inside vLLM: Anatomy of a High-Throughput LLM Inference System"
 author: "Aleksa Gordic"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/2025-vllm-anatomy/engine_constructor.png
+tags:
+  - large-scale-serving
+  - speculative-decoding
 ---
 
 > [!NOTE]
