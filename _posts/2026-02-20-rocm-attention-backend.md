@@ -2,7 +2,7 @@
 layout: post
 title: "Beyond Porting: How vLLM Orchestrates High-Performance Inference on AMD ROCm"
 author: "AMD and Embedded LLM"
-image: /assets/figures/2026-02-20-rocm-attention-backend/vLLM-Attention.png
+image: /assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png
 math: true
 ---
 
@@ -20,11 +20,11 @@ vLLM now provides 7 attention backends on AMD ROCm<sup>TM</sup> software. This p
 
 In production LLM serving, each inference step processes a mixed batch of tokens from different request types. The industry has recognized this challenge—various solutions exist, from unified kernels with sophisticated internal scheduling to multi-path routing with specialized kernels. AMD's `ROCM_AITER_FA` takes the explicit routing approach, making workload-aware optimization a first-class design principle rather than an internal kernel detail.
 
-- **Prefill**: New prompts arriving at the server. These contain thousands of input tokens that need attention computation all at once. The GPU is doing heavy matrix multiplication here, making prefill **compute-bound**.
-
 - **Decode**: Generating output tokens one at a time. Each decode step loads the entire KV cache from memory to produce a single token. The bottleneck is memory bandwidth, making decode **memory-bound**.
 
-- **Extend**: Continuing conversations where part of the context is already cached (prefix cache hit). This is a hybrid scenario where new tokens must attend to both cached context and fresh input.
+- **Prefill**: New prompts arriving at the server. These contain thousands of input tokens that need attention computation all at once. The GPU is doing heavy matrix multiplication here, making prefill **compute-bound**.
+
+- **Extend**: Processing new tokens for a request that already has partial KV cache computed from prior iterations (e.g., chunked prefill or multi-turn conversations). New tokens must attend to both the existing cached context and the fresh input, making this a hybrid scenario.
 
 These request types arrive randomly and are batched together for efficiency.
 
@@ -50,7 +50,7 @@ These backends process all tokens (prefill/extend/decode) through a single kerne
 
 | Backend                                                                                                                         | Kernel Source                                                                                                                      | Use Case                 |
 | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/ops/triton_unified_attention.py#L884)            | Default fallback         |
+| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/ops/triton_unified_attention.py#L884)        | Default fallback         |
 | [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/attention/unified_attention.py#L54) | Single-kernel AITER path |
 
 ```python
@@ -112,7 +112,6 @@ This backend has two important characteristics:
 <br>
 <em>Batch reordering ensures each kernel path operates on contiguous tokens, eliminating redundant KV cache fetches.</em>
 </p>
-
 
 <div style="display: flex; justify-content: center; margin: 20px 0;">
 <iframe src="/assets/figures/2026-02-20-rocm-attention-backend/iteration4_batch_reordering_extend.html" width="600" height="670" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
@@ -207,13 +206,13 @@ DeepSeek and Kimi's MLA architecture compresses the KV cache to **576 dimensions
 
 vLLM provides two AITER-based MLA backends with different prefill implementations:
 
-| Backend                 | Prefill Kernel                          | Decode Kernel  |
-| ----------------------- | --------------------------------------- | -------------- |
-| `TRITON_MLA`            | vLLM Triton                             | vLLM Triton    |
-| `ROCM_AITER_MLA`        | AITER MHA                               | AITER Assembly |
-| `ROCM_AITER_TRITON_MLA` | AITER Triton MHA                        | AITER Assembly |
+| Backend                 | Prefill Kernel   | Decode Kernel  |
+| ----------------------- | ---------------- | -------------- |
+| `TRITON_MLA`            | vLLM Triton      | vLLM Triton    |
+| `ROCM_AITER_MLA`        | AITER MHA        | AITER Assembly |
+| `ROCM_AITER_TRITON_MLA` | AITER Triton MHA | AITER Assembly |
 
-The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA automatically dispatch to CK or Assembly kernels), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA). 
+The base `TRITON_MLA` backend uses vLLM's default Triton kernels for both phases. The AITER backends replace the decode kernel with hand-tuned assembly (`mla_decode_fwd`), which is where most of the performance gain comes from. The only difference between the two AITER backends is the prefill path: `ROCM_AITER_MLA` calls `aiter.flash_attn_varlen_func` (AITER MHA automatically dispatch to CK or Assembly kernels), while `ROCM_AITER_TRITON_MLA` calls `aiter.ops.triton.mha.flash_attn_varlen_func` (AITER Triton MHA).
 
 ### Absorbed vs Non-Absorbed Recipe
 
@@ -391,7 +390,6 @@ The performance gains don't come from a single optimization—they emerge from h
 <em>The complete system stack: from user request through vLLM orchestration to AITER primitives on AMD hardware.</em>
 </p>
 
-
 ### Innovation Attribution
 
 Where does the performance come from? Both layers working together:
@@ -492,6 +490,7 @@ We would like to thank the many talented people who have contributed to this col
 Testing by AMD AI Framework team as of Jan. 29, 2026, measuring the inference performance in TPS on AMD Instinct MI300X, MI325X, MI355X platforms.
 
 **Hardware Configuration**
+
 - MI300X: AMD EPYC 9654 96-Core Processor server with 8x AMD Instrinct MI300X (192GB, 750W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2
 
 - MI325X: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI325X (256GB, 1000W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2
@@ -499,7 +498,7 @@ Testing by AMD AI Framework team as of Jan. 29, 2026, measuring the inference pe
 - MI355X: AMD EPYC 9575F 64-Core Processor server with 8x AMD Instrinct MI355X (288GB, 1400W) GPUs, Supermicro AS-8125GS-TNMR2, NPS1 (1 NUMA per socket), 2.2TiB (24 DIMMs, 4800 mts memory, 96 GiB/DIMM), BIOS version: 3.2
 
 **Software Configuration(s)**
-Ubuntu 22.04LTS with Linux kernel 5.15.0-116-generic, ROCm 7.0 version SW, PyTorch 2.9.0a0, vLLM 0.14.0rc2 (from Jan 15, 2026) 
+Ubuntu 22.04LTS with Linux kernel 5.15.0-116-generic, ROCm 7.0 version SW, PyTorch 2.9.0a0, vLLM 0.14.0rc2 (from Jan 15, 2026)
 
 Server manufacturers may vary configurations, yielding different results. Performance may vary based on configuration, software, vLLM version, and the use of the latest drivers and optimizations.
 
