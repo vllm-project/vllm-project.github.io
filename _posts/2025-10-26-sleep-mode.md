@@ -5,6 +5,8 @@ author: "Embedded LLM"
 image: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
 thumbnail-img: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
 share-img: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
+tags:
+  - performance
 ---
 
 ## Introduction

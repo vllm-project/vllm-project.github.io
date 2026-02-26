@@ -3,6 +3,8 @@ layout: post
 title: "Introducing vLLM Hardware Plugin, Best Practice from Ascend NPU"
 author: "The Ascend Team on vLLM"
 image: /assets/logos/vllm-logo-only-light.png
+tags:
+  - hardware
 ---
 
 Since December 2024, through the joint efforts of the vLLM community and the Ascend team on vLLM, we have completed the [Hardware Pluggable RFC](https://github.com/vllm-project/vllm/issues/11162). This proposal allows hardware integration into vLLM in a decoupled manner, enabling rapid and modular support for different hardware platforms.
