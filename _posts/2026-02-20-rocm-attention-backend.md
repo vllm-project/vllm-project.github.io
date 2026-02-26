@@ -90,12 +90,6 @@ This backend has two important characteristics:
 
 **1. Three-Path Routing**: Requests are dynamically categorized into Decode, Prefill, and Extend paths—each with optimized kernels:
 
-<p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/three_path_architecture.png" width="80%">
-<br>
-<em>Each path uses specialized kernels optimized for its workload characteristics.</em>
-</p>
-
 - **Prefill Path**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
 - **Extend Path**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
 - **Decode Path**: Single token generation uses AITER highly optimized kernel for memory bandwidth
@@ -105,7 +99,7 @@ This backend has two important characteristics:
 </div>
 <p style="text-align: center; font-style: italic; color: #6c757d; margin-top: -10px;">Animation: R1 (decode token) routes to Decode Path, R2 (prefill tokens) routes to Prefill Path.</p>
 
-**2. Batch Reordering**: Requests are reordered to `[decode:extend:prefill]` for contiguous memory access, eliminating redundant KV cache fetches.
+**2. Batch Reordering (Model Runner)**: vLLM's Model Runner reorders requests to `[decode:extend:prefill]` for contiguous memory access. Each attention backend opts into this by setting a `reorder_batch_threshold`—`ROCM_AITER_FA` sets this to 1, ensuring every mixed batch is reordered before the three-path routing consumes it.
 
 <p align="center">
 <img src="/assets/figures/2026-02-20-rocm-attention-backend/batch_reordering.png" width="80%">
