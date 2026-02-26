@@ -3,8 +3,6 @@ layout: post
 title: "Tracing Hanging and Complicated GPU Kernels Down To The Source Code"
 author: "Kaichao You (vLLM)"
 image: /assets/figures/2025-12-03-improved-cuda-debugging/cuda-debugging.png
-tags:
-  - developer
 ---
 
 Several months ago, we published a blog post about [CUDA Core Dump: An Effective Tool to Debug Memory Access Issues and Beyond](https://blog.vllm.ai/2025/08/11/cuda-debugging.html), introducing a powerful technique for debugging illegal memory access issues in CUDA kernels. This represented a significant milestone in GPU kernel debugging, as it enables developers to pinpoint the exact kernel responsible for a failure. Previously, due to the asynchronous nature of GPU execution, identifying the problematic kernel was nearly impossible, and error messages were often misleading.

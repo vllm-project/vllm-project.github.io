@@ -3,9 +3,6 @@ layout: post
 title: "vLLM Large Scale Serving: DeepSeek @ 2.2k tok/s/H200 with Wide-EP"
 author: "vLLM Team"
 image: /assets/figures/2025-12-17-large-scale-serving/prefill_throughput.png
-tags:
-  - large-scale-serving
-  - performance
 ---
 
 # Introduction

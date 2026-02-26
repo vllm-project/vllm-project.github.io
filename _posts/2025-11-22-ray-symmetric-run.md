@@ -3,8 +3,6 @@ layout: post
 title: "Streamlined multi-node serving with Ray symmetric-run"
 author: "Richard Liaw (Anyscale/Ray), Kaichao You (vLLM)"
 image: /assets/figures/2025-11-25-ray-symmetric-run/symmetric-run.png
-tags:
-  - large-scale-serving
 ---
 
 
