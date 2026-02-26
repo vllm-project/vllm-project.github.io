@@ -22,7 +22,7 @@ In production LLM serving, each inference step processes a mixed batch of tokens
 
 - **Prefill**: New prompts arriving at the server. These contain thousands of input tokens that need attention computation all at once. The GPU is doing heavy matrix multiplication here, making prefill **compute-bound**.
 
-- **Extend**: Processing new tokens for a request that already has partial KV cache computed from prior iterations (e.g., chunked prefill or multi-turn conversations). New tokens must attend to both the existing cached context and the fresh input, making this a hybrid scenario.
+- **Extend**: Processing additional prompt-side tokens for a request whose KV cache is already partially built (for example from chunked prefill, prefix-cache reuse, or a prior turn). Because these new tokens must attend to both cached context and fresh input, extend is a mixed/hybrid workload. In online serving, schedulers use this phase to break long prompt work into pieces and interleave it with decode from other in-flight requests, improving the overall balance between latency and throughput.
 
 - **Decode**: Generating output tokens one at a time. Each decode step loads the entire KV cache from memory to produce a single token. The bottleneck is memory bandwidth, making decode **memory-bound**.
 
@@ -96,9 +96,9 @@ This backend has two important characteristics:
 <em>Each path uses specialized kernels optimized for its workload characteristics.</em>
 </p>
 
-- **Prefill**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
-- **Extend**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
-- **Decode**: Single token generation uses AITER highly optimized kernel for memory bandwidth
+- **Prefill Path**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
+- **Extend Path**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
+- **Decode Path**: Single token generation uses AITER highly optimized kernel for memory bandwidth
 
 <div style="display: flex; justify-content: center; margin: 20px 0;">
 <iframe src="/assets/figures/2026-02-20-rocm-attention-backend/iteration2_attention_backend_routing.html" width="600" height="420" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
