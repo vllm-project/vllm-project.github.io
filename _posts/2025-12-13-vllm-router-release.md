@@ -3,6 +3,8 @@ layout: post
 title: "vLLM Router: A High-Performance and Prefill/Decode Aware Load Balancer for Large-scale Serving"
 author: "vLLM Team"
 image: /assets/figures/vllm-router/vllm-router.png
+tags:
+  - large-scale-serving
 ---
 
 Efficiently managing request distribution across a fleet of model replicas is a critical requirement for large-scale, production vLLM deployments. Standard load balancers often fall short as they lack awareness of the stateful nature of LLM inference (e.g., KV cache) and cannot manage complex serving patterns like prefill/decode disaggregation.
