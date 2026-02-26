@@ -20,11 +20,11 @@ vLLM now provides 7 attention backends on AMD ROCm<sup>TM</sup> software. This p
 
 In production LLM serving, each inference step processes a mixed batch of tokens from different request types. The industry has recognized this challenge—various solutions exist, from unified kernels with sophisticated internal scheduling to multi-path routing with specialized kernels. AMD's `ROCM_AITER_FA` takes the explicit routing approach, making workload-aware optimization a first-class design principle rather than an internal kernel detail.
 
-- **Decode**: Generating output tokens one at a time. Each decode step loads the entire KV cache from memory to produce a single token. The bottleneck is memory bandwidth, making decode **memory-bound**.
-
 - **Prefill**: New prompts arriving at the server. These contain thousands of input tokens that need attention computation all at once. The GPU is doing heavy matrix multiplication here, making prefill **compute-bound**.
 
 - **Extend**: Processing new tokens for a request that already has partial KV cache computed from prior iterations (e.g., chunked prefill or multi-turn conversations). New tokens must attend to both the existing cached context and the fresh input, making this a hybrid scenario.
+
+- **Decode**: Generating output tokens one at a time. Each decode step loads the entire KV cache from memory to produce a single token. The bottleneck is memory bandwidth, making decode **memory-bound**.
 
 These request types arrive randomly and are batched together for efficiency.
 
@@ -96,9 +96,9 @@ This backend has two important characteristics:
 <em>Each path uses specialized kernels optimized for its workload characteristics.</em>
 </p>
 
-- **Decode**: Single token generation uses AITER highly optimized kernel for memory bandwidth
 - **Prefill**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
 - **Extend**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
+- **Decode**: Single token generation uses AITER highly optimized kernel for memory bandwidth
 
 <div style="display: flex; justify-content: center; margin: 20px 0;">
 <iframe src="/assets/figures/2026-02-20-rocm-attention-backend/iteration2_attention_backend_routing.html" width="600" height="420" style="border: 1px solid #dee2e6; border-radius: 8px;" frameborder="0"></iframe>
