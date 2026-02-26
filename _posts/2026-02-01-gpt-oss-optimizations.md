@@ -5,7 +5,6 @@ author: "The vLLM and NVIDIA team"
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 tags:
   - performance
-  - hardware
 ---
 
 **TL;DR:** In collaboration with the open-source community, vLLM \+ NVIDIA has achieved significant performance milestones on the `gpt-oss-120b` model running on NVIDIA's Blackwell GPUs. Through deep integration with FlashInfer, novel kernel fusions via `torch.compile`, and various inference runtime features, we have set a new record for the model’s performance Pareto frontier —simultaneously optimizing for maximum throughput (+38%) and best interactivity (+13%). 
