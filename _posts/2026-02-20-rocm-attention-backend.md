@@ -124,7 +124,7 @@ This backend has two important characteristics:
 
 ```python
 k_cache: [num_blocks, num_heads, head_dim // x, block_size, x]
-v_cache: [num_blocks, num_heads, block_size // X, head_dim, X]
+v_cache: [num_blocks, num_heads, block_size // x, head_dim, x]
 ```
 
 This layout aligns memory access patterns with AMD's CDNA architecture, enabling the decode path to call AITER's `pa_fwd_asm` kernel with **zero layout conversion overhead**—delivering **15-20% decode throughput improvement** compared to standard KV cache layouts.
