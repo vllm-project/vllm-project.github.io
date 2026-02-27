@@ -1,7 +1,9 @@
 ---  
 layout: post  
 title: "Efficiently serve dozens of fine-tuned models with vLLM on Amazon SageMaker AI and Amazon Bedrock"  
-author: "Danielle Maddix Robinson, Florian Saupe, George Novack, Haipeng Li, Mani Kumar Adari, Xiang Song, Yu Gong (AWS AI Team)"   
+author: "Danielle Maddix Robinson, Florian Saupe, George Novack, Haipeng Li, Mani Kumar Adari, Xiang Song, Yu Gong (AWS AI Team)"
+image: /assets/figures/2026-multilora/otps.png
+tags: performance
 ---
 
 Organizations and individuals running multiple custom AI models, especially recent Mixture of Experts (MoE) model families, can face the challenge of paying for idle GPU capacity when the individual models don’t receive enough traffic to saturate a dedicated compute endpoint. To solve this problem, we have partnered with the vLLM community and developed an efficient solution for Multi-Low-Rank Adaptation (Multi-LoRA) serving of popular open-source MoE models like GPT-OSS or Qwen. Multi-LoRA is a popular approach to fine-tune models. Instead of retraining entire model weights, multi-LoRA keeps the original weights frozen and injects small, trainable adapters into the model’s layers. With multi-LoRA, at inference time, multiple custom models share the same GPU, with only the adapters swapped in and out per request. For example, five customers each utilizing only 10% of a dedicated GPU can be served from a single GPU with multi-LoRA, turning five underutilized GPUs into one efficiently shared GPU.
