@@ -46,6 +46,12 @@ Before diving into `ROCM_AITER_FA`, let's understand the other MHA backends avai
 
 ### Unified Attention Backends
 
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention-unified-attn.png" width="60%">
+<br>
+<em>Unified attention processes all tokens through one kernel</em>
+</p>
+
 These backends process all tokens (prefill/extend/decode) through a single kernel path:
 
 | Backend                                                                                                                         | Kernel Source                                                                                                                      | Use Case                 |
@@ -63,7 +69,7 @@ def forward():
 
 ### ROCM_ATTN: Legacy 2-Path Backend
 
-[ROCM_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_attn.py) uses 2-path routing with different kernels per phase:
+[ROCM_ATTN](https://github.com/vllm-project/vllm/blob/v0.14.0rc2/vllm/v1/attention/backends/rocm_attn.py) uses 2-path routing with different kernels per phase:
 
 - **Prefill**: Triton kernel
 - **Decode**: HIP paged attention kernel (when supported)
@@ -80,14 +86,10 @@ This backend has two important characteristics:
 
 `ROCM_AITER_FA` isn't just a kernel wrapper—it's a sophisticated orchestration layer that routes requests to specialized kernels, combining vLLM's high-level management with AMD's AITER primitives.
 
-<p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention-unified-attn.png" width="80%">
-<br>
-<em>Unified attention processes all tokens through one kernel</em>
-</p>
+
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention-rocm_aiter_fa.png" width="80%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention-rocm_aiter_fa.png" width="60%">
 <br>
 <em>ROCM_AITER_FA routes tokens to three specialized paths</em>
 </p>
