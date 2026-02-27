@@ -3,6 +3,8 @@ layout: post
 title: "From Monolithic to Modular: Scaling Semantic Routing with Extensible LoRA"
 author: "Ivar Flakstad (Hugging Face), OneZero-Y, Huamin Chen (Red Hat), Xunzhuo Liu (Tencent)"
 image: /assets/figures/semantic-router/modular.png
+tags:
+  - ecosystem
 ---
 
 Semantic routing systems face a scaling challenge. When each classification request requires running multiple fine-tuned models independently, the computational cost grows linearly with the number of models. This post examines how a recent refactoring of the vLLM Semantic Router's Rust-based classification layer addresses this problem through architectural modularity, Low-Rank Adaptation (LoRA), and concurrency optimization.

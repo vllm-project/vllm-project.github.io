@@ -5,6 +5,7 @@ author: "The AMD and vLLM Semantic Router Team"
 image: /assets/figures/semantic-router/mom-0.png
 tags:
   - hardware
+  - ecosystem
 ---
 
 ## Why System Intelligence for LLMs?

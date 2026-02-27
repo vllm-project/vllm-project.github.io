@@ -5,6 +5,7 @@ author: "Fynn Schmitt-Ulms, Helen Zhao, Rahul Tuli and Dipika Sikka (Red Hat AI 
 image: /assets/figures/2025-12-13-speculators-v030/cropped_workflow.png
 tags:
   - speculative-decoding
+  - ecosystem
 ---
 
 ## Key Highlights 
