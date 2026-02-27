@@ -12,7 +12,7 @@ For a long time, enabling AMD support meant "porting"; i.e. just making code run
 
 With AMD CDNA<sup>TM</sup> 3 architecture hardware (AMD Instinct<sup>TM</sup> MI300X, Instinct MI325X, Instinct MI355X GPUs) and complex model structures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
 
-vLLM now provides 7 attention backends on AMD ROCm<sup>TM</sup> software. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA and the AITER MLA backends deliver **1.2-4.4x higher throughput (TPS)** through AMD's AITER primitives and vLLM's kernel orchestration.
+vLLM now provides 7 attention backends on AMD ROCm<sup>TM</sup> software. This post explains each one: why they exist, their trade-offs, and when to use them. We provide transparent benchmarks comparing all backends, and show how `ROCM_AITER_FA` for MHA (Multi-Head Attention) and the AITER MLA (Multi-Head Latent Attention) backends deliver **1.2-4.4x higher throughput (TPS)** through AMD's AITER primitives and vLLM's kernel orchestration.
 
 ---
 
@@ -50,8 +50,8 @@ These backends process all tokens (prefill/extend/decode) through a single kerne
 
 | Backend                                                                                                                         | Kernel Source                                                                                                                      | Use Case                 |
 | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/ops/triton_unified_attention.py#L884)        | Default fallback         |
-| [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/main/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/main/aiter/ops/triton/_triton_kernels/attention/unified_attention.py#L54) | Single-kernel AITER path |
+| [TRITON_ATTN](https://github.com/vllm-project/vllm/blob/v0.14.0rc2/vllm/v1/attention/backends/triton_attn.py)                         | [vLLM Triton kernel](https://github.com/vllm-project/vllm/blob/v0.14.0rc2/vllm/v1/attention/ops/triton_unified_attention.py)        | Default fallback         |
+| [ROCM_AITER_UNIFIED_ATTN](https://github.com/vllm-project/vllm/blob/v0.14.0rc2/vllm/v1/attention/backends/rocm_aiter_unified_attn.py) | [AITER Triton kernel](https://github.com/ROCm/aiter/blob/v0.1.10.post3/aiter/ops/triton/_triton_kernels/attention/unified_attention.py) | Single-kernel AITER path |
 
 ```python
 def forward():
