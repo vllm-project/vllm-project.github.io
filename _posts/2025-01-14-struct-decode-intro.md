@@ -3,6 +3,8 @@ layout: post
 title: "Structured Decoding in vLLM: a gentle introduction"
 author: "Guest Post by BentoML and Red Hat"
 image: /assets/figures/struct-decode-intro/vllm-xgrammar-decode-time-per-output-token.png
+tags:
+  - performance
 ---
 
 **TL/DR**:

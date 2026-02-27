@@ -3,6 +3,8 @@ layout: post
 title: "Fast and Affordable LLMs serving on Intel Arc Pro B-Series GPUs with vLLM"
 author: "Intel vLLM Team"
 image: /assets/figures/2025-vllm-on-intel-arc/perf-figure1.png
+tags:
+  - hardware
 ---
 
 [Intel® Arc™ Pro B-Series GPU Family](https://www.intel.com/content/www/us/en/products/docs/discrete-gpus/arc/workstations/b-series/overview.html) GPUs deliver powerful AI capabilities with a focus on accessibility and exceptional price-to-performance ratios. Their large memory capacity and scalability with multi-GPU setups make it possible to run the latest, large and capable AI models locally, making advanced AI inference accessible to professionals looking to deploy Large Language Models (LLMs) without the premium costs typically associated with AI hardware.

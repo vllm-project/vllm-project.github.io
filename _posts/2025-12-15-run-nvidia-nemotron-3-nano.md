@@ -3,6 +3,8 @@ layout: post
 title: "Run Highly Efficient and Accurate AI Agents with NVIDIA Nemotron 3 Nano on vLLM"
 author: "NVIDIA Nemotron Team"
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
+tags:
+  - model-support
 ---
 
 **Jan 28th Update**: NVIDIA just released their Nemotron 3 Nano model in NVFP4 precision. This model is supported by vLLM out of the box and it uses a new method called Quantization-Aware Distillation (QAD) to maintain accuracy on NVFP4 while delivering 4x throughput on B200 compared to FP8-H100. You can download the NVFP4 checkpoints [here](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4) and run them using this [NVIDIA Brev launchable](https://brev.nvidia.com/launchable/deploy?launchableID=env-386KFyCvmg3y22JIf0q8BUh6jia).
