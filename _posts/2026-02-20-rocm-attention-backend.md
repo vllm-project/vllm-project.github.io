@@ -8,7 +8,7 @@ math: true
 
 ## Introduction
 
-For a long time, enabling AMD support meant "porting": just making code run. **That era is over.**
+For a long time, enabling AMD support meant "porting"; i.e. just making code run. **That era is over.**
 
 With AMD CDNA<sup>TM</sup> 3 architecture hardware (AMD Instinct<sup>TM</sup> MI300X, Instinct MI325X, Instinct MI355X GPUs) and complex model structures like DeepSeek's MLA, "just running" isn't enough. These workloads demand _architectural co-design_, where software orchestration and hardware primitives work together.
 
