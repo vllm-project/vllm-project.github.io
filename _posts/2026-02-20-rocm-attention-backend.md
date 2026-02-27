@@ -88,7 +88,7 @@ This backend has two important characteristics:
 
 ### Key Innovations
 
-**1. Three-Path Routing**: Requests are dynamically categorized into Decode, Prefill, and Extend paths—each with optimized kernels:
+1. **Three-Path Routing**: Requests are dynamically categorized into Decode, Prefill, and Extend paths—each with optimized kernels:
 
 - **Prefill Path**: New sequences use `flash_attn_varlen_func`—leveraging CDNA matrix cores for compute-heavy work
 - **Extend Path**: Continuing sequences use chunked attention with LSE merging—handling 100K+ contexts efficiently
