@@ -2841,20 +2841,19 @@
             // Create R3 remaining circle (grey) at scheduler
             const r3RemainingCircle = document.createElement('div');
             r3RemainingCircle.style.position = 'absolute';
-            r3RemainingCircle.style.width = '35px';
-            r3RemainingCircle.style.height = '35px';
-            r3RemainingCircle.style.background = '#555';
+            r3RemainingCircle.style.width = '30px';
+            r3RemainingCircle.style.height = '30px';
+            r3RemainingCircle.style.background = '#95a5a6';
             r3RemainingCircle.style.borderRadius = '50%';
-            r3RemainingCircle.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-            r3RemainingCircle.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.3)';
+            r3RemainingCircle.style.border = '2px solid rgba(255, 255, 255, 0.8)';
             r3RemainingCircle.style.display = 'flex';
             r3RemainingCircle.style.alignItems = 'center';
             r3RemainingCircle.style.justifyContent = 'center';
-            r3RemainingCircle.style.fontSize = '1.0em';
+            r3RemainingCircle.style.fontSize = '0.65em';
             r3RemainingCircle.style.fontWeight = 'bold';
             r3RemainingCircle.style.color = 'white';
-            r3RemainingCircle.style.zIndex = '99';
-            r3RemainingCircle.style.left = (entryLeft + 5 * spacing) + 'px';
+            r3RemainingCircle.style.zIndex = '50';
+            r3RemainingCircle.style.left = ((entryLeft + 2 * spacing + entryLeft + 3 * spacing) / 2 - 35 / 2 + 15) + 'px';
             r3RemainingCircle.style.top = schedulerTop + 'px';
             r3RemainingCircle.style.transform = 'translate(-50%, 0)';
             r3RemainingCircle.textContent = '180';
@@ -2877,6 +2876,9 @@
                     'output-tokens': '3'
                 });
             }
+
+            // Override R3: still in prefill, has 180 remaining tokens from iter 3 split
+            updateInfoPanel(3, { 'remaining-tokens': '180' });
 
             // Set info panel state for R5 (just arrived) - reuse r5Config from above
             updateInfoPanel(5, {
@@ -2932,20 +2934,19 @@
             // Create R3 remaining circle (grey, 80 tokens) at scheduler
             const r3RemainingCircle = document.createElement('div');
             r3RemainingCircle.style.position = 'absolute';
-            r3RemainingCircle.style.width = '35px';
-            r3RemainingCircle.style.height = '35px';
-            r3RemainingCircle.style.background = '#555';
+            r3RemainingCircle.style.width = '30px';
+            r3RemainingCircle.style.height = '30px';
+            r3RemainingCircle.style.background = '#95a5a6';
             r3RemainingCircle.style.borderRadius = '50%';
-            r3RemainingCircle.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-            r3RemainingCircle.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.3)';
+            r3RemainingCircle.style.border = '2px solid rgba(255, 255, 255, 0.8)';
             r3RemainingCircle.style.display = 'flex';
             r3RemainingCircle.style.alignItems = 'center';
             r3RemainingCircle.style.justifyContent = 'center';
-            r3RemainingCircle.style.fontSize = '1.0em';
+            r3RemainingCircle.style.fontSize = '0.65em';
             r3RemainingCircle.style.fontWeight = 'bold';
             r3RemainingCircle.style.color = 'white';
-            r3RemainingCircle.style.zIndex = '99';
-            r3RemainingCircle.style.left = (entryLeft + 5 * spacing) + 'px';
+            r3RemainingCircle.style.zIndex = '50';
+            r3RemainingCircle.style.left = ((entryLeft + 2 * spacing + entryLeft + 3 * spacing) / 2 - 35 / 2 + 15) + 'px';
             r3RemainingCircle.style.top = schedulerTop + 'px';
             r3RemainingCircle.style.transform = 'translate(-50%, 0)';
             r3RemainingCircle.textContent = '80';
@@ -2955,20 +2956,19 @@
             // Create R5 remaining circle (grey, 30 tokens) at scheduler
             const r5RemainingCircle = document.createElement('div');
             r5RemainingCircle.style.position = 'absolute';
-            r5RemainingCircle.style.width = '35px';
-            r5RemainingCircle.style.height = '35px';
-            r5RemainingCircle.style.background = '#555';
+            r5RemainingCircle.style.width = '30px';
+            r5RemainingCircle.style.height = '30px';
+            r5RemainingCircle.style.background = '#95a5a6';
             r5RemainingCircle.style.borderRadius = '50%';
-            r5RemainingCircle.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-            r5RemainingCircle.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.3)';
+            r5RemainingCircle.style.border = '2px solid rgba(255, 255, 255, 0.8)';
             r5RemainingCircle.style.display = 'flex';
             r5RemainingCircle.style.alignItems = 'center';
             r5RemainingCircle.style.justifyContent = 'center';
-            r5RemainingCircle.style.fontSize = '1.0em';
+            r5RemainingCircle.style.fontSize = '0.65em';
             r5RemainingCircle.style.fontWeight = 'bold';
             r5RemainingCircle.style.color = 'white';
-            r5RemainingCircle.style.zIndex = '99';
-            r5RemainingCircle.style.left = (entryLeft + 6 * spacing) + 'px';
+            r5RemainingCircle.style.zIndex = '50';
+            r5RemainingCircle.style.left = (entryLeft + 4 * spacing - 35 / 2 + 50) + 'px';
             r5RemainingCircle.style.top = schedulerTop + 'px';
             r5RemainingCircle.style.transform = 'translate(-50%, 0)';
             r5RemainingCircle.textContent = '30';
@@ -7899,9 +7899,13 @@ async function runIteration4(state) {
                 // R5: Prefill stage - starts processing (limited by budget)
                 updateInfoPanel(5, { 'start-iter': 'Iter 4' });
     
+                document.getElementById('r3-remaining-tokens').textContent = '80'; // 180 - 100
+                highlightValue('r3-remaining-tokens');
+
                 document.getElementById('r5-remaining-tokens').textContent = '30'; // 130 - 100
                 highlightValue('r5-remaining-tokens');
-    
+
+                updateInfoPanel(3, { 'scheduled-tokens': '100' });
                 updateInfoPanel(5, { 'scheduled-tokens': '100' });
     
                 await sleep(500);
