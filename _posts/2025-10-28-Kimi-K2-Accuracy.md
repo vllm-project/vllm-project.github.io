@@ -5,6 +5,7 @@ author: "Linian Wang (Peking University)"
 image: /assets/figures/kimi-k2-accuracy/k2-vendor-verifier.jpeg
 tags:
   - model-support
+  - developer
 ---
 
 **TL;DR:** For best compatibility with vLLM, use Kimi K2 models whose chat templates were updated after commit 94a4053eb8863059dd8afc00937f054e1365abbd ([Kimi-K2-0905](https://huggingface.co/moonshotai/Kimi-K2-Instruct-0905)) or commit 0102674b179db4ca5a28cd9a4fb446f87f0c1454 ([Kimi-K2](https://huggingface.co/moonshotai/Kimi-K2-Instruct)). The updates are committed per model.

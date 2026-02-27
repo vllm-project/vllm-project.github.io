@@ -3,6 +3,8 @@ layout: post
 title: "Now Serving NVIDIA Nemotron with vLLM"
 author: "NVIDIA Nemotron Team"
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
+tags:
+  - model-support
 ---
 
 Agentic AI systems, capable of reasoning, planning, and taking autonomous actions, are powering the next leap in developer applications. To build these systems, developers need tools that are open, efficient, and ready to scale. And, as demand for agents grows, open, performant models are the key as they provide transparency, adaptability, and cost-control.

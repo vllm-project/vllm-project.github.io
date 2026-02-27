@@ -3,6 +3,8 @@ layout: post
 title: "CUDA Core Dump: An Effective Tool to Debug Memory Access Issues and Beyond"
 author: "Kaichao You"
 image: /assets/logos/vllm-logo-text-light.png
+tags:
+  - developer
 ---
 
 TL;DR: If you hit `an illegal memory access was encountered` error, you can enable CUDA core dump to debug the issue. Simply set the following environment variables and run your program again to collect the coredump file, then you can use `cuda-gdb` to debug the issue.
