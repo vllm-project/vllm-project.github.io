@@ -6,6 +6,7 @@ image: /assets/figures/2025-12-19-vllm-omni-diffusion-cache-acceleration/qwen_be
 tags:
   - multimodal
   - performance
+  - ecosystem
 ---
 
 # Turbocharge Your Diffusion Inference

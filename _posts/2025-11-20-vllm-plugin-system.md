@@ -3,6 +3,8 @@ layout: post
 title: "Building Clean, Maintainable vLLM Modifications Using the Plugin System"
 author: "Dhruvil Bhatt (AWS SageMaker)"
 image: /assets/figures/2025-11-20-vllm-plugin-system/vllm-plugin-system-arch.png
+tags:
+  - developer
 ---
 > [!NOTE]
 > Originally posted on this [Medium article](https://medium.com/@dhruvilbhattlm10/building-clean-maintainable-vllm-modifications-using-the-plugin-system-e80df0f62861).
