@@ -3,6 +3,9 @@ layout: post
 title: "Run Multimodal Reasoning Agents with NVIDIA Nemotron on vLLM"
 author: "NVIDIA Nemotron Team"
 image: /assets/figures/2025-multimodal-nvidia-nemotron/figure1.png
+tags:
+  - model-support
+  - multimodal
 ---
 
 We are excited to release [NVIDIA Nemotron Nano 2 VL](https://huggingface.co/nvidia/Nemotron-Nano-12B-v2-VL-BF16), supported by vLLM. This open vision language model ([VLM](https://www.nvidia.com/en-us/glossary/vision-language-models/)) is built for video understanding and document intelligence.
