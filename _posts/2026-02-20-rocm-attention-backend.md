@@ -4,6 +4,9 @@ title: "Beyond Porting: How vLLM Orchestrates High-Performance Inference on AMD 
 author: "AMD and Embedded LLM"
 image: /assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png
 math: true
+tags:
+  - performance
+  - hardware
 ---
 
 ## Introduction
