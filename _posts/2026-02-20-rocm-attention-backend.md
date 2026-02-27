@@ -81,9 +81,15 @@ This backend has two important characteristics:
 `ROCM_AITER_FA` isn't just a kernel wrapper—it's a sophisticated orchestration layer that routes requests to specialized kernels, combining vLLM's high-level management with AMD's AITER primitives.
 
 <p align="center">
-<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention.png" width="100%">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention-unified-attn.png" width="80%">
 <br>
-<em>(a) Unified attention processes all tokens through one kernel. (b) ROCM_AITER_FA routes tokens to three specialized paths.</em>
+<em>Unified attention processes all tokens through one kernel</em>
+</p>
+
+<p align="center">
+<img src="/assets/figures/2026-02-20-rocm-attention-backend/ROCm-Attention-rocm_aiter_fa.png" width="80%">
+<br>
+<em>ROCM_AITER_FA routes tokens to three specialized paths</em>
 </p>
 
 ### Key Innovations
