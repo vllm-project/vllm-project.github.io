@@ -67,6 +67,6 @@ Through our collaboration with the vLLM community, we implemented and open-sourc
 
 ### Acknowledgments
 
-We would like to acknowledge the contributors and collaborators from the vLLM community: Jee Li, Chen Wu, Varun Sundar Rabindranath, Simon Mo and Robert Shaw, and our team members: Xin Yang, Sadaf Fardeen,  Ashish Khetan, and George Karypis.
+We would like to acknowledge the contributors and collaborators from the vLLM community: Jie Li, Chen Wu, Varun Sundar Rabindranath, Simon Mo and Robert Shaw, and our team members: Xin Yang, Sadaf Fardeen,  Ashish Khetan, and George Karypis.
 
 Also published on [AWS Blogs](https://aws.amazon.com/blogs/machine-learning/efficiently-serve-dozens-of-fine-tuned-models-with-vllm-on-amazon-sagemaker-ai-and-amazon-bedrock/). 
