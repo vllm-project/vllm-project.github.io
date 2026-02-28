@@ -1,0 +1,19 @@
+name: Update parent repo
+on:
+  push:
+    branches: [main]
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: vllm-project/vllm_website
+          token: ${{ secrets.PARENT_REPO_PAT }}
+          submodules: true
+      - run: |
+          cd content/blog-source
+          git checkout main && git pull
+          cd ../..
+          git add content/blog-source
+          git diff --cached --quiet || (git commit -m "chore: update blog-source submodule" && git push)
