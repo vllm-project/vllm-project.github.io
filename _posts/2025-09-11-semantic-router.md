@@ -2,7 +2,9 @@
 layout: post
 title: "vLLM Semantic Router: Next Phase in LLM inference"
 author: "vLLM Semantic Router Team"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/semantic-router/architecture.png
+tags:
+  - ecosystem
 ---
 
 ![](/assets/figures/semantic-router/request.png)

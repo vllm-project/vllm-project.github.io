@@ -2,8 +2,10 @@
 layout: post
 title: "Streaming Requests & Realtime API in vLLM"
 author: "Meta, Mistral AI as well as the vLLM team"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/2026-01-31-streaming-realtime/streaming-realtime.png
 math: true
+tags:
+  - multimodal
 ---
 
 Large language model inference has traditionally operated on a simple premise: the user submits a complete prompt (request), the model processes it, and returns a response (either streaming or at once). This paradigm works well for text-based chatbots and batch processing workloads, but it falls short when dealing with realtime applications, such as streaming audio or video. 

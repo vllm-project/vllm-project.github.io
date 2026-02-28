@@ -3,6 +3,8 @@ layout: post
 title: "vLLM V1: A Major Upgrade to vLLM's Core Architecture"
 author: "vLLM Team"
 image: /assets/figures/v1/vLLM_V1_Logo.png
+tags:
+  - performance
 ---
 
 <p align="center">

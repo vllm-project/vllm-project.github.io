@@ -2,7 +2,10 @@
 layout: post
 title: "Shared Memory IPC Caching: Accelerating Data Transfer in LLM Inference Systems"
 author: "Donglu Wang (Cohere)"
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/2025-shm-ipc-cache/processes1.png
+tags:
+  - performance
+  - multimodal
 ---
 > [!NOTE]
 > Originally posted on [the Cohere blog](https://cohere.com/blog/making-data-transfer-in-llm-systems-faster-leaner-and-more-scalable).
