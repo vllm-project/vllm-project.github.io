@@ -144,7 +144,7 @@ On H100, the Triton attention backend achieved 100.7% of the performance of Flas
 <figure>
   <img src="/assets/figures/2026-03-04-vllm-triton-backend/image9.png" alt="Figure 9" />
   <img src="/assets/figures/2026-03-04-vllm-triton-backend/image10.png" alt="Figure 10" />
-  <figcaption>Figure 9: End-to-end latency comparison of Triton paged attention and FlashAttention 3 on NVIDIA H100 and AMD MI300. The results are normalized with the left-most baseline</figcaption>
+  <figcaption>Figure 9: End-to-end latency comparison of Triton paged attention and FlashAttention 3 on NVIDIA H100 and AMD MI300. The results are normalized with the left-most baseline.</figcaption>
 </figure>
 
 ## **Preview: Paged Attention in Helion**
