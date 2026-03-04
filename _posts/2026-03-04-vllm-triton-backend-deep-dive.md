@@ -2,7 +2,7 @@
 layout: post
 title: "vLLM Triton Attention Backend Deep Dive"
 author: "vLLM Team at IBM Research"
-image: /assets/figures/2026-03-04-vllm-triton-backend/image8.png
+image: /assets/figures/2026-03-04-vllm-triton-backend/image1.png
 math: true
 tags:
   - performance
@@ -34,7 +34,7 @@ Triton is a domain-specific language that allows developers to write GPU kernels
 As shown in Figure 1, developers express computation in terms of logical tiles. The Triton compiler and autotuner determine how these tiles are mapped onto the underlying hardware. Tile shapes and execution layouts can differ significantly across GPUs, but these decisions are made automatically, often guided by autotuning (more details can be found in our paper [GPU Performance Portability needs Autotuning (arxiv.org)](https://arxiv.org/abs/2505.03780)).
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image8.png" alt="Figure 1" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image1.png" alt="Figure 1" />
   <figcaption>Figure 1: Triton’s tiled programming model, where logical tiles are mapped to hardware-specific execution layouts by the compiler and autotuner.</figcaption>
 </figure>
 
@@ -61,7 +61,7 @@ When development of the Triton attention backend began, the kernel was first imp
 Figure 2 shows representative microbenchmark results. The x-axis represents the total number of tokens, while the y-axis shows latency. Separate subplots distinguish prefill-only, mixed, and decode-only workloads. These results show that different kernel variants excel in different regimes, and that no single configuration dominates across all scenarios.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image7.png" alt="Figure 2" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image2.png" alt="Figure 2" />
   <figcaption>Figure 2: Microbenchmark comparison of multiple Triton paged attention kernel variants across prefill, decode, and mixed workloads.</figcaption>
 </figure>
 
@@ -74,7 +74,7 @@ Paged attention implements attention in a memory-efficient way by paging the KV 
 This structure is illustrated in Figure 3\. Query tokens are laid out along the x-axis, query heads along the y-axis, and the paged KV cache traversal forms the innermost loop. Details such as causal masking and sliding windows are omitted for clarity.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image1.png" alt="Figure 3" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image3.png" alt="Figure 3" />
   <figcaption>Figure 3: Conceptual view of paged attention showing query tokens, query heads, and traversal of the paged KV cache.</figcaption>
 </figure>
 
@@ -91,7 +91,7 @@ Tile sizes on the KV side are constrained by the page size of the KV cache, so o
 Figure 4 illustrates this approach. The launch grid spans batch size and KV heads, while Q blocks determine how many query tokens and heads are processed per kernel instance. Autotuning selects appropriate block sizes for each platform.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image2.png" alt="Figure 4" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image4.png" alt="Figure 4" />
   <figcaption>Figure 4: Q blocks combine multiple query heads and query tokens into a single work item to improve tl.dot utilization and cache reuse.</figcaption>
 </figure>
 
@@ -108,14 +108,14 @@ CUDA graphs reduce kernel launch overhead by recording and replaying fixed execu
 GPUs execute kernels using a fixed number of streaming multiprocessors (SMs). When more threads are launched than there are SMs, execution proceeds in waves. Figure 5 illustrates this behavior, where a second wave leads to underutilization.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image4.png" alt="Figure 5" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image5.png" alt="Figure 5" />
   <figcaption>Figure 5: GPU execution waves when the number of launched threads exceeds available streaming multiprocessors. In this example, the GPU has 8 SMs and we want to execute 12 threads.</figcaption>
 </figure>
 
 When captured in a CUDA graph, this inefficiency is replayed even if the effective workload size decreases. Figure 6 shows how fixed launch grids can lead to additional wasted work and increased latency.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image5.png" alt="Figure 6" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image6.png" alt="Figure 6" />
   <figcaption>Figure 6: Additional wasted work when replaying fixed launch grids via CUDA graphs.</figcaption>
 </figure>
 
@@ -124,14 +124,14 @@ When captured in a CUDA graph, this inefficiency is replayed even if the effecti
 Early versions of the paged attention kernel used variable launch grids that scaled with workload size, as shown in Figure 7\. While flexible, this approach interacts poorly with CUDA graphs.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image10.png" alt="Figure 7" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image7.png" alt="Figure 7" />
   <figcaption>Figure 7: Variable launch grids used in earlier paged attention kernels.</figcaption>
 </figure>
 
 To address this, we designed persistent kernels (PRs to vLLM pending). A fixed number of kernel instances is launched, equal to the available compute resources. Each instance dynamically determines how much work to process by reading metadata from GPU memory. This keeps launch grids constant and allows CUDA graphs to be reused efficiently.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image11.png" alt="Figure 8" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image8.png" alt="Figure 8" />
   <figcaption>Figure 8: Persistent kernel approach with fixed launch grids and dynamic work assignment.</figcaption>
 </figure>
 
@@ -143,7 +143,7 @@ On H100, the Triton attention backend achieved 100.7% of the performance of Flas
 
 <figure style="text-align: center;">
   <img src="/assets/figures/2026-03-04-vllm-triton-backend/image9.png" alt="Figure 9" />
-  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image6.png" alt="Figure 9" />
+  <img src="/assets/figures/2026-03-04-vllm-triton-backend/image10.png" alt="Figure 9" />
   <figcaption>Figure 9: End-to-end latency comparison of Triton paged attention and FlashAttention 3 on NVIDIA H100 and AMD MI300. The results are normalized with the left-most baseline.</figcaption>
 </figure>
 
