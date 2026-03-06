@@ -11,10 +11,6 @@ tags:
   - kernels
 ---
 
-# **vLLM Triton Attention Backend Deep Dive**
-
-Authors: vLLM Team at IBM Research
-
 This article is adapted from a Red Hat hosted [vLLM Office Hours](https://www.youtube.com/watch?v=8QiM-i9ifFo&list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3&index=1) session with Burkhard Ringlein from IBM Research, featuring a deep technical walkthrough of the vLLM Triton attention backend. [Explore past topics](https://www.youtube.com/playlist?list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3) and join future office hours [here](https://red.ht/office-hours).
 
 Over the past year, teams across IBM Research, Red Hat and AMD have developed and upstreamed a Triton-based attention backend for vLLM, aiming for state-of-the-art performance with strong portability across GPU vendors. This work was driven by the growing diversity of accelerator hardware and the rising cost of maintaining large numbers of highly specialized kernels.
@@ -162,12 +158,4 @@ While this blog post gave an overview of the most important optimizations in the
 ## Acknowledgments
 
 This work was carried out by the AI platform team at IBM Research – thank you to everyone involved: Burkhard Ringlein, Jan van Lunteren, Chih-Chieh Yang, Sara Kokkila Schumacher, Thomas Parnell, Mudhakar Srivatsa, Raghu Ganti.
-
-
-
-
-
-
-
-
 
