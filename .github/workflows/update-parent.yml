@@ -8,10 +8,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: vllm-project/vllm_website
+          repository: vllm-project/vllm-landing-page
           token: ${{ secrets.PARENT_REPO_PAT }}
           submodules: true
       - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           cd content/blog-source
           git checkout main && git pull
           cd ../..
