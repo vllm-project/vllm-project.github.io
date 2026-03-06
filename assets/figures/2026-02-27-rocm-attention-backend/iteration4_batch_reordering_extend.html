@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iteration 4: Batch Reordering & Extend Path</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Flow Diagram - positioning reference */
+        .flow-diagram {
+            position: relative;
+            width: 600px;
+            height: 650px;
+        }
+
+        /* Module - matching original exactly */
+        .module {
+            position: absolute;
+            background: linear-gradient(135deg, #e3e8f5 0%, #d4dcf0 100%);
+            border: 2px solid #a8b5d8;
+            border-radius: 12px;
+            padding: 20px 15px;
+            color: #212529;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+        }
+
+        .module:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .module-title {
+            font-weight: bold;
+            font-size: 1em;
+            margin-bottom: 8px;
+            color: #495057;
+            text-align: center;
+        }
+
+        .module-content {
+            font-size: 0.75em;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        /* Model Runner at top */
+        #modelRunner {
+            top: 30px;
+            min-height: 300px;  /* Adjust this value to change Model Runner height */
+        }
+
+        /* Attention Backend at bottom */
+        #attentionBackend {
+            top: 350px;
+        }
+
+        /* Substep styling */
+        .classification-substep {
+            padding: 6px 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.867em;
+            border: 2px solid #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #495057;
+            transition: all 0.3s ease;
+            line-height: 1.3;
+            margin-top: 8px;
+            width: 470px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .classification-substep.active {
+            background: rgba(102, 126, 234, 0.25);
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Substep Container - for Model Runner */
+        .substep-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+            width: 470px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Substep Box */
+        .substep-box {
+            padding: 6px 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.65em;
+            border: 2px solid #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #495057;
+            transition: all 0.3s ease;
+            line-height: 1.3;
+        }
+
+        .substep-box.active {
+            background: rgba(102, 126, 234, 0.25);
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Token Circles */
+        .token-circle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8em;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.8s ease-out;
+            z-index: 60;
+        }
+
+        /* QKV Area */
+        .qkv-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 70;
+        }
+
+        /* QKV Container */
+        .qkv-container {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            transition: all 0.8s ease-out;
+        }
+
+        /* Horizontal Bar Container */
+        .horizontal-bar-container {
+            position: absolute;
+            display: flex;
+            flex-direction: row;
+            height: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            transition: all 0.8s ease-out;
+            z-index: 65;
+        }
+
+        /* Bar Segment */
+        .bar-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        /* QKV Bar */
+        .qkv-bar {
+            display: flex;
+            height: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* QKV Segment */
+        .qkv-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.6s ease;
+        }
+
+        /* Request Colors - matching original */
+        .segment-r1 { background: #26d0ce; }
+        .segment-r2 { background: #1abc9c; }
+        .segment-r3 { background: #16a085; }
+        .segment-r4 { background: #138d75; }
+        .segment-r5 { background: #117a65; }
+
+        /* Path Colors */
+        .path-decode { background: #e67e22; }
+        .path-extend { background: #27ae60; }
+        .path-prefill { background: #9b59b6; }
+
+        /* Path Container */
+        .path-container {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            margin-top: 95px;
+        }
+
+        /* Path Box */
+        .path-box {
+            flex: 1;
+            padding: 30px 6px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid;
+        }
+
+        .path-box.prefill {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+            border-color: #9b59b6;
+        }
+
+        .path-box.extend {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .path-box.decode {
+            background: rgba(230, 126, 34, 0.1);
+            color: #e67e22;
+            border-color: #e67e22;
+        }
+
+        .path-box.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px currentColor;
+            border-width: 3px;
+        }
+
+        /* Query Start Location Arrows */
+        .query-arrow {
+            position: absolute;
+            font-size: 0.7em;
+            color: #495057;
+            font-weight: bold;
+            transition: all 0.8s ease-out;
+            z-index: 66;
+        }
+    </style>
+</head>
+<body>
+    <!-- Flow Diagram -->
+    <div class="flow-diagram">
+        <!-- QKV Area (absolute positioned) -->
+        <div class="qkv-area" id="qkvArea">
+            <!-- Token circles, bars, QKV containers will be created here -->
+        </div>
+
+        <!-- Model Runner Module (Top) -->
+        <div class="module" id="modelRunner">
+            <div class="module-title">Model Runner</div>
+            <div class="substep-container">
+                <div class="substep-box" id="substep1">
+                    Prepare Inputs
+                </div>
+                <div class="substep-box" id="substep2">
+                    Compute query_start_loc
+                </div>
+                <div class="substep-box" id="substep3">
+                    QKV Projection
+                </div>
+                <div class="substep-box" id="substep4">
+                    Reorder Batch
+                </div>
+            </div>
+        </div>
+
+        <!-- Attention Backend Module (Bottom) -->
+        <div class="module" id="attentionBackend">
+            <div class="module-title">ROCM_AITER_FA Backend</div>
+            <div class="module-content">
+                <!-- Classification Substep -->
+                <div class="classification-substep" id="classificationSubstep">
+                    Classify Request Type
+                </div>
+                <!-- Path Boxes -->
+                <div class="path-container">
+                    <div class="path-box prefill" id="prefillPath">
+                        <div>PREFILL PATH</div>
+                    </div>
+
+                    <div class="path-box extend" id="extendPath">
+                        <div>EXTEND PATH</div>
+                    </div>
+
+                    <div class="path-box decode" id="decodePath">
+                        <div>DECODE PATH</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let isRunning = false;
+        let isPaused = false;
+
+        // Request data - Iteration 4
+        const requests = [
+            { id: 'r1', tokens: 1, color: '#26d0ce', scheduledTokens: 1, queryStartLoc: 0 },
+            { id: 'r2', tokens: 1, color: '#1abc9c', scheduledTokens: 1, queryStartLoc: 1 },
+            { id: 'r3', tokens: 100, color: '#16a085', scheduledTokens: 100, queryStartLoc: 2 },   // Originally 180, scheduled 100
+            { id: 'r4', tokens: 1, color: '#138d75', scheduledTokens: 1, queryStartLoc: 102 },
+            { id: 'r5', tokens: 100, color: '#117a65', scheduledTokens: 100, queryStartLoc: 103 }  // Originally 130, scheduled 100
+        ];
+
+        // Path assignments
+        const pathAssignments = {
+            r1: 'decode',
+            r2: 'decode',
+            r3: 'extend',  // KEY: EXTEND PATH
+            r4: 'decode',
+            r5: 'prefill'
+        };
+
+        // Sleep helper
+        function sleep(ms) {
+            return new Promise(resolve => {
+                const checkPause = () => {
+                    if (!isPaused) {
+                        setTimeout(resolve, ms);
+                    } else {
+                        setTimeout(checkPause, 100);
+                    }
+                };
+                checkPause();
+            });
+        }
+
+        // Create initial token circles at Model Runner
+        function createInitialTokenCircles() {
+            const qkvArea = document.getElementById('qkvArea');
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+            const modelRunner = document.getElementById('modelRunner');
+            const modelRunnerRect = modelRunner.getBoundingClientRect();
+            const substep4 = document.getElementById('substep4');
+            const substep4Rect = substep4.getBoundingClientRect();
+
+            // Position below Reorder Batch substep (substep4)
+            const startY = substep4Rect.bottom - flowRect.top + 10;
+            const startX = modelRunnerRect.left - flowRect.left + 50;
+            const spacing = 80;
+
+            requests.forEach((req, index) => {
+                const circle = document.createElement('div');
+                circle.className = 'token-circle';
+                circle.id = `circle-${req.id}`;
+                circle.style.background = req.color;
+                circle.style.left = (startX + index * spacing) + 'px';
+                circle.style.top = startY + 'px';
+                circle.innerHTML = req.scheduledTokens;
+                qkvArea.appendChild(circle);
+            });
+        }
+
+        // Clean up animation state before restarting
+        async function cleanupAnimationState() {
+            const qkvArea = document.getElementById('qkvArea');
+
+            // Fade out all elements
+            qkvArea.style.opacity = '0';
+            await sleep(300);
+
+            // Clear QKV area
+            qkvArea.innerHTML = '';
+            qkvArea.style.opacity = '1';
+
+            // Reset substeps
+            document.querySelectorAll('.substep-box').forEach(box => {
+                box.classList.remove('active');
+            });
+            document.getElementById('classificationSubstep').classList.remove('active');
+
+            // Reset path boxes
+            document.getElementById('prefillPath').classList.remove('active');
+            document.getElementById('extendPath').classList.remove('active');
+            document.getElementById('decodePath').classList.remove('active');
+
+            // Recreate initial state
+            createInitialTokenCircles();
+            await sleep(50);
+        }
+
+        // Main animation function with auto-repeat
+        async function startAnimation() {
+            if (isRunning) return;
+
+            isRunning = true;
+            isPaused = false;
+
+            try {
+                while (isRunning) {
+                    // Ensure initial circles exist
+                    if (!document.getElementById('circle-r1')) {
+                        createInitialTokenCircles();
+                    }
+
+                    // Phase 1: Transform circles to 5-segment horizontal bar
+                    await transformToHorizontalBar();
+
+                    // Phase 2: Show query_start_loc arrows
+                    await showQueryStartLocations();
+
+                    // Phase 3: Transform to QKV bars (Q, K, V rows)
+                    await transformToQKVBars();
+
+                    // Phase 4: Batch Reordering (R1,R2,R3,R4,R5 → R1,R2,R4,R3,R5)
+                    await batchReordering();
+
+                    // Phase 5: Move to Attention Backend
+                    await moveToAttentionBackend();
+
+                    // Phase 6: Classification & Coloring
+                    await classifyAndColor();
+
+                    // Phase 7: Route to path boxes
+                    await routeToPathBoxes();
+
+                    // Wait before restarting
+                    await sleep(1500);
+
+                    // Clean up and restart
+                    if (isRunning) {
+                        await cleanupAnimationState();
+                    }
+                }
+
+            } catch (error) {
+                console.error('Animation error:', error);
+            } finally {
+                isRunning = false;
+                isPaused = false;
+            }
+        }
+
+        // Phase 1: Transform circles to 5-segment horizontal bar
+        async function transformToHorizontalBar() {
+            // Highlight substep1 (Prepare Inputs)
+            const substep1 = document.getElementById('substep1');
+            substep1.classList.add('active');
+
+            const qkvArea = document.getElementById('qkvArea');
+
+            // Calculate bar dimensions
+            const totalTokens = requests.reduce((sum, req) => sum + req.scheduledTokens, 0); // 203
+            const barWidth = 470;
+            const minSegmentWidth = 40;
+
+            // Calculate segment widths
+            const segmentWidths = requests.map(req => {
+                if (req.scheduledTokens === 1) return minSegmentWidth;
+                // Proportional for 100 tokens
+                return 175;
+            });
+
+            // Get position from first circle
+            const firstCircle = document.getElementById('circle-r1');
+            const firstCircleRect = firstCircle.getBoundingClientRect();
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+
+            const barTop = firstCircleRect.top - flowRect.top;
+            const barLeft = firstCircleRect.left - flowRect.left - 30;
+
+            // Fade out circles
+            requests.forEach(req => {
+                const circle = document.getElementById(`circle-${req.id}`);
+                circle.style.opacity = '0';
+            });
+
+            await sleep(500);
+
+            // Create horizontal bar
+            const barContainer = document.createElement('div');
+            barContainer.className = 'horizontal-bar-container';
+            barContainer.id = 'horizontalBar';
+            barContainer.style.left = barLeft + 'px';
+            barContainer.style.top = barTop + 'px';
+            barContainer.style.width = barWidth + 'px';
+            barContainer.style.opacity = '0';
+
+            requests.forEach((req, index) => {
+                const segment = document.createElement('div');
+                segment.className = `bar-segment segment-${req.id}`;
+                segment.style.width = segmentWidths[index] + 'px';
+                segment.innerHTML = req.id.toUpperCase();
+                barContainer.appendChild(segment);
+            });
+
+            qkvArea.appendChild(barContainer);
+
+            // Fade in horizontal bar
+            await sleep(50);
+            barContainer.style.opacity = '1';
+
+            await sleep(1000);
+
+            substep1.classList.remove('active');
+
+            return { barWidth, segmentWidths, barTop, barLeft };
+        }
+
+        // Phase 2: Show query_start_loc arrows
+        async function showQueryStartLocations() {
+            // Highlight substep2 (Compute query_start_loc)
+            const substep2 = document.getElementById('substep2');
+            substep2.classList.add('active');
+
+            const qkvArea = document.getElementById('qkvArea');
+            const horizontalBar = document.getElementById('horizontalBar');
+            const barRect = horizontalBar.getBoundingClientRect();
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+
+            const arrowY = barRect.bottom - flowRect.top + 5;
+
+            // Calculate segment positions
+            let cumulativeX = barRect.left - flowRect.left;
+            const segmentWidths = [40, 40, 175, 40, 175];
+
+            requests.forEach((req, index) => {
+                const arrow = document.createElement('div');
+                arrow.className = 'query-arrow';
+                arrow.id = `arrow-${req.id}`;
+                arrow.style.left = (cumulativeX - 2) + 'px';  // Position at left edge of segment
+                arrow.style.top = arrowY + 'px';
+                arrow.innerHTML = `↑<br>${req.queryStartLoc}`;
+                qkvArea.appendChild(arrow);
+
+                cumulativeX += segmentWidths[index];
+            });
+
+            await sleep(2000);
+
+            // Fade out arrows
+            requests.forEach(req => {
+                const arrow = document.getElementById(`arrow-${req.id}`);
+                arrow.style.opacity = '0';
+            });
+
+            await sleep(300);
+
+            substep2.classList.remove('active');
+        }
+
+        // Phase 3: Transform to QKV bars
+        async function transformToQKVBars() {
+            // Highlight substep3 (QKV Projection)
+            const substep3 = document.getElementById('substep3');
+            substep3.classList.add('active');
+
+            const qkvArea = document.getElementById('qkvArea');
+            const horizontalBar = document.getElementById('horizontalBar');
+            const barRect = horizontalBar.getBoundingClientRect();
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+
+            const barWidth = 470;
+            const segmentWidths = [40, 40, 175, 40, 175];
+
+            // Create QKV container
+            const qkvContainer = document.createElement('div');
+            qkvContainer.className = 'qkv-container';
+            qkvContainer.id = 'qkvContainer';
+            qkvContainer.style.left = (barRect.left - flowRect.left) + 'px';
+            qkvContainer.style.top = (barRect.top - flowRect.top) + 'px';
+            qkvContainer.style.width = barWidth + 'px';
+            qkvContainer.style.opacity = '0';
+
+            // Create Q, K, V rows
+            ['q', 'k', 'v'].forEach(type => {
+                const qkvBar = document.createElement('div');
+                qkvBar.className = `qkv-bar ${type}`;
+
+                requests.forEach((req, index) => {
+                    const segment = document.createElement('div');
+                    segment.className = `qkv-segment segment-${req.id}`;
+                    segment.style.width = segmentWidths[index] + 'px';
+                    segment.innerHTML = `${type.toUpperCase()}<sub>${req.id.toUpperCase()}</sub>`;
+                    qkvBar.appendChild(segment);
+                });
+
+                qkvContainer.appendChild(qkvBar);
+            });
+
+            // Fade out horizontal bar
+            horizontalBar.style.opacity = '0';
+            await sleep(300);
+
+            // Hide horizontal bar and show QKV
+            horizontalBar.style.display = 'none';
+            qkvArea.appendChild(qkvContainer);
+
+            // Fade in QKV container
+            await sleep(50);
+            qkvContainer.style.opacity = '1';
+
+            await sleep(1500);
+
+            substep3.classList.remove('active');
+        }
+
+        // Phase 4: Batch Reordering - KEY FEATURE
+        async function batchReordering() {
+            const substep4 = document.getElementById('substep4');
+            substep4.classList.add('active');
+
+            const qkvContainer = document.getElementById('qkvContainer');
+            const qkvBars = qkvContainer.querySelectorAll('.qkv-bar');
+            const qkvArea = document.getElementById('qkvArea');
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+            const containerRect = qkvContainer.getBoundingClientRect();
+
+            // Step 1: Create individual containers for each segment
+            const segmentContainers = [];
+            const segmentIds = ['r1', 'r2', 'r3', 'r4', 'r5'];
+            const segmentWidths = [40, 40, 175, 40, 175];
+
+            let cumulativeLeft = containerRect.left - flowRect.left;
+            const baseTop = containerRect.top - flowRect.top;
+
+            segmentIds.forEach((reqId, index) => {
+                const container = document.createElement('div');
+                container.className = 'qkv-container';
+                container.id = `segment-container-${reqId}`;
+                container.style.left = cumulativeLeft + 'px';
+                container.style.top = baseTop + 'px';
+                container.style.width = segmentWidths[index] + 'px';
+
+                // Create Q, K, V bars for this segment
+                ['q', 'k', 'v'].forEach(type => {
+                    const bar = document.createElement('div');
+                    bar.className = 'qkv-bar';
+
+                    const segment = document.createElement('div');
+                    segment.className = `qkv-segment segment-${reqId}`;
+                    segment.style.width = '100%';
+                    segment.innerHTML = `${type.toUpperCase()}<sub>${reqId.toUpperCase()}</sub>`;
+
+                    bar.appendChild(segment);
+                    container.appendChild(bar);
+                });
+
+                segmentContainers.push(container);
+                cumulativeLeft += segmentWidths[index];
+            });
+
+            // Hide original container and show separated segments
+            qkvContainer.style.display = 'none';
+            segmentContainers.forEach(container => qkvArea.appendChild(container));
+
+            await sleep(50);
+
+            // Step 2: Spread segments apart
+            const spreadDistance = 15;
+            segmentContainers.forEach((container, index) => {
+                const currentLeft = parseFloat(container.style.left);
+                const offset = (index - 2) * spreadDistance; // Center around R3
+                container.style.left = (currentLeft + offset) + 'px';
+            });
+
+            await sleep(600);
+
+            // Step 3: Swap R3 and R4 positions with clockwise rotation
+            const r3Container = segmentContainers[2]; // R3
+            const r4Container = segmentContainers[3]; // R4
+
+            const r3Left = parseFloat(r3Container.style.left);
+            const r4Left = parseFloat(r4Container.style.left);
+            const r3Top = parseFloat(r3Container.style.top);
+
+            // Calculate center point between R3 and R4
+            const centerX = (r3Left + r4Left) / 2;
+            const radius = Math.abs(r4Left - r3Left) / 2;
+
+            // R3 moves clockwise (right and down, then right and up)
+            r3Container.style.left = (centerX + radius * 0.5) + 'px';
+            r3Container.style.top = (r3Top + radius * 0.5) + 'px';
+
+            // R4 moves clockwise (left and up, then left and down)
+            r4Container.style.left = (centerX - radius * 0.5) + 'px';
+            r4Container.style.top = (r3Top - radius * 0.5) + 'px';
+
+            await sleep(400);
+
+            // Complete the clockwise rotation to swapped positions
+            r3Container.style.left = r4Left + 'px';
+            r3Container.style.top = r3Top + 'px';
+
+            r4Container.style.left = r3Left + 'px';
+            r4Container.style.top = r3Top + 'px';
+
+            await sleep(400);
+
+            // Step 4: Bring segments back together in new order
+            // New order: R1, R2, R4, R3, R5
+            const newOrder = [0, 1, 3, 2, 4]; // indices
+            const newWidths = [40, 40, 40, 175, 175];
+
+            let newCumulativeLeft = containerRect.left - flowRect.left;
+            newOrder.forEach((originalIndex, newIndex) => {
+                const container = segmentContainers[originalIndex];
+                container.style.left = newCumulativeLeft + 'px';
+                container.style.width = newWidths[newIndex] + 'px';
+
+                // Update segment widths
+                container.querySelectorAll('.qkv-segment').forEach(seg => {
+                    seg.style.width = '100%';
+                });
+
+                newCumulativeLeft += newWidths[newIndex];
+            });
+
+            await sleep(800);
+
+            // Step 5: Merge back into single container
+            const newQkvContainer = document.createElement('div');
+            newQkvContainer.className = 'qkv-container';
+            newQkvContainer.id = 'qkvContainer';
+            newQkvContainer.style.left = (containerRect.left - flowRect.left) + 'px';
+            newQkvContainer.style.top = baseTop + 'px';
+            newQkvContainer.style.width = '470px';
+            newQkvContainer.style.transition = 'all 0.8s ease-out';
+
+            // Reorder: R1, R2, R3, R4, R5 → R1, R2, R4, R3, R5
+            const finalOrder = ['r1', 'r2', 'r4', 'r3', 'r5'];
+            const finalWidths = [40, 40, 40, 175, 175];
+
+            ['q', 'k', 'v'].forEach(type => {
+                const bar = document.createElement('div');
+                bar.className = 'qkv-bar';
+
+                finalOrder.forEach((reqId, index) => {
+                    const segment = document.createElement('div');
+                    segment.className = `qkv-segment segment-${reqId}`;
+                    segment.style.width = finalWidths[index] + 'px';
+                    segment.innerHTML = `${type.toUpperCase()}<sub>${reqId.toUpperCase()}</sub>`;
+                    bar.appendChild(segment);
+                });
+
+                newQkvContainer.appendChild(bar);
+            });
+
+            // Remove individual containers and old QKV container
+            segmentContainers.forEach(container => container.remove());
+            qkvContainer.remove();  // Remove the old container completely
+
+            // Add merged container
+            qkvArea.appendChild(newQkvContainer);
+
+            await sleep(500);
+
+            substep4.classList.remove('active');
+            await sleep(200);
+        }
+
+        // Phase 5: Move to Attention Backend
+        async function moveToAttentionBackend() {
+            const qkvContainer = document.getElementById('qkvContainer');
+
+            if (!qkvContainer) {
+                console.error('qkvContainer not found!');
+                return;
+            }
+
+            const attentionBackend = document.getElementById('attentionBackend');
+            const classificationSubstep = document.getElementById('classificationSubstep');
+
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+            const attentionRect = attentionBackend.getBoundingClientRect();
+            const classificationRect = classificationSubstep.getBoundingClientRect();
+
+            // Calculate center position below classification substep
+            const targetLeft = classificationRect.left - flowRect.left;
+            const targetTop = classificationRect.bottom - flowRect.top + 10;
+
+            // Force a reflow to ensure the initial position is rendered
+            qkvContainer.getBoundingClientRect();
+
+            // Use requestAnimationFrame to ensure the transition is applied after the initial render
+            await sleep(50);
+
+            // Log for debugging
+            console.log('Moving QKV to Attention Backend:', {
+                currentLeft: qkvContainer.style.left,
+                currentTop: qkvContainer.style.top,
+                targetLeft,
+                targetTop
+            });
+
+            // Now apply the transition and move
+            qkvContainer.style.left = targetLeft + 'px';
+            qkvContainer.style.top = targetTop + 'px';
+
+            await sleep(800);
+        }
+
+        // Phase 6: Classification & Coloring
+        async function classifyAndColor() {
+            const classificationSubstep = document.getElementById('classificationSubstep');
+            classificationSubstep.classList.add('active');
+
+            // Color segments based on path assignment
+            const allSegments = document.querySelectorAll('.qkv-segment');
+
+            requests.forEach(req => {
+                const path = pathAssignments[req.id];
+                const segments = document.querySelectorAll(`.segment-${req.id}`);
+
+                segments.forEach(segment => {
+                    if (path === 'decode') {
+                        segment.style.background = '#e67e22';  // Orange
+                    } else if (path === 'extend') {
+                        segment.style.background = '#27ae60';  // Green
+                    } else if (path === 'prefill') {
+                        segment.style.background = '#9b59b6';  // Purple
+                    }
+                });
+            });
+
+            await sleep(600);
+
+            classificationSubstep.classList.remove('active');
+            await sleep(300);
+        }
+
+        // Phase 7: Route to path boxes
+        async function routeToPathBoxes() {
+            const qkvContainer = document.getElementById('qkvContainer');
+            const qkvArea = document.getElementById('qkvArea');
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+
+            // Group requests by path
+            const decodeRequests = ['r1', 'r2', 'r4'];  // R1, R2, R4
+            const extendRequests = ['r3'];              // R3 - KEY: EXTEND PATH
+            const prefillRequests = ['r5'];             // R5
+
+            // Create separate containers for each path
+            const decodeContainer = createPathContainer(decodeRequests, [40, 40, 40]);
+            const extendContainer = createPathContainer(extendRequests, [175]);
+            const prefillContainer = createPathContainer(prefillRequests, [175]);
+
+            // Position containers to match original segment positions in the combined bar
+            const qkvRect = qkvContainer.getBoundingClientRect();
+            const baseLeft = qkvRect.left - flowRect.left;
+            const baseTop = qkvRect.top - flowRect.top;
+
+            // After reordering: R1(40), R2(40), R4(40), R3(175), R5(175)
+            const decodeWidth = 120;  // R1 + R2 + R4 = 40 + 40 + 40
+            const extendWidth = 175;  // R3
+            const prefillWidth = 175; // R5
+
+            decodeContainer.style.left = baseLeft + 'px';
+            decodeContainer.style.top = baseTop + 'px';
+
+            extendContainer.style.left = (baseLeft + decodeWidth) + 'px';
+            extendContainer.style.top = baseTop + 'px';
+
+            prefillContainer.style.left = (baseLeft + decodeWidth + extendWidth) + 'px';
+            prefillContainer.style.top = baseTop + 'px';
+
+            // Hide original QKV container and immediately show separated containers (like iteration2)
+            qkvContainer.style.display = 'none';
+            qkvArea.appendChild(decodeContainer);
+            qkvArea.appendChild(extendContainer);
+            qkvArea.appendChild(prefillContainer);
+
+            // Small delay to ensure containers are rendered before animating
+            await sleep(50);
+
+            // Spread containers apart horizontally (like iteration2)
+            const spreadDistance = 60;  // Distance to spread apart
+
+            decodeContainer.style.left = (baseLeft - spreadDistance) + 'px';
+            extendContainer.style.left = (baseLeft + decodeWidth) + 'px';  // Stay in place
+            prefillContainer.style.left = (baseLeft + decodeWidth + extendWidth + spreadDistance) + 'px';
+
+            await sleep(800);
+
+            // Route decode container to DECODE PATH
+            await routeContainerToPath(decodeContainer, 'decodePath', '#e67e22');
+
+            // Route extend container to EXTEND PATH
+            await routeContainerToPath(extendContainer, 'extendPath', '#27ae60');
+
+            // Route prefill container to PREFILL PATH
+            await routeContainerToPath(prefillContainer, 'prefillPath', '#9b59b6');
+
+            await sleep(500);
+        }
+
+        // Helper: Create path container
+        function createPathContainer(requestIds, widths) {
+            const container = document.createElement('div');
+            container.className = 'qkv-container';
+            container.style.width = widths.reduce((a, b) => a + b, 0) + 'px';
+
+            ['q', 'k', 'v'].forEach(type => {
+                const bar = document.createElement('div');
+                bar.className = `qkv-bar ${type}`;
+
+                requestIds.forEach((reqId, index) => {
+                    const req = requests.find(r => r.id === reqId);
+                    const path = pathAssignments[reqId];
+                    let color = '#e67e22';
+                    if (path === 'extend') color = '#27ae60';
+                    if (path === 'prefill') color = '#9b59b6';
+
+                    const segment = document.createElement('div');
+                    segment.className = 'qkv-segment';
+                    segment.style.width = widths[index] + 'px';
+                    segment.style.background = color;
+                    segment.innerHTML = `${type.toUpperCase()}<sub>${reqId.toUpperCase()}</sub>`;
+                    bar.appendChild(segment);
+                });
+
+                container.appendChild(bar);
+            });
+
+            return container;
+        }
+
+        // Helper: Route container to path
+        async function routeContainerToPath(container, pathId, color) {
+            const pathBox = document.getElementById(pathId);
+            const qkvArea = document.getElementById('qkvArea');
+
+            const pathRect = pathBox.getBoundingClientRect();
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+
+            // Calculate target position
+            const targetLeft = pathRect.left - flowRect.left + 10;
+            const targetTop = pathRect.top - flowRect.top + 2;
+            const targetWidth = pathRect.width - 20;
+
+            // Get all segments in the container
+            const bars = container.querySelectorAll('.qkv-bar');
+            const firstBar = bars[0];
+            const segments = firstBar.querySelectorAll('.qkv-segment');
+            const numSegments = segments.length;
+
+            // Calculate new segment width (divide target width equally)
+            const newSegmentWidth = targetWidth / numSegments;
+
+            // Update all segment widths proportionally with transition
+            bars.forEach(bar => {
+                const barSegments = bar.querySelectorAll('.qkv-segment');
+                barSegments.forEach(segment => {
+                    segment.style.transition = 'all 0.8s ease-out';
+                    segment.style.width = newSegmentWidth + 'px';
+                });
+            });
+
+            container.style.left = targetLeft + 'px';
+            container.style.top = targetTop + 'px';
+            container.style.width = targetWidth + 'px';
+
+            pathBox.classList.add('active');
+
+            await sleep(400);
+
+            pathBox.classList.remove('active');
+        }
+
+        // Initialize and auto-start animation on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            createInitialTokenCircles();
+
+            // Auto-start animation after brief delay
+            setTimeout(() => {
+                startAnimation();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
