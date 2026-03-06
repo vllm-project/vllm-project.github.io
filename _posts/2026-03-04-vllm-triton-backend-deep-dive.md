@@ -8,7 +8,6 @@ tags:
   - performance
   - triton
   - attention
-  - kernels
 ---
 
 This article is adapted from a Red Hat hosted [vLLM Office Hours](https://www.youtube.com/watch?v=8QiM-i9ifFo&list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3&index=1) session with Burkhard Ringlein from IBM Research, featuring a deep technical walkthrough of the vLLM Triton attention backend. [Explore past topics](https://www.youtube.com/playlist?list=PLbMP1JcGBmSHxp4-lubU5WYmJ9YgAQcf3) and join future office hours [here](https://red.ht/office-hours).
