@@ -128,4 +128,4 @@ Stay up to date on NVIDIA Nemotron by subscribing to [NVIDIA news](https://www.n
 Thanks to everyone who contributed to bringing Nemotron 3 Super to vLLM.
 
 - **NVIDIA:** Nirmal Kumar Juluru, Anusha Pant
-- **vLLM team and community:** Roger Wang, Michael Goin, Thomas Parnell, Kevin Luu, Robert Shaw
+- **vLLM team and community:** Roger Wang, Michael Goin, Thomas Parnell, Kevin Luu, Robert Shaw, Tyler Michael Smith
