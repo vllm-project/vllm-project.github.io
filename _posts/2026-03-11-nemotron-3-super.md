@@ -71,24 +71,13 @@ wget "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16/resol
 ```bash
 # BF16
 vllm serve nvidia/NVIDIA-Nemotron-3-Super \
-  --async-scheduling \
-  --dtype auto \
-  --kv-cache-dtype fp8 \
-  --tensor-parallel-size 4 \
-  --pipeline-parallel-size 1 \
-  --data-parallel-size 1 \
-  --swap-space 0 \
-  --trust-remote-code \
-  --gpu-memory-utilization 0.9 \
-  --enable-chunked-prefill \
-  --max-num-seqs 512 \
-  --served-model-name nemotron \
-  --host 0.0.0.0 \
-  --port 5000 \
-  --enable-auto-tool-choice \
-  --tool-call-parser qwen3_coder \
-  --reasoning-parser-plugin "./super_v3_reasoning_parser.py" \
-  --reasoning-parser super_v3
+    --kv-cache-dtype fp8 \
+    --tensor-parallel-size 4 \
+    --trust-remote-code \
+    --served-model-name nemotron \
+    --enable-auto-tool-choice \
+    --tool-call-parser qwen3_coder \
+    --reasoning-parser nemotron_v3
 ```
 
 Once the server is up and running, you can prompt the model using the below code snippet:
