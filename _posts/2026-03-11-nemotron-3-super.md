@@ -48,7 +48,7 @@ In this blog post, we'll share how to get started with Nemotron 3 Super using vL
 
 - Download model weights from [Hugging Face](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) - BF16, FP8 and NVFP4
 - Run with vLLM for inference
-- Read [technical report](https://arxiv.org/abs/placeholder) for more details
+- Read [technical report](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Super-Technical-Report.pdf) for more details
 
 ## Run optimized inference with vLLM
 
@@ -97,7 +97,7 @@ print("Reasoning:", resp.choices[0].message.reasoning_content,
       "\nContent:", resp.choices[0].message.content)
 ```
 
-For an easier setup with vLLM, refer to our getting started cookbook, available [here](https://github.com/nvidia/nemotron-cookbook) or use [NVIDIA Brev launchable](https://brev.dev).
+For an easier setup with vLLM, refer to our getting started cookbook, available [here](https://github.com/anushapant/Nemotron/blob/main/usage-cookbook/Nemotron-3-Super/vllm_cookbook.ipynb) or use [NVIDIA Brev launchable](https://brev.dev).
 
 ## Highest efficiency with leading accuracy for multi-agent applications
 
@@ -118,8 +118,8 @@ Nemotron 3 Super helps you build scalable, cost-efficient multi-agent AI with hi
 Ready to run multi-agent AI at scale?
 
 - Download [Nemotron 3 Super model weights from Hugging Face](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) - BF16, FP8 and NVFP4
-- Run with vLLM for inference using the [cookbook](https://github.com/nvidia/nemotron-cookbook) and through [Brev launchable](https://brev.dev)
-- Read the [Nemotron 3 Super technical report](https://arxiv.org/abs/placeholder)
+- Run with vLLM for inference using the [cookbook](https://github.com/anushapant/Nemotron/blob/main/usage-cookbook/Nemotron-3-Super/vllm_cookbook.ipynb) and through [Brev launchable](https://brev.dev)
+- Read the [Nemotron 3 Super technical report](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Super-Technical-Report.pdf)
 
 Stay up to date on NVIDIA Nemotron by subscribing to [NVIDIA news](https://www.nvidia.com/en-us/preferences/email-signup/) and following NVIDIA AI on [LinkedIn](https://www.linkedin.com/company/nvidia/), [X](https://x.com/NVIDIAAI), [YouTube](https://www.youtube.com/nvidia), and the Nemotron channel on [Discord](https://discord.gg/nvidia).
 
