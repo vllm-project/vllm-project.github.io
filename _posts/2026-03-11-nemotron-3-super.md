@@ -64,9 +64,6 @@ pip install vllm==0.17.1
 
 You can serve Nemotron 3 Super via an OpenAI-compatible API. The command below is configured for a 4x H100 setup. If your hardware differs, adjust the parallelism flags and related settings for your environment. Refer to the cookbooks for detailed instructions for FP8 and NVFP4.
 
-```bash
-wget "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16/resolve/main/super_v3_reasoning_parser.py"
-```
 
 ```bash
 # BF16
