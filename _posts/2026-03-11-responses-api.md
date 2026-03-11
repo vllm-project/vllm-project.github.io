@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Enabling the Responses API and MCP on vLLM"
+title: "Enabling Responses API and MCP on vLLM"
 author: "Meta"
 image: /assets/logos/vllm-logo-text-light.png
 ---
@@ -14,6 +14,10 @@ This blog post covers:
 - **Two context architectures**: HarmonyContext for GPT-OSS models and ParsableContext for all other models
 
 ## The Responses API
+
+**Responses API** is a modern interface for interacting with large language models that unifies text generation, multimodal inputs, and tool use into a single API primitive. Introduced as the successor to earlier interfaces like Chat Completions and Assistants, it provides a flexible abstraction for building agentic applications—allowing models to generate structured outputs, call tools, maintain conversation state, and integrate external data sources in one request. The API treats a “response” as the fundamental unit of interaction, combining inputs, model reasoning, tool calls, and outputs into a structured object. Developers can learn more about the official specification in the OpenAI Responses API documentation (https://developers.openai.com/api/reference/resources/responses
+). At the same time, efforts like OpenResponses Initiative (https://www.openresponses.org/
+) aim to define an open, provider-agnostic standard inspired by this interface, enabling interoperable tooling and reducing vendor lock-in across LLM platforms.
 
 ### Endpoint Overview
 
@@ -37,7 +41,6 @@ curl -X POST http://localhost:8000/v1/responses \
   -d '{
     "model": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
     "input": "What is the capital of France?",
-    "stream": false
   }'
 ```
 
@@ -65,27 +68,34 @@ curl -X POST http://localhost:8000/v1/responses \
   }'
 ```
 
+See https://www.openresponses.org/specification#streaming for more details on the streaming protocol and the types of events that are streamed.
+
 ### Supported Features
 
 The vLLM Responses API supports a broad set of features:
 
-**Function Calling.** Tools of type `function` can be defined in the `tools` list. The model's output is parsed for tool calls using configurable tool parsers (Hermes, Llama, Mistral, etc.). The `tool_choice` parameter supports `"auto"`, `"none"`, `"required"`, or a named function. When the model emits a function call, it is returned as a `function_call` output item with streaming events `response.function_call_arguments.delta` and `response.function_call_arguments.done`.
+**Tool Calling (Function and MCP)** Tools of type `function` can be defined in the `tools` list. The model's output is parsed for tool calls using configurable tool parsers (Hermes, Llama, Mistral, etc.). The `tool_choice` parameter supports `"auto"`, `"none"`, `"required"`, or a named function. When the model emits a function call, it is returned as a `function_call` output item with streaming events `response.function_call_arguments.delta` and `response.function_call_arguments.done`.
 
-**Reasoning.** The `reasoning` parameter (with an `effort` field) enables chain-of-thought reasoning. Reasoning content is tracked separately from regular output and appears as `ResponseReasoningItem` output items. Streaming emits `response.reasoning_text.delta` and `response.reasoning_text.done` events, allowing clients to display the model's thinking process in real time.
+TODO
 
-**Structured Output.** The `text.format` field supports JSON Schema-constrained generation. When a JSON schema is provided, vLLM enforces the schema during decoding using guided generation, ensuring the output is valid JSON conforming to the specified schema.
+**Reasoning.** The `reasoning` parameter (with an `effort` field) enables chain-of-thought reasoning. Reasoning content is tracked separately from regular output and appears as `ResponseReasoningItem` output items. Streaming emits `response.reasoning_text.delta` and `response.reasoning_text.done` events, allowing clients to display the model's thinking process in real time (see https://github.com/vllm-project/vllm/pull/29947)
+
+**Structured Output.** The `structured_outputs` field supports JSON Schema-constrained generation. When a JSON schema is provided, vLLM enforces the schema during decoding using guided generation, ensuring the output is valid JSON conforming to the specified schema. When a choice is specified, vLLM will only output in final output from the options listed. (see https://github.com/vllm-project/vllm/pull/33709).
 
 **Logprobs.** When `include` contains `"message.output_text.logprobs"`, the response includes per-token log probabilities. The `top_logprobs` parameter controls how many top alternatives are returned per token position.
 
 **Background Mode.** Setting `background: true` (with `store: true`) queues the response for asynchronous generation. The response is returned immediately with status `"queued"` and can be polled or retrieved later via `GET /v1/responses/{response_id}`. Background responses can be cancelled via the cancel endpoint.
 
-**Conversation Continuation.** The `previous_response_id` field chains responses together for multi-turn conversations. The previous response's output items are prepended to the new request's input, enabling stateful multi-turn dialogue without the client needing to manage conversation history.
+<!-- TODO: this shouldn't be mentioned before we truly do state management -->
+<!-- **Conversation Continuation.** The `previous_response_id` field chains responses together for multi-turn conversations. The previous response's output items are prepended to the new request's input, enabling stateful multi-turn dialogue without the client needing to manage conversation history. -->
 
 **vLLM-Specific Extensions.** Beyond the standard API, vLLM adds parameters for `priority` (request scheduling priority), `cache_salt` (prefix cache isolation), `seed` (deterministic sampling), `repetition_penalty`, custom `stop` sequences, and `enable_response_messages` (returns raw prompt and output token IDs for debugging).
 
+**Debugging** We also have implemented the ability to return raw input and output tokens for responsesAPI. (See https://github.com/vllm-project/vllm/pull/29549)
+
 ## MCP: Model Context Protocol Integration
 
-The **Model Context Protocol (MCP)** allows LLMs to call external tools during generation. vLLM implements MCP as a first-class feature of the Responses API: when a model generates a tool call, vLLM intercepts it, calls the appropriate MCP tool server, and feeds the result back to the model for the next turn of generation -- all within a single API request.
+The **Model Context Protocol (MCP)** allows LLMs to call external tools during generation, with vLLM handling the tool calling instead of function tools, in which the client is responsible for handling tool calls. vLLM implements MCP as a first-class feature of the Responses API: when a model generates a tool call, vLLM intercepts it, calls the appropriate MCP tool server, and feeds the result back to the model for the next turn of generation -- all within a single API request.
 
 ### Built-in Tools
 
@@ -102,8 +112,6 @@ vLLM supports three categories of built-in tools:
 vLLM provides two `ToolServer` implementations:
 
 **`MCPToolServer`**: Connects to external MCP-compatible tool servers over SSE. Multiple servers can be specified via comma-separated URLs. Each server exposes its tools via the MCP protocol, and vLLM discovers available tools at startup via `session.list_tools()`. Tool sessions are created per-request with unique session IDs.
-
-**`DemoToolServer`**: A lightweight local alternative that uses built-in tool implementations (Exa-based web search, Docker-based Python execution) without requiring an external MCP server. This is useful for development and testing.
 
 ```bash
 # Starting vLLM with an MCP tool server
@@ -256,10 +264,10 @@ response = client.responses.create(
 
 ## Future Work
 
-- **Response storage with eviction policies**: Currently, stored responses are held in memory with no eviction. We plan to add configurable TTLs and storage backends.
-- **Expanded tool support**: Adding more built-in tool types and improving MCP server discovery.
-- **Parallel tool calls**: Improving support for models that emit multiple tool calls in a single turn.
-- **Optimized multi-turn performance**: Leveraging prefix caching more aggressively across tool-calling turns to reduce redundant computation.
+- **Offloading response storage & API Layer**: Currently, stored responses are held in memory with no eviction. We would like to support offloading responsesAPI state management to a third party database, and potentially offload the API layer outside of the core vLLM engine (see https://github.com/vllm-project/vllm/issues/26934)
+- **Expanded tool support**: Add MCP support for all tools. (See https://github.com/vllm-project/vllm/issues/30115)
+- **Open Responses Conformity**: OpenResponses (https://www.openresponses.org/
+), launched in January 2026, is an open initiative to standardize a vendor-neutral API for LLM interactions based on the Responses API abstraction, covering structured outputs, tool calls, multimodal inputs, and reasoning traces. For vLLM, supporting OpenResponses enables compatibility with a growing ecosystem of agent frameworks and SDKs while giving users a portable interface that works across both hosted APIs and open-source model deployments.
 
 To see more details about the future work and explore opportunities to contribute, please see this vLLM feature development map: https://github.com/vllm-project/vllm/issues/34857
 
