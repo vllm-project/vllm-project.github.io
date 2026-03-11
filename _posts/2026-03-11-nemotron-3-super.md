@@ -70,7 +70,7 @@ wget "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16/resol
 
 ```bash
 # BF16
-vllm serve nvidia/NVIDIA-Nemotron-3-Super \
+vllm serve nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 \
     --kv-cache-dtype fp8 \
     --tensor-parallel-size 4 \
     --trust-remote-code \
