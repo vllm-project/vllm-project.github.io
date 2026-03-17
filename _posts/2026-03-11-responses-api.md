@@ -90,8 +90,9 @@ TODO
 <!-- **Conversation Continuation.** The `previous_response_id` field chains responses together for multi-turn conversations. The previous response's output items are prepended to the new request's input, enabling stateful multi-turn dialogue without the client needing to manage conversation history. -->
 
 **vLLM-Specific Extensions.** Beyond the standard API, vLLM adds parameters for `priority` (request scheduling priority), `cache_salt` (prefix cache isolation), `seed` (deterministic sampling), `repetition_penalty`, custom `stop` sequences, and `enable_response_messages` (returns raw prompt and output token IDs for debugging).
+TODO: add link
 
-**Debugging** We also have implemented the ability to return raw input and output tokens for responsesAPI. (See https://github.com/vllm-project/vllm/pull/29549)
+**Debugging** We also have implemented the ability to return raw input and output tokens for responsesAPI, you can enable this by using the `enable_response_messages` flag. (See https://github.com/vllm-project/vllm/pull/29549)
 
 ## MCP: Model Context Protocol Integration
 
@@ -147,13 +148,13 @@ response.mcp_call.completed          -- tool execution result is available
 
 This allows clients to display the model's tool interactions in real time, showing what tool is being called, with what arguments, and what the result was.
 
-## Context Architecture: HarmonyContext vs. ParsableContext
+## Context Architecture
 
-A key design decision in the Responses API is how to manage the conversation state during multi-turn tool-calling loops. vLLM implements two context architectures to support different model families.
+A key design decision in the Responses API is how to manage the conversation state during multi-turn tool-calling loops. vLLM implements the following context architectures to support different model families.
 
 ### HarmonyContext (GPT-OSS Models)
 
-`HarmonyContext` is designed for GPT-OSS models that use OpenAI's Harmony message format. These models use a channel-based parsing system where the model's output is split into channels (`analysis` for reasoning, `commentary`, and `final` for the actual response). The context tracks messages in the Harmony `Message` format and uses the Harmony tokenizer's `render_for_completion()` to produce token IDs for the next turn.
+`HarmonyContext` is designed for GPT-OSS models that use OpenAI's Harmony message format. See [OpenAI's harmony guide](https://developers.openai.com/cookbook/articles/openai-harmony) for more context. These models use a channel-based parsing system where the model's output is split into channels (`analysis` for reasoning, `commentary`, and `final` for the actual response). The context tracks messages in the Harmony `Message` format and uses the Harmony tokenizer's `render_for_completion()` to produce token IDs for the next turn.
 
 Key characteristics:
 - Uses `openai_harmony` message types (`Author`, `Message`, `Role`, `StreamState`, `TextContent`)
@@ -163,7 +164,7 @@ Key characteristics:
 
 `StreamingHarmonyContext` extends this for token-by-token streaming, processing each token through the Harmony parser and tracking parser state transitions to emit the correct streaming events.
 
-### ParsableContext (All Other Models)
+### ParsableContext (MCP for All Other Models)
 
 `ParsableContext` is the context for non-GPT-OSS models (Llama, Mistral, Qwen, etc.). It uses vLLM's standard chat template system to render conversations and parses tool calls from the model output using configurable tool parsers.
 
@@ -171,33 +172,28 @@ Key characteristics:
 - Uses `ResponseInputOutputItem` types from the OpenAI SDK (e.g., `ResponseFunctionToolCall`, `ResponseFunctionToolCallOutputItem`)
 - Tool calls are identified by the `name` field matching built-in tool names (`code_interpreter`, `web_search_preview`, `container`)
 - Prompt rendering uses vLLM's chat template system via `_render_next_turn()`
-- Supports the `VLLM_USE_EXPERIMENTAL_PARSER_CONTEXT` environment variable to enable this context
+- Use the `VLLM_USE_EXPERIMENTAL_PARSER_CONTEXT` environment variable to enable this context
 
 ### SimpleContext
 
-For non-tool-calling scenarios, `SimpleContext` provides a lightweight context that accumulates raw text and token IDs without any parsing overhead. It is the default for models that do not have tool use enabled.
+For non-MCP-tool-calling scenarios, `SimpleContext` provides a lightweight context that accumulates raw text and token IDs without any parsing overhead. It is the default for models that do not have tool use enabled.
 
-### Choosing the Right Context
+Eventually, all three context architectures will be merged into a single, unified context architecture.
 
-The context is selected automatically based on the model type and request configuration:
-
-| Condition | Context Used |
-|---|---|
-| GPT-OSS model, streaming | `StreamingHarmonyContext` |
-| GPT-OSS model, non-streaming | `HarmonyContext` |
-| Non-GPT-OSS, tools enabled, experimental parser | `ParsableContext` |
-| Non-GPT-OSS, no tools or simple request | `SimpleContext` |
-
-## Token Usage Tracking
+## Metrics & Token Usage Tracking
 
 The Responses API provides detailed token usage information in the response, including:
 
 - `input_tokens`: Total prompt tokens across all turns
 - `output_tokens`: Total generated tokens
 - `input_tokens_details.cached_tokens`: Tokens served from the prefix cache
-- `output_tokens_details.reasoning_tokens`: Tokens spent on reasoning (chain-of-thought)
+- `output_tokens_details.reasoning_tokens`: Tokens spent on reasoning (chain-of-thought)  ([PR](https://github.com/vllm-project/vllm/pull/33513))
 
 For multi-turn tool-calling interactions, the `TurnMetrics` class tracks per-turn metrics. Tool output tokens are calculated as the difference between consecutive turns' prompt sizes minus the previous turn's output, capturing the token cost of tool results injected between turns.
+
+## Evals
+
+With vLLM's ResponsesAPI implementation, we were able to replicate Kimi K2's HLE score of 23.9. We used the open source HLE test harness, used OpenAI's o3-mini as a judge. We also ran GPT-OSS against vLLM responsesAPI with MCP tools (including browser, python, and container). With high reasoning on GPT-OSS 120B, we achieved a score of 0.97 on AIME25, which matches OpenAI's GPTOSS model card.
 
 ## Getting Started
 
@@ -209,13 +205,6 @@ vllm serve Qwen/Qwen3-8B \
 --reasoning-parser qwen3 \
 --tool-call-parser qwen3 \
 --enable-auto-tool-choice
-
-# With MCP tool server
-# TODO: Kimi K2 here
-vllm serve Qwen/Qwen3-8B \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes \
-  --tool-server-url http://localhost:3001/sse
 ```
 
 Then use the OpenAI Python SDK to make requests:
@@ -258,6 +247,34 @@ response = client.responses.create(
         }
     }],
 )
+```
+
+To use our MCP server:
+```bash
+# With MCP tool server
+# see https://github.com/vllm-project/vllm/pull/29798
+VLLM_USE_EXPERIMENTAL_PARSER_CONTEXT=1 \
+vllm serve moonshotai/Kimi-K2-Thinking \
+--trust-remote-code \
+--tensor-parallel-size 8 \
+--enable-auto-tool-choice \ --tool-call-parser kimi_k2 \
+--reasoning-parser kimi_k2 \
+--tool-server=localhost:8081/container,localhost:8081/browser,localhost:8081/python
+
+
+# with MCP calling
+curl -X POST "http://localhost:8000/v1/responses"   -H "Content-Type: application/json"   -H "Authorization: Bearer dummy-api-key"   -d '{
+        "model": "moonshotai/Kimi-K2-Thinking",
+        "input": "Multiply 64548*15151 using the python tool.",
+        "tools": [
+          {
+            "type": "mcp",
+            "server_label": "code_interpreter",
+            "headers": {"test": "test"},
+            "server_url": "IGNORED"
+          }
+        ]
+      }'
 ```
 
 ## Future Work
