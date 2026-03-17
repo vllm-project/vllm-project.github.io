@@ -39,7 +39,7 @@ In non-streaming mode, vLLM generates the full response before returning it. The
 curl -X POST http://localhost:8000/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    "model": "Qwen/Qwen3-8B",
     "input": "What is the capital of France?",
   }'
 ```
@@ -62,7 +62,7 @@ This event structure matches the OpenAI Responses API specification, making vLLM
 curl -X POST http://localhost:8000/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    "model": "Qwen/Qwen3-8B",
     "input": "Explain quicksort in one paragraph.",
     "stream": true
   }'
@@ -115,7 +115,7 @@ vLLM provides two `ToolServer` implementations:
 
 ```bash
 # Starting vLLM with an MCP tool server
-vllm serve meta-llama/Llama-4-Maverick-17B-128E-Instruct \
+vllm serve Qwen/Qwen3-8B \
   --enable-auto-tool-choice \
   --tool-call-parser hermes \
   --tool-server-url http://localhost:3001/sse
@@ -204,16 +204,15 @@ For multi-turn tool-calling interactions, the `TurnMetrics` class tracks per-tur
 To use the Responses API with vLLM:
 
 ```bash
-# Basic serving
-vllm serve meta-llama/Llama-4-Maverick-17B-128E-Instruct
-
-# With tool calling support
-vllm serve meta-llama/Llama-4-Maverick-17B-128E-Instruct \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes
+# with Tool calling and reasoning
+vllm serve Qwen/Qwen3-8B \
+--reasoning-parser qwen3 \
+--tool-call-parser qwen3 \
+--enable-auto-tool-choice
 
 # With MCP tool server
-vllm serve meta-llama/Llama-4-Maverick-17B-128E-Instruct \
+# TODO: Kimi K2 here
+vllm serve Qwen/Qwen3-8B \
   --enable-auto-tool-choice \
   --tool-call-parser hermes \
   --tool-server-url http://localhost:3001/sse
@@ -228,24 +227,23 @@ client = OpenAI(base_url="http://localhost:8000/v1")
 
 # Non-streaming
 response = client.responses.create(
-    model="meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    model="Qwen/Qwen3-8B",
     input="What is the capital of France?",
 )
 print(response.output_text)
 
 # Streaming
 stream = client.responses.create(
-    model="meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    model="Qwen/Qwen3-8B",
     input="Explain quicksort step by step.",
     stream=True,
 )
 for event in stream:
-    if event.type == "response.output_text.delta":
-        print(event.delta, end="", flush=True)
+    print(event)
 
 # With function calling
 response = client.responses.create(
-    model="meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+    model="Qwen/Qwen3-8B",
     input="What is the weather in San Francisco?",
     tools=[{
         "type": "function",
@@ -273,8 +271,10 @@ To see more details about the future work and explore opportunities to contribut
 
 ## Acknowledgements
 
-This work was a collaboration across the vLLM community. Thanks to all contributors who helped design and implement the Responses API and MCP integration.
+This work was a collaboration across the vLLM community. Thanks to all contributors who helped design and implement the Responses API and MCP integration, including the following (but not limited to):
 
-**Meta**: Andrew Xia, Daniel Salib, Ye Hu, Alec Solder, Ye (Charlotte Qi)
+**Meta**: Andrew Xia, Daniel Salib, Ye Hu, Zhiwei Zhao, Alec Solder, Ye (Charlotte) Qi
 
-**vLLM**: Chauncey Jiang
+**DaoCloud**: Chauncey Jiang
+
+**RedHat**: Flora Feng, Ben Browning, Michael Goin
