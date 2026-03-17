@@ -1,27 +1,25 @@
 ---
 layout: post
-title: "Enabling Responses API and MCP on vLLM"
+title: "Enabling ResponsesAPI and MCP on vLLM"
 author: "Meta"
 image: /assets/logos/vllm-logo-text-light.png
 ---
 
-The OpenAI **Responses API** is the successor to the Chat Completions API, designed to support agentic workflows with built-in tool use, multi-turn conversation management, and streaming. We have implemented the Responses API in vLLM, enabling any model served by vLLM to participate in agentic pipelines that call tools, execute code, search the web, and reason through complex tasks -- all through a single `POST /v1/responses` endpoint.
+The OpenAI **ResponsesAPI** is the successor to the Chat Completions API, designed to support agentic workflows with built-in tool use, multi-turn conversation management, and streaming. We have implemented the ResponsesAPI in vLLM, enabling any model served by vLLM to participate in agentic pipelines that call tools, execute code, search the web, and reason through complex tasks -- all through a single `POST /v1/responses` endpoint.
 
 This blog post covers:
 
-- **The Responses API implementation** in vLLM: endpoint design, streaming and non-streaming modes, and the full set of supported features
+- **ResponsesAPI implementation** in vLLM: endpoint design, streaming and non-streaming modes, and the full set of supported features
 - **MCP (Model Context Protocol) integration**: how vLLM connects to external tool servers and executes tool calls during generation
 - **Context architectures**: HarmonyContext for GPT-OSS models and ParsableContext/SimpleContext for all other models
 
-## The Responses API
+## ResponsesAPI
 
-**Responses API** is a modern interface for interacting with large language models that unifies text generation, multimodal inputs, and tool use into a single API primitive. Introduced as the successor to earlier interfaces like Chat Completions and Assistants, it provides a flexible abstraction for building agentic applications—allowing models to generate structured outputs, call tools, maintain conversation state, and integrate external data sources in one request. The API treats a “response” as the fundamental unit of interaction, combining inputs, model reasoning, tool calls, and outputs into a structured object. Developers can learn more about the official specification in the OpenAI Responses [API documentation](https://developers.openai.com/api/reference/resources/responses
-). At the same time, efforts like [OpenResponses Initiative](https://www.openresponses.org/
-) aim to define an open, provider-agnostic standard inspired by this interface, enabling interoperable tooling and reducing vendor lock-in across LLM platforms.
+**ResponsesAPI** is a modern interface for interacting with large language models that unifies text generation, multimodal inputs, and tool use into a single API primitive. Introduced as the successor to earlier interfaces like Chat Completions and Assistants, it provides a flexible abstraction for building agentic applications—allowing models to generate structured outputs, call tools, maintain conversation state, and integrate external data sources in one request. The API treats a “response” as the fundamental unit of interaction, combining inputs, model reasoning, tool calls, and outputs into a structured object. Developers can learn more about the official specification in the OpenAI Responses [API documentation](https://developers.openai.com/api/reference/resources/responses). At the same time, efforts like the [OpenResponses Initiative](https://www.openresponses.org/) aim to define an open, provider-agnostic standard inspired by this interface, enabling interoperable tooling and reducing vendor lock-in across LLM platforms.
 
 ### Endpoint Overview
 
-vLLM exposes three endpoints under the Responses API:
+vLLM exposes three endpoints under ResponsesAPI:
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -40,7 +38,7 @@ curl -X POST http://localhost:8000/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen3-8B",
-    "input": "What is the capital of France?",
+    "input": "What is the capital of France?"
   }'
 ```
 
@@ -56,7 +54,7 @@ When `stream: true`, vLLM emits events as SSE with monotonically increasing sequ
    - `response.output_item.done` -- the output item is finalized
 3. `response.completed` -- the full response with usage statistics
 
-This event structure matches the OpenAI Responses API specification, making vLLM a drop-in replacement for clients already using the Responses API.
+This event structure matches the OpenAI ResponsesAPI specification, making vLLM a drop-in replacement for clients already using ResponsesAPI.
 
 ```bash
 curl -X POST http://localhost:8000/v1/responses \
@@ -72,27 +70,31 @@ See [OpenResponses](https://www.openresponses.org/specification#streaming) for m
 
 ### Supported Features
 
-The vLLM Responses API supports a broad set of features. To see the vLLM specific implementation of responsesAPI:
+The vLLM ResponsesAPI supports a broad set of features. To see the vLLM-specific implementation of ResponsesAPI:
 - ResponsesRequest defined [here](https://github.com/vllm-project/vllm/blob/4ed51308c8826619459be858a6dc4333206f41c1/vllm/entrypoints/openai/responses/protocol.py#L140)
 - ResponsesResponse is defined [here](https://github.com/vllm-project/vllm/blob/4ed51308c8826619459be858a6dc4333206f41c1/vllm/entrypoints/openai/responses/protocol.py#L468)
 
-**Tool Calling (Function and MCP)** Tools of type `function` can be defined in the `tools` list. The model's output is parsed for tool calls using configurable tool parsers (Hermes, Llama, Mistral, etc.). The `tool_choice` parameter supports `"auto"`, `"none"`, `"required"`, or a named function. When the model emits a function call, it is returned as a `function_call` output item with streaming events `response.function_call_arguments.delta` and `response.function_call_arguments.done`.
+**Tool Calling (Function and MCP)**
+ResponsesAPI distinguishes between two tool types:
 
-TODO
+- **Function tools** (`"type": "function"`): Tools defined inline with a JSON schema. The model generates a `function_call` output item, but the **client** is responsible for executing the function and returning the result. This follows a client-side execution model. See [this script](https://github.com/vllm-project/vllm/blob/4ed51308c8826619459be858a6dc4333206f41c1/examples/online_serving/openai_responses_client_with_tools.py) for an example of multi-turn function tools.
+- **MCP tools** (`"type": "mcp"`): Tools hosted on external MCP servers. **vLLM itself** acts as the MCP client—it intercepts the tool call, executes it against the MCP server, injects the result back into the conversation, and continues generating. This happens entirely server-side within a single API request (see the [MCP section](#mcp-model-context-protocol-integration) below). See [this script](https://github.com/vllm-project/vllm/blob/4ed51308c8826619459be858a6dc4333206f41c1/examples/online_serving/openai_responses_client_with_mcp_tools.py) for an example of calling MCP tools with GPT-OSS.
+
+Tools can be defined in the `tools` list in the request. The model's output is parsed for tool calls using configurable tool parsers, which is set with the `--tool-call-parser` flag.
 
 **Reasoning.** The `reasoning` parameter (with an `effort` field) enables chain-of-thought reasoning. Reasoning content is tracked separately from regular output and appears as `ResponseReasoningItem` output items. Streaming emits `response.reasoning_text.delta` and `response.reasoning_text.done` events, allowing clients to display the model's thinking process in real time (see https://github.com/vllm-project/vllm/pull/29947)
 
-**Structured Output.** The `structured_outputs` field supports JSON Schema-constrained generation. When a JSON schema is provided, vLLM enforces the schema during decoding using guided generation, ensuring the output is valid JSON conforming to the specified schema. When a choice is specified, vLLM will only output in final output from the options listed. (see this [PR](https://github.com/vllm-project/vllm/pull/33709) for more context).
+**Structured Output.** The `structured_outputs` field supports JSON Schema-constrained generation. When a JSON schema is provided, vLLM enforces the schema during decoding using guided generation, ensuring the output is valid JSON conforming to the specified schema. When a choice is specified, vLLM will only produce output from the options listed. (see this [PR](https://github.com/vllm-project/vllm/pull/33709) for more context).
 
 **Logprobs.** When `include` contains `"message.output_text.logprobs"`, the response includes per-token log probabilities. The `top_logprobs` parameter controls how many top alternatives are returned per token position.
 
 **vLLM-Specific Extensions.** Beyond the standard API, vLLM adds parameters for `priority` (request scheduling priority), `cache_salt` (prefix cache isolation), `seed` (deterministic sampling), `repetition_penalty`, custom `stop` sequences, and `enable_response_messages` (returns raw prompt and output token IDs for debugging).
 
-**Debugging** We also have implemented the ability to return raw input and output tokens for responsesAPI, you can enable this by using the `enable_response_messages` flag. (See https://github.com/vllm-project/vllm/pull/29549)
+**Debugging.** We have also implemented the ability to return raw input and output tokens for ResponsesAPI. You can enable this by using the `enable_response_messages` flag. (See https://github.com/vllm-project/vllm/pull/29549)
 
 ## MCP: Model Context Protocol Integration
 
-The **Model Context Protocol (MCP)** allows LLMs to call external tools during generation, with vLLM handling the tool calling instead of function tools, in which the client is responsible for handling tool calls. vLLM implements MCP as a first-class feature of the Responses API: when a model generates a tool call, vLLM intercepts it, calls the appropriate MCP tool server, and feeds the result back to the model for the next turn of generation -- all within a single API request.
+The **Model Context Protocol (MCP)** allows LLMs to call external tools during generation, with vLLM handling the tool execution server-side -- unlike function tools, where the client is responsible for handling tool calls. vLLM implements MCP as a first-class feature of ResponsesAPI: when a model generates a tool call, vLLM intercepts it, calls the appropriate MCP tool server, and feeds the result back to the model for the next turn of generation -- all within a single API request.
 
 ### Built-in Tools
 
@@ -106,7 +108,7 @@ vLLM supports three categories of built-in tools:
 
 ### Tool Server Architecture
 
-vLLM provides two `ToolServer` implementations:
+vLLM provides the following `ToolServer` implementation:
 
 **`MCPToolServer`**: Connects to external MCP-compatible tool servers over SSE. Multiple servers can be specified via comma-separated URLs. Each server exposes its tools via the MCP protocol, and vLLM discovers available tools at startup via `session.list_tools()`. Tool sessions are created per-request with unique session IDs.
 
@@ -138,7 +140,7 @@ This allows clients to display the model's tool interactions in real time, showi
 
 ## Context Architecture
 
-A key design decision in the Responses API is how to manage the conversation state during multi-turn tool-calling loops. vLLM implements the following context architectures to support different model families.
+A key design decision in the ResponsesAPI is how to manage the conversation state during multi-turn tool-calling loops. vLLM implements the following context architectures to support different model families.
 
 ### HarmonyContext (GPT-OSS Models)
 
@@ -170,7 +172,7 @@ Eventually, all three context architectures will be merged into a single, unifie
 
 ## Metrics & Token Usage Tracking
 
-The Responses API provides detailed token usage information in the response, including:
+ResponsesAPI provides detailed token usage information in the response, including:
 
 - `input_tokens`: Total prompt tokens across all turns
 - `output_tokens`: Total generated tokens
@@ -181,11 +183,11 @@ For multi-turn tool-calling interactions, the `TurnMetrics` class tracks per-tur
 
 ## Evals
 
-With vLLM's ResponsesAPI implementation, we were able to replicate Kimi K2's HLE score of 23.9. We used the open source HLE test harness, used OpenAI's o3-mini as a judge. We also ran GPT-OSS against vLLM responsesAPI with MCP tools (including browser, python, and container). With high reasoning on GPT-OSS 120B, we achieved a score of 0.97 on AIME25, which matches OpenAI's GPTOSS model card.
+With vLLM's ResponsesAPI implementation, we were able to replicate Kimi K2's HLE score of 23.9. We used the open-source HLE test harness with OpenAI's o3-mini as a judge. We also ran GPT-OSS against the vLLM ResponsesAPI with MCP tools (including browser, python, and container). With high reasoning on GPT-OSS 120B, we achieved a score of 0.97 on AIME 2025, which matches OpenAI's GPT-OSS model card.
 
 ## Getting Started
 
-To use the Responses API with vLLM:
+To use the ResponsesAPI with vLLM:
 
 ```bash
 # with Tool calling and reasoning
@@ -245,7 +247,8 @@ VLLM_USE_EXPERIMENTAL_PARSER_CONTEXT=1 \
 vllm serve moonshotai/Kimi-K2-Thinking \
 --trust-remote-code \
 --tensor-parallel-size 8 \
---enable-auto-tool-choice \ --tool-call-parser kimi_k2 \
+--enable-auto-tool-choice \
+--tool-call-parser kimi_k2 \
 --reasoning-parser kimi_k2 \
 --tool-server=localhost:8081/container,localhost:8081/browser,localhost:8081/python
 
@@ -267,16 +270,15 @@ curl -X POST "http://localhost:8000/v1/responses"   -H "Content-Type: applicatio
 
 ## Future Work
 
-- **Offloading response storage & API Layer**: Currently, stored responses are held in memory with no eviction. We would like to support offloading responsesAPI state management to a third party database, and potentially offload the API layer outside of the core vLLM engine (see https://github.com/vllm-project/vllm/issues/26934)
+- **Offloading response storage & API Layer**: Currently, stored responses are held in memory with no eviction. We would like to support offloading ResponsesAPI state management to a third-party database, and potentially offload the API layer outside of the core vLLM engine (see https://github.com/vllm-project/vllm/issues/26934)
 - **Expanded tool support**: Add MCP support for all tools. (See https://github.com/vllm-project/vllm/issues/30115)
-- **Open Responses Conformity**: OpenResponses (https://www.openresponses.org/
-), launched in January 2026, is an open initiative to standardize a vendor-neutral API for LLM interactions based on the Responses API abstraction, covering structured outputs, tool calls, multimodal inputs, and reasoning traces. For vLLM, supporting OpenResponses enables compatibility with a growing ecosystem of agent frameworks and SDKs while giving users a portable interface that works across both hosted APIs and open-source model deployments.
+- **Open Responses Conformity**: [OpenResponses](https://www.openresponses.org/), launched in January 2026, is an open initiative to standardize a vendor-neutral API for LLM interactions based on ResponsesAPI abstraction, covering structured outputs, tool calls, multimodal inputs, and reasoning traces. For vLLM, supporting OpenResponses enables compatibility with a growing ecosystem of agent frameworks and SDKs while giving users a portable interface that works across both hosted APIs and open-source model deployments.
 
-To see more details about the future work and explore opportunities to contribute, please see this vLLM feature development map: https://github.com/vllm-project/vllm/issues/34857
+To see more details about the future work and explore opportunities to contribute, please see this vLLM feature development map for H1 2026: https://github.com/vllm-project/vllm/issues/34857
 
 ## Acknowledgements
 
-This work was a collaboration across the vLLM community. Thanks to all contributors who helped design and implement the Responses API and MCP integration, including the following (but not limited to):
+This work was a collaboration across the vLLM community. Thanks to all contributors who helped design and implement ResponsesAPI and MCP integration, including the following (but not limited to):
 
 **Meta**: Andrew Xia, Daniel Salib, Ye Hu, Zhiwei Zhao, Alec Solder, Ye (Charlotte) Qi
 
