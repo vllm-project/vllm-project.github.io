@@ -18,7 +18,7 @@ Hidden states are the model's internal intermediate representations of the token
 
 Speculative decoding typically combines a "verifier" model—the large LLM you are trying to serve—with a small "draft" model. The draft model produces draft tokens that the verifier model then verifies in parallel. This can significantly speed up decoding (up to 2-5x depending on methodology), particularly in lower batch size scenarios, where model performance is memory-bound. 
 
-Researchers have found that providing the draft model with internal hidden states from the verifier model can improve drafting alignment and overall quality. Methods like Eagle3, P-Eagle, DFlash, etc. were therefore designed, which require hidden states from multiple verifier layers as input.
+Researchers have found that providing the draft model with internal hidden states from the verifier model can improve drafting alignment and overall quality. Methods like [Eagle-3](https://arxiv.org/abs/2503.01840), [P-Eagle](https://arxiv.org/abs/2602.01469), [DFlash](https://arxiv.org/abs/2602.06036), etc. were therefore designed, which require hidden states from multiple verifier layers as input.
 
 Since the draft models take hidden states as input, training them requires access to a large dataset of hidden states and verifier outputs. Most speculative decoding libraries (like Speculators) solve this using one of two approaches:
 
@@ -43,18 +43,18 @@ Lastly, there are many different ways the final user may want to use, store, or 
 
 With the above requirements in mind, several design insights led to the implementation of the hidden states extraction system. These insights are summarized below.
 
-1. vLLM supports running inference with Eagle3 (and similar) speculative decoding models, which use verifier model hidden states as input. Therefore, there is already plumbing for moving hidden states from the verifier model into the draft models.  
+1. vLLM supports running inference with Eagle-3 (and similar) speculative decoding models, which use verifier model hidden states as input. Therefore, there is already plumbing for moving hidden states from the verifier model into the draft models.  
 2. vLLM has an extensible [KV Connector API](https://docs.vllm.ai/en/stable/api/vllm/distributed/kv_transfer/kv_connector/v1/) for efficiently extracting data from vLLM's KV cache, which is used for features like Prefill/Decode Disaggregation. Existing implementations of this API support transferring KV cache data over Nixl, writing it to disk, storing in shared memory, and more. The API is also designed to support async transfers of kv cache states and ensures KV cache blocks aren't freed until transfers are complete.  
 3. Hidden states are mapped to their token sequence inputs in the same way as KV cache data. In other words, for every token there is a hidden state value and the value is only valid in the context of the prefix sequence that comes before it.  
 4. vLLM supports separate KV cache config/sizes for speculative draft models.
 
 Putting these ideas together (Figure 1), we can extract hidden states by:
 
-1. Creating a dummy draft model which receives the verifier hidden states from vLLM using the existing plumbing for Eagle3 models.  
+1. Creating a dummy draft model which receives the verifier hidden states from vLLM using the existing plumbing for Eagle-3 models.  
 2. This dummy model has a dummy attention layer with its own KV cache. Instead of running attention, the dummy model just directly inserts the hidden states inputs into its KV cache.  
 3. Then a custom KV Connector saves the dummy draft model’s KV cache data (which now stores our hidden states) to disk or transfers it some other way.
 
-This meets all design requirements, by utilizing existing Eagle3 pathways to pipe the hidden states to the draft model and providing a performant method for extracting the hidden states which is flexible enough to handle different downstream usages through the KV Connector API. Since the draft model stores hidden states in dummy attention layers, vLLM knows to allocate VRAM for them. vLLM also manages the hidden states using the same paged memory system as the KV cache uses, which enables prefix caching, chunked prefill, efficient batching, and more. 
+This meets all design requirements, by utilizing existing Eagle-3 pathways to pipe the hidden states to the draft model and providing a performant method for extracting the hidden states which is flexible enough to handle different downstream usages through the KV Connector API. Since the draft model stores hidden states in dummy attention layers, vLLM knows to allocate VRAM for them. vLLM also manages the hidden states using the same paged memory system as the KV cache uses, which enables prefix caching, chunked prefill, efficient batching, and more. 
 
 <p align="center">
 <img src="/assets/figures/2026-03-30-extract-hidden-states/design_diagram.png" width="100%">
