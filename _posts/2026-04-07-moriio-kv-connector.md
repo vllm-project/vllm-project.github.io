@@ -581,9 +581,9 @@ python examples/online_serving/disaggregated_serving/moriio_toy_proxy_server.py
 
 We would like to thank the many talented people who have contributed to this collaboration:
 
-**AMD:** Hongxia Yang, Gilbert Lei, Mingzhi Liu, Niko Ma, Tian Di, Randy Smith, Feiyue Zhai, Peng Sun, and the MORI team.
+**AMD:** Hongxia Yang, Gilbert Lei, Mingzhi Liu, Niko Ma, Tian Di, Randall Smith, Feiyue Zhai, Peng Sun, and the MORI team.
 
-**Embedded LLM:** Pin Siang Tan, Tun Jian Tan, Jun Kang Chow, Ye Hur Cheong, Vensen Mu, Jeff Aw, and the Embedded LLM team.
+**Embedded LLM:** Pin Siang Tan, Jun Kang Chow, Ye Hur Cheong, Vensen Mu, Jeff Aw, Tun Jian Tan and the Embedded LLM team.
 
 ## References
 1. <a id="ref-1"> </a> AMD and Embedded LLM, "The vLLM MoE Playbook: A Practical Guide to TP, DP, PP and Expert Parallelism" <a href="https://rocm.blogs.amd.com/software-tools-optimization/vllm-moe-guide/README.html">https://rocm.blogs.amd.com/software-tools-optimization/vllm-moe-guide/README.html</a>
