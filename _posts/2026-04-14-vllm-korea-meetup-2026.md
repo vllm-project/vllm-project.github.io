@@ -43,7 +43,7 @@ The message from this session was unambiguous: LLM serving is no longer just a q
 
 ## Integrating AI Accelerators with vLLM
 
-Dr. Kim also covered the integration roadmap between vLLM and AI accelerator hardware. Rebellions, an AI semiconductor company, is developing the vllm-rbln plugin to bring its proprietary NPUs into the vLLM ecosystem. Core features like paged attention and continuous batching are already implemented and supported in the NPU environment. More advanced capabilities — including speculative decoding, distributed KV cache, and prefill/decode disaggregation — are currently in development, with next-generation NPUs like the Rebel100TM opening the door to large-scale inference cluster deployments.
+Dr. Kim also covered the integration roadmap between vLLM and AI accelerator hardware. Rebellions, an AI semiconductor company, is developing the vllm-rbln plugin to bring its proprietary NPUs into the vLLM ecosystem. Core features like paged attention and continuous batching are already implemented and supported in the NPU environment. More advanced capabilities — including speculative decoding, distributed KV cache, and prefill/decode disaggregation — are currently in development, with next-generation NPUs like the Rebel100™ opening the door to large-scale inference cluster deployments.
 
 This approach reflects a broader industry shift: rather than hardware-specific, siloed optimizations, AI inference infrastructure is being restructured around vLLM as the common layer connecting diverse accelerators.
 
