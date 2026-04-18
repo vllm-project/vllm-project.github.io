@@ -1,0 +1,838 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 820 783.92975"
+   font-family="'Segoe UI', Arial, sans-serif"
+   version="1.1"
+   id="svg54"
+   sodipodi:docname="write-mode-request-flow-diagram-2.svg"
+   width="820"
+   height="783.92975"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview54"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.925"
+     inkscape:cx="480.54054"
+     inkscape:cy="-5.945946"
+     inkscape:window-width="1920"
+     inkscape:window-height="1111"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg54" />
+  <defs
+     id="defs4">
+    <rect
+       x="107.02703"
+       y="369.72974"
+       width="819.45947"
+       height="113.51351"
+       id="rect55" />
+    <marker
+       id="arr-gray"
+       markerWidth="10"
+       markerHeight="7"
+       refX="10"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#616161"
+         id="polygon1" />
+    </marker>
+    <marker
+       id="arr-red"
+       markerWidth="10"
+       markerHeight="7"
+       refX="10"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#e4002b"
+         id="polygon2" />
+    </marker>
+    <marker
+       id="arr-green"
+       markerWidth="10"
+       markerHeight="7"
+       refX="10"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#00843d"
+         id="polygon3" />
+    </marker>
+    <marker
+       id="arr-blue"
+       markerWidth="10"
+       markerHeight="7"
+       refX="10"
+       refY="3.5"
+       orient="auto">
+      <polygon
+         points="10,3.5 0,7 0,0 "
+         fill="#1565c0"
+         id="polygon4" />
+    </marker>
+    <filter
+       id="shadow"
+       x="-0.0041666667"
+       y="-0.025"
+       width="1.0083333"
+       height="1.05">
+      <feDropShadow
+         dx="0"
+         dy="1"
+         stdDeviation="2"
+         flood-opacity="0.1" />
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect
+     width="820"
+     height="783.92975"
+     fill="#FAFAFA"
+     rx="8"
+     id="rect4"
+     style="fill:#ffffff;stroke-width:0.923092"
+     x="0"
+     y="0" />
+  <!-- ============================================================ -->
+  <!-- BOXES FIRST                                                   -->
+  <!-- ============================================================ -->
+  <!-- CLIENT (top) -->
+  <text
+     x="410"
+     y="35.893532"
+     text-anchor="middle"
+     font-size="15"
+     font-weight="700"
+     fill="#333333"
+     id="text5"
+     style="font-size:14.6667px">CLIENT</text>
+  <!-- PROXY SERVER (top) -->
+  <rect
+     x="260"
+     y="109.89353"
+     width="300"
+     height="60"
+     rx="10"
+     fill="#ffffff"
+     stroke="#1565c0"
+     stroke-width="2.5"
+     filter="url(#shadow)"
+     id="rect6" />
+  <rect
+     x="260"
+     y="109.89353"
+     width="300"
+     height="30"
+     rx="10"
+     fill="#1565c0"
+     id="rect7" />
+  <rect
+     x="260"
+     y="127.89353"
+     width="300"
+     height="12"
+     fill="#1565c0"
+     id="rect8" />
+  <text
+     x="410"
+     y="131.89352"
+     text-anchor="middle"
+     font-size="14"
+     font-weight="700"
+     fill="#ffffff"
+     id="text8"
+     style="font-size:14.6667px">PROXY SERVER</text>
+  <text
+     x="410"
+     y="157.89352"
+     text-anchor="middle"
+     font-size="11"
+     fill="#757575"
+     id="text9"
+     style="font-size:14.6667px">concurrent dispatch (no wait)</text>
+  <!-- MI300X NODE BOX -->
+  <rect
+     x="66.942238"
+     y="225.03168"
+     width="680"
+     height="310"
+     rx="12"
+     fill="#f5f5f5"
+     stroke="#bdbdbd"
+     stroke-width="2"
+     stroke-dasharray="8, 4"
+     id="rect9" />
+  <text
+     x="406.94223"
+     y="251.03168"
+     text-anchor="middle"
+     font-size="14px"
+     font-weight="600"
+     fill="#424242"
+     id="text10"
+     style="font-size:14.6667px">Single MI300X Node (8 GPUs)</text>
+  <!-- PREFILL Instance -->
+  <rect
+     x="101.94224"
+     y="269.03168"
+     width="250"
+     height="240"
+     rx="10"
+     fill="#ffffff"
+     stroke="#e4002b"
+     stroke-width="2.5"
+     id="rect10" />
+  <rect
+     x="101.94224"
+     y="269.03168"
+     width="250"
+     height="38"
+     rx="10"
+     fill="#e4002b"
+     id="rect11" />
+  <rect
+     x="101.94224"
+     y="294.03168"
+     width="250"
+     height="13"
+     fill="#e4002b"
+     id="rect12" />
+  <text
+     x="226.94225"
+     y="295.03168"
+     text-anchor="middle"
+     font-size="14px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text12"
+     style="font-size:17.3333px">PREFILL Instance</text>
+  <text
+     x="226.94225"
+     y="329.03168"
+     text-anchor="middle"
+     font-size="11px"
+     fill="#757575"
+     id="text13"
+     style="font-size:14.6667px">kv_producer</text>
+  <rect
+     x="124.94224"
+     y="347.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#fff3f3"
+     stroke="#e4002b"
+     stroke-width="1.5"
+     id="rect13" />
+  <text
+     x="169.94225"
+     y="375.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#c62828"
+     id="text14"
+     style="font-size:14.6667px">GPU 0</text>
+  <rect
+     x="234.94225"
+     y="347.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#fff3f3"
+     stroke="#e4002b"
+     stroke-width="1.5"
+     id="rect14" />
+  <text
+     x="279.94223"
+     y="375.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#c62828"
+     id="text15"
+     style="font-size:14.6667px">GPU 1</text>
+  <rect
+     x="124.94224"
+     y="401.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#fff3f3"
+     stroke="#e4002b"
+     stroke-width="1.5"
+     id="rect15" />
+  <text
+     x="169.94225"
+     y="429.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#c62828"
+     id="text16"
+     style="font-size:14.6667px">GPU 2</text>
+  <rect
+     x="234.94225"
+     y="401.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#fff3f3"
+     stroke="#e4002b"
+     stroke-width="1.5"
+     id="rect16" />
+  <text
+     x="279.94223"
+     y="429.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#c62828"
+     id="text17"
+     style="font-size:14.6667px">GPU 3</text>
+  <text
+     x="226.94225"
+     y="477.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="600"
+     fill="#999999"
+     id="text18"
+     style="font-size:14.6667px">TP = 4</text>
+  <!-- DECODE Instance (height extended to 260 to fit step badges) -->
+  <rect
+     x="461.94223"
+     y="269.03168"
+     width="250"
+     height="260"
+     rx="10"
+     fill="#ffffff"
+     stroke="#00843d"
+     stroke-width="2.5"
+     id="rect18" />
+  <rect
+     x="461.94223"
+     y="269.03168"
+     width="250"
+     height="38"
+     rx="10"
+     fill="#00843d"
+     id="rect19" />
+  <rect
+     x="461.94223"
+     y="294.03168"
+     width="250"
+     height="13"
+     fill="#00843d"
+     id="rect20" />
+  <text
+     x="586.94226"
+     y="295.03168"
+     text-anchor="middle"
+     font-size="14px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text20"
+     style="font-size:17.3333px">DECODE Instance</text>
+  <text
+     x="586.94226"
+     y="329.03168"
+     text-anchor="middle"
+     font-size="11px"
+     fill="#757575"
+     id="text21"
+     style="font-size:14.6667px">kv_consumer</text>
+  <rect
+     x="484.94223"
+     y="347.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#f1f8f3"
+     stroke="#00843d"
+     stroke-width="1.5"
+     id="rect21" />
+  <text
+     x="529.94226"
+     y="375.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#1b5e20"
+     id="text22"
+     style="font-size:14.6667px">GPU 4</text>
+  <rect
+     x="594.94226"
+     y="347.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#f1f8f3"
+     stroke="#00843d"
+     stroke-width="1.5"
+     id="rect22" />
+  <text
+     x="639.94226"
+     y="375.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#1b5e20"
+     id="text23"
+     style="font-size:14.6667px">GPU 5</text>
+  <rect
+     x="484.94223"
+     y="401.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#f1f8f3"
+     stroke="#00843d"
+     stroke-width="1.5"
+     id="rect23" />
+  <text
+     x="529.94226"
+     y="429.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#1b5e20"
+     id="text24"
+     style="font-size:14.6667px">GPU 6</text>
+  <rect
+     x="594.94226"
+     y="401.03168"
+     width="90"
+     height="44"
+     rx="6"
+     fill="#f1f8f3"
+     stroke="#00843d"
+     stroke-width="1.5"
+     id="rect24" />
+  <text
+     x="639.94226"
+     y="429.03168"
+     text-anchor="middle"
+     font-size="12px"
+     font-weight="600"
+     fill="#1b5e20"
+     id="text25"
+     style="font-size:14.6667px">GPU 7</text>
+  <text
+     x="586.94226"
+     y="463.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="600"
+     fill="#999999"
+     id="text26"
+     style="font-size:14.6667px">TP = 4</text>
+  <!-- Steps 4 & 5: proper circle badges inside decode box -->
+  <circle
+     cx="481.94223"
+     cy="479.03168"
+     r="11"
+     fill="#1565c0"
+     id="circle26" />
+  <text
+     x="481.94223"
+     y="483.03165"
+     text-anchor="middle"
+     font-size="10px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text27"
+     style="font-size:14.6667px">4</text>
+  <text
+     x="496.94223"
+     y="483.03165"
+     font-size="9px"
+     fill="#1565c0"
+     font-weight="600"
+     id="text28"
+     style="font-size:14.6667px">WAITING_FOR_REMOTE_KVS</text>
+  <circle
+     cx="481.94223"
+     cy="509.03165"
+     r="11"
+     fill="#00843d"
+     id="circle28" />
+  <text
+     x="481.94223"
+     y="513.03168"
+     text-anchor="middle"
+     font-size="10px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text29"
+     style="font-size:14.6667px">5</text>
+  <text
+     x="496.94223"
+     y="513.03168"
+     font-size="9px"
+     fill="#00843d"
+     font-weight="600"
+     id="text30"
+     style="font-size:14.6667px">decode begins generation</text>
+  <!-- PROXY SERVER (bottom) -->
+  <rect
+     x="406.94223"
+     y="613.03168"
+     width="300"
+     height="50"
+     rx="10"
+     fill="#ffffff"
+     stroke="#1565c0"
+     stroke-width="2.5"
+     filter="url(#shadow)"
+     id="rect30" />
+  <rect
+     x="406.94223"
+     y="613.03168"
+     width="300"
+     height="28"
+     rx="10"
+     fill="#1565c0"
+     id="rect31" />
+  <rect
+     x="406.94223"
+     y="629.03168"
+     width="300"
+     height="12"
+     fill="#1565c0"
+     id="rect32" />
+  <text
+     x="556.94226"
+     y="633.03168"
+     text-anchor="middle"
+     font-size="13px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text32"
+     style="font-size:14.6667px">PROXY SERVER</text>
+  <text
+     x="556.94226"
+     y="655.03168"
+     text-anchor="middle"
+     font-size="10px"
+     fill="#757575"
+     id="text33"
+     style="font-size:14.6667px">forwards SSE stream</text>
+  <!-- CLIENT (bottom) -->
+  <text
+     x="556.94226"
+     y="761.03168"
+     text-anchor="middle"
+     font-size="15px"
+     font-weight="700"
+     fill="#333333"
+     id="text34"
+     style="font-size:14.6667px">CLIENT</text>
+  <!-- ============================================================ -->
+  <!-- ARROWS LAST                                                   -->
+  <!-- ============================================================ -->
+  <!-- Arrow 1: Client → Proxy -->
+  <line
+     x1="410"
+     y1="39.893532"
+     x2="410"
+     y2="105.89353"
+     stroke="#616161"
+     stroke-width="2"
+     marker-end="url(#arr-gray)"
+     id="line34" />
+  <circle
+     cx="320"
+     cy="63.893532"
+     r="13"
+     fill="#1565c0"
+     id="circle34" />
+  <text
+     x="320"
+     y="68.893532"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text35"
+     style="font-size:14.6667px">1</text>
+  <text
+     x="338"
+     y="57.893532"
+     font-size="11px"
+     fill="#555555"
+     font-weight="600"
+     id="text36"
+     style="font-size:14.6667px"><tspan
+       sodipodi:role="line"
+       id="tspan56"
+       x="338"
+       y="57.893532">HTTP</tspan><tspan
+       sodipodi:role="line"
+       id="tspan57"
+       x="338"
+       y="76.226906">request</tspan></text>
+  <!-- Concurrent fork lines (purple) -->
+  <text
+     x="377.90765"
+     y="188.07587"
+     font-size="9px"
+     font-weight="700"
+     fill="#7b1fa2"
+     id="text39"
+     style="font-size:14.6667px">concurrent</text>
+  <!-- Arrow 2a: Proxy → Prefill (concurrent) -->
+  <path
+     d="m 302.10003,172.56268 -67.31558,46.62567"
+     stroke="#e4002b"
+     stroke-width="1.54994"
+     fill="none"
+     marker-end="url(#arr-red)"
+     id="path39" />
+  <circle
+     cx="244.94225"
+     cy="177.03168"
+     r="13"
+     fill="#e4002b"
+     id="circle39" />
+  <text
+     x="244.94225"
+     y="182.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text40"
+     style="font-size:14.6667px">2</text>
+  <text
+     x="171.94225"
+     y="169.03168"
+     font-size="10px"
+     fill="#555555"
+     font-weight="600"
+     text-anchor="middle"
+     id="text41"
+     style="font-size:14.6667px">prompt</text>
+  <text
+     x="171.94225"
+     y="182.03168"
+     font-size="9px"
+     fill="#888888"
+     text-anchor="middle"
+     id="text42"
+     style="font-size:14.6667px">(max_tokens=1)</text>
+  <!-- Arrow 2b: Proxy → Decode (concurrent, no wait) -->
+  <path
+     d="m 511.78469,172.47066 67.3151,46.71415"
+     stroke="#00843d"
+     stroke-width="1.5514"
+     fill="none"
+     marker-end="url(#arr-green)"
+     id="path42" />
+  <circle
+     cx="568.94226"
+     cy="177.03168"
+     r="13"
+     fill="#00843d"
+     id="circle42" />
+  <text
+     x="568.94226"
+     y="182.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text43"
+     style="font-size:14.6667px">2</text>
+  <text
+     x="638.94226"
+     y="167.03168"
+     font-size="10px"
+     fill="#555555"
+     font-weight="600"
+     text-anchor="middle"
+     id="text44"
+     style="font-size:14.6667px">request</text>
+  <text
+     x="638.94226"
+     y="180.03168"
+     font-size="9px"
+     fill="#888888"
+     text-anchor="middle"
+     id="text45"
+     style="font-size:14.6667px">(no wait)</text>
+  <!-- KV Cache Transfer Arrow (step 3, RDMA WRITE: prefill pushes to decode) -->
+  <line
+     x1="354.94223"
+     y1="389.03168"
+     x2="458.94223"
+     y2="389.03168"
+     stroke="#1565c0"
+     stroke-width="3"
+     marker-end="url(#arr-blue)"
+     id="line45" />
+  <circle
+     cx="406.94223"
+     cy="364.03168"
+     r="13"
+     fill="#1565c0"
+     id="circle45" />
+  <text
+     x="406.94223"
+     y="369.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text46"
+     style="font-size:14.6667px">3</text>
+  <rect
+     x="368.94223"
+     y="405.03168"
+     width="76"
+     height="16"
+     rx="3"
+     fill="#fff8e1"
+     stroke="#f9a825"
+     stroke-width="1"
+     id="rect46" />
+  <text
+     x="406.94223"
+     y="417.03168"
+     text-anchor="middle"
+     font-size="9px"
+     font-weight="600"
+     fill="#e65100"
+     id="text47"
+     style="font-size:14.6667px">KV Cache</text>
+  <text
+     x="406.94223"
+     y="437.03168"
+     text-anchor="middle"
+     font-size="10px"
+     font-weight="600"
+     fill="#1565c0"
+     id="text48"
+     style="font-size:14.6667px">Mori-IO</text>
+  <text
+     x="406.94223"
+     y="451.03168"
+     text-anchor="middle"
+     font-size="9px"
+     fill="#888888"
+     id="text49"
+     style="font-size:14.6667px">(RDMA WRITE)</text>
+  <!-- Arrow 6: Decode → Proxy (bottom) -->
+  <line
+     x1="586.94226"
+     y1="535.03168"
+     x2="586.94226"
+     y2="609.03168"
+     stroke="#00843d"
+     stroke-width="2"
+     marker-end="url(#arr-green)"
+     id="line49" />
+  <circle
+     cx="551.94226"
+     cy="569.03168"
+     r="13"
+     fill="#00843d"
+     id="circle49" />
+  <text
+     x="551.94226"
+     y="574.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text50"
+     style="font-size:14.6667px">6</text>
+  <text
+     x="528.94226"
+     y="594.03168"
+     font-size="10px"
+     fill="#555555"
+     font-weight="600"
+     text-anchor="middle"
+     id="text51"
+     style="font-size:14.6667px">Stream tokens</text>
+  <!-- Arrow 6: Proxy → Client (bottom) -->
+  <line
+     x1="556.94226"
+     y1="663.03168"
+     x2="556.94226"
+     y2="745.03168"
+     stroke="#1565c0"
+     stroke-width="2"
+     marker-end="url(#arr-blue)"
+     id="line51" />
+  <circle
+     cx="521.94226"
+     cy="699.03168"
+     r="13"
+     fill="#1565c0"
+     id="circle51" />
+  <text
+     x="521.94226"
+     y="704.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="700"
+     fill="#ffffff"
+     id="text52"
+     style="font-size:14.6667px">6</text>
+  <text
+     x="500.94223"
+     y="725.03168"
+     font-size="10px"
+     fill="#555555"
+     font-weight="600"
+     text-anchor="middle"
+     id="text53"
+     style="font-size:14.6667px">SSE stream</text>
+  <!-- TIME axis -->
+  <line
+     x1="37.567566"
+     y1="7.8935318"
+     x2="37.567566"
+     y2="730.42096"
+     stroke="#bdbdbd"
+     stroke-width="1.44227"
+     stroke-dasharray="6, 4"
+     id="line53" />
+  <polygon
+     points="40,895 45,880 35,880 "
+     fill="#bdbdbd"
+     id="polygon53"
+     transform="translate(-3.0577591,-152.96833)" />
+  <text
+     x="36.942242"
+     y="757.03168"
+     text-anchor="middle"
+     font-size="11px"
+     font-weight="600"
+     fill="#bdbdbd"
+     id="text54"
+     style="font-size:14.6667px">TIME</text>
+  <text
+     xml:space="preserve"
+     id="text55"
+     style="font-size:10.6667px;font-family:Arial;-inkscape-font-specification:Arial;text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect55);display:inline;fill:#ffffff;stroke:#000000;stroke-width:3;stroke-dasharray:18, 18"
+     transform="translate(0,-32.106468)" />
+</svg>
