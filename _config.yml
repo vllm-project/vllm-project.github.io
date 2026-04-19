@@ -12,6 +12,8 @@ description: >
 
 # Build settings
 
+future: true
+
 remote_theme: jekyll/minima@5ce4006d175e6e5278bb63a0aad1a85e3bf2370b
 
 plugins:
