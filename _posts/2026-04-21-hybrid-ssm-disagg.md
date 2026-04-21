@@ -220,6 +220,12 @@ A simpler alternative would be to transfer the entire conv state to each D rank 
 - **Transfer only what you own** — Each D rank transfers only its `1/TP` share of the conv state, not the full state. For `D_TP=4`, this means 4x less data per rank compared to the "transfer everything, slice locally" approach.
 - **Skip HMA padding** — Recall that HMA pads SSM pages so they match FA page sizes. The Mamba descriptors are sized to the actual `conv_bytes + ssm_bytes`, not the padded page size. This means we never transfer the padding bytes over the wire — only the real state. For models where the padding is substantial (e.g., when FA page sizes are much larger than the raw SSM state), this can meaningfully reduce transfer volume per block.
 
+<p align="center">
+<img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/transfer-volume-vs-isl.png" width="80%">
+<br>
+<em>Figure 2: P→D transfer volume vs. input sequence length for Nemotron Super 120B at TP=4. The Mamba descriptors skip HMA padding, so the measured NIXL transfer (blue) tracks the optimal no-padding baseline rather than the naive padded transfer.</em>
+</p>
+
 ---
 
 ## Putting It Together: Nemotron-H Example
@@ -262,12 +268,6 @@ The entire transfer is a single async operation from D's perspective. No interme
 <img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png" width="100%">
 <br>
 <em>Figure 1: Disaggregated P/D vs. co-located serving for a hybrid SSM model. Top: throughput-vs-latency Pareto curve across concurrency levels. Bottom: NIXL transfer statistics — descriptor count, data volume, and RDMA throughput per request.</em>
-</p>
-
-<p align="center">
-<img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/transfer-volume-vs-isl.png" width="80%">
-<br>
-<em>Figure 2: P→D transfer volume vs. input sequence length for Nemotron Super 120B at TP=4. The Mamba descriptors skip HMA padding, so the measured NIXL transfer (blue) tracks the optimal no-padding baseline rather than the naive padded transfer.</em>
 </p>
 
 ---
