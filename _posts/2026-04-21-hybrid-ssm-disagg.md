@@ -2,6 +2,7 @@
 layout: post
 title: "Disaggregated Serving for Hybrid SSM Models in vLLM"
 author: "Nicolo Lucchesi, Zhanqiu Hu (Red Hat), and the vLLM team"
+image: /assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png
 tags:
   - disaggregation
   - mamba
@@ -255,7 +256,19 @@ The entire transfer is a single async operation from D's perspective. No interme
 
 ## Performance
 
-> **TODO**: Add benchmark results comparing co-located vs. disaggregated serving for Nemotron-H.
+> **TODO**: Add description text for the performance results.
+
+<p align="center">
+<img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png" width="100%">
+<br>
+<em>Figure 1: Disaggregated P/D vs. co-located serving for a hybrid SSM model. Top: throughput-vs-latency Pareto curve across concurrency levels. Bottom: NIXL transfer statistics — descriptor count, data volume, and RDMA throughput per request.</em>
+</p>
+
+<p align="center">
+<img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/transfer-volume-vs-isl.png" width="80%">
+<br>
+<em>Figure 2: P→D transfer volume vs. input sequence length for Nemotron Super 120B at TP=4. The Mamba descriptors skip HMA padding, so the measured NIXL transfer (blue) tracks the optimal no-padding baseline rather than the naive padded transfer.</em>
+</p>
 
 ---
 
