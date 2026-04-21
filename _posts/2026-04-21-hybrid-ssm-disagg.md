@@ -21,6 +21,8 @@ In this post we describe how we extended the NIXL connector to support hybrid SS
 
 None of these changes modify the existing workflow for standard transformer models. They are purely additive extensions that activate only when the model contains SSM layers.
 
+> **TODO**: Add vLLM release version, e.g. "Available in `vllm>=v0.X.0`"
+
 This work builds on the [HMA interface for NIXL](https://github.com/vllm-project/vllm/pull/35758) and spans several PRs:
 
 - [#36687](https://github.com/vllm-project/vllm/pull/36687) — Dual descriptor views and homogeneous-TP support for hybrid SSM-FA models
