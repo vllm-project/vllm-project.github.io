@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Disaggregated Serving for Hybrid SSM Models in vLLM"
-author: "Nicolo Lucchesi, Zhanqiu Hu (Red Hat), and the vLLM team"
+author: "Nicolò Lucchesi, Zhanqiu Hu (Red Hat), and the vLLM team"
 image: /assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png
 tags:
   - disaggregation
@@ -21,8 +21,7 @@ In this post we describe how we extended the NIXL connector to support hybrid SS
 - **3-descriptor conv transfer** — a decomposition of the Mamba conv state that enables heterogeneous tensor-parallel transfers without reshuffling data on the sender side.
 
 None of these changes modify the existing workflow for standard transformer models. They are purely additive extensions that activate only when the model contains SSM layers.
-
-> **TODO**: Add vLLM release version, e.g. "Available in `vllm>=v0.X.0`"
+This feature is available with `vllm>=v0.20.0`.
 
 This work builds on the [HMA interface for NIXL](https://github.com/vllm-project/vllm/pull/35758) and spans several PRs:
 
@@ -262,12 +261,12 @@ The entire transfer is a single async operation from D's perspective. No interme
 
 ## Performance
 
-> **TODO**: Add description text for the performance results.
+TODO: describe setup
 
 <p align="center">
 <img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png" width="100%">
 <br>
-<em>Figure 1: Disaggregated P/D vs. co-located serving for a hybrid SSM model. Top: throughput-vs-latency Pareto curve across concurrency levels. Bottom: NIXL transfer statistics — descriptor count, data volume, and RDMA throughput per request.</em>
+<em>Figure 1: Disaggregated P/D vs. co-located serving for a hybrid SSM model. Throughput-vs-latency Pareto curve across concurrency levels. Disaggregated PTP4-DTP4 vs Co-located TP8 on H200.</em>
 </p>
 
 ---
@@ -278,7 +277,7 @@ To run a hybrid SSM model with disaggregated P/D:
 
 ```bash
 # Prefill instance
-vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8 \
+VLLM_SSM_CONV_STATE_LAYOUT=DS vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8 \
     --tensor-parallel-size 2 \
     --gpu-memory-utilization 0.85 \
     --trust-remote-code \
@@ -288,18 +287,18 @@ vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8 \
     --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_both"}'
 ```
 
-- DS conv state layout: set `VLLM_SSM_CONV_STATE_LAYOUT=DS` (required for heterogeneous TP)
+> Note: DS conv state layout set `VLLM_SSM_CONV_STATE_LAYOUT=DS` is required for heterogeneous TP, but not necessary otherwise.
 
 ---
 
 ## Limitations and Future Work
 
-- **Mamba1 models**: The 3-descriptor conv transfer currently supports Mamba2 only. Mamba1's SSM temporal shape `(intermediate_size // tp, state_size)` does not allow reconstructing `intermediate_size`, which is needed for the conv decomposition.
-- **Speculative decoding**: Interaction between SSM state transfer and speculative decoding has not been validated.
+- **Mamba1 models**: The 3-descriptor conv transfer currently supports Mamba2 only. Mamba1's SSM temporal shape `(intermediate_size // tp, state_size)` does not allow reconstructing `intermediate_size`, which is needed for the conv decomposition. Similarly, **GDN** support (Qwen3.5+) is listed in the disaggregated [roadmap](https://github.com/vllm-project/vllm/issues/33702)
+- **Speculative decoding**: Interaction between SSM state transfer and speculative decoding has not been extensively validated.
 - **Mixed block sizes with HMA**: Different block sizes between P and D (`block_size_ratio > 1`) are not yet supported when HMA is enabled.
 
 ---
 
 ## Acknowledgments
 
-TODO Thomas Parnell, IBM Research leading Mamba efforts upstream
+Thomas Parnell (IBM Research)
