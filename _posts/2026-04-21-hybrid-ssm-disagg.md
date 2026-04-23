@@ -136,6 +136,7 @@ Our solution is to register **two separate descriptor lists** over the same phys
 |    ...                                               |
 +------------------------------------------------------+
 ```
+> Note: Mind that we're using `N_phys/_log` to indicate physical and logical blocks respectively. You can assume `N_phys=N_log=N` and refer to the next section for when that's not the case.
 
 > Note: the Mamba section above already reflects the conv-state decomposition into x, B, C sub-projections, explained in [The 3-Descriptor Conv Transfer](#the-3-descriptors-conv-transfer) below. For homogeneous TP, these simplify to two sub-regions (Conv, SSM).
 
@@ -147,15 +148,6 @@ if is_fa_group:
 else:  # mamba group
     desc_id = mamba_region_id * N_log + block_id + num_descs
 ```
-
-This is a minimal extension of the existing mapping logic: just an additive offset. The rest of the transfer pipeline — handshake, RDMA read, completion polling — does not change at all.
-
-### Why Not Separate Handles?
-
-One alternative would be to use entirely separate NIXL handles for FA and Mamba layers. We chose the single-handle approach because:
-
-- **Atomicity** — A single `make_prepped_xfer` call prepares the entire block transfer for a request, covering both FA and SSM groups. This avoids the complexity of coordinating two independent transfers per request.
-- **Existing infrastructure** — The block manager already returns per-group block IDs (`block_ids = [[fa_blocks], [mamba_blocks]]`). The descriptor mapping just needs to route each group to the right section of the descriptor list.
 
 ---
 
@@ -214,6 +206,8 @@ This gives us 4 descriptor regions per Mamba layer (x, B, C, SSM) instead of the
 **No extra in-memory staging buffer** is allocated on either GPU.
 **No data reshuffling** is needed on either side.
 
+> Note: We have not measured noticeable regressions in kernel performance when using the DS layout for regular colocated setups. We may update the standard layout to be DS at all times in future versions.
+
 ### Zero-Overhead: No Extra Buffers, No Permutation
 
 A simpler alternative would be to transfer the entire conv state to each D rank and then permute/slice it locally into the right shape. But for Mamba, we deliberately avoid this approach:
@@ -265,13 +259,22 @@ The entire transfer is a single async operation from D's perspective. No interme
 
 ## Performance
 
-TODO: describe setup
+We benchmark disaggregated P/D against co-located serving on 8x H200 GPUs connected via NVLink. The model is `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-FP8`, a recent 120B LatentMoE hybrid architecture with interleaved Mamba2 and full-attention layers.
+
+- **Co-located baseline**: single instance, TP=8, all 8 GPUs.
+- **Disaggregated P/D**: 1 prefill instance (TP=4, 4 GPUs) + 1 decode instance (TP=4, 4 GPUs), same total GPU count.
+
+We sweep concurrency from 8 to 256 concurrent users and plot output throughput per GPU against per-user output token rate (*Interactivity*). The workload uses ShareGPT as test dataset.
+
+All runs use a very high warmup value to ensure KV cache gets "scrambled" in order to avoid the initial performance *boost* you get when request blocks happen to be allocated contiguously. This reflects regular long-running use more accurately. Once can also verify it by checking a constant number of descriptors is reported in the metrics (over a full dataset sweep).
 
 <p align="center">
 <img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png" width="100%">
 <br>
-<em>Figure 1: Disaggregated P/D vs. co-located serving for a hybrid SSM model. Throughput-vs-latency Pareto curve across concurrency levels. Disaggregated PTP4-DTP4 vs Co-located TP8 on H200.</em>
+<em>Figure 1: Disaggregated P/D vs. co-located serving for a hybrid SSM model. Throughput-vs-latency Pareto curve across concurrency levels. Prefix-caching disabled.</em>
 </p>
+
+The results show the same pattern observed with disaggregated serving for standard transformer models: disaggregated P/D Pareto-dominates the co-located baseline at higher batch sizes. By isolating decode from prefill interference, the decode instance can sustain larger batches without stalling, yielding significantly higher output tok/s per GPU at high concurrency.
 
 ---
 
