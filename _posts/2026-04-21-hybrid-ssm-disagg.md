@@ -54,7 +54,7 @@ For a standard model with `M` registered regions and `N` blocks, the descriptor 
 +----------------------------------+
 ```
 
-A block ID `b` in region `r` maps to descriptor index `r * N + b`. Simple.
+A block ID `b` in region `r` maps to descriptor index `r * N + b`.
 
 The challenge with hybrid models is that this uniform scheme does not hold: FA layers and SSM layers need different descriptor sizes and different block counts.
 
@@ -72,11 +72,12 @@ SSM state:   (num_heads, head_dim, state_size)   e.g. (32, 64, 128) -- fp32
 ```
 
 There is no concept of "tokens" in these states — they are a fixed-size summary of the entire sequence history. This means `block_size` for SSM is effectively 1: each block is a complete state snapshot, not a group of per-token vectors.
-Remember a block is the single unit of transfer here.
+Remember: **a block is the single unit of transfer** here.
 
 ### The HMA Shared-Tensor Layout
 
-vLLM's Hybrid Memory Allocator (HMA) groups layers by type: all FA layers in one group, all SSM layers in another, and so on. It then pools memory across groups so that **layers at the same position in each group share the same physical tensor**. This is efficient, but it means the same tensor is simultaneously viewed as FA blocks by one group and as SSM blocks by another.
+vLLM's Hybrid Memory Allocator (HMA) groups layers by type: all FA layers in one group, all SSM layers in another, and so on. It then pools memory across groups so that **layers at the same position in each group share the same physical tensor**. 
+This is efficient (blocks are interchangeable), but it means the same tensor is simultaneously viewed as FA blocks by one group and as SSM blocks by another.
 
 Here is the resulting layout for a model like Nemotron-H:
 
@@ -88,22 +89,25 @@ Here is the resulting layout for a model like Nemotron-H:
               |                            |
     +-----------------------+    +-----------------------+
     | Block 0               |    | Block 0               |
-    |  Key   |   Value      |    |  Conv   |    SSM      |
+    |   Key     |  Value    |    |  Conv |    SSM  |[pad]|
     | Block 1               |    | Block 1               |
-    |  Key   |   Value      |    |  Conv   |    SSM      |
-    |  ...                  |    |  ...                   |
+    |   Key     |  Value    |    |  Conv |    SSM  |[pad]|
+    |  ...                  |    |  ...                  |
     +-----------------------+    +-----------------------+
 ```
 
-The page sizes differ: FA pages are governed by `block_size * num_kv_heads * head_dim`, while SSM pages are `conv_state_bytes + ssm_state_bytes`. HMA pads the smaller one so both groups have equal page sizes in bytes, enabling the shared-tensor scheme.
+The page sizes differ: FA pages are governed by `block_size * num_kv_heads * head_dim` (*2 for K/V), while SSM pages are `conv_state_bytes + ssm_state_bytes`. 
+HMA bumps FA block_size until it's bigger than Mamba's, then pads the Mamba rows (`+[pad]`) so both groups have equal page sizes in bytes, enabling the shared-tensor scheme.
 
-**The problem for NIXL**: a single descriptor list with uniform `(address, length)` entries cannot correctly index both views. An FA descriptor for block `b` points at `base + b * fa_page_size` with length `fa_block_len`. A Mamba descriptor for the same block `b` points at `base + b * ssm_page_size` with length `conv_size` or `ssm_size`. These differ.
+**The problem for NIXL**: a single descriptor list with uniform `(address, length)` entries cannot correctly index both views. We need to register K/V (and similary Conv/SSM) on separate descs to allow indexing K/Vs heads on **heterogeneous setups** (that is when D TP != P TP).
+
+An FA descriptor for block `b` points at `base + b * page_size` with length `fa_block_len`. A Mamba descriptor for the same block `b` points at the same `base + b * page_size` with length `conv_size` or `ssm_size`. These differ.
 
 ---
 
 ## Dual Descriptor Views
 
-Our solution is to register **two separate descriptor lists** over the same physical memory, concatenated into a single NIXL transfer handle:
+Our solution is to register **two separate descriptor lists** over the same physical memory, concatenated and pointed by a single NIXL transfer handle:
 
 ```
 +------------------------------------------------------+
