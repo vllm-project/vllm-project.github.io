@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C4A Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: #0d1117;
+            min-height: 100vh;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+            margin-bottom: 8px;
+            font-size: 1.8em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            margin-bottom: 24px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            color: #c9d1d9;
+            font-size: 0.85em;
+            line-height: 1.7;
+        }
+
+        .info-box code {
+            background: #0d1117;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #79c0ff;
+            font-family: inherit;
+        }
+
+        .info-box .highlight {
+            color: #f0883e;
+            font-weight: 600;
+        }
+
+        #visualization {
+            width: 100%;
+            height: 560px;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #0d1117;
+        }
+
+        .row-label {
+            font-size: 12px;
+            font-weight: 600;
+            fill: #8b949e;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            padding: 16px;
+            background: #21262d;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            color: #c9d1d9;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-q { background: #58a6ff; }
+        .legend-kv { background: #f78166; }
+        .legend-caza { background: #a371f7; }
+        .legend-cbzb { background: #7ee787; }
+        .legend-compress { background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%); }
+        .legend-highlight { background: #39d353; }
+        .legend-sink { background: #e6c07b; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>C4A Attention Pattern</h1>
+        <p class="subtitle">Hover over query tokens or compressed entries to see the connections</p>
+        
+        <div class="info-box">
+            <strong>Pattern Description:</strong><br>
+            • Each token produces: <code>q</code>, <code>k(v)</code>, <code>Ca & Za</code>, <code>Cb & Zb</code><br>
+            • <code>q → k(v)</code>: Window attention (<span class="highlight">128 tokens</span>, shown as all tokens here)<br>
+            • <code>C^compress</code> is produced from <code>Ca & Za</code>, <code>Cb & Zb</code><br>
+            • <code>q → C^compress</code>: <span class="highlight">top-512</span> selection of compressed entries within range
+        </div>
+
+        <svg id="visualization" xmlns="http://www.w3.org/2000/svg"></svg>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color legend-q"></div>
+                <span>Query (q)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-kv"></div>
+                <span>Key-Value k(v)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-caza"></div>
+                <span>Ca & Za</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-cbzb"></div>
+                <span>Cb & Zb</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-compress"></div>
+                <span>C^compress</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-sink"></div>
+                <span>Sink Token</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const svg = document.getElementById('visualization');
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const numTokens = 13;
+        
+        // Token data storage
+        let tokens = {
+            kv: [],
+            compress: [],
+            q: [],
+            caza: [],
+            cbzb: [],
+            sink: []
+        };
+        let arrows = [];
+        let sinkArrows = [];
+        let activeQueryIndex = null;
+
+        // Colors
+        const colors = {
+            q: '#58a6ff',
+            kv: '#f78166',
+            caza: '#a371f7',
+            cbzb: '#7ee787',
+            compress: ['#ff6b6b', '#ffd93d'],
+            highlight: '#39d353',
+            sink: '#e6c07b',
+            arrow: {
+                kv: '#f7816680',
+                compress: '#ffd93d80',
+                sink: '#e6c07b80'
+            }
+        };
+
+        // Row Y positions
+        const rowPositions = {};
+
+        function createToken(x, y, text, type, index, width = 24, height = 24) {
+            const group = document.createElementNS(svgNS, 'g');
+            group.setAttribute('class', `${type}-group`);
+            group.setAttribute('data-type', type);
+            group.setAttribute('data-index', index);
+            
+            const rect = document.createElementNS(svgNS, 'rect');
+            rect.setAttribute('x', x - width/2);
+            rect.setAttribute('y', y - height/2);
+            rect.setAttribute('width', width);
+            rect.setAttribute('height', height);
+            rect.setAttribute('rx', 4);
+            rect.setAttribute('ry', 4);
+            
+            let fill = colors[type];
+            if (type === 'compress') {
+                // Create gradient for compress
+                const gradId = `compress-grad-${index}`;
+                const defs = svg.querySelector('defs') || svg.insertBefore(document.createElementNS(svgNS, 'defs'), svg.firstChild);
+                const grad = document.createElementNS(svgNS, 'linearGradient');
+                grad.setAttribute('id', gradId);
+                grad.setAttribute('x1', '0%');
+                grad.setAttribute('y1', '0%');
+                grad.setAttribute('x2', '100%');
+                grad.setAttribute('y2', '100%');
+                const stop1 = document.createElementNS(svgNS, 'stop');
+                stop1.setAttribute('offset', '0%');
+                stop1.setAttribute('stop-color', colors.compress[0]);
+                const stop2 = document.createElementNS(svgNS, 'stop');
+                stop2.setAttribute('offset', '100%');
+                stop2.setAttribute('stop-color', colors.compress[1]);
+                grad.appendChild(stop1);
+                grad.appendChild(stop2);
+                defs.appendChild(grad);
+                fill = `url(#${gradId})`;
+            }
+            
+            rect.setAttribute('fill', fill);
+            rect.setAttribute('style', 'cursor: pointer; transition: all 0.2s ease;');
+            rect.setAttribute('data-original-fill', fill);
+            
+            const textEl = document.createElementNS(svgNS, 'text');
+            textEl.setAttribute('x', x);
+            textEl.setAttribute('y', y);
+            textEl.setAttribute('text-anchor', 'middle');
+            textEl.setAttribute('dominant-baseline', 'middle');
+            textEl.setAttribute('fill', type === 'cbzb' ? '#0d1117' : '#ffffff');
+            textEl.setAttribute('font-size', Math.min(width, height) > 30 ? '12' : '10');
+            textEl.setAttribute('font-weight', '600');
+            textEl.setAttribute('pointer-events', 'none');
+            textEl.setAttribute('font-family', 'JetBrains Mono, monospace');
+            textEl.textContent = text;
+            
+            group.appendChild(rect);
+            group.appendChild(textEl);
+            
+            return { group, rect, textEl, x, y, width, height, type, index };
+        }
+
+        // Branch heights for elbow arrows (organized by category)
+        const branchHeights = {
+            'q-kv': 110,           // Between q (160) and kv (60)
+            'q-compress': 215,     // Between q (160) and compress (270)
+            'compress-caza': 335,  // Between compress (270) and caza (390)
+            'compress-cbzb': 450   // Middle between caza bottom (414) and cbzb top (486)
+        };
+
+        function createElbowArrow(fromX, fromY, toX, toY, type, category, fromSize = 24, toSize = 24) {
+            const goingUp = toY < fromY;
+            
+            // Start from top or bottom depending on direction
+            const startY = goingUp ? fromY - fromSize/2 : fromY + fromSize/2;
+            // End at bottom or top depending on direction
+            const endY = goingUp ? toY + toSize/2 : toY - toSize/2;
+            
+            const branchY = branchHeights[category];
+            
+            const path = document.createElementNS(svgNS, 'path');
+            
+            // Elbow path: vertical to branch height -> horizontal to target X -> vertical to target
+            path.setAttribute('d', `M ${fromX} ${startY} V ${branchY} H ${toX} V ${endY}`);
+            path.setAttribute('stroke', type === 'kv' ? colors.arrow.kv : colors.arrow.compress);
+            path.setAttribute('stroke-width', '1.5');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '0');
+            path.setAttribute('style', 'transition: opacity 0.2s ease;');
+            path.setAttribute('marker-end', `url(#arrowhead-${type})`);
+            
+            return path;
+        }
+
+        // Special arrow for C^compress → Cb&Zb that goes: right → down → left → down
+        function createElbowArrowToCbzb(fromX, fromY, toX, toY, branchX, fromSize = 24, toSize = 48) {
+            const startY = fromY + fromSize/2;  // bottom of compress token
+            const midY = branchHeights['compress-cbzb'];  // middle between caza and cbzb
+            const endY = toY - toSize/2;  // top of cbzb token
+            
+            const path = document.createElementNS(svgNS, 'path');
+            
+            // Path: down a bit → right to branchX → down to midY → left to toX → down to target
+            const dropY = startY + 15;  // small vertical drop first
+            path.setAttribute('d', `M ${fromX} ${startY} V ${dropY} H ${branchX} V ${midY} H ${toX} V ${endY}`);
+            path.setAttribute('stroke', colors.arrow.compress);
+            path.setAttribute('stroke-width', '1.5');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('opacity', '0');
+            path.setAttribute('style', 'transition: opacity 0.2s ease;');
+            path.setAttribute('marker-end', 'url(#arrowhead-compress)');
+            
+            return path;
+        }
+
+        function renderVisualization() {
+            const rect = svg.getBoundingClientRect();
+            const width = rect.width || 1350;
+            const height = rect.height || 700;
+            
+            svg.innerHTML = '';
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            
+            // Create defs for arrow markers
+            const defs = document.createElementNS(svgNS, 'defs');
+            
+            ['kv', 'compress'].forEach(type => {
+                const marker = document.createElementNS(svgNS, 'marker');
+                marker.setAttribute('id', `arrowhead-${type}`);
+                marker.setAttribute('markerWidth', '8');
+                marker.setAttribute('markerHeight', '8');
+                marker.setAttribute('refX', '7');
+                marker.setAttribute('refY', '4');
+                marker.setAttribute('orient', 'auto');
+                
+                const polygon = document.createElementNS(svgNS, 'polygon');
+                polygon.setAttribute('points', '0 0, 8 4, 0 8');
+                polygon.setAttribute('fill', type === 'kv' ? colors.kv : colors.compress[1]);
+                marker.appendChild(polygon);
+                defs.appendChild(marker);
+            });
+            
+            // Highlight marker
+            const highlightMarker = document.createElementNS(svgNS, 'marker');
+            highlightMarker.setAttribute('id', 'arrowhead-highlight');
+            highlightMarker.setAttribute('markerWidth', '8');
+            highlightMarker.setAttribute('markerHeight', '8');
+            highlightMarker.setAttribute('refX', '7');
+            highlightMarker.setAttribute('refY', '4');
+            highlightMarker.setAttribute('orient', 'auto');
+            const highlightPoly = document.createElementNS(svgNS, 'polygon');
+            highlightPoly.setAttribute('points', '0 0, 8 4, 0 8');
+            highlightPoly.setAttribute('fill', colors.highlight);
+            highlightMarker.appendChild(highlightPoly);
+            defs.appendChild(highlightMarker);
+            
+            // Sink marker
+            const sinkMarker = document.createElementNS(svgNS, 'marker');
+            sinkMarker.setAttribute('id', 'arrowhead-sink');
+            sinkMarker.setAttribute('markerWidth', '8');
+            sinkMarker.setAttribute('markerHeight', '8');
+            sinkMarker.setAttribute('refX', '7');
+            sinkMarker.setAttribute('refY', '4');
+            sinkMarker.setAttribute('orient', 'auto');
+            const sinkPoly = document.createElementNS(svgNS, 'polygon');
+            sinkPoly.setAttribute('points', '0 0, 8 4, 0 8');
+            sinkPoly.setAttribute('fill', colors.sink);
+            sinkMarker.appendChild(sinkPoly);
+            defs.appendChild(sinkMarker);
+            
+            svg.appendChild(defs);
+            
+            // Reset token storage
+            Object.keys(tokens).forEach(k => tokens[k] = []);
+            arrows = [];
+            sinkArrows = [];
+            
+            const padding = 100;
+            const tokenSpacing = (width - 2 * padding) / (numTokens - 1);
+            
+            // Row Y positions (from top to bottom)
+            rowPositions.kv = 60;
+            rowPositions.q = 160;
+            rowPositions.compress = 270;
+            rowPositions.caza = 390;
+            rowPositions.cbzb = 510;
+            
+            // Row labels
+            const labels = [
+                { text: 'k(v)', y: rowPositions.kv, note: '(window=128)' },
+                { text: 'q', y: rowPositions.q, note: '' },
+                { text: 'C^compress', y: rowPositions.compress, note: '' },
+                { text: 'Ca & Za', y: rowPositions.caza, note: '' },
+                { text: 'Cb & Zb', y: rowPositions.cbzb, note: '' }
+            ];
+            
+            labels.forEach(label => {
+                const text = document.createElementNS(svgNS, 'text');
+                text.setAttribute('x', 15);
+                text.setAttribute('y', label.y);
+                text.setAttribute('class', 'row-label');
+                text.setAttribute('dominant-baseline', 'middle');
+                text.textContent = label.text;
+                svg.appendChild(text);
+                
+                if (label.note) {
+                    const note = document.createElementNS(svgNS, 'text');
+                    note.setAttribute('x', 15);
+                    note.setAttribute('y', label.y + 14);
+                    note.setAttribute('fill', '#6e7681');
+                    note.setAttribute('font-size', '10');
+                    note.setAttribute('font-family', 'JetBrains Mono, monospace');
+                    note.textContent = label.note;
+                    svg.appendChild(note);
+                }
+            });
+            
+            // Create arrow container (behind tokens)
+            const arrowContainer = document.createElementNS(svgNS, 'g');
+            arrowContainer.setAttribute('id', 'arrows');
+            svg.appendChild(arrowContainer);
+            
+            // Create k(v) tokens
+            for (let i = 0; i < numTokens; i++) {
+                const x = padding + i * tokenSpacing;
+                const tokenData = createToken(x, rowPositions.kv, `${i}`, 'kv', i);
+                tokens.kv.push(tokenData);
+                svg.appendChild(tokenData.group);
+            }
+            
+            // Create C^compress tokens (at positions 3, 7, and 11)
+            const compressPositions = [3, 7, 11];
+            compressPositions.forEach((pos, idx) => {
+                const x = padding + pos * tokenSpacing;
+                const tokenData = createToken(x, rowPositions.compress, `C${idx}`, 'compress', idx, 24, 24);
+                tokens.compress.push(tokenData);
+                svg.appendChild(tokenData.group);
+                
+                // Add "top-512" label below
+                const topkLabel = document.createElementNS(svgNS, 'text');
+                topkLabel.setAttribute('x', x);
+                topkLabel.setAttribute('y', rowPositions.compress + 20);
+                topkLabel.setAttribute('text-anchor', 'middle');
+                topkLabel.setAttribute('fill', '#6e7681');
+                topkLabel.setAttribute('font-size', '9');
+                topkLabel.setAttribute('font-family', 'JetBrains Mono, monospace');
+                topkLabel.textContent = 'top-512';
+                svg.appendChild(topkLabel);
+
+                // Add RoPE position label below
+                const ropeLabel = document.createElementNS(svgNS, 'text');
+                ropeLabel.setAttribute('x', x);
+                ropeLabel.setAttribute('y', rowPositions.compress + 32);
+                ropeLabel.setAttribute('text-anchor', 'middle');
+                ropeLabel.setAttribute('fill', '#79c0ff');
+                ropeLabel.setAttribute('font-size', '9');
+                ropeLabel.setAttribute('font-family', 'JetBrains Mono, monospace');
+                ropeLabel.textContent = `RoPE: ${idx * 4}`;
+                svg.appendChild(ropeLabel);
+            });
+            
+            // Create q tokens
+            for (let i = 0; i < numTokens; i++) {
+                const x = padding + i * tokenSpacing;
+                const tokenData = createToken(x, rowPositions.q, `${i}`, 'q', i, 28);
+                tokens.q.push(tokenData);
+                svg.appendChild(tokenData.group);
+            }
+            
+            // Create sink tokens (hidden by default, positioned in upper right corner of each q token)
+            const sinkOffsetX = 25; // Horizontal offset from q token center
+            const sinkY = (rowPositions.kv + rowPositions.q) / 2; // Middle between q and k(v)
+            for (let i = 0; i < numTokens; i++) {
+                const qX = padding + i * tokenSpacing;
+                const sinkX = qX + sinkOffsetX;
+                
+                // Create sink token
+                const sinkGroup = document.createElementNS(svgNS, 'g');
+                sinkGroup.setAttribute('class', 'sink-group');
+                sinkGroup.setAttribute('data-index', i);
+                sinkGroup.setAttribute('opacity', '0');
+                sinkGroup.setAttribute('style', 'transition: opacity 0.2s ease;');
+                
+                const sinkRect = document.createElementNS(svgNS, 'rect');
+                sinkRect.setAttribute('x', sinkX - 12);
+                sinkRect.setAttribute('y', sinkY - 12);
+                sinkRect.setAttribute('width', 24);
+                sinkRect.setAttribute('height', 24);
+                sinkRect.setAttribute('rx', 4);
+                sinkRect.setAttribute('ry', 4);
+                sinkRect.setAttribute('fill', colors.sink);
+                
+                const sinkText = document.createElementNS(svgNS, 'text');
+                sinkText.setAttribute('x', sinkX);
+                sinkText.setAttribute('y', sinkY);
+                sinkText.setAttribute('text-anchor', 'middle');
+                sinkText.setAttribute('dominant-baseline', 'middle');
+                sinkText.setAttribute('fill', '#0d1117');
+                sinkText.setAttribute('font-size', '9');
+                sinkText.setAttribute('font-weight', '600');
+                sinkText.setAttribute('pointer-events', 'none');
+                sinkText.setAttribute('font-family', 'JetBrains Mono, monospace');
+                sinkText.textContent = 'sink';
+                
+                sinkGroup.appendChild(sinkRect);
+                sinkGroup.appendChild(sinkText);
+                svg.appendChild(sinkGroup);
+                
+                tokens.sink.push({ group: sinkGroup, x: sinkX, y: sinkY, qIdx: i });
+                
+                // Create arrow from q to sink (rectangular elbow arrow)
+                const sinkArrow = document.createElementNS(svgNS, 'path');
+                const arrowStartX = qX + 14; // Right edge of q token
+                const arrowStartY = rowPositions.q; // Center height of q token
+                const arrowEndX = sinkX; // Center of sink token
+                const arrowEndY = sinkY + 12; // Bottom edge of sink token
+                // Elbow path: right from q → up to sink bottom
+                sinkArrow.setAttribute('d', `M ${arrowStartX} ${arrowStartY} H ${arrowEndX} V ${arrowEndY}`);
+                sinkArrow.setAttribute('stroke', colors.arrow.sink);
+                sinkArrow.setAttribute('stroke-width', '2');
+                sinkArrow.setAttribute('fill', 'none');
+                sinkArrow.setAttribute('opacity', '0');
+                sinkArrow.setAttribute('style', 'transition: opacity 0.2s ease;');
+                sinkArrow.setAttribute('marker-end', 'url(#arrowhead-sink)');
+                sinkArrow.setAttribute('data-index', i);
+                
+                arrowContainer.appendChild(sinkArrow);
+                sinkArrows.push({ element: sinkArrow, qIdx: i });
+            }
+            
+            // Create Ca&Za and Cb&Zb tokens (rectangular: width=24, height=48)
+            ['caza', 'cbzb'].forEach(type => {
+                for (let i = 0; i < numTokens; i++) {
+                    const x = padding + i * tokenSpacing;
+                    const tokenData = createToken(x, rowPositions[type], `${i}`, type, i, 24, 48);
+                    tokens[type].push(tokenData);
+                    svg.appendChild(tokenData.group);
+                }
+            });
+            
+            // Pre-create all arrows (hidden initially)
+            // Arrows from q to k(v) - window attention
+            for (let qIdx = 0; qIdx < numTokens; qIdx++) {
+                for (let kvIdx = 0; kvIdx <= qIdx; kvIdx++) {
+                    const qX = padding + qIdx * tokenSpacing;
+                    const kvX = padding + kvIdx * tokenSpacing;
+                    const arrow = createElbowArrow(qX, rowPositions.q, kvX, rowPositions.kv, 'kv', 'q-kv', 28, 24);
+                    if (arrow) {
+                        arrow.setAttribute('data-from', `q-${qIdx}`);
+                        arrow.setAttribute('data-to', `kv-${kvIdx}`);
+                        arrows.push({ element: arrow, type: 'q-kv', qIdx, kvIdx });
+                        arrowContainer.appendChild(arrow);
+                    }
+                }
+            }
+            
+            // Arrows from q to C^compress
+            // q 0-2: no compress
+            // q 3-6: compress 0
+            // q 7-10: compress 0 and 1
+            // q 11-12: compress 0, 1, and 2
+            for (let qIdx = 0; qIdx < numTokens; qIdx++) {
+                let attendedCompress = [];
+                if (qIdx >= 3 && qIdx <= 6) {
+                    attendedCompress = [0];
+                } else if (qIdx >= 7 && qIdx <= 10) {
+                    attendedCompress = [0, 1];
+                } else if (qIdx >= 11) {
+                    attendedCompress = [0, 1, 2];
+                }
+                
+                attendedCompress.forEach(cIdx => {
+                    const qX = padding + qIdx * tokenSpacing;
+                    const cX = padding + compressPositions[cIdx] * tokenSpacing;
+                    const arrow = createElbowArrow(qX, rowPositions.q, cX, rowPositions.compress, 'compress', 'q-compress', 28, 24);
+                    if (arrow) {
+                        arrow.setAttribute('data-from', `q-${qIdx}`);
+                        arrow.setAttribute('data-to', `compress-${cIdx}`);
+                        arrows.push({ element: arrow, type: 'q-compress', qIdx, cIdx });
+                        arrowContainer.appendChild(arrow);
+                    }
+                });
+            }
+            
+            // Arrows from C^compress to Ca&Za, Cb&Zb
+            // C0 (at pos 3): Ca&Za from 0-3, no Cb&Zb
+            // C1 (at pos 7): Ca&Za from 4-7, Cb&Zb from 0-3
+            // C2 (at pos 11): Ca&Za from 8-11, Cb&Zb from 4-7
+            const compressConnections = [
+                { cIdx: 0, caza: [0,1,2,3], cbzb: [] },
+                { cIdx: 1, caza: [4,5,6,7], cbzb: [0,1,2,3] },
+                { cIdx: 2, caza: [8,9,10,11], cbzb: [4,5,6,7] }
+            ];
+            
+            compressConnections.forEach(conn => {
+                const cX = padding + compressPositions[conn.cIdx] * tokenSpacing;
+                
+                // Arrows to Ca&Za
+                conn.caza.forEach(idx => {
+                    const tX = padding + idx * tokenSpacing;
+                    const arrow = createElbowArrow(cX, rowPositions.compress, tX, rowPositions.caza, 'compress', 'compress-caza', 24, 48);
+                    if (arrow) {
+                        arrow.setAttribute('data-from', `compress-${conn.cIdx}`);
+                        arrow.setAttribute('data-to', `caza-${idx}`);
+                        arrows.push({ element: arrow, type: 'compress-source', cIdx: conn.cIdx, targetType: 'caza', targetIdx: idx });
+                        arrowContainer.appendChild(arrow);
+                    }
+                });
+                
+                // Arrows to Cb&Zb - route right first, then down, then left to targets
+                if (conn.cbzb.length > 0) {
+                    // Branch X is at half margin to the right of the compress token
+                    // compressPositions[cIdx] + 0.5 gives the midpoint to the next block
+                    const branchX = padding + (compressPositions[conn.cIdx] + 0.5) * tokenSpacing;
+                    
+                    conn.cbzb.forEach(idx => {
+                        const tX = padding + idx * tokenSpacing;
+                        const arrow = createElbowArrowToCbzb(cX, rowPositions.compress, tX, rowPositions.cbzb, branchX, 24, 48);
+                        if (arrow) {
+                            arrow.setAttribute('data-from', `compress-${conn.cIdx}`);
+                            arrow.setAttribute('data-to', `cbzb-${idx}`);
+                            arrows.push({ element: arrow, type: 'compress-source', cIdx: conn.cIdx, targetType: 'cbzb', targetIdx: idx });
+                            arrowContainer.appendChild(arrow);
+                        }
+                    });
+                }
+            });
+            
+            // Add interactivity to q tokens
+            tokens.q.forEach((token, idx) => {
+                token.rect.addEventListener('mouseenter', () => highlightQuery(idx));
+                token.rect.addEventListener('mouseleave', clearHighlight);
+            });
+            
+            // Add interactivity to C^compress tokens
+            tokens.compress.forEach((token, idx) => {
+                token.rect.addEventListener('mouseenter', () => highlightCompress(idx));
+                token.rect.addEventListener('mouseleave', clearHighlight);
+            });
+        }
+
+        function highlightQuery(queryIdx) {
+            clearHighlight();
+            activeQueryIndex = queryIdx;
+            
+            // Show q -> k(v) arrows
+            arrows.forEach(arr => {
+                if (arr.type === 'q-kv' && arr.qIdx === queryIdx) {
+                    arr.element.setAttribute('opacity', '1');
+                    arr.element.setAttribute('stroke', colors.highlight);
+                    arr.element.setAttribute('marker-end', 'url(#arrowhead-highlight)');
+                }
+            });
+            
+            // Show q -> compress arrows
+            arrows.forEach(arr => {
+                if (arr.type === 'q-compress' && arr.qIdx === queryIdx) {
+                    arr.element.setAttribute('opacity', '1');
+                    arr.element.setAttribute('stroke', colors.highlight);
+                    arr.element.setAttribute('marker-end', 'url(#arrowhead-highlight)');
+                }
+            });
+            
+            // Show sink token and arrow
+            if (tokens.sink[queryIdx]) {
+                tokens.sink[queryIdx].group.setAttribute('opacity', '1');
+            }
+            sinkArrows.forEach(arr => {
+                if (arr.qIdx === queryIdx) {
+                    arr.element.setAttribute('opacity', '1');
+                    arr.element.setAttribute('stroke', colors.sink);
+                }
+            });
+        }
+
+        function highlightCompress(compressIdx) {
+            clearHighlight();
+            
+            // Show compress -> source arrows
+            arrows.forEach(arr => {
+                if (arr.type === 'compress-source' && arr.cIdx === compressIdx) {
+                    arr.element.setAttribute('opacity', '0.6');
+                    arr.element.setAttribute('stroke', colors.highlight);
+                    arr.element.setAttribute('marker-end', 'url(#arrowhead-highlight)');
+                }
+            });
+        }
+
+        function clearHighlight() {
+            activeQueryIndex = null;
+            
+            // Hide all arrows
+            arrows.forEach(arr => {
+                arr.element.setAttribute('opacity', '0');
+                if (arr.type === 'q-kv') {
+                    arr.element.setAttribute('stroke', colors.arrow.kv);
+                    arr.element.setAttribute('marker-end', 'url(#arrowhead-kv)');
+                } else {
+                    arr.element.setAttribute('stroke', colors.arrow.compress);
+                    arr.element.setAttribute('marker-end', 'url(#arrowhead-compress)');
+                }
+            });
+            
+            // Hide all sink tokens and arrows
+            tokens.sink.forEach(sink => {
+                sink.group.setAttribute('opacity', '0');
+            });
+            sinkArrows.forEach(arr => {
+                arr.element.setAttribute('opacity', '0');
+                arr.element.setAttribute('stroke', colors.arrow.sink);
+            });
+        }
+
+        window.addEventListener('load', renderVisualization);
+        window.addEventListener('resize', renderVisualization);
+    </script>
+</body>
+</html>
