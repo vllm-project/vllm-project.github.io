@@ -217,7 +217,7 @@ A simpler alternative would be to transfer the entire conv state to each D rank 
 - **Transfer only what you own** — Each D rank transfers only its `1/TP` share of the conv state, not the full state. For `D_TP=4`, this means 4x less data per rank compared to the "transfer everything, slice locally" approach.
 - **Skip HMA padding** — Recall that HMA pads SSM pages so they match FA page sizes. The Mamba descriptors are sized to the actual `conv_bytes + ssm_bytes`, not the padded page size. This means we never transfer the padding bytes over the wire — only the real state. For models where the padding is substantial (e.g., when FA page sizes are much larger than the raw SSM state), this can meaningfully reduce transfer volume per block.
 
-The figure below validates the padding-skip optimization on Nemotron Super 120B at TP=4 (block_size=4224). For each KV cache dtype (bf16 and fp8), we compare a *Naive* baseline - which transfers full HMA-padded pages for Mamba blocks - against *Optimal* approach (ours), which transfer only the actual conv + SSM bytes, skipping all HMA padding.
+The figure below validates the padding-skip optimization on Nemotron Super 120B at TP=4 (FA block_size=4224, as set by HMA). For each KV cache dtype (bf16 and fp8), we compare a *Naive* baseline - which transfers full HMA-padded pages for Mamba blocks - against *Optimal* approach (ours), which transfers only the actual conv + SSM bytes, skipping all HMA padding.
 
 For **bf16**, our approach eliminates ~50 MB of unnecessary transfer per request (the gap between the Naive and Optimal bf16 lines). For **fp8**, the FA page size is smaller (1 byte per element vs 2), so the padding is negligible in this configuration. 
 
@@ -226,7 +226,7 @@ Since Mamba state is a fixed-size per-request summary, transfer size scales with
 <p align="center">
 <img src="/assets/figures/2026-04-21-hybrid-ssm-disagg/transfer-volume-vs-isl.png" width="80%">
 <br>
-<em>Figure 1: P→D transfer volume vs. input sequence length for Nemotron Super 120B (TP=4, block_size=4224). Our approach (Optimal) eliminates HMA padding overhead. The measured NIXL transfer (fp8) matches the optimal baseline.</em>
+<em>Figure 1: P→D transfer volume vs. input sequence length for Nemotron Super 120B (TP=4, FA block_size=4224). The Naive and Optimal baselines are computed analytically from the model's page sizes and block counts. The Measured line reports the actual bytes transferred (as reported by NIXL) during disaggregated P/D serving. Our approach (Optimal) eliminates HMA padding overhead, which is reflected in the measured transfer.</em>
 </p>
 
 ---
