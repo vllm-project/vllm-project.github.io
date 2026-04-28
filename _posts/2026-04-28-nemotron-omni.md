@@ -9,7 +9,7 @@ tags:
 
 We are excited to support the newly released NVIDIA Nemotron 3 Nano Omni model on vLLM.
 
-Nemotron 3 Nano Omni, part of the Nemotron 3 family of open models, is the highest efficiency, open multimodal model with leading accuracy, built to power sub-agents that perceive and reason across vision, audio, and language in a single loop.
+[Nemotron 3 Nano Omni](https://developer.nvidia.com/blog/nvidia-nemotron-3-nano-omni-powers-multimodal-agent-reasoning-in-a-single-efficient-open-model), part of the Nemotron 3 family of open models, is the highest efficiency, open multimodal model with leading accuracy, built to power sub-agents that perceive and reason across vision, audio, and language in a single loop.
 
 Enterprise agent workflows are inherently multimodal. Agents must interpret screens, documents, audio, video, and text, often within the same reasoning pass. Yet most agentic systems today bolt together separate models for vision, speech, and language, multiplying inference hops, complicating orchestration, and fragmenting context across the pipeline.
 
@@ -24,7 +24,7 @@ Using this model, an AI system will achieve 9x higher throughput than other open
 
 - **Architecture:** Mixture of Experts (MoE) with Hybrid Transformer-Mamba Architecture
 - **Model size:** 30B total parameters, 3B active parameters
-- **Context length:** 256K – 1M
+- **Context length:** 256K
 - **Unified vision and audio encoders** eliminate separate perception models — one model replaces fragmented multimodal stacks. 3D convolution layers (Conv3D) enable efficient handling of temporal-spatial data in video.
 - **Modalities:**
   - Input: text, image, video, audio
@@ -36,9 +36,9 @@ Using this model, an AI system will achieve 9x higher throughput than other open
 
 **Get started:**
 
-- Download model weights from Hugging Face — BF16, FP8, NVFP4
-- Run with vLLM for inference using the cookbook and through Brev launchable
-- Read the technical report for more details
+- Download model weights from Hugging Face — [BF16](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16), [FP8](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8), [NVFP4](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4)
+- Run with vLLM for inference using the [cookbook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-3-Nano-Omni/vllm_cookbook.ipynb) and through [Brev launchable](https://brev.nvidia.com/launchable/deploy?launchableID=env-3Cm2gB9j5ROkCbiNKH5SQhERqBV)
+- Read the [technical report](https://research.nvidia.com/labs/adlr/files/NVIDIA-Nemotron-3-Omni-report.pdf) for more details
 
 ## Run Optimized Multimodal Inference with vLLM
 
@@ -90,7 +90,7 @@ print("Reasoning:", resp.choices[0].message.reasoning,
       "\nContent:", resp.choices[0].message.content)
 ```
 
-For an easier setup with vLLM, refer to our getting started cookbook, available [here](#) or use [NVIDIA Brev Launchable](#).
+For an easier setup with vLLM, refer to our getting started cookbook, available [here](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-3-Nano-Omni/vllm_cookbook.ipynb) or use [NVIDIA Brev Launchable](https://brev.nvidia.com/launchable/deploy?launchableID=env-3Cm2gB9j5ROkCbiNKH5SQhERqBV).
 
 ## Highest Efficiency with Leading Accuracy for Multimodal Agentic Applications
 
@@ -142,9 +142,9 @@ NVIDIA Nemotron 3 Nano Omni is an open multimodal model with highest efficiency 
 
 Ready to run multimodal AI agents at scale?
 
-- Download model weights from Hugging Face — BF16, FP8, NVFP4
-- Run with vLLM for inference using the cookbook and through Brev launchable
-- Read the Nemotron 3 Nano Omni technical report
+- Download model weights from Hugging Face — [BF16](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16), [FP8](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8), [NVFP4](https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4)
+- Run with vLLM for inference using the [cookbook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-3-Nano-Omni/vllm_cookbook.ipynb) and through [Brev launchable](https://brev.nvidia.com/launchable/deploy?launchableID=env-3Cm2gB9j5ROkCbiNKH5SQhERqBV)
+- Read the [Nemotron 3 Nano Omni technical report](https://research.nvidia.com/labs/adlr/files/NVIDIA-Nemotron-3-Omni-report.pdf)
 
 Stay up to date on NVIDIA Nemotron by subscribing to [NVIDIA news](https://www.nvidia.com/en-us/preferences/email-signup/) and following NVIDIA AI on [LinkedIn](https://www.linkedin.com/company/nvidia/), [X](https://x.com/NVIDIAAI), [YouTube](https://www.youtube.com/nvidia), and the Nemotron channel on [Discord](https://discord.gg/nvidia).
 
