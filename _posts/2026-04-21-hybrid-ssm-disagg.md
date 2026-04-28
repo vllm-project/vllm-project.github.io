@@ -49,7 +49,7 @@ For a standard model with `M` registered regions and `N` blocks, the descriptor 
 +----------------------------------+
 | Region 0: desc_0 ... desc_{N-1}  |
 | Region 1: desc_0 ... desc_{N-1}  |
-| ...                               |
+| ...                              |
 | Region M: desc_0 ... desc_{N-1}  |
 +----------------------------------+
 ```
