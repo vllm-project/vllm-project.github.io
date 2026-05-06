@@ -162,6 +162,6 @@ We are actively working on the following features and optimizations.
 
 The vLLM Mooncake Store integration was largely inspired by prior work in [vLLM-Ascend](https://github.com/vllm-project/vllm-ascend). We are especially grateful to Chao Lei from Ant Group for the initial implementation, and to Zijing Liu from Inferact for the agentic trace and analysis.
 
-We also thank Jiahao Lu, Zuoyuan Zhang, Zihan Tang, and Ke Yang from Approaching.AI; Pengbo Zhao, Fuqiao Duan, and Tianyu Xu from Huawei; Tianchen Ding, Xuchun Shang, Xingrui Yi, and Teng Ma from Alibaba Cloud Computing; Yunxiao Ning, Dejiang Zu, and Shoujian Zheng from Ant Group; and Feng Ren from 9#AISoft for valuable technical feedback.
+We also thank Jiahao Lu, Zuoyuan Zhang, Zihan Tang, and Ke Yang from Approaching.AI; Pengbo Zhao, Fuqiao Duan, and Tianyu Xu from Huawei; Tianchen Ding, Xuchun Shang, Xingrui Yi, and Teng Ma from Alibaba Cloud Computing; Yunxiao Ning, Dejiang Zhu, and Shoujian Zheng from Ant Group; and Feng Ren from 9#AISoft for valuable technical feedback.
 
 We are grateful to the broader vLLM and Mooncake communities for their support and suggestions. Finally, special thanks to the Inferact team for their close collaboration and discussions throughout this work.
