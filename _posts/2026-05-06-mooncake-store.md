@@ -22,7 +22,7 @@ With the rise of LLM agents such as Claude Code and OpenClaw, inference workload
 
 What makes agentic workloads unique is their structure. They typically consist of long-horizon, multi-turn loops that alternate between a *reasoning step*, where the model processes context and produces intermediate thoughts, and an *action step*, where the model issues tool calls and receives external outputs.
 
-To quantify this behavior, we collected and analyzed traces from Codex and GPT-5.5 on the SWE-bench Pro dataset. We have also open-sourced the dataset [here](https://huggingface.co/datasets/Inferact/codex_swebenchpro_traces) to encourage broader community study of agentic serving workloads.
+To quantify this behavior, we collected and analyzed traces from Codex and GPT-5.4 on the SWE-bench Pro dataset. We have also open-sourced the dataset [here](https://huggingface.co/datasets/Inferact/codex_swebenchpro_traces) to encourage broader community study of agentic serving workloads.
 
 Figure 1 shows a representative trace from an agentic session.
 
