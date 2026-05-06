@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="510" viewBox="0 0 1400 510" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="perfGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="poolGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="3" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="510" fill="url(#bg)"/>
+
+  <!-- ============ LEFT ============ -->
+  <!-- Instances aligned over the pool (pool x=40..640, centers at 130, 340, 550) -->
+  <g filter="url(#soft)">
+    <rect x="50"  y="50" width="160" height="68" rx="14" fill="#dbeafe" stroke="#1e3a8a" stroke-width="2.5"/>
+    <text x="130" y="92" text-anchor="middle" font-size="18" font-weight="800" fill="#0f172a">vLLM Instance A</text>
+
+    <rect x="260" y="50" width="160" height="68" rx="14" fill="#dcfce7" stroke="#15803d" stroke-width="2.5"/>
+    <text x="340" y="92" text-anchor="middle" font-size="18" font-weight="800" fill="#0f172a">vLLM Instance B</text>
+
+    <rect x="470" y="50" width="160" height="68" rx="14" fill="#fce7f3" stroke="#be185d" stroke-width="2.5"/>
+    <text x="550" y="92" text-anchor="middle" font-size="18" font-weight="800" fill="#0f172a">vLLM Instance C</text>
+  </g>
+
+  <!-- RDMA links (label each) -->
+  <g stroke="#dc2626" stroke-width="3.5" fill="none">
+    <line x1="130" y1="118" x2="130" y2="170"/>
+    <line x1="340" y1="118" x2="340" y2="170"/>
+    <line x1="550" y1="118" x2="550" y2="170"/>
+  </g>
+  <g font-size="15" font-weight="800" fill="#dc2626" style="paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round;">
+    <text x="130" y="148" text-anchor="middle">RDMA</text>
+    <text x="340" y="148" text-anchor="middle">RDMA</text>
+    <text x="550" y="148" text-anchor="middle">RDMA</text>
+  </g>
+
+  <!-- Pool: tighter, evenly spaced -->
+  <g filter="url(#soft)">
+    <rect x="40" y="170" width="600" height="270" rx="18" fill="url(#poolGrad)" stroke="#b45309" stroke-width="2.5"/>
+    <text x="340" y="206" text-anchor="middle" font-size="20" font-weight="800" fill="#7c2d12">Mooncake Distributed KV Cache Pool</text>
+
+    <!-- 6 cols × 3 rows; chunk 80×38; gap 12; padding inside -->
+    <!-- start x = 40 + (600 - (6*80 + 5*12))/2 = 40 + (600 - 540)/2 = 70 -->
+    <!-- Row 1 y=228 -->
+    <g>
+      <rect x="70"  y="228" width="80" height="38" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+      <rect x="162" y="228" width="80" height="38" rx="6" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+      <rect x="254" y="228" width="80" height="38" rx="6" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+      <rect x="346" y="228" width="80" height="38" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+      <rect x="438" y="228" width="80" height="38" rx="6" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+      <rect x="530" y="228" width="80" height="38" rx="6" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+    </g>
+    <!-- Row 2 y=278 -->
+    <g>
+      <rect x="70"  y="278" width="80" height="38" rx="6" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+      <rect x="162" y="278" width="80" height="38" rx="6" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+      <rect x="254" y="278" width="80" height="38" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+      <rect x="346" y="278" width="80" height="38" rx="6" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+      <rect x="438" y="278" width="80" height="38" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+      <rect x="530" y="278" width="80" height="38" rx="6" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+    </g>
+    <!-- Row 3 y=328 -->
+    <g>
+      <rect x="70"  y="328" width="80" height="38" rx="6" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+      <rect x="162" y="328" width="80" height="38" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+      <rect x="254" y="328" width="80" height="38" rx="6" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+      <rect x="346" y="328" width="80" height="38" rx="6" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+      <rect x="438" y="328" width="80" height="38" rx="6" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+      <rect x="530" y="328" width="80" height="38" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+    </g>
+
+    <!-- Legend -->
+    <g transform="translate(70,395)">
+      <rect x="0"   y="0" width="22" height="22" rx="4" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+      <text x="32"  y="18" font-size="17" font-weight="700" fill="#0f172a">from A</text>
+      <rect x="135" y="0" width="22" height="22" rx="4" fill="#dcfce7" stroke="#15803d" stroke-width="1.6"/>
+      <text x="167" y="18" font-size="17" font-weight="700" fill="#0f172a">from B</text>
+      <rect x="270" y="0" width="22" height="22" rx="4" fill="#fce7f3" stroke="#be185d" stroke-width="1.6"/>
+      <text x="302" y="18" font-size="17" font-weight="700" fill="#0f172a">from C</text>
+    </g>
+  </g>
+
+  <!-- ============ RIGHT ============ -->
+  <g>
+    <!-- Card 1 -->
+    <g filter="url(#soft)">
+      <rect x="720" y="50" width="640" height="125" rx="16" fill="#ffffff" stroke="#1e3a8a" stroke-width="2.5"/>
+      <text x="745" y="90" font-size="17" font-weight="800" fill="#475569" letter-spacing="1.2">TOK/S PER GPU</text>
+      <text x="745" y="155" font-size="60" font-weight="900" fill="url(#perfGrad)">3.8×</text>
+      <g transform="translate(1060,80)">
+        <rect x="0" y="0"  width="270" height="30" rx="5" fill="#3b82f6"/>
+        <text x="262" y="22" text-anchor="end" font-size="18" font-weight="800" fill="#ffffff">7,669</text>
+        <rect x="0" y="46" width="71"  height="30" rx="5" fill="#dc2626"/>
+        <text x="63"  y="68" text-anchor="end" font-size="18" font-weight="800" fill="#ffffff">2,012</text>
+      </g>
+    </g>
+
+    <!-- Card 2 -->
+    <g filter="url(#soft)">
+      <rect x="720" y="190" width="640" height="125" rx="16" fill="#ffffff" stroke="#1e3a8a" stroke-width="2.5"/>
+      <text x="745" y="230" font-size="17" font-weight="800" fill="#475569" letter-spacing="1.2">TTFT P50</text>
+      <text x="745" y="295" font-size="60" font-weight="900" fill="url(#perfGrad)">46×</text>
+      <g transform="translate(1060,220)">
+        <rect x="0" y="0"  width="6"   height="30" rx="2" fill="#3b82f6"/>
+        <text x="14" y="22" font-size="18" font-weight="800" fill="#0f172a">1.80s</text>
+        <rect x="0" y="46" width="270" height="30" rx="5" fill="#dc2626"/>
+        <text x="262" y="68" text-anchor="end" font-size="18" font-weight="800" fill="#ffffff">82.93s</text>
+      </g>
+    </g>
+
+    <!-- Card 3 -->
+    <g filter="url(#soft)">
+      <rect x="720" y="330" width="640" height="125" rx="16" fill="#ffffff" stroke="#1e3a8a" stroke-width="2.5"/>
+      <text x="745" y="370" font-size="17" font-weight="800" fill="#475569" letter-spacing="1.2">E2E LATENCY P50</text>
+      <text x="745" y="435" font-size="60" font-weight="900" fill="url(#perfGrad)">8.7×</text>
+      <g transform="translate(1060,360)">
+        <rect x="0" y="0"  width="31"  height="30" rx="4" fill="#3b82f6"/>
+        <text x="39" y="22" font-size="18" font-weight="800" fill="#0f172a">10.8s</text>
+        <rect x="0" y="46" width="270" height="30" rx="5" fill="#dc2626"/>
+        <text x="262" y="68" text-anchor="end" font-size="18" font-weight="800" fill="#ffffff">93.3s</text>
+      </g>
+    </g>
+
+    <!-- Caption: left-aligned, larger -->
+    <g transform="translate(720,480)">
+      <rect x="0"   y="0" width="24" height="24" rx="4" fill="#3b82f6"/>
+      <text x="34"  y="20" font-size="20" font-weight="800" fill="#0f172a">Mooncake offloading</text>
+      <rect x="290" y="0" width="24" height="24" rx="4" fill="#dc2626"/>
+      <text x="324" y="20" font-size="20" font-weight="800" fill="#0f172a">No offloading</text>
+    </g>
+  </g>
+</svg>

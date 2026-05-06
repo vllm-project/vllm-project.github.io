@@ -2,13 +2,17 @@
 layout: post
 title: "Serving Agentic Workloads at Scale with vLLM x Mooncake"
 author: "Yifan Qiao, Trong Dao Le, Ao Shen, Zhewen Li, Bowen Wang"
-image: /assets/figures/2026-05-05-mooncake-store/pd_compare_mooncake_vs_nixl.png
+image: /assets/figures/2026-05-06-mooncake-store/hero_vllm_mooncake.svg
 tags:
   - agentic
   - kv-cache
   - mooncake
   - kv-offloading
 ---
+
+<p align="center">
+<img src="/assets/figures/2026-05-06-mooncake-store/hero_vllm_mooncake.svg" width="95%">
+</p>
 
 **TL;DR:** Agentic workloads generate massive shared prefixes that are often recomputed across turns. By integrating Mooncake's distributed KV cache store into vLLM, we achieve **3.8x higher throughput**, **46x lower TTFT**, and **8.6x lower end-to-end latency** on realistic agentic traces, while scaling nearly linearly to **60 GB200 GPUs**.
 
@@ -23,7 +27,7 @@ To quantify this behavior, we collected and analyzed traces from Codex and GPT-5
 Figure 1 shows a representative trace from an agentic session.
 
 <p align="center">
-<img src="/assets/figures/2026-05-05-mooncake-store/agentic_trace.svg" width="90%">
+<img src="/assets/figures/2026-05-06-mooncake-store/agentic_trace.svg" width="90%">
 <br>
 <em>Figure 1: Codex/SWE-bench Pro workload characteristics across 610 traces, with a median of 33 turns per trace. The traces show a 94.2% cache hit rate, a 131:1 input-to-output token ratio, average context growth of about 2,242 tokens per turn, median context growth from 12K to 80K tokens per trace, and inter-turn delays ranging from 5.2s to 81.4s.</em>
 </p>
@@ -54,7 +58,7 @@ However, local KV cache offloading to CPU DRAM or disk runs into two major limit
 Figure 2 depicts the overall design.
 
 <p align="center">
-<img src="/assets/figures/2026-05-05-mooncake-store/overall_design_option_C.svg" width="90%">
+<img src="/assets/figures/2026-05-06-mooncake-store/overall_design_option_C.svg" width="90%">
 <br>
 <em>Figure 2: Overall design of the vLLM distributed KV cache pool. Multiple vLLM instances embed Mooncake clients and share a cluster-wide Mooncake Store. The Mooncake master manages KV-block metadata, service discovery, and client health, while workers transfer KV blocks between GPU HBM and the distributed DRAM or SSD pool over RDMA.</em>
 </p>
@@ -90,7 +94,7 @@ To avoid blocking the main CPU path, which can delay GPU kernel launches, all RD
 The integration also naturally extends to PD disaggregation through the [`MultiConnector`](https://github.com/vllm-project/vllm/blob/main/vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py) interface. As shown in Figure 3, `MultiConnector` is a wrapper that chains multiple sub-connectors together. Each connector operates independently and does not rely on the others.
 
 <p align="center">
-<img src="/assets/figures/2026-05-05-mooncake-store/animation.gif" width="80%">
+<img src="/assets/figures/2026-05-06-mooncake-store/animation.gif" width="80%">
 <br>
 <em>Figure 3: PD disaggregation combined with the distributed KV cache pool via MultiConnector.</em>
 </p>
@@ -112,7 +116,7 @@ We ran the Kimi-2.5 NVFP4 model on GB200 nodes with PD disaggregation. The prefi
 We first evaluated vLLM in a realistic setting using the Codex agentic traces described earlier. In this experiment, we deployed the model with **1P1D**, using **12 GPUs** in total.
 
 <p align="center">
-<img src="/assets/figures/2026-05-05-mooncake-store/pd_compare_mooncake_vs_nixl.png" width="90%">
+<img src="/assets/figures/2026-05-06-mooncake-store/pd_compare_mooncake_vs_nixl.png" width="90%">
 <br>
 <em>Figure 4: vLLM with Mooncake Store vs. baseline on realistic Codex agentic traces (1P1D, 12 GB200 GPUs). The distributed KV cache pool improves throughput by 3.8x, reduces P50 TTFT by 46x, and reduces E2E latency by 8.6x, driven by a cache hit rate increase from 1.7% to 92.2%.</em>
 </p>
@@ -134,7 +138,7 @@ Experiment settings:
 - Parameters were chosen to align with the original Codex workload and keep the total output/input ratio ~1.3%
 
 <p align="center">
-<img src="/assets/figures/2026-05-05-mooncake-store/pd_scaling.png" width="90%">
+<img src="/assets/figures/2026-05-06-mooncake-store/pd_scaling.png" width="90%">
 <br>
 <em>Figure 5: Scaling throughput with Mooncake Store from 12 to 60 GB200 GPUs under round-robin routing. The system achieves >95% cache hit rate at all scales and scales nearly linearly.</em>
 </p>
