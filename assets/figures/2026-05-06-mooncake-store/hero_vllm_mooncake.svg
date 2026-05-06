@@ -125,7 +125,7 @@
     <g filter="url(#soft)">
       <rect x="720" y="330" width="640" height="125" rx="16" fill="#ffffff" stroke="#1e3a8a" stroke-width="2.5"/>
       <text x="745" y="370" font-size="17" font-weight="800" fill="#475569" letter-spacing="1.2">E2E LATENCY P50</text>
-      <text x="745" y="435" font-size="60" font-weight="900" fill="url(#perfGrad)">8.7×</text>
+      <text x="745" y="435" font-size="60" font-weight="900" fill="url(#perfGrad)">8.6×</text>
       <g transform="translate(1060,360)">
         <rect x="0" y="0"  width="31"  height="30" rx="4" fill="#3b82f6"/>
         <text x="39" y="22" font-size="18" font-weight="800" fill="#0f172a">10.8s</text>
