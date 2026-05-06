@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 912 664" font-family="Inter, -apple-system, system-ui, sans-serif" font-size="12" style="background:#fafafa">
+<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="rgba(255,255,255,0.38)" stroke-width="3"/></pattern><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9ca3af"/></marker></defs>
+<text x="90" y="22" font-size="18" font-weight="700" fill="#1f2937">Anatomy of one agentic trace</text>
+<text x="90" y="42" font-size="12" fill="#6b7280">Each row = one LLM call. Per-turn sizes: medians from codex / SWE-bench Pro corpus (610 traces). Decode block uses an expanded scale.</text>
+<text x="90" y="68" font-size="11" fill="#6b7280" font-weight="700" letter-spacing="0.5">CACHED PREFIX — KV cache reuse, no recompute</text>
+<rect x="90" y="72" width="14" height="14" rx="2" fill="#1d4ed8"/>
+<rect x="90" y="72" width="14" height="14" rx="2" fill="url(#hatch)"/>
+<text x="110" y="83" fill="#1f2937" font-size="11">system prompt</text>
+<rect x="258" y="72" width="14" height="14" rx="2" fill="#60a5fa"/>
+<rect x="258" y="72" width="14" height="14" rx="2" fill="url(#hatch)"/>
+<text x="278" y="83" fill="#1f2937" font-size="11">skills / memory</text>
+<rect x="426" y="72" width="14" height="14" rx="2" fill="#a78bfa"/>
+<rect x="426" y="72" width="14" height="14" rx="2" fill="url(#hatch)"/>
+<text x="446" y="83" fill="#1f2937" font-size="11">user task</text>
+<rect x="594" y="72" width="14" height="14" rx="2" fill="#86efac"/>
+<rect x="594" y="72" width="14" height="14" rx="2" fill="url(#hatch)"/>
+<text x="614" y="83" fill="#1f2937" font-size="11">past agent decode</text>
+<rect x="762" y="72" width="14" height="14" rx="2" fill="#bae6fd"/>
+<rect x="762" y="72" width="14" height="14" rx="2" fill="url(#hatch)"/>
+<text x="782" y="83" fill="#1f2937" font-size="11">past tool output</text>
+<text x="90" y="110" font-size="11" fill="#6b7280" font-weight="700" letter-spacing="0.5">ACTIVE THIS TURN</text>
+<rect x="90" y="114" width="14" height="14" rx="2" fill="#fb923c"/>
+<text x="110" y="125" fill="#1f2937" font-size="11">new tool output (must prefill)</text>
+<rect x="320" y="114" width="14" height="14" rx="2" fill="#0891b2"/>
+<text x="340" y="125" fill="#1f2937" font-size="11">output*</text>
+<text x="90" y="162" font-size="12" fill="#6b7280" font-weight="700" letter-spacing="0.5">INPUT (sent to model)</text>
+<text x="567.0142634543929" y="162" font-size="12" fill="#6b7280" font-weight="700" letter-spacing="0.5">DECODE</text>
+<text x="78" y="211.0" text-anchor="end" font-weight="700" fill="#1f2937" font-size="13">Turn 0</text>
+<rect x="90" y="192" width="16.54081265731751" height="28" fill="#1d4ed8"/>
+<line x1="106.5408126573175" y1="192" x2="106.5408126573175" y2="220" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="106.5408126573175" y="192" width="110.27208438211673" height="28" fill="#60a5fa"/>
+<text x="161.67685484837585" y="210.0" text-anchor="middle" font-size="11" fill="white" font-weight="600">skills</text>
+<line x1="216.81289703943423" y1="192" x2="216.81289703943423" y2="220" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="216.81289703943423" y="192" width="5.5136042191058365" height="28" fill="#a78bfa"/>
+<line x1="222.32650125854008" y1="192" x2="222.32650125854008" y2="220" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<text x="153.40644851971712" y="186" text-anchor="middle" font-size="11" fill="#6b7280">11.5K</text>
+<rect x="567.0142634543929" y="192" width="78.125" height="28" fill="#0891b2"/>
+<text x="606.0767634543929" y="186" text-anchor="middle" font-size="11" fill="#0e7490" font-weight="700">250</text>
+<path d="M 222.32650125854008 206.0 L 567.0142634543929 206.0" stroke="#9ca3af" stroke-width="1" fill="none" stroke-dasharray="2,2"/>
+<text x="779" y="205.0" font-size="11" fill="#6b7280"><tspan font-weight="700" fill="#1f2937">12K</tspan> in / <tspan font-weight="700" fill="#065f46">250</tspan> out<tspan x="779" dy="15" font-size="10.5" font-style="italic">~10–20s</tspan></text>
+<text x="90" y="244" font-size="12" fill="#9a3412" font-weight="600">↑ First call: system prompt + user task</text>
+<text x="567.0142634543929" y="244" font-size="12" fill="#6b7280"><tspan fill="#065f46" font-weight="700">↓ output*</tspan></text>
+<line x1="108" y1="252" x2="108" y2="323" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+<text x="116" y="290.5" font-size="11" fill="#6b7280" font-style="italic">tool exec   5.2s (median) – 81.4s (P99)</text>
+<text x="78" y="326.0" text-anchor="end" font-weight="700" fill="#1f2937" font-size="13">Turn 1</text>
+<rect x="90" y="307" width="16.54081265731751" height="28" fill="#1d4ed8"/>
+<line x1="106.5408126573175" y1="307" x2="106.5408126573175" y2="335" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="106.5408126573175" y="307" width="110.27208438211673" height="28" fill="#60a5fa"/>
+<text x="161.67685484837585" y="325.0" text-anchor="middle" font-size="11" fill="white" font-weight="600">skills</text>
+<line x1="216.81289703943423" y1="307" x2="216.81289703943423" y2="335" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="216.81289703943423" y="307" width="5.5136042191058365" height="28" fill="#a78bfa"/>
+<line x1="222.32650125854008" y1="307" x2="222.32650125854008" y2="335" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="222.32650125854008" y="307" width="2.7568021095529183" height="28" fill="#86efac"/>
+<line x1="225.083303368093" y1="307" x2="225.083303368093" y2="335" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="225.083303368093" y="307" width="67.87246793719285" height="28" fill="#fb923c"/>
+<text x="259.01953733668944" y="325.0" text-anchor="middle" font-size="11" fill="white" font-weight="600">new</text>
+<line x1="292.95577130528585" y1="307" x2="292.95577130528585" y2="335" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="90" y="307" width="135.083303368093" height="28" fill="url(#hatch)" pointer-events="none"/>
+<text x="153.40644851971712" y="301" text-anchor="middle" font-size="11" fill="#6b7280">11.5K</text>
+<text x="259.01953733668944" y="301" text-anchor="middle" font-size="11" fill="#9a3412" font-weight="700">+6.2K</text>
+<rect x="567.0142634543929" y="307" width="93.75" height="28" fill="#0891b2"/>
+<text x="613.8892634543929" y="301" text-anchor="middle" font-size="11" fill="#0e7490" font-weight="700">300</text>
+<path d="M 292.95577130528585 321.0 L 567.0142634543929 321.0" stroke="#9ca3af" stroke-width="1" fill="none" stroke-dasharray="2,2"/>
+<text x="779" y="320.0" font-size="11" fill="#6b7280"><tspan font-weight="700" fill="#1f2937">18.4K</tspan> in / <tspan font-weight="700" fill="#065f46">300</tspan> out<tspan x="779" dy="15" font-size="10.5" font-style="italic">~3–10s</tspan></text>
+<path d="M 90 339 L 90 344 L 225.083303368093 344 L 225.083303368093 339" stroke="#6b7280" stroke-width="0.8" fill="none" opacity="0.55"/>
+<text x="157.54165168404649" y="359" text-anchor="middle" font-size="11" fill="#6b7280" font-style="italic">cached</text>
+<text x="225.083303368093" y="359" font-size="12" fill="#9a3412" font-weight="600">↑ + Tool output: file contents (~6K)</text>
+<text x="567.0142634543929" y="359" font-size="12" fill="#6b7280"><tspan fill="#065f46" font-weight="700">↓ output*</tspan></text>
+<line x1="108" y1="367" x2="108" y2="416" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+<text x="116" y="394.5" font-size="11" fill="#6b7280" font-style="italic">tool exec   5.2s (median) – 81.4s (P99)</text>
+<text x="78" y="441.0" text-anchor="end" font-weight="700" fill="#1f2937" font-size="13">Turn 2</text>
+<rect x="90" y="422" width="16.54081265731751" height="28" fill="#1d4ed8"/>
+<line x1="106.5408126573175" y1="422" x2="106.5408126573175" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="106.5408126573175" y="422" width="110.27208438211673" height="28" fill="#60a5fa"/>
+<text x="161.67685484837585" y="440.0" text-anchor="middle" font-size="11" fill="white" font-weight="600">skills</text>
+<line x1="216.81289703943423" y1="422" x2="216.81289703943423" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="216.81289703943423" y="422" width="5.5136042191058365" height="28" fill="#a78bfa"/>
+<line x1="222.32650125854008" y1="422" x2="222.32650125854008" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="222.32650125854008" y="422" width="2.7568021095529183" height="28" fill="#86efac"/>
+<line x1="225.083303368093" y1="422" x2="225.083303368093" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="225.083303368093" y="422" width="67.87246793719285" height="28" fill="#bae6fd"/>
+<line x1="292.95577130528585" y1="422" x2="292.95577130528585" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="292.95577130528585" y="422" width="3.308162531463502" height="28" fill="#86efac"/>
+<line x1="296.26393383674935" y1="422" x2="296.26393383674935" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="296.26393383674935" y="422" width="64.18938031883015" height="28" fill="#fb923c"/>
+<text x="328.3586239961644" y="440.0" text-anchor="middle" font-size="11" fill="white" font-weight="600">new</text>
+<line x1="360.4533141555795" y1="422" x2="360.4533141555795" y2="450" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="90" y="422" width="206.26393383674935" height="28" fill="url(#hatch)" pointer-events="none"/>
+<text x="153.40644851971712" y="416" text-anchor="middle" font-size="11" fill="#6b7280">11.5K</text>
+<text x="259.2952175476447" y="416" text-anchor="middle" font-size="11" fill="#6b7280">history 6.7K</text>
+<text x="328.3586239961644" y="416" text-anchor="middle" font-size="11" fill="#9a3412" font-weight="700">+5.8K</text>
+<rect x="567.0142634543929" y="422" width="93.75" height="28" fill="#0891b2"/>
+<text x="613.8892634543929" y="416" text-anchor="middle" font-size="11" fill="#0e7490" font-weight="700">300</text>
+<path d="M 360.4533141555795 436.0 L 567.0142634543929 436.0" stroke="#9ca3af" stroke-width="1" fill="none" stroke-dasharray="2,2"/>
+<text x="779" y="435.0" font-size="11" fill="#6b7280"><tspan font-weight="700" fill="#1f2937">24.5K</tspan> in / <tspan font-weight="700" fill="#065f46">300</tspan> out<tspan x="779" dy="15" font-size="10.5" font-style="italic">~3–10s</tspan></text>
+<path d="M 90 454 L 90 459 L 296.26393383674935 459 L 296.26393383674935 454" stroke="#6b7280" stroke-width="0.8" fill="none" opacity="0.55"/>
+<text x="193.13196691837467" y="474" text-anchor="middle" font-size="11" fill="#6b7280" font-style="italic">cached</text>
+<text x="296.26393383674935" y="474" font-size="12" fill="#9a3412" font-weight="600">↑ + Tool output: grep results (~5.8K)</text>
+<text x="567.0142634543929" y="474" font-size="12" fill="#6b7280"><tspan fill="#065f46" font-weight="700">↓ output*</tspan></text>
+<line x1="108" y1="482" x2="108" y2="509" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+<text x="116" y="498.5" font-size="11" fill="#6b7280" font-style="italic">tool exec   5.2s (median) – 81.4s (P99)</text>
+<text x="78" y="525.0" text-anchor="end" font-size="13" fill="#6b7280" font-weight="600">⋮</text>
+<text x="319.50713172719645" y="525.0" text-anchor="middle" font-size="12" fill="#6b7280" font-style="italic">…~26 more iterations of (decode → tool exec → new tool output)…</text>
+<line x1="108" y1="533.0" x2="108" y2="571" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+<text x="78" y="596.0" text-anchor="end" font-weight="700" fill="#1f2937" font-size="13">Final Turn</text>
+<rect x="90" y="577" width="16.54081265731751" height="28" fill="#1d4ed8"/>
+<line x1="106.5408126573175" y1="577" x2="106.5408126573175" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="106.5408126573175" y="577" width="110.27208438211673" height="28" fill="#60a5fa"/>
+<text x="161.67685484837585" y="595.0" text-anchor="middle" font-size="11" fill="white" font-weight="600">skills</text>
+<line x1="216.81289703943423" y1="577" x2="216.81289703943423" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="216.81289703943423" y="577" width="5.5136042191058365" height="28" fill="#a78bfa"/>
+<line x1="222.32650125854008" y1="577" x2="222.32650125854008" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="222.32650125854008" y="577" width="2.7568021095529183" height="28" fill="#86efac"/>
+<line x1="225.083303368093" y1="577" x2="225.083303368093" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="225.083303368093" y="577" width="71.67685484837588" height="28" fill="#bae6fd"/>
+<line x1="296.7601582164689" y1="577" x2="296.7601582164689" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="296.7601582164689" y="577" width="3.087618362699269" height="28" fill="#86efac"/>
+<line x1="299.84777657916817" y1="577" x2="299.84777657916817" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="299.84777657916817" y="577" width="69.47141316073355" height="28" fill="#bae6fd"/>
+<line x1="369.31918973990173" y1="577" x2="369.31918973990173" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="369.31918973990173" y="577" width="52" height="28" fill="#e5e7eb" stroke="#9ca3af" stroke-width="0.6" stroke-dasharray="3,2"/>
+<text x="395.31918973990173" y="596.0" text-anchor="middle" font-size="15" fill="#9ca3af">···</text>
+<rect x="421.31918973990173" y="577" width="6.06496464101642" height="28" fill="#86efac"/>
+<line x1="427.3841543809182" y1="577" x2="427.3841543809182" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="427.3841543809182" y="577" width="49.62243797195253" height="28" fill="#bae6fd"/>
+<line x1="477.0065923528707" y1="577" x2="477.0065923528707" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="477.0065923528707" y="577" width="6.395780894162771" height="28" fill="#86efac"/>
+<line x1="483.4023732470335" y1="577" x2="483.4023732470335" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="483.4023732470335" y="577" width="47.416996284310194" height="28" fill="#bae6fd"/>
+<line x1="530.8193695313437" y1="577" x2="530.8193695313437" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="530.8193695313437" y="577" width="18.19489392304926" height="28" fill="#fb923c"/>
+<line x1="549.0142634543929" y1="577" x2="549.0142634543929" y2="605" stroke="#ffffff" stroke-width="1.0" opacity="0.85"/>
+<rect x="90" y="577" width="440.8193695313436" height="28" fill="url(#hatch)" pointer-events="none"/>
+<text x="153.40644851971712" y="571" text-anchor="middle" font-size="11" fill="#6b7280">11.5K</text>
+<text x="376.57293539494185" y="571" text-anchor="middle" font-size="11" fill="#6b7280">history 69.8K</text>
+<text x="539.9168164928683" y="571" text-anchor="middle" font-size="11" fill="#9a3412" font-weight="700">+1.6K</text>
+<rect x="567.0142634543929" y="577" width="200.0" height="28" fill="#0891b2"/>
+<text x="667.0142634543929" y="571" text-anchor="middle" font-size="11" fill="#0e7490" font-weight="700">640</text>
+<path d="M 549.0142634543929 591.0 L 567.0142634543929 591.0" stroke="#9ca3af" stroke-width="1" fill="none" stroke-dasharray="2,2"/>
+<text x="779" y="590.0" font-size="11" fill="#6b7280"><tspan font-weight="700" fill="#1f2937">83.4K</tspan> in / <tspan font-weight="700" fill="#065f46">640</tspan> out<tspan x="779" dy="15" font-size="10.5" font-style="italic">~20–40s</tspan></text>
+<path d="M 90 609 L 90 614 L 530.8193695313437 614 L 530.8193695313437 609" stroke="#6b7280" stroke-width="0.8" fill="none" opacity="0.55"/>
+<text x="310.40968476567184" y="629" text-anchor="middle" font-size="11" fill="#6b7280" font-style="italic">cached</text>
+<text x="530.8193695313437" y="557" text-anchor="start" font-size="11" fill="#9a3412" font-weight="700">↓ + Tool output: last command result (~1.6K)</text>
+<text x="567.0142634543929" y="629" font-size="12" fill="#6b7280"><tspan fill="#065f46" font-weight="700">↓ output*</tspan></text>
+</svg>
