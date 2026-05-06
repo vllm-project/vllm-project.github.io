@@ -5,9 +5,9 @@ author: "Yifan Qiao, Trong Dao Le, Ao Shen, Zhewen Li, Bowen Wang"
 image: /assets/figures/2026-05-06-mooncake-store/hero_vllm_mooncake.svg
 tags:
   - agentic
-  - kv-cache
-  - mooncake
-  - kv-offloading
+  - kv_cache
+  - large-scale-serving
+  - disaggregation
 ---
 
 <p align="center">
