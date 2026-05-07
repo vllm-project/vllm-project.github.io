@@ -27,14 +27,6 @@ However, most of the reported results were based on small models evaluated on sh
 <em>Figure 2: Pareto frontier for Qwen3-30B-A3B-Instruct-2507 on 2xH100. FP8 matches BF16 throughput at 2x capacity. TurboQuant variants extend capacity to 2.3-3.7x but at 40-52% throughput reduction.</em>
 </p>
 
-## Key Findings
-
-- **FP8 remains the best default for KV-cache quantization.** It matches or exceeds BF16 throughput while providing 2x KV-cache capacity with minimal accuracy loss (< 1-2 points).
-- **TurboQuant 4bit-nc offers a compelling memory-for-throughput tradeoff.** It provides 3.1-3.4x KV-cache capacity with acceptable accuracy loss on most workloads, at the cost of ~20-25% throughput reduction.
-- **Aggressive TurboQuant variants (k3v4-nc, 3bit-nc) can degrade significantly.** Long-context retrieval AUC drops by up to 14 points and LiveCodeBench scores drop by up to 20 points on Qwen3-30B-A3B.
-- **Under burst serving, KV-cache compression dramatically reduces TTFT.** On Llama-3.3-70B (4xH100), BF16 TTFT reaches 17s at burst while TurboQuant variants stay under 3.5s and FP8 under 1.5s — the memory savings prevent request queuing.
-- **Larger models are more robust to TurboQuant.** MiniMax-M2.7 loses only 1-4 points across all benchmarks even with 3-bit quantization, while the smaller Qwen3-30B-Thinking model shows much larger degradation.
-
 **Table of Contents**
 - [Experimental Setup](#experimental-setup)
 - [Accuracy Results](#accuracy-results)
