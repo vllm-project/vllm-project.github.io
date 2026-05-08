@@ -1,4 +1,8 @@
 title: vLLM Blog
+lang: en
+languages:
+  - en
+  - zh
 author:
   name: © 2026. vLLM Team. All rights reserved.
 google_analytics: G-9C5R3JR3QS
@@ -67,3 +71,11 @@ header_pages:
 # Set to `true` to show excerpts on the homepage.
 #
 # show_excerpts: false
+
+defaults:
+  - scope:
+      path: "_posts/zh"
+      type: posts
+    values:
+      lang: zh
+      permalink: /zh/:year/:month/:day/:title/

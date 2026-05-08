@@ -58,3 +58,25 @@ The blog supports GitHub flavored admonitions via [jekyll-gfm-admonition](https:
 ## Theme customization
 
 The theme we are using is [Minima](https://github.com/jekyll/minima). If you need to customise anything from this theme, see [Overriding theme defaults](https://jekyllrb.com/docs/themes/#overriding-theme-defaults).
+
+## Chinese translations
+
+The site supports Chinese translations under `/zh/`.
+
+- Put translated posts under `_posts/zh/`.
+- Keep `layout: post` and add `lang: zh`.
+- Add `translation_key: <english-post-slug>` so the translated post can be paired with its English source.
+- Chinese posts are published at `/zh/...`, automatically listed on `/zh/`, and linked back to the English original.
+- The `/zh/` page also shows English posts that still do not have a Chinese translation yet.
+
+Example:
+
+```yaml
+---
+layout: post
+title: "..."
+author: "vLLM Team"
+lang: zh
+translation_key: dev-experience
+---
+```

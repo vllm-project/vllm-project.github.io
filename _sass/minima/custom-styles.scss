@@ -1,3 +1,111 @@
 img {
     background-color: var(--minima-background-color);
 }
+
+.translation-link {
+    margin: 1rem 0 1.5rem;
+}
+
+.site-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.site-title {
+    float: none;
+}
+
+.site-header__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto;
+}
+
+.site-header__controls .site-nav {
+    float: none;
+}
+
+.lang-menu {
+    position: relative;
+}
+
+.lang-menu__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.38rem 0.85rem;
+    border: 1px solid var(--minima-border-color-01, #d2d5da);
+    border-radius: 8px;
+    background-color: var(--minima-background-color);
+    color: var(--minima-text-color);
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.lang-menu__summary::-webkit-details-marker {
+    display: none;
+}
+
+.lang-menu__caret {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid currentColor;
+    transition: transform 0.2s ease;
+}
+
+.lang-menu[open] .lang-menu__caret {
+    transform: rotate(180deg);
+}
+
+.lang-menu__dropdown {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    min-width: 12rem;
+    padding: 0.35rem 0;
+    border: 1px solid var(--minima-border-color-01, #d2d5da);
+    border-radius: 10px;
+    background-color: var(--minima-background-color);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    z-index: 30;
+}
+
+.lang-menu__option {
+    display: block;
+    padding: 0.55rem 0.95rem;
+    color: var(--minima-text-color);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.lang-menu__option:hover,
+.lang-menu__option.is-current {
+    background-color: rgba(42, 118, 252, 0.08);
+    color: #0b57d0;
+}
+
+@media screen and (max-width: 600px) {
+    .site-header__inner {
+        position: relative;
+        min-height: 3.75rem;
+    }
+
+    .site-header__controls {
+        padding-right: 2.75rem;
+    }
+
+    .lang-menu__summary {
+        padding: 0.32rem 0.72rem;
+        font-size: 0.95rem;
+    }
+
+    .lang-menu__dropdown {
+        min-width: 11rem;
+    }
+}

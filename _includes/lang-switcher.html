@@ -1,0 +1,81 @@
+{%- assign current_lang = include.lang | default: page.lang | default: site.lang | default: "en" -%}
+{%- assign current_url = include.url | default: page.url -%}
+{%- assign switch_label = include.label -%}
+{%- assign variant = include.variant | default: "inline" -%}
+{%- assign en_url = nil -%}
+{%- assign zh_url = nil -%}
+
+{%- if current_url == "/" or current_url == "/zh/" or page.translation_group == "home" -%}
+  {%- assign en_url = "/" | relative_url -%}
+  {%- assign zh_url = "/zh/" | relative_url -%}
+{%- elsif page.layout == "post" -%}
+  {%- if current_lang == "zh" -%}
+    {%- assign english_key = page.translation_key | default: page.slug -%}
+    {%- assign english_post = site.posts | where_exp: "post", "post.lang != 'zh' and post.slug == english_key" | first -%}
+    {%- assign zh_url = page.url | relative_url -%}
+    {%- if english_post -%}
+      {%- assign en_url = english_post.url | relative_url -%}
+    {%- endif -%}
+  {%- else -%}
+    {%- assign translation_key = page.translation_key | default: page.slug -%}
+    {%- assign zh_post = site.posts | where: "lang", "zh" | where: "translation_key", translation_key | first -%}
+    {%- assign en_url = page.url | relative_url -%}
+    {%- if zh_post -%}
+      {%- assign zh_url = zh_post.url | relative_url -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- if en_url or zh_url -%}
+  {%- assign current_lang_label = "English" -%}
+  {%- if current_lang == "zh" -%}
+    {%- assign current_lang_label = "中文" -%}
+  {%- endif -%}
+
+  {%- assign available_count = 0 -%}
+  {%- if en_url -%}
+    {%- assign available_count = available_count | plus: 1 -%}
+  {%- endif -%}
+  {%- if zh_url -%}
+    {%- assign available_count = available_count | plus: 1 -%}
+  {%- endif -%}
+
+  {%- if variant == "menu" and available_count > 1 -%}
+<details class="lang-menu">
+  <summary class="lang-menu__summary">
+    <span>{{ current_lang_label }}</span>
+    <span class="lang-menu__caret" aria-hidden="true"></span>
+  </summary>
+  <div class="lang-menu__dropdown">
+    {%- if en_url -%}
+      <a class="lang-menu__option{% if current_lang == 'en' %} is-current{% endif %}" href="{{ en_url }}">English</a>
+    {%- endif -%}
+    {%- if zh_url -%}
+      <a class="lang-menu__option{% if current_lang == 'zh' %} is-current{% endif %}" href="{{ zh_url }}">中文 (Chinese)</a>
+    {%- endif -%}
+  </div>
+</details>
+  {%- elsif variant != "menu" -%}
+<div class="lang-switcher">
+  {%- if switch_label -%}
+    <span class="lang-switcher__label">{{ switch_label }}</span>
+  {%- endif -%}
+
+  {%- if en_url -%}
+    {%- if current_lang == "en" -%}
+      <span class="lang-switcher__item is-current">English</span>
+    {%- else -%}
+      <a class="lang-switcher__item" href="{{ en_url }}">English</a>
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if zh_url -%}
+    {%- if current_lang == "zh" -%}
+      <span class="lang-switcher__item is-current">中文</span>
+    {%- else -%}
+      <a class="lang-switcher__item" href="{{ zh_url }}">中文</a>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+  {%- endif -%}
+{%- endif -%}
