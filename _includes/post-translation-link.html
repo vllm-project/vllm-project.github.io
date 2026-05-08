@@ -2,7 +2,7 @@
 
 {%- if current_lang == "zh" -%}
   {%- assign english_key = page.translation_key | default: page.slug -%}
-  {%- assign english_post = site.posts | where_exp: "post", "post.lang != 'zh' and post.slug == english_key" | first -%}
+  {%- assign english_post = site.posts | where_exp: "post", "post.lang != 'zh'" | where: "slug", english_key | first -%}
   {%- if english_post -%}
   <div class="translation-link">
     <strong>English original:</strong>

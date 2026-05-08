@@ -11,7 +11,7 @@
 {%- elsif page.layout == "post" -%}
   {%- if current_lang == "zh" -%}
     {%- assign english_key = page.translation_key | default: page.slug -%}
-    {%- assign english_post = site.posts | where_exp: "post", "post.lang != 'zh' and post.slug == english_key" | first -%}
+    {%- assign english_post = site.posts | where_exp: "post", "post.lang != 'zh'" | where: "slug", english_key | first -%}
     {%- assign zh_url = page.url | relative_url -%}
     {%- if english_post -%}
       {%- assign en_url = english_post.url | relative_url -%}
