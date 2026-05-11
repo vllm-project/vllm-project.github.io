@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="920" viewBox="0 0 1320 920" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+    <path d="M0 0 L10 5 L0 10 z" fill="#1f2937"/>
+  </marker>
+  <marker id="arrow-start" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="#1f2937"/>
+  </marker>
+</defs>
+<rect x="0" y="0" width="1320" height="920" fill="#ffffff"/>
+
+<!-- Plane labels (slate gray) -->
+<text x="85" y="165" text-anchor="middle" font-size="22" font-weight="700" fill="#475569">Control plane</text>
+<text x="85" y="205" text-anchor="middle" font-size="22" font-weight="700" fill="#475569">Data plane</text>
+
+<!-- ============ vLLM Instance 0 ============ -->
+<rect x="170" y="60" width="340" height="510" rx="20" fill="#f8fafc" stroke="#1f2937" stroke-width="2.5"/>
+<text x="340" y="44" text-anchor="middle" font-size="22" font-weight="700" fill="#64748b">vLLM Instance 0</text>
+
+<!-- Scheduler 0 (narrower so the lookup arrow has more room) -->
+<rect x="220" y="85" width="240" height="70" rx="14" fill="#fde68a" stroke="#1f2937" stroke-width="2"/>
+<text x="340" y="129" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">vLLM Scheduler</text>
+
+<!-- Worker stack 0 (3D card) -->
+<rect x="230" y="225" width="260" height="210" rx="14" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+<rect x="220" y="215" width="260" height="210" rx="14" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+<rect x="210" y="205" width="260" height="210" rx="14" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+<rect x="228" y="220" width="224" height="85" rx="10" fill="#dbeafe" stroke="#1f2937" stroke-width="2"/>
+<text x="340" y="271" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">vLLM Worker</text>
+<rect x="228" y="320" width="224" height="85" rx="10" fill="#bfdbfe" stroke="#1f2937" stroke-width="2"/>
+<text x="340" y="371" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">Mooncake Client</text>
+
+<!-- GPU HBM 0 inside instance -->
+<rect x="180" y="475" width="320" height="80" rx="12" fill="#fbcfe8" stroke="#1f2937" stroke-width="2"/>
+<text x="340" y="523" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">GPU HBM</text>
+
+<!-- Worker stack 0 -> HBM 0 -->
+<line x1="340" y1="419" x2="340" y2="471" stroke="#1f2937" stroke-width="2" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
+
+<!-- ============ vLLM Instance 1 ============ -->
+<rect x="810" y="60" width="340" height="510" rx="20" fill="#f8fafc" stroke="#1f2937" stroke-width="2.5"/>
+<text x="980" y="44" text-anchor="middle" font-size="22" font-weight="700" fill="#64748b">vLLM Instance 1</text>
+
+<rect x="860" y="85" width="240" height="70" rx="14" fill="#fde68a" stroke="#1f2937" stroke-width="2"/>
+<text x="980" y="129" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">vLLM Scheduler</text>
+
+<rect x="870" y="225" width="260" height="210" rx="14" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+<rect x="860" y="215" width="260" height="210" rx="14" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+<rect x="850" y="205" width="260" height="210" rx="14" fill="#ffffff" stroke="#1f2937" stroke-width="2"/>
+<rect x="868" y="220" width="224" height="85" rx="10" fill="#dbeafe" stroke="#1f2937" stroke-width="2"/>
+<text x="980" y="271" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">vLLM Worker</text>
+<rect x="868" y="320" width="224" height="85" rx="10" fill="#bfdbfe" stroke="#1f2937" stroke-width="2"/>
+<text x="980" y="371" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">Mooncake Client</text>
+
+<rect x="820" y="475" width="320" height="80" rx="12" fill="#fbcfe8" stroke="#1f2937" stroke-width="2"/>
+<text x="980" y="523" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">GPU HBM</text>
+
+<line x1="980" y1="419" x2="980" y2="471" stroke="#1f2937" stroke-width="2" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
+
+<!-- ============ Mooncake Master (slightly narrower) ============ -->
+<rect x="560" y="85" width="200" height="70" rx="14" fill="#fcd34d" stroke="#1f2937" stroke-width="2"/>
+<text x="660" y="129" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">Mooncake Master</text>
+
+<!-- Curved lookup arrows (wider span, deeper arc, label sits above the curve) -->
+<path d="M 460 92 C 480 30, 540 30, 560 92" stroke="#1f2937" stroke-width="2" fill="none" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
+<path d="M 760 92 C 780 30, 840 30, 860 92" stroke="#1f2937" stroke-width="2" fill="none" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
+<text x="510" y="36" text-anchor="middle" font-size="18" font-weight="600" fill="#475569" style="paint-order: stroke; stroke: #ffffff; stroke-width: 6px; stroke-linejoin: round;">lookup</text>
+<text x="810" y="36" text-anchor="middle" font-size="18" font-weight="600" fill="#475569" style="paint-order: stroke; stroke: #ffffff; stroke-width: 6px; stroke-linejoin: round;">lookup</text>
+
+<!-- ============ Mooncake Distributed KV Cache Pool ============ -->
+<rect x="170" y="600" width="980" height="290" rx="20" fill="#f1f5f9" stroke="#1f2937" stroke-width="2"/>
+
+<!-- RDMA Network Fabric rail -->
+<rect x="200" y="630" width="920" height="58" rx="29" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
+<text x="660" y="668" text-anchor="middle" font-size="20" font-weight="700" fill="#dc2626">RDMA Network Fabric</text>
+
+<!-- HBM -> RDMA rail: plain red taps (rail itself is the bus) -->
+<line x1="340" y1="555" x2="340" y2="630" stroke="#dc2626" stroke-width="2.5"/>
+<line x1="980" y1="555" x2="980" y2="630" stroke="#dc2626" stroke-width="2.5"/>
+<text x="358" y="600" text-anchor="start" font-size="18" font-weight="700" fill="#dc2626" style="paint-order: stroke; stroke: #ffffff; stroke-width: 6px; stroke-linejoin: round;">GPU Direct</text>
+<text x="962" y="600" text-anchor="end" font-size="18" font-weight="700" fill="#dc2626" style="paint-order: stroke; stroke: #ffffff; stroke-width: 6px; stroke-linejoin: round;">GPU Direct</text>
+
+<!-- DRAM/SSD blocks -->
+<rect x="180" y="750" width="320" height="80" rx="12" fill="#bbf7d0" stroke="#1f2937" stroke-width="2"/>
+<text x="340" y="798" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">CPU / DRAM / SSD</text>
+<rect x="820" y="750" width="320" height="80" rx="12" fill="#bbf7d0" stroke="#1f2937" stroke-width="2"/>
+<text x="980" y="798" text-anchor="middle" font-size="22" font-weight="700" fill="#0f172a">CPU / DRAM / SSD</text>
+
+<!-- RDMA rail -> DRAM: plain red taps (no oversized arrowheads) -->
+<line x1="340" y1="688" x2="340" y2="750" stroke="#dc2626" stroke-width="2.5"/>
+<line x1="980" y1="688" x2="980" y2="750" stroke="#dc2626" stroke-width="2.5"/>
+
+<!-- Pool label INSIDE pool container -->
+<text x="660" y="872" text-anchor="middle" font-size="22" font-weight="700" fill="#475569">Mooncake Distributed KV Cache Pool</text>
+
+<!-- Dashed control/data plane separator (drawn last, on top) -->
+<line x1="20" y1="180" x2="1300" y2="180" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="10 7"/>
+
+</svg>
