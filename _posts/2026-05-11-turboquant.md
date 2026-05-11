@@ -2,7 +2,7 @@
 layout: post
 title: "A First Comprehensive Study of TurboQuant: Accuracy and Performance"
 author: "Eldar Kurtić, Michael Goin, Alexandre Marques (Red Hat AI)"
-image: /assets/figures/2026-05-04-turboquant/llama_70b_pareto.png
+image: /assets/figures/2026-05-11-turboquant/llama_70b_pareto.png
 tags:
   - quantization
   - kv_cache
@@ -16,13 +16,13 @@ tags:
 However, most of the reported results were based on small models evaluated on short-context benchmarks that do not stress-test KV-cache quantization. To provide the community with more actionable data, we conducted a comprehensive study spanning four models (both decoder-only and MoEs), from 30B to 200B+ parameters, and five benchmarks including both prefill-heavy long-context retrieval and decode-heavy reasoning workloads.
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/llama_70b_pareto.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/llama_70b_pareto.png" width="100%">
 <br>
 <em>Figure 1: Pareto frontier for Llama-3.3-70B-Instruct on 4xH100. FP8 dominates with 2.6x higher burst throughput than BF16 and 2x KV-cache capacity. All TurboQuant variants trade throughput for additional memory savings.</em>
 </p>
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/qwen3_30b_a3b_pareto.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/qwen3_30b_a3b_pareto.png" width="100%">
 <br>
 <em>Figure 2: Pareto frontier for Qwen3-30B-A3B-Instruct-2507 on 2xH100. FP8 matches BF16 throughput at 2x capacity. TurboQuant variants extend capacity to 2.3-3.7x but at 40-52% throughput reduction.</em>
 </p>
@@ -68,7 +68,7 @@ vllm serve MiniMaxAI/MiniMax-M2.7 --kv-cache-dtype turboquant_4bit_nc
 For long-context evaluation, we use the `openai/mrcr` task, testing sequence lengths up to each model's maximum supported length. We report the average pass@1 score for each sequence-length bucket over 5 repetitions, and the Area-Under-Curve (AUC) as an aggregate metric across all tested lengths ([Context Arena](https://contextarena.ai/)).
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/Llama-3.3-70B-Instruct_openai_mrcr_2_needles_plot.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/Llama-3.3-70B-Instruct_openai_mrcr_2_needles_plot.png" width="100%">
 <br>
 <em>Figure 3: Long-context retrieval results for Llama-3.3-70B-Instruct up to 64k context. At 128k, the model's maximum supported context length, the BF16 baseline collapses to <10%.</em>
 </p>
@@ -76,7 +76,7 @@ For long-context evaluation, we use the `openai/mrcr` task, testing sequence len
 On Llama-3.3-70B-Instruct (Figure 3), the higher-bit TurboQuant variants (k8v4 and 4bit-nc) preserve long-context retrieval well and maintain competitive AUC (~52%). However, TQ k3v4-nc (48.6%) and 3bit-nc (50.3%) show noticeable and consistent degradation across all sequence lengths, with the gap widening at 64k context where the accuracy drop is up to 8 points.
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/Qwen3-30B-A3B-Instruct-2507_openai_mrcr_2_needles_plot.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/Qwen3-30B-A3B-Instruct-2507_openai_mrcr_2_needles_plot.png" width="100%">
 <br>
 <em>Figure 4: Long-context retrieval results for Qwen3-30B-A3B-Instruct-2507 up to 256k context.</em>
 </p>
@@ -90,7 +90,7 @@ On Qwen3-30B-A3B-Instruct-2507 (Figure 4), which supports longer contexts up to 
 For decode-heavy reasoning benchmarks, we use AIME25, GPQA:Diamond, MATH500, and LiveCodeBench-v6. We report the average pass@1 score: over 10 repetitions for AIME25 and LiveCodeBench-v6, and over 5 repetitions for GPQA:Diamond and MATH500.
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/Qwen3-30B-A3B-Thinking-2507_reasoning_plot.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/Qwen3-30B-A3B-Thinking-2507_reasoning_plot.png" width="100%">
 <br>
 <em>Figure 5: Reasoning results for Qwen3-30B-A3B-Thinking-2507. Aggressive TQ variants (k3v4-nc, 3bit-nc) show very large drops on AIME25 and LiveCodeBench-v6.</em>
 </p>
@@ -98,7 +98,7 @@ For decode-heavy reasoning benchmarks, we use AIME25, GPQA:Diamond, MATH500, and
 On Qwen3-30B-A3B-Thinking-2507 (Figure 5), we see a clear accuracy hierarchy. FP8 and TQ k8v4 are close to the BF16 baseline with >98% average accuracy recovery. TQ 4bit-nc shows a slightly larger drop with 96% recovery, whereas TQ k3v4-nc and 3bit-nc show drastic accuracy drops of ~20 points. Even on the relatively easy MATH500 benchmark, the accuracy drop is ~4 points, indicating that aggressive TurboQuant variants are not suitable for long-generation reasoning tasks.
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/MiniMax-M2.7_reasoning_plot.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/MiniMax-M2.7_reasoning_plot.png" width="100%">
 <br>
 <em>Figure 6: Reasoning results for MiniMax-M2.7. Despite the fact that larger models tend to be more robust to quantization, aggressive TurboQuant variants still show significant accuracy degradation, specifically on AIME25 and LiveCodeBench-v6.</em>
 </p>
@@ -116,13 +116,13 @@ For performance benchmarking, we focus on `Qwen3-30B-A3B-Instruct-2507` (2xH100)
 We measure latency with `vllm bench latency` using fixed synthetic requests with input length 1024 and output length 256, sweeping batch sizes 1, 8, 32, and 64. Each configuration used 10 warmup iterations followed by 30 measured iterations. Results are shown as slowdown relative to BF16 (lower is better).
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/qwen3_30b_a3b_latency.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/qwen3_30b_a3b_latency.png" width="100%">
 <br>
 <em>Figure 7: Latency overhead relative to BF16 for Qwen3-30B-A3B-Instruct-2507. FP8 has negligible overhead which disappears with batching; TurboQuant (TQ) adds up to 60% slowdown depending on the variant and batch size.</em>
 </p>
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/llama_70b_latency.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/llama_70b_latency.png" width="100%">
 <br>
 <em>Figure 8: Latency overhead relative to BF16 for Llama-3.3-70B-Instruct. FP8 has negligible overhead, whereas TQ overhead ranges from 10% to 68%.</em>
 </p>
@@ -134,13 +134,13 @@ FP8 consistently runs at negligible or no latency overhead across both models an
 We measure offline throughput with `vllm bench throughput` using 200 prompts across three input/output length pairs: 256/256, 1024/512, and 4096/256. Results are shown as a percentage of BF16 throughput (higher is better).
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/qwen3_30b_a3b_throughput.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/qwen3_30b_a3b_throughput.png" width="100%">
 <br>
 <em>Figure 9: Average throughput relative to BF16 for Qwen3-30B-A3B-Instruct-2507. FP8 preserves BF16 throughput, while all TurboQuant variants reduce throughput, indicating that lower KV-cache storage cost does not directly translate into faster serving.</em>
 </p>
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/llama_70b_throughput.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/llama_70b_throughput.png" width="100%">
 <br>
 <em>Figure 10: Average throughput relative to BF16 for Llama-3.3-70B-Instruct. FP8 preserves BF16 throughput, while all TurboQuant variants reduce throughput, indicating that lower KV-cache storage cost does not directly translate into faster serving.</em>
 </p>
@@ -152,13 +152,13 @@ The throughput results reinforce the latency findings. FP8 matches BF16 throughp
 We measure serving performance with `vllm bench serve` by using synthetic requests with input length 1024 and output length 512, 300 measured prompts, and 5 warmup requests. We test request rates 2, 8, and `inf` (send requests as fast as possible). We report both TPOT (Time Per Output Token — measures decode speed) and P99 TTFT (Time To First Token — measures how quickly a request starts generating).
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/qwen3_30b_a3b_serve.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/qwen3_30b_a3b_serve.png" width="100%">
 <br>
 <em>Figure 11: Serving time per output token (TPOT) for Qwen3-30B-A3B-Instruct-2507.</em>
 </p>
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/llama_70b_serve.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/llama_70b_serve.png" width="100%">
 <br>
 <em>Figure 12: Serving time per output token (TPOT) for Llama-3.3-70B-Instruct.</em>
 </p>
@@ -166,13 +166,13 @@ We measure serving performance with `vllm bench serve` by using synthetic reques
 The TPOT results (Figures 11-12) mirror the latency and throughput findings: FP8 either tracks or outperforms BF16 across all request rates, while TQ variants add substantial per-token overhead that grows with load. At burst on Llama-70B, FP8 is almost 2x faster than BF16, while TQ variants are 1.5x to 2.5x slower.
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/qwen3_30b_a3b_ttft.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/qwen3_30b_a3b_ttft.png" width="100%">
 <br>
 <em>Figure 13: P99 TTFT for Qwen3-30B-A3B-Instruct-2507.</em>
 </p>
 
 <p align="center">
-<img src="/assets/figures/2026-05-04-turboquant/llama_70b_ttft.png" width="100%">
+<img src="/assets/figures/2026-05-11-turboquant/llama_70b_ttft.png" width="100%">
 <br>
 <em>Figure 14: P99 TTFT for Llama-3.3-70B-Instruct. Under burst load, BF16 TTFT explodes to ~17s due to memory saturation; TurboQuant variants stay under 3.5s and FP8 under 1.5s.</em>
 </p>
