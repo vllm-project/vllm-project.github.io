@@ -7,8 +7,6 @@ social_image: /assets/figures/2026-05-12-native-rl-apis/weight_transfer_nccl.svg
 read_time_minutes: 12
 tags:
   - reinforcement-learning
-  - training
-  - weight-sync
   - async-rl
 ---
 
