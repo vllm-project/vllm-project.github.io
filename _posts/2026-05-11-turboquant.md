@@ -13,7 +13,7 @@ tags:
 
 [TurboQuant](https://arxiv.org/pdf/2504.19874), a method for KV-cache quantization, recently gained significant traction in the community due to the large advertised savings in GPU memory from very low bit-width quantization of a model's KV-cache. Unlike [FP8 KV-cache quantization](https://vllm.ai/blog/fp8-kvcache), which quantizes both the KV-cache storage and the attention computation itself using hardware-native FP8 Tensor Core operations, TurboQuant compresses only the KV-cache storage to 3-4 bits and dequantizes back to BF16 for the attention computation. This architectural difference has significant implications for both accuracy and performance.
 
-However, most of the reported results were based on small models evaluated on short-context benchmarks that do not stress-test KV-cache quantization. To provide the community with more actionable data, we conducted a comprehensive study spanning four models (both decoder-only and MoEs), from 30B to 200B+ parameters, and five benchmarks including both prefill-heavy long-context retrieval and decode-heavy reasoning workloads.
+However, most of the reported results were based on small models evaluated on short-context benchmarks that do not stress-test KV-cache quantization. To provide the community with more actionable data, we conducted a comprehensive study spanning four models (both dense-only and MoEs), from 30B to 200B+ parameters, and five benchmarks including both prefill-heavy long-context retrieval and decode-heavy reasoning workloads.
 
 <p align="center">
 <img src="/assets/figures/2026-05-11-turboquant/llama_70b_pareto.png" width="100%">
@@ -59,7 +59,7 @@ vllm serve MiniMaxAI/MiniMax-M2.7 --kv-cache-dtype turboquant_4bit_nc
 
 **Benchmarks:** We evaluate on five benchmarks designed to stress-test KV-cache quantization across both prefill-heavy and decode-heavy workloads. For long-context retrieval (prefill-heavy), we use `openai/mrcr` — a challenging multi-round context retrieval task testing sequence lengths up to each model's maximum supported length. For reasoning (decode-heavy), we use AIME25, GPQA:Diamond, MATH500, and LiveCodeBench-v6. All evaluations adopt the default non-greedy sampling parameters suggested by model creators to mimic real-world deployment.
 
-**Models:** We focus on four models spanning both small and large scale, and both decoder-only and MoE architectures: `Llama-3.3-70B-Instruct`, `Qwen3-30B-A3B-Instruct-2507`, `Qwen3-30B-A3B-Thinking-2507`, and `MiniMax-M2.7`. At the time of writing, TurboQuant supports only models with standard attention mechanisms (e.g. GQA) — models with sliding-window or hybrid attention are not yet supported.
+**Models:** We focus on four models spanning both small and large scale, and both dense-only and MoE architectures: `Llama-3.3-70B-Instruct`, `Qwen3-30B-A3B-Instruct-2507`, `Qwen3-30B-A3B-Thinking-2507`, and `MiniMax-M2.7`. At the time of writing, TurboQuant supports only models with standard attention mechanisms (e.g. GQA) — models with sliding-window or hybrid attention are not yet supported.
 
 ## Accuracy Results
 
