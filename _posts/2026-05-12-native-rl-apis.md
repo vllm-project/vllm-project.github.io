@@ -85,6 +85,8 @@ llm = LLM(
 **2. Initialize communication state**: Initialize communication state between trainer and inference engine. The trainer's rank 0 process and all inference workers join a shared NCCL process group.
 
 ```py
+from vllm.distributed.weight_transfer.base import WeightTransferInitRequest
+
 # Initialization for inference
 llm.init_weight_transfer_engine(
     WeightTransferInitRequest(      # <--- initialization parameters
@@ -124,6 +126,7 @@ trainer_args = NCCLTrainerSendWeightsArgs(
     packed=True,  # use packed broadcasting for efficiency
 )
 
+# send weights from a `AutoModelForCausalLM` instance
 NCCLWeightTransferEngine.trainer_send_weights(
     iterator=model.named_parameters(),
     trainer_args=trainer_args,
@@ -162,7 +165,7 @@ In asynchronous RL, weights are updated while inference requests are still in fl
 
 ### Keep Mode for Pause/Resume
 
-Previously, `pause_generation` supported two modes:
+To safely update weights while the inference engine is running, vLLM provides `pause_generation` and `resume_generation` methods. The same functionality is available in the HTTP servers as `POST /pause` and `POST /resume` APIs. Previously, `AsyncLLMEngine.pause_generation` supported two modes:
 
 * abort all requests
 * wait for requests to finish
@@ -197,7 +200,7 @@ Large scale asynchronous RL requires careful coordination for in-flight weight u
 Previously, asynchronous RL in DP deployments with vLLM often led to deadlocks, primarily because some engines would have received a pause signal while others would be actively handling requests and waiting for all engines to join. One of the reasons this occurred was because the pause state was tracked in the `AsyncLLM` object, while DP coordination messages were exchanged between `EngineCore` processes and the `DPCoordinator`. To illustrate, for a DP world size of 2, one could have a deadlock scenario as follows:
 
 1. API Server DP Rank 0 receives a generation request and forwards it to `EngineCore`. API Server issues a `FIRST_REQ` message to the `DPCoordinator` to start a new wave. The request is forwarded to DP Rank 0 `EngineCore` which begins a new scheduler step.
-2. The Controller issues a `/pause_generation` request to both the engines. Pause state is set in the `AsyncLLM` object, and new requests are not forwarded to `EngineCore`. API servers on all DP ranks return right after.
+2. The Controller issues a `/pause` request to both the engines. Pause state is set in the `AsyncLLM` object, and new requests are not forwarded to `EngineCore`. API servers on all DP ranks return right after.
 3. The Trainer issues weight update requests. Meanwhile, DP Rank 0 `EngineCore` has entered the forward pass and is waiting for other DP ranks to join. (For simplicity, we ignore the `start_weight_update` and `finish_weight_update` requests here).
 4. The weight update request reaches DP Rank 1 `EngineCore` and the replica enters an NCCL broadcast collective waiting for other ranks. The weight update request is queued on DP Rank 0 `EngineCore`.
 5. `DPCoordinator` sends a `START_DP_WAVE` message to DP Rank 1 `EngineCore` but the message is queued.
@@ -229,14 +232,14 @@ This ensures:
 Thus, the same scenario as before is handled gracefully:
 
 1. API Server DP Rank 0 receives a generation request and forwards it to `EngineCore`. API server issues a `FIRST_REQ` message to the `DPCoordinator` to start a new wave. The request is forwarded to DP Rank 0 `EngineCore` which begins a new scheduler step.
-2. The Controller issues a `/pause_generation` request to both the engines. The pause request is forwarded to `EngineCore` for both the ranks. The pause request is queued in DP Rank 0 `EngineCore` until the step is complete. Note that the API server doesn't yet return.
+2. The Controller issues a `/pause` request to both the engines. The pause request is forwarded to `EngineCore` for both the ranks. The pause request is queued in DP Rank 0 `EngineCore` until the step is complete. Note that the API server doesn't yet return.
 3. DP Rank 0 `EngineCore` starts executing a forward pass, with workers waiting on an all-to-all collective.
 4. DP Rank 1 `EngineCore` receives the pause request, enters "local pause" state.
 5. `DPCoordinator` sends a `START_DP_WAVE` message to DP Rank 1 `EngineCore`.
 6. DP Rank 1 `EngineCore` starts executing a forward pass. Forward pass completes since both DP ranks joined.
 7. DP Rank 0 `EngineCore` processes the pause request, enters "local pause" state.
 8. DP Rank 0 and DP Rank 1 `EngineCore` participate in a periodic all-reduce, realize both engines are in "local pause" state, and enter "global pause" state.
-9. API servers return on the `/pause_generation` call.
+9. API servers return on the `/pause` call.
 10. Trainer issues weight update requests. API servers forward the weight update request to the `EngineCore` processes. (For simplicity, we ignore the `start_weight_update` and `finish_weight_update` requests here)
 11. All vLLM workers enter the NCCL broadcast collective. Trainer starts NCCL broadcast.
 12. Weight update finishes successfully.
