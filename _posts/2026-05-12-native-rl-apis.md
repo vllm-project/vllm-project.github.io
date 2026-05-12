@@ -288,6 +288,6 @@ Try out the new APIs on vLLM here: [https://github.com/vllm-project/vllm/tree/ma
 
 Thanks to the following groups and individuals who made this possible:
 
-* **PrimeRL** and **Junjie Zhang** for helping to validate and debug the RL APIs with large-scale runs.
+* **PrimeRL** (especially [Matej Sirovatka](https://github.com/S1ro1)) and [**Junjie Zhang**](https://github.com/junjzhang) for helping to validate and debug the RL APIs with large-scale runs.
 * **NemoRL** for supplying the packed tensor implementation.
-* **Red Hat** (Robert Shaw, Kyle Sayers) for organizing RL-related efforts and making weight reloading possible through layerwise reloading.
+* [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts and [Kyle Sayers](https://github.com/kylesayrs) making weight reloading possible through layerwise reloading.
