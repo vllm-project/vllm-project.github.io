@@ -126,7 +126,7 @@ trainer_args = NCCLTrainerSendWeightsArgs(
     packed=True,  # use packed broadcasting for efficiency
 )
 
-# send weights from a `AutoModelForCausalLM` instance
+# send weights from an `AutoModelForCausalLM` instance
 NCCLWeightTransferEngine.trainer_send_weights(
     iterator=model.named_parameters(),
     trainer_args=trainer_args,
@@ -170,11 +170,20 @@ To safely update weights while the inference engine is running, vLLM provides `p
 * abort all requests
 * wait for requests to finish
 
-We add a third option: **keep mode**.
+We add a third option: **keep mode**. The different modes are compared in the table below:
+
+| Mode | Explanation | Client-side impact | Asynchronous RL possible? |
+| -------- | -------- | -------- |  -------- |
+| `abort` | Aborts all ongoing requests | Client must handle retries |  Yes |
+| `wait` | Wait for all ongoing requests | Client need not retry | No, generation needs to finish before weight update |
+| `keep` | Pause ongoing requests | Client need not retry | Yes |
+
+
+Keep mode can be used as follows:
 
 ```py
 # pause - preserve ongoing requests
-await engine.pause_generation(mode="keep", clear_cache=True)
+await engine.pause_generation(mode="keep")
 # update weights here
 # resume
 await engine.resume_generation()
@@ -184,8 +193,6 @@ In keep mode:
 
 * Ongoing requests are paused but not discarded.
 * The scheduler is stopped, but state is preserved.
-
-This avoids extra client-side bookkeeping and makes in-flight updates easier to manage.
 
 ### Fixing Deadlocks in DPEP Setups
 
@@ -291,4 +298,4 @@ Thanks to the following groups and individuals who made this possible:
 
 * **PrimeRL** (especially [Matej Sirovatka](https://github.com/S1ro1)) and [**Junjie Zhang**](https://github.com/junjzhang) for helping to validate and debug the RL APIs with large-scale runs.
 * **NemoRL** for supplying the packed tensor implementation.
-* [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts and [Kyle Sayers](https://github.com/kylesayrs) making weight reloading possible through layerwise reloading.
+* [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts and [Kyle Sayers](https://github.com/kylesayrs) for making weight reloading possible through layerwise reloading.
