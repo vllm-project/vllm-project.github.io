@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Elastic Expert Parallelism in vLLM"
-author: "Itay Alroy (NVIDIA), Yongji Wu (Sky Computing), Rui Qiao (Anyscale), Tyler Michael Smith (Red Hat), Moein Khazraee (NVIDIA), Tzu-Ling Kan (NVIDIA), Ron Tourgeman (NVIDIA)"
+author: "Itay Alroy (NVIDIA), Yongji Wu (Sky Computing), Rui Qiao (Anyscale), Tyler Michael Smith (Red Hat), Moein Khazraee (NVIDIA), Omri Kahalon (NVIDIA), Tzu-Ling Kan (NVIDIA), Ron Tourgeman (NVIDIA)"
 image: /assets/logos/vllm-logo-only-light.png
 tags:
   - large-scale-serving
@@ -213,7 +213,7 @@ See the [NIXL repository](https://github.com/ai-dynamo/nixl) for installation de
 Thanks to everyone who contributed to bringing Elastic EP to vLLM.
 
 - Sky Computing: Yongji Wu
-- NVIDIA: Itay Alroy, Moein Khazraee, Tzu-Ling Kan, Ron Tourgeman
+- NVIDIA: Itay Alroy, Moein Khazraee, Omri Kahalon, Tzu-Ling Kan, Ron Tourgeman
 - Red Hat: Tyler Michael Smith
 - Anyscale: Rui Qiao
 - The broader vLLM community
