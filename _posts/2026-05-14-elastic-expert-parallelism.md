@@ -2,7 +2,7 @@
 layout: post
 title: "Elastic Expert Parallelism in vLLM"
 author: "Itay Alroy (NVIDIA), Yongji Wu (Sky Computing), Rui Qiao (Anyscale), Tyler Michael Smith (Red Hat), Moein Khazraee (NVIDIA), Omri Kahalon (NVIDIA), Tzu-Ling Kan (NVIDIA), Ron Tourgeman (NVIDIA)"
-image: /assets/logos/vllm-logo-only-light.png
+image: /assets/figures/2026-05-14-elastic-expert-parallelism/elastic-ep.png
 tags:
   - large-scale-serving
   - elastic-ep
