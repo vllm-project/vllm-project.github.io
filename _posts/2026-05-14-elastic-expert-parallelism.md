@@ -2,7 +2,7 @@
 layout: post
 title: "Elastic Expert Parallelism in vLLM"
 author: "Itay Alroy (NVIDIA), Yongji Wu (Sky Computing), Rui Qiao (Anyscale), Tyler Michael Smith (Red Hat), Moein Khazraee (NVIDIA), Omri Kahalon (NVIDIA), Tzu-Ling Kan (NVIDIA), Ron Tourgeman (NVIDIA)"
-image: /assets/logos/vllm-logo-only-light.png
+image: /assets/figures/2026-05-14-elastic-expert-parallelism/elastic-ep.png
 tags:
   - large-scale-serving
   - elastic-ep
@@ -26,6 +26,11 @@ curl -X POST http://localhost:8000/scale_elastic_ep \
 ```
 
 This API call resizes a running deployment from its current DP size to 8 workers.
+
+<p align="center">
+  <img src="/assets/figures/2026-05-14-elastic-expert-parallelism/elastic-ep.png" alt="Elastic Expert Parallelism adds a GPU to an active deployment" width="100%">
+</p>
+<p align="center"><em>Elastic EP scale-up: a new GPU joins an active deployment, expanding the EP group without restarting existing workers.</em></p>
 
 This post describes Elastic EP in vLLM ([RFC #20323](https://github.com/vllm-project/vllm/issues/20323), [PR #34861](https://github.com/vllm-project/vllm/pull/34861)), including the scale-up and scale-down flows, how vLLM coordinates reconfiguration with ongoing request execution, how the feature interacts with EPLB and EP communication backends, and why this work is highly relevant to vLLM's emerging fault-tolerance direction. It also discusses NIXL EP ([PR #35627](https://github.com/vllm-project/vllm/pull/35627)) as one backend whose communication model is particularly relevant to elastic reconfiguration and fault tolerance.
 
