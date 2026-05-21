@@ -2,7 +2,7 @@
 layout: post
 title: "Accelerating Laguna XS.2 Inference with vLLM, Speculators, and LLM Compressor"
 author: "Megan Flynn, Dipika Sikka, Alexandre Marques"
-image: /assets/figures/2026-05-21-laguna-xs2-dflash-llm-compressor/dflash_benchmark.png
+image: /assets/figures/2026-05-21-laguna-xs2-dflash-llm-compressor/laguna_dflash.png
 tags:
   - quantization
   - speculative-decoding
