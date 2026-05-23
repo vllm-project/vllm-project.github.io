@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-label="DGX Spark unified memory model for vLLM serving">
+  <title>DGX Spark unified memory model for vLLM serving</title>
+  <desc>Figure 2: Consumer Blackwell (sm_121) versus Datacenter Blackwell (sm_100), and how 128 GB of unified LPDDR5X memory is partitioned by vLLM on DGX Spark when serving Nemotron-3-Super-120B-A12B-NVFP4.</desc>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1440" height="900" fill="#ffffff"/>
+
+  <!-- Header -->
+  <text x="80" y="58" font-family="Inter, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#111827">DGX Spark unified memory model for vLLM serving</text>
+  <text x="80" y="90" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" fill="#4b5563">GB10 Consumer Blackwell (sm_121) shares one 128 GB LPDDR5X pool between CPU and GPU for vLLM and DGX Spark.</text>
+
+  <!-- ============ SECTION 1: Architecture comparison cards ============ -->
+  <!-- Card: Consumer Blackwell -->
+  <rect x="80" y="130" width="600" height="260" rx="12" ry="12" fill="#ffffff" stroke="#30a2ff" stroke-width="3"/>
+  <rect x="80" y="130" width="600" height="44" rx="12" ry="12" fill="#30a2ff"/>
+  <rect x="80" y="158" width="600" height="16" fill="#30a2ff"/>
+  <text x="104" y="160" font-family="Inter, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">Consumer Blackwell</text>
+  <text x="656" y="160" text-anchor="end" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">sm_121</text>
+
+  <text x="104" y="216" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">GB10</text>
+  <text x="104" y="246" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#4b5563">Used by DGX Spark.</text>
+  <text x="104" y="276" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#4b5563">different shared-memory size and warps per SM</text>
+  <text x="104" y="312" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">Unified CPU and GPU LPDDR5X address space</text>
+  <text x="104" y="336" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">Targeted by vLLM with sm_121-tuned kernels</text>
+  <text x="104" y="360" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">Tuned for developer workstations and edge serving</text>
+
+  <!-- Divider VS -->
+  <line x1="710" y1="170" x2="710" y2="370" stroke="#e5e7eb" stroke-width="2"/>
+  <circle cx="710" cy="260" r="28" fill="#fdb517"/>
+  <text x="710" y="267" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">vs</text>
+
+  <!-- Card: Datacenter Blackwell -->
+  <rect x="740" y="130" width="620" height="260" rx="12" ry="12" fill="#ffffff" stroke="#76b900" stroke-width="3"/>
+  <rect x="740" y="130" width="620" height="44" rx="12" ry="12" fill="#76b900"/>
+  <rect x="740" y="158" width="620" height="16" fill="#76b900"/>
+  <text x="764" y="160" font-family="Inter, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">Datacenter Blackwell</text>
+  <text x="1336" y="160" text-anchor="end" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">sm_100</text>
+
+  <text x="764" y="216" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">B100, B200, GB200</text>
+  <text x="764" y="246" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#4b5563">Used in NVIDIA datacenter racks and HGX systems.</text>
+  <text x="764" y="276" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#4b5563">different shared-memory size and warps per SM</text>
+  <text x="764" y="312" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">Discrete HBM3e per GPU, NVLink fabric between dies</text>
+  <text x="764" y="336" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">vLLM compiles a distinct sm_100 kernel path</text>
+  <text x="764" y="360" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">Tuned for large-scale multi-GPU inference</text>
+
+  <!-- Takeaway under cards -->
+  <rect x="80" y="408" width="1280" height="42" rx="8" ry="8" fill="#f3f4f6"/>
+  <text x="100" y="436" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#111827">Same Blackwell family, different SM target: vLLM tuning for DGX Spark (sm_121) is not interchangeable with sm_100 datacenter parts.</text>
+
+  <!-- ============ SECTION 2: Memory bar ============ -->
+  <text x="80" y="498" font-family="Inter, Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#111827">128 GB unified LPDDR5X</text>
+  <text x="80" y="524" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">Approximate partitioning during vLLM serving of Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark.</text>
+  <text x="1360" y="498" text-anchor="end" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#4b5563">Shared by CPU and GPU</text>
+
+  <!-- Top labels with leader lines for narrow slices -->
+  <!-- OS + container runtime label (above, leader to slice center 130) -->
+  <text x="130" y="560" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#111827">OS + container runtime</text>
+  <text x="130" y="578" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" fill="#4b5563">~10 GB</text>
+  <line x1="130" y1="592" x2="130" y2="612" stroke="#9ca3af" stroke-width="1.2"/>
+
+  <!-- Active MoE parameters label (above, leader to slice center 970) -->
+  <text x="970" y="560" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#111827">Active MoE parameters</text>
+  <text x="970" y="578" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" fill="#4b5563">~8 GB (~12 B active, NVFP4)</text>
+  <line x1="970" y1="592" x2="970" y2="612" stroke="#9ca3af" stroke-width="1.2"/>
+
+  <!-- The stacked bar: x from 80 to 1360 (width 1280), y 620-700 (height 80) -->
+  <!-- OS slice: 80-180 (100 wide, 7.81%) -->
+  <rect x="80" y="620" width="100" height="80" fill="#9ca3af"/>
+  <!-- Model weights slice: 180-930 (750 wide, 58.59%) -->
+  <rect x="180" y="620" width="750" height="80" fill="#30a2ff"/>
+  <!-- Active MoE slice: 930-1010 (80 wide, 6.25%) -->
+  <rect x="930" y="620" width="80" height="80" fill="#fdb517"/>
+  <!-- Paged KV cache: 1010-1210 (200 wide, 15.625%) -->
+  <rect x="1010" y="620" width="200" height="80" fill="#76b900"/>
+  <!-- Headroom: 1210-1360 (150 wide, 11.72%) -->
+  <rect x="1210" y="620" width="150" height="80" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="6 4"/>
+
+  <!-- Outer bar border -->
+  <rect x="80" y="620" width="1280" height="80" fill="none" stroke="#111827" stroke-width="1.5"/>
+
+  <!-- Inside-bar labels for wide slices -->
+  <!-- Model weights (inside) -->
+  <text x="555" y="655" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Model weights - Nemotron-3-Super-120B-A12B-NVFP4</text>
+  <text x="555" y="678" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#ffffff">~75 GB stored as NVFP4 (largest slice)</text>
+
+  <!-- Paged KV cache (inside) -->
+  <text x="1110" y="657" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Paged KV cache</text>
+  <text x="1110" y="678" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" fill="#ffffff">~20 GB</text>
+
+  <!-- Below-bar labels with leader lines (Headroom is too narrow for inside label) -->
+  <line x1="1285" y1="708" x2="1285" y2="728" stroke="#9ca3af" stroke-width="1.2"/>
+  <text x="1285" y="748" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#111827">Headroom</text>
+  <text x="1285" y="766" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" fill="#4b5563">~15 GB - OS page cache, container, growth</text>
+
+  <!-- Scale ticks under bar -->
+  <line x1="80" y1="708" x2="80" y2="716" stroke="#4b5563" stroke-width="1"/>
+  <text x="80" y="732" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" fill="#4b5563">0</text>
+  <line x1="400" y1="708" x2="400" y2="716" stroke="#4b5563" stroke-width="1"/>
+  <text x="400" y="732" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" fill="#4b5563">32 GB</text>
+  <line x1="720" y1="708" x2="720" y2="716" stroke="#4b5563" stroke-width="1"/>
+  <text x="720" y="732" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" fill="#4b5563">64 GB</text>
+  <line x1="1040" y1="708" x2="1040" y2="716" stroke="#4b5563" stroke-width="1"/>
+  <text x="1040" y="732" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" fill="#4b5563">96 GB</text>
+  <line x1="1360" y1="708" x2="1360" y2="716" stroke="#4b5563" stroke-width="1"/>
+  <text x="1360" y="732" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" fill="#4b5563">128 GB</text>
+
+  <!-- ============ SECTION 3: Legend ============ -->
+  <text x="80" y="800" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Legend</text>
+
+  <rect x="80" y="816" width="20" height="20" fill="#9ca3af"/>
+  <text x="108" y="832" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">OS + container runtime</text>
+
+  <rect x="290" y="816" width="20" height="20" fill="#30a2ff"/>
+  <text x="318" y="832" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">Model weights (NVFP4)</text>
+
+  <rect x="510" y="816" width="20" height="20" fill="#fdb517"/>
+  <text x="538" y="832" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">Active MoE parameters</text>
+
+  <rect x="730" y="816" width="20" height="20" fill="#76b900"/>
+  <text x="758" y="832" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">Paged KV cache</text>
+
+  <rect x="900" y="816" width="20" height="20" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="928" y="832" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">Headroom</text>
+
+  <!-- Caption -->
+  <text x="80" y="872" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-style="italic" fill="#4b5563">Shared by CPU and GPU. --gpu-memory-utilization should leave headroom for the OS and KV cache growth.</text>
+</svg>

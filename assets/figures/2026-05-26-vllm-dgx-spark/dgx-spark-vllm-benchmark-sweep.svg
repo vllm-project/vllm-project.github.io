@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1040" font-family="Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">vLLM on DGX Spark 5-scenario benchmark sweep</title>
+  <desc id="desc">Four-panel benchmark figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the predictable baseline config (--enforce-eager). Top-left panel shows TTFT in seconds scales with prompt length, roughly tripling from medium to long prompts. Top-right panel shows total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows decode throughput holding steady around 9 tokens per second across the four realistic scenarios, with the noisy 2-token judge call shown as 18 tokens per second.</desc>
+  <rect width="1440" height="1040" fill="#ffffff"/>
+
+  <text x="60" y="48" font-size="30" font-weight="700" fill="#111827">vLLM on DGX Spark: 5-scenario benchmark sweep</text>
+  <text x="60" y="80" font-size="16" fill="#4b5563">Model: Nemotron-3-Super-120B-A12B-NVFP4 (NVFP4 weights), predictable baseline (--enforce-eager)</text>
+
+  <g transform="translate(60,100)">
+    <rect x="0" y="0" width="18" height="14" fill="#30a2ff"/>
+    <text x="24" y="12" font-size="14" fill="#111827">TTFT (s)</text>
+    <rect x="120" y="0" width="18" height="14" fill="#30a2ff" opacity="0.55"/>
+    <text x="144" y="12" font-size="14" fill="#111827">Total latency (s)</text>
+    <rect x="290" y="0" width="18" height="14" fill="#76b900"/>
+    <text x="314" y="12" font-size="14" fill="#111827">Prefill throughput (tok/s)</text>
+    <rect x="520" y="0" width="18" height="14" fill="#fdb517"/>
+    <text x="544" y="12" font-size="14" fill="#111827">Decode throughput (tok/s)</text>
+  </g>
+
+  <!-- PANEL 1: TTFT (top-left) -->
+  <g transform="translate(60,150)">
+    <rect x="0" y="0" width="650" height="380" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="20" y="32" font-size="22" font-weight="700" fill="#111827">TTFT (seconds)</text>
+    <text x="20" y="54" font-size="13" fill="#4b5563">Time to first token scales with prompt length</text>
+
+    <line x1="70" y1="90" x2="70" y2="330" stroke="#111827" stroke-width="1.5"/>
+    <line x1="70" y1="330" x2="630" y2="330" stroke="#111827" stroke-width="1.5"/>
+
+    <g font-size="13" fill="#4b5563">
+      <line x1="66" y1="330" x2="70" y2="330" stroke="#4b5563"/>
+      <text x="60" y="334" text-anchor="end">0</text>
+      <line x1="66" y1="270" x2="70" y2="270" stroke="#4b5563"/>
+      <text x="60" y="274" text-anchor="end">1</text>
+      <line x1="66" y1="210" x2="70" y2="210" stroke="#4b5563"/>
+      <text x="60" y="214" text-anchor="end">2</text>
+      <line x1="66" y1="150" x2="70" y2="150" stroke="#4b5563"/>
+      <text x="60" y="154" text-anchor="end">3</text>
+      <line x1="66" y1="90" x2="70" y2="90" stroke="#4b5563"/>
+      <text x="60" y="94" text-anchor="end">4</text>
+    </g>
+    <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">seconds</text>
+
+    <rect x="94" y="304.8" width="80" height="25.2" fill="#30a2ff"/>
+    <text x="134" y="294" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">0.42</text>
+    <rect x="206" y="262.8" width="80" height="67.2" fill="#30a2ff"/>
+    <text x="246" y="252" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">1.12</text>
+    <rect x="318" y="99" width="80" height="231" fill="#30a2ff"/>
+    <text x="358" y="88" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">3.85</text>
+    <rect x="430" y="262.8" width="80" height="67.2" fill="#30a2ff"/>
+    <text x="470" y="252" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">1.12</text>
+    <rect x="542" y="99.6" width="80" height="230.4" fill="#30a2ff"/>
+    <text x="582" y="88" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">3.84</text>
+
+    <g font-size="13" fill="#111827" text-anchor="middle">
+      <text x="134" y="350">Judge call</text>
+      <text x="134" y="366" fill="#4b5563">58 / 2</text>
+      <text x="246" y="350">Med prompt</text>
+      <text x="246" y="366" fill="#4b5563">1834 / 32</text>
+      <text x="358" y="350">Long prompt</text>
+      <text x="358" y="366" fill="#4b5563">7234 / 32</text>
+      <text x="470" y="350">Med prompt</text>
+      <text x="470" y="366" fill="#4b5563">1834 / 108</text>
+      <text x="582" y="350">Long prompt</text>
+      <text x="582" y="366" fill="#4b5563">7234 / 124</text>
+    </g>
+  </g>
+
+  <!-- PANEL 2: Total latency (top-right) -->
+  <g transform="translate(734,150)">
+    <rect x="0" y="0" width="650" height="380" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="20" y="32" font-size="22" font-weight="700" fill="#111827">Total latency (seconds)</text>
+    <text x="20" y="54" font-size="13" fill="#4b5563">End-to-end wall time per request, including generation</text>
+
+    <line x1="70" y1="90" x2="70" y2="330" stroke="#111827" stroke-width="1.5"/>
+    <line x1="70" y1="330" x2="630" y2="330" stroke="#111827" stroke-width="1.5"/>
+
+    <g font-size="13" fill="#4b5563">
+      <line x1="66" y1="330" x2="70" y2="330" stroke="#4b5563"/>
+      <text x="60" y="334" text-anchor="end">0</text>
+      <line x1="66" y1="270" x2="70" y2="270" stroke="#4b5563"/>
+      <text x="60" y="274" text-anchor="end">5</text>
+      <line x1="66" y1="210" x2="70" y2="210" stroke="#4b5563"/>
+      <text x="60" y="214" text-anchor="end">10</text>
+      <line x1="66" y1="150" x2="70" y2="150" stroke="#4b5563"/>
+      <text x="60" y="154" text-anchor="end">15</text>
+      <line x1="66" y1="90" x2="70" y2="90" stroke="#4b5563"/>
+      <text x="60" y="94" text-anchor="end">20</text>
+    </g>
+    <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">seconds</text>
+
+    <rect x="94" y="323.64" width="80" height="6.36" fill="#30a2ff" opacity="0.55"/>
+    <text x="134" y="313" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">0.53</text>
+    <rect x="206" y="276.36" width="80" height="53.64" fill="#30a2ff" opacity="0.55"/>
+    <text x="246" y="266" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">4.47</text>
+    <rect x="318" y="242.76" width="80" height="87.24" fill="#30a2ff" opacity="0.55"/>
+    <text x="358" y="232" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">7.27</text>
+    <rect x="430" y="173.4" width="80" height="156.6" fill="#30a2ff" opacity="0.55"/>
+    <text x="470" y="163" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">13.05</text>
+    <rect x="542" y="118.32" width="80" height="211.68" fill="#30a2ff" opacity="0.55"/>
+    <text x="582" y="108" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">17.64</text>
+
+    <g font-size="13" fill="#111827" text-anchor="middle">
+      <text x="134" y="350">Judge call</text>
+      <text x="134" y="366" fill="#4b5563">58 / 2</text>
+      <text x="246" y="350">Med / short</text>
+      <text x="246" y="366" fill="#4b5563">1834 / 32</text>
+      <text x="358" y="350">Long / short</text>
+      <text x="358" y="366" fill="#4b5563">7234 / 32</text>
+      <text x="470" y="350">Med / long</text>
+      <text x="470" y="366" fill="#4b5563">1834 / 108</text>
+      <text x="582" y="350">Long / long</text>
+      <text x="582" y="366" fill="#4b5563">7234 / 124</text>
+    </g>
+  </g>
+
+  <!-- PANEL 3: Prefill throughput (bottom-left) -->
+  <g transform="translate(60,560)">
+    <rect x="0" y="0" width="650" height="380" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="20" y="32" font-size="22" font-weight="700" fill="#111827">Prefill throughput (tok/s)</text>
+    <text x="20" y="54" font-size="13" fill="#4b5563">Rises with prompt length: ~140 to ~1880 tok/s</text>
+
+    <line x1="70" y1="90" x2="70" y2="330" stroke="#111827" stroke-width="1.5"/>
+    <line x1="70" y1="330" x2="630" y2="330" stroke="#111827" stroke-width="1.5"/>
+
+    <g font-size="13" fill="#4b5563">
+      <line x1="66" y1="330" x2="70" y2="330" stroke="#4b5563"/>
+      <text x="60" y="334" text-anchor="end">0</text>
+      <line x1="66" y1="270" x2="70" y2="270" stroke="#4b5563"/>
+      <text x="60" y="274" text-anchor="end">500</text>
+      <line x1="66" y1="210" x2="70" y2="210" stroke="#4b5563"/>
+      <text x="60" y="214" text-anchor="end">1000</text>
+      <line x1="66" y1="150" x2="70" y2="150" stroke="#4b5563"/>
+      <text x="60" y="154" text-anchor="end">1500</text>
+      <line x1="66" y1="90" x2="70" y2="90" stroke="#4b5563"/>
+      <text x="60" y="94" text-anchor="end">2000</text>
+    </g>
+    <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">tok/s</text>
+
+    <rect x="94" y="313.2" width="80" height="16.8" fill="#76b900"/>
+    <text x="134" y="303" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">140</text>
+    <rect x="206" y="133.68" width="80" height="196.32" fill="#76b900"/>
+    <text x="246" y="123" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">1636</text>
+    <rect x="318" y="104.76" width="80" height="225.24" fill="#76b900"/>
+    <text x="358" y="94" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">1877</text>
+    <rect x="430" y="133.32" width="80" height="196.68" fill="#76b900"/>
+    <text x="470" y="123" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">1639</text>
+    <rect x="542" y="103.92" width="80" height="226.08" fill="#76b900"/>
+    <text x="582" y="94" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">1884</text>
+
+    <g font-size="13" fill="#111827" text-anchor="middle">
+      <text x="134" y="350">Judge call</text>
+      <text x="134" y="366" fill="#4b5563">58 / 2</text>
+      <text x="246" y="350">Med / short</text>
+      <text x="246" y="366" fill="#4b5563">1834 / 32</text>
+      <text x="358" y="350">Long / short</text>
+      <text x="358" y="366" fill="#4b5563">7234 / 32</text>
+      <text x="470" y="350">Med / long</text>
+      <text x="470" y="366" fill="#4b5563">1834 / 108</text>
+      <text x="582" y="350">Long / long</text>
+      <text x="582" y="366" fill="#4b5563">7234 / 124</text>
+    </g>
+  </g>
+
+  <!-- PANEL 4: Decode throughput (bottom-right) -->
+  <g transform="translate(734,560)">
+    <rect x="0" y="0" width="650" height="380" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="20" y="32" font-size="22" font-weight="700" fill="#111827">Decode throughput (tok/s)</text>
+    <text x="20" y="54" font-size="13" fill="#4b5563">Steady ~9 tok/s for realistic runs; row 1 noisy (2-token sample)</text>
+
+    <line x1="70" y1="90" x2="70" y2="330" stroke="#111827" stroke-width="1.5"/>
+    <line x1="70" y1="330" x2="630" y2="330" stroke="#111827" stroke-width="1.5"/>
+
+    <g font-size="13" fill="#4b5563">
+      <line x1="66" y1="330" x2="70" y2="330" stroke="#4b5563"/>
+      <text x="60" y="334" text-anchor="end">0</text>
+      <line x1="66" y1="270" x2="70" y2="270" stroke="#4b5563"/>
+      <text x="60" y="274" text-anchor="end">5</text>
+      <line x1="66" y1="210" x2="70" y2="210" stroke="#4b5563"/>
+      <text x="60" y="214" text-anchor="end">10</text>
+      <line x1="66" y1="150" x2="70" y2="150" stroke="#4b5563"/>
+      <text x="60" y="154" text-anchor="end">15</text>
+      <line x1="66" y1="90" x2="70" y2="90" stroke="#4b5563"/>
+      <text x="60" y="94" text-anchor="end">20</text>
+    </g>
+    <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">tok/s</text>
+
+    <line x1="70" y1="222" x2="630" y2="222" stroke="#111827" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>
+    <text x="624" y="184" font-size="13" font-weight="600" fill="#111827" text-anchor="end">Decode steady ~9 tok/s</text>
+
+    <rect x="94" y="114" width="80" height="216" fill="#fdb517"/>
+    <text x="134" y="103" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">18*</text>
+    <rect x="206" y="214.8" width="80" height="115.2" fill="#fdb517"/>
+    <text x="246" y="204" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.6</text>
+    <rect x="318" y="218.4" width="80" height="111.6" fill="#fdb517"/>
+    <text x="358" y="208" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.3</text>
+    <rect x="430" y="220.8" width="80" height="109.2" fill="#fdb517"/>
+    <text x="470" y="210" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.1</text>
+    <rect x="542" y="222" width="80" height="108" fill="#fdb517"/>
+    <text x="582" y="212" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.0</text>
+
+    <text x="134" y="78" font-size="11" fill="#4b5563" text-anchor="middle">* noisy: only 2 tokens</text>
+
+    <g font-size="13" fill="#111827" text-anchor="middle">
+      <text x="134" y="350">Judge call</text>
+      <text x="134" y="366" fill="#4b5563">58 / 2</text>
+      <text x="246" y="350">Med / short</text>
+      <text x="246" y="366" fill="#4b5563">1834 / 32</text>
+      <text x="358" y="350">Long / short</text>
+      <text x="358" y="366" fill="#4b5563">7234 / 32</text>
+      <text x="470" y="350">Med / long</text>
+      <text x="470" y="366" fill="#4b5563">1834 / 108</text>
+      <text x="582" y="350">Long / long</text>
+      <text x="582" y="366" fill="#4b5563">7234 / 124</text>
+    </g>
+  </g>
+
+  <!-- Scenario legend strip (full names) -->
+  <g transform="translate(60,962)">
+    <text x="0" y="0" font-size="13" font-weight="700" fill="#111827">Scenarios (prompt tok / gen tok):</text>
+    <text x="0" y="20" font-size="13" fill="#111827">1. Judge call = typical judge call, real 20Q (58 / 2)</text>
+    <text x="360" y="20" font-size="13" fill="#111827">2. Med / short = medium prompt, short gen (1834 / 32)</text>
+    <text x="760" y="20" font-size="13" fill="#111827">3. Long / short = long prompt, short gen (7234 / 32)</text>
+    <text x="0" y="40" font-size="13" fill="#111827">4. Med / long = medium prompt, long gen (1834 / 108)</text>
+    <text x="360" y="40" font-size="13" fill="#111827">5. Long / long = long prompt, long gen (7234 / 124)</text>
+  </g>
+
+  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: 5-scenario sweep on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4, predictable baseline (--enforce-eager).</text>
+</svg>

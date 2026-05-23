@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="title">vLLM on DGX Spark: predictability versus throughput configuration slider</title>
+  <desc id="desc">Figure 4. A predictability-to-throughput slider for two vLLM configurations on DGX Spark. The left predictable baseline uses --enforce-eager ON, default KV cache, and speculative decoding OFF to keep the first validation path simple. The right tuned configuration enables model-specific acceleration options such as CUDA graphs where supported, FP8 KV cache, async scheduling, FP4 MoE backends, and speculative decoding when the recipe and release support them.</desc>
+
+  <defs>
+    <linearGradient id="trackGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#30a2ff"/>
+      <stop offset="50%" stop-color="#fdb517"/>
+      <stop offset="100%" stop-color="#76b900"/>
+    </linearGradient>
+    <linearGradient id="leftPanelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4faff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="rightPanelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6fbed"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1440" height="900" fill="#ffffff"/>
+
+  <text x="60" y="54" font-size="30" font-weight="700" fill="#111827">vLLM on DGX Spark: predictability vs. throughput</text>
+  <text x="60" y="86" font-size="17" fill="#4b5563">Start simple, then enable model-specific acceleration paths after validation.</text>
+
+  <g transform="translate(1120,36)">
+    <rect x="0" y="0" width="86" height="36" rx="18" fill="#30a2ff"/>
+    <text x="43" y="24" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">vLLM</text>
+    <rect x="96" y="0" width="138" height="36" rx="18" fill="#76b900"/>
+    <text x="165" y="24" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">DGX Spark</text>
+  </g>
+
+  <!-- LEFT PANEL: x=60..660, y=120..640 -->
+  <rect x="60" y="120" width="600" height="520" rx="18" fill="url(#leftPanelGrad)" stroke="#30a2ff" stroke-width="2.5" filter="url(#softShadow)"/>
+
+  <rect x="84" y="140" width="120" height="30" rx="15" fill="#30a2ff"/>
+  <text x="144" y="161" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">BASELINE</text>
+
+  <text x="84" y="210" font-size="26" font-weight="700" fill="#111827">Predictable baseline</text>
+  <text x="84" y="238" font-size="17" fill="#4b5563">First validation path</text>
+
+  <line x1="84" y1="258" x2="636" y2="258" stroke="#dbeafe" stroke-width="1.5"/>
+
+  <!-- Bullet rows, spaced 36px apart -->
+  <circle cx="94" cy="284" r="5" fill="#30a2ff"/>
+  <text x="112" y="290" font-size="18" fill="#111827" font-family="'SFMono-Regular', Menlo, Consolas, monospace">--enforce-eager</text>
+  <rect x="324" y="272" width="58" height="26" rx="13" fill="#e6f2ff" stroke="#30a2ff" stroke-width="1.5"/>
+  <text x="353" y="290" font-size="14" font-weight="700" fill="#0b66a8" text-anchor="middle">ON</text>
+
+  <circle cx="94" cy="320" r="5" fill="#30a2ff"/>
+  <text x="112" y="326" font-size="18" fill="#111827" font-family="'SFMono-Regular', Menlo, Consolas, monospace">Default KV cache</text>
+
+  <circle cx="94" cy="356" r="5" fill="#30a2ff"/>
+  <text x="112" y="362" font-size="18" fill="#111827">Speculative decoding</text>
+  <rect x="324" y="344" width="58" height="26" rx="13" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="353" y="362" font-size="14" font-weight="700" fill="#991b1b" text-anchor="middle">OFF</text>
+
+  <circle cx="94" cy="392" r="5" fill="#30a2ff"/>
+  <text x="112" y="398" font-size="18" fill="#111827" font-family="'SFMono-Regular', Menlo, Consolas, monospace">Marlin FP4 MoE</text>
+  <text x="324" y="398" font-size="15" fill="#4b5563" font-style="italic">optional</text>
+
+  <!-- Metric chip -->
+  <rect x="84" y="438" width="552" height="92" rx="14" fill="#ffffff" stroke="#30a2ff" stroke-width="2"/>
+  <text x="104" y="470" font-size="14" font-weight="700" fill="#0b66a8">OPERATIONAL GOAL</text>
+  <text x="104" y="510" font-size="32" font-weight="800" fill="#111827">simple path</text>
+  <text x="320" y="510" font-size="17" fill="#4b5563">for validation</text>
+
+  <!-- Sub-label under metric -->
+  <text x="84" y="560" font-size="14" fill="#6b7280">SCOPE</text>
+  <text x="84" y="584" font-size="15" font-weight="700" fill="#111827">Exact model + image tag</text>
+  <text x="84" y="610" font-size="13" fill="#6b7280">Fewer moving parts while validating parser, model, and app behavior.</text>
+
+  <!-- RIGHT PANEL: x=780..1380, y=120..640 -->
+  <rect x="780" y="120" width="600" height="520" rx="18" fill="url(#rightPanelGrad)" stroke="#76b900" stroke-width="2.5" filter="url(#softShadow)"/>
+
+  <rect x="804" y="140" width="148" height="30" rx="15" fill="#76b900"/>
+  <text x="878" y="161" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">THROUGHPUT</text>
+
+  <text x="804" y="210" font-size="26" font-weight="700" fill="#111827">Tuned config</text>
+  <text x="804" y="238" font-size="17" fill="#4b5563">Model- and release-specific</text>
+
+  <line x1="804" y1="258" x2="1356" y2="258" stroke="#dcfce7" stroke-width="1.5"/>
+
+  <!-- Five bullet rows spaced 30px so they fit cleanly above the metric chip -->
+  <circle cx="814" cy="282" r="5" fill="#76b900"/>
+  <text x="832" y="288" font-size="18" fill="#111827">Eager mode</text>
+  <rect x="958" y="270" width="58" height="26" rx="13" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="987" y="288" font-size="14" font-weight="700" fill="#991b1b" text-anchor="middle">OFF</text>
+  <text x="1030" y="288" font-size="15" fill="#4b5563" font-style="italic">when supported</text>
+
+  <circle cx="814" cy="312" r="5" fill="#76b900"/>
+  <text x="832" y="318" font-size="18" fill="#111827" font-family="'SFMono-Regular', Menlo, Consolas, monospace">FP8 KV cache</text>
+
+  <circle cx="814" cy="342" r="5" fill="#76b900"/>
+  <text x="832" y="348" font-size="18" fill="#111827">Async scheduling</text>
+
+  <circle cx="814" cy="372" r="5" fill="#76b900"/>
+  <text x="832" y="378" font-size="18" fill="#111827" font-family="'SFMono-Regular', Menlo, Consolas, monospace">Marlin FP4 MoE</text>
+
+  <circle cx="814" cy="402" r="5" fill="#76b900"/>
+  <text x="832" y="408" font-size="18" fill="#111827">MTP speculative decoding</text>
+
+  <!-- Metric chip -->
+  <rect x="804" y="430" width="552" height="80" rx="14" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+  <text x="824" y="460" font-size="14" font-weight="700" fill="#4d7700">TUNING GOAL</text>
+  <text x="824" y="498" font-size="32" font-weight="800" fill="#111827">higher tok/s</text>
+  <text x="1030" y="498" font-size="17" fill="#4b5563">after validation</text>
+
+  <!-- Extra small chip -->
+  <rect x="804" y="522" width="552" height="34" rx="17" fill="#fff5d9" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="824" y="544" font-size="15" font-weight="700" fill="#7a4a00">Check the current recipe and release notes first</text>
+
+  <!-- Sub label -->
+  <text x="804" y="582" font-size="14" fill="#6b7280">SCOPE</text>
+  <text x="804" y="606" font-size="15" font-weight="700" fill="#111827">Model-specific FP4 + draft paths</text>
+  <text x="804" y="630" font-size="13" fill="#6b7280">Retune after model, image tag, or vLLM updates.</text>
+
+  <!-- ============ SLIDER ============ -->
+  <!-- Section title above slider, at y=688 -->
+  <text x="720" y="688" font-size="18" font-weight="700" fill="#111827" text-anchor="middle">Configuration axis</text>
+
+  <!-- Track: x=120..1320, y=716, h=12 -->
+  <rect x="120" y="716" width="1200" height="12" rx="6" fill="url(#trackGrad)"/>
+
+  <!-- Track endpoints -->
+  <circle cx="120" cy="722" r="9" fill="#30a2ff" stroke="#ffffff" stroke-width="2.5"/>
+  <circle cx="1320" cy="722" r="9" fill="#76b900" stroke="#ffffff" stroke-width="2.5"/>
+
+  <!-- Knob (warm yellow), positioned slightly left-of-center -->
+  <circle cx="540" cy="722" r="22" fill="#fdb517" stroke="#111827" stroke-width="2.5"/>
+  <circle cx="540" cy="722" r="7" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Axis end labels BELOW track, well separated -->
+  <text x="120" y="772" font-size="22" font-weight="700" fill="#30a2ff">Predictability</text>
+  <text x="1320" y="772" font-size="22" font-weight="700" fill="#76b900" text-anchor="end">Throughput</text>
+
+  <!-- Sub-axis sub-labels -->
+  <text x="120" y="802" font-size="13" fill="#4b5563">fewer moving parts</text>
+  <text x="1320" y="802" font-size="13" fill="#4b5563" text-anchor="end">higher tok/s, more tuning</text>
+
+  <!-- Caption -->
+  <text x="720" y="850" font-size="17" font-weight="600" fill="#111827" text-anchor="middle">Pick the point on the axis that matches your demo needs and validation budget.</text>
+
+  <!-- Footer hint -->
+  <text x="60" y="884" font-size="12" fill="#9ca3af">Figure 4. vLLM on the DGX Spark: Architecture, Configuration, and Benchmarks</text>
+</svg>
