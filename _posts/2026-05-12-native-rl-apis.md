@@ -153,6 +153,64 @@ llm.update_weights(
 llm.finish_weight_update()
 ```
 
+### Customizing weight transfer
+
+One of the primary goals for the weight transfer APIs is to enable RL frameworks to implement custom weight transfer strategies with vLLM. With the new APIs, users would implement and register a custom `WeightTransferEngine`:
+
+```python
+from dataclasses import dataclass
+from typing import Iterator, Callable, Any
+from torch import Tensor
+from vllm.distributed.weight_transfer.base import (
+    WeightTransferEngine,
+    WeightTransferInitInfo,
+    WeightTransferUpdateInfo,
+)
+
+
+# define custom dataclasses for initialization and update weights metadata
+@dataclass
+class MyInitInfo(WeightTransferInitInfo):
+    """Custom initialization info."""
+    ...
+
+
+@dataclass
+class MyUpdateInfo(WeightTransferUpdateInfo):
+    """Custom update info."""
+    ...
+
+
+class MyWeightTransferEngine(WeightTransferEngine):
+    init_info_cls = MyInitInfo
+    update_info_cls = MyUpdateInfo
+
+    def init_transfer_engine(self, init_info: MyInitInfo):
+        ...
+
+    def receive_weights(
+        self,
+        update_info: MyUpdateInfo,
+        load_weights: Callable[[list[tuple[str, Tensor]]], None],
+    ):
+        ...
+
+    def trainer_send_weights(
+        self,
+        iterator: Iterator[tuple[str, Tensor]],
+        trainer_args: dict[str, Any] | Any,
+    ):
+        ...
+
+# finally, register the weight transfer engine
+from vllm.distributed.weight_transfer import WeightTransferEngineFactory
+WeightTransferEngineFactory.register_engine("my_weight_transfer", MyWeightTransferEngine)
+```
+
+Note that the `trainer_send_weights` method is optional to use. It encodes send logic used on the trainer and users are not required to structure their send logic in this way.
+
+The above simple API can enable many advanced use-cases. As a prototype, we demonstrate how sharded weight transfer in the style of [Etha](https://github.com/cmriat/Etha) can be implemented [here](https://github.com/hao-aaron/vllm/blob/89c951b3296578c60cbb82e05ca3d1734364ba8c/examples/rl/sharded_reloading/README.md).
+
 ## Improved Pause/Resume Support for Asynchronous RL
 
 In asynchronous RL, weights are updated while inference requests are still in flight. Typically, weight syncing involves three operations in async RL: pausing generation, transferring updated weights, and then resuming generation. Users choose how to deal with in-flight requests (e.g., abort all running requests, or resume generation from previously generated tokens), as well as keeping or discarding the KV cache.
