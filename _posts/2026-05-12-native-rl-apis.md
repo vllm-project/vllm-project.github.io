@@ -56,7 +56,7 @@ Currently, we support the following backends:
 
 Both backends support an optimized packed implementation to minimize serialization overhead.
 
-The core transport logic is implemented with a pluggable `WeightTransferEngine` abstraction to separate weight transfer transport logic from the worker implementation, allowing users to easily bring in their own implementations. The core idea is that **initialization** and **update weights** phases are typically customized by RL framework developers and include *transport* logic, while start and finish are control messages, and involve transport-agnostic pre/postprocessing in vLLM.
+The core transport logic is implemented with a pluggable `WeightTransferEngine` abstraction to separate weight transport from the worker implementation, allowing users to easily bring in their own implementations. The core idea is that **initialization** and **update weights** phases are typically customized by RL framework developers and include *transport* logic, while start and finish are control messages, and involve transport-agnostic pre/postprocessing in vLLM.
 
 ### Example
 
@@ -153,7 +153,7 @@ llm.update_weights(
 llm.finish_weight_update()
 ```
 
-### Customizing weight transfer
+### Customizing Weight Transfer
 
 One of the primary goals for the weight transfer APIs is to enable RL frameworks to implement custom weight transfer strategies with vLLM. With the new APIs, users would implement and register a custom `WeightTransferEngine`:
 
@@ -180,7 +180,7 @@ class MyUpdateInfo(WeightTransferUpdateInfo):
     """Custom update info."""
     ...
 
-
+# custom weight transfer engine
 class MyWeightTransferEngine(WeightTransferEngine):
     init_info_cls = MyInitInfo
     update_info_cls = MyUpdateInfo
@@ -195,8 +195,9 @@ class MyWeightTransferEngine(WeightTransferEngine):
     ):
         ...
 
+    @classmethod
     def trainer_send_weights(
-        self,
+        cls,
         iterator: Iterator[tuple[str, Tensor]],
         trainer_args: dict[str, Any] | Any,
     ):
@@ -254,7 +255,7 @@ In keep mode:
 
 ### Fixing Deadlocks in DPEP Setups
 
-Large scale asynchronous RL requires careful coordination for in-flight weight updates in DP-EP deployments. In vLLM, a `DPCoordinator` ensures that generation is carefully coordinated across vLLM ranks to prevent deadlocks. More specifically, each DP rank executes a forward pass while there are active requests scheduled in any of the DP ranks.
+Large scale asynchronous RL requires careful coordination for in-flight weight updates in DPEP deployments. In vLLM, a `DPCoordinator` ensures that generation is carefully coordinated across vLLM ranks to prevent deadlocks. More specifically, each DP rank executes a forward pass while there are active requests scheduled in any of the DP ranks.
 
 <p align="center">
 <img src="/assets/figures/2026-05-12-native-rl-apis/dp_generate.svg" width="80%">
@@ -305,7 +306,7 @@ Thus, the same scenario as before is handled gracefully:
 7. DP Rank 0 `EngineCore` processes the pause request, enters "local pause" state.
 8. DP Rank 0 and DP Rank 1 `EngineCore` participate in a periodic all-reduce, realize both engines are in "local pause" state, and enter "global pause" state.
 9. API servers return on the `/pause` call.
-10. Trainer issues weight update requests. API servers forward the weight update request to the `EngineCore` processes. (For simplicity, we ignore the `start_weight_update` and `finish_weight_update` requests here)
+10. Trainer issues weight update requests. API servers forward the weight update request to the `EngineCore` processes. (For simplicity, we ignore the `start_weight_update` and `finish_weight_update` requests here).
 11. All vLLM workers enter the NCCL broadcast collective. Trainer starts NCCL broadcast.
 12. Weight update finishes successfully.
 
@@ -317,7 +318,7 @@ Thus, the same scenario as before is handled gracefully:
 
 ## Validation
 
-### Demonstrating the new RL APIs
+### Demonstrating the New RL APIs
 
 We demonstrate usage of the new RL APIs in [SkyRL](https://github.com/NovaSky-AI/SkyRL).
 
@@ -331,7 +332,7 @@ In SkyRL, the trainer interacts with inference engines over HTTP. For weight syn
 
 ### Validation at Scale: Fully Async RL in a Wide-EP Setup
 
-The Prime-RL team has validated the RL APIs against deployment of `zai-org/GLM-5.1-FP8` with inference running in P/D disaggregated setup across 16 8xH200 nodes, 2 replicas of 4P+4D both with DPEP32 for both prefill and decode. All instances were also configured with CPU KV cache offloading with a capacity of 1TB per node. The routing across engines was enabled using `vllm-router` which provides cache-aware sticky routing. The Trainer ran a BF16 model equivalent (`zai-org/GLM-5.1`) on another 16 8xH200 nodes, on a custom math environment with IcePop as the algorithm of choice. This deployment has proven stable over 100+ steps while training, with growing evaluation performance, an upward RL curve, while keeping the KL mismatch stable and weight updates progressing normally.
+The Prime-RL team has validated the RL APIs against a deployment of `zai-org/GLM-5.1-FP8` with inference running in a P/D disaggregated setup across 16 8xH200 nodes - 2 replicas of 4P+4D both with DPEP32 for both prefill and decode. All instances were also configured with CPU KV cache offloading with a capacity of 1TB per node. The routing across engines was enabled using `vllm-router` which provides cache-aware sticky routing. The Trainer ran a BF16 model equivalent (`zai-org/GLM-5.1`) on another 16 8xH200 nodes, on a custom math environment with [IcePop](https://arxiv.org/abs/2510.18855) as the algorithm of choice. This deployment has proven stable over 100+ steps while training, with growing evaluation performance, an upward RL curve, stable KL mismatch and weight updates progressing normally.
 
 <p align="center">
 <img src="/assets/figures/2026-05-12-native-rl-apis/prime_rl.svg" width="95%">
@@ -341,7 +342,7 @@ The Prime-RL team has validated the RL APIs against deployment of `zai-org/GLM-5
 
 ## Conclusion
 
-We've seen growing interest in the vLLM RL community for building on top of the new RL APIs. Some ongoing work from the vLLM RL community includes integrating a new [K8s-native weight transfer engine](https://github.com/vllm-project/vllm/pull/40828) as well as supporting [sharding-aware, RDMA-native weight transfer](https://github.com/vllm-project/vllm/issues/40822). New development is tracked in the [vLLM RL Roadmap](http://github.com/vllm-project/vllm/issues/41733).
+We've seen growing interest in the vLLM RL community for building on top of the new RL APIs. Some ongoing work from the vLLM RL community includes integrating a new [K8s-native weight transfer engine](https://github.com/vllm-project/vllm/pull/40828) as well as supporting [sharding-aware, RDMA-native weight transfer](https://github.com/vllm-project/vllm/issues/40822) in a generic way. New development is tracked in the [vLLM RL Roadmap](http://github.com/vllm-project/vllm/issues/41733).
 
 Read more about the RL tooling in vLLM in the docs:
 
@@ -354,6 +355,6 @@ Try out the new APIs on vLLM here: [https://github.com/vllm-project/vllm/tree/ma
 
 Thanks to the following groups and individuals who made this possible:
 
-* **PrimeRL** (especially [Matej Sirovatka](https://github.com/S1ro1)) and [**Junjie Zhang**](https://github.com/junjzhang) for helping to validate and debug the RL APIs with large-scale runs.
-* **NemoRL** for supplying the packed tensor implementation.
+* **Prime-RL** team (especially [Matej Sirovatka](https://github.com/S1ro1)) and [**Junjie Zhang**](https://github.com/junjzhang) for helping to validate and debug the RL APIs with large-scale runs.
+* **NemoRL** team for providing an optimized packed tensor implementation.
 * [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts and [Kyle Sayers](https://github.com/kylesayrs) for making weight reloading possible through layerwise reloading.
