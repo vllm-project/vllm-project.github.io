@@ -34,7 +34,7 @@ In online RL setups, vLLM model weights must be synced periodically to make sure
 
 Traditionally, this weight loading has been handled by each RL framework separately, typically by extending vLLM workers with custom logic for receiving and loading weights. While this works, it leads to a few issues:
 
-* **Added complexity**: Framework authors have to implement and maintain custom worker extensions, and it would be good for native support for popular transport strategies.
+* **Added complexity**: Framework authors have to implement and maintain custom worker extensions, and it would be better to have native support for popular transport strategies.
 * **Duplicated effort**: Most RL frameworks end up having very similar implementations (e.g., packed tensor transfer, RPC endpoints).
 * **Version locking**: Frameworks typically have ad-hoc ways of dealing with pre/post-processing of received weights to enable vLLM workers to load them, which can lead to version locked implementations.
 
