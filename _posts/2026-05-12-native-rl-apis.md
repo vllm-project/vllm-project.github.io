@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Native RL APIs in vLLM"
-author: "Aaron Hao, Sumanth Hegde, Kourosh Hakhamaneshi, and the vLLM team"
+author: "Aaron Hao, Sumanth Hegde, Kyle Sayers, Kourosh Hakhamaneshi, and the vLLM team"
 image: /assets/figures/2026-05-12-native-rl-apis/weight_transfer_nccl.svg
 social_image: /assets/figures/2026-05-12-native-rl-apis/weight_transfer_nccl.svg
 read_time_minutes: 12
@@ -357,4 +357,4 @@ Thanks to the following groups and individuals who made this possible:
 
 * **Prime-RL** team (especially [Matej Sirovatka](https://github.com/S1ro1)) and [**Junjie Zhang**](https://github.com/junjzhang) for helping to validate and debug the RL APIs with large-scale runs.
 * **NemoRL** team for providing an optimized packed tensor implementation.
-* [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts and [Kyle Sayers](https://github.com/kylesayrs) for making weight reloading possible through layerwise reloading.
+* [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts.
