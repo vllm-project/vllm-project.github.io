@@ -332,7 +332,7 @@ In SkyRL, the trainer interacts with inference engines over HTTP. For weight syn
 
 ### Validation at Scale: Fully Async RL in a Wide-EP Setup
 
-The Prime-RL team has validated the RL APIs against a deployment of `zai-org/GLM-5.1-FP8` with inference running in a P/D disaggregated setup across 16 8xH200 nodes - 2 replicas of 4P+4D both with DPEP32 for both prefill and decode. All instances were also configured with CPU KV cache offloading with a capacity of 1TB per node. The routing across engines was enabled using `vllm-router` which provides cache-aware sticky routing. The Trainer ran a BF16 model equivalent (`zai-org/GLM-5.1`) on another 16 8xH200 nodes, on a custom math environment with [IcePop](https://arxiv.org/abs/2510.18855) as the algorithm of choice. This deployment has proven stable over 100+ steps while training, with growing evaluation performance, an upward RL curve, stable KL mismatch and weight updates progressing normally.
+The Prime-RL team has validated the RL APIs against a deployment of `zai-org/GLM-5.1-FP8` with inference running in a P/D disaggregated setup across 16 8xH200 nodes — 2 replicas of 4P+4D both with DPEP32 for both prefill and decode. All instances were also configured with CPU KV cache offloading with a capacity of 1TB per node. The routing across engines was enabled using `vllm-router` which provides cache-aware sticky routing. The Trainer ran a BF16 model equivalent (`zai-org/GLM-5.1`) on another 16 8xH200 nodes, on a custom math environment with [IcePop](https://arxiv.org/abs/2510.18855) as the algorithm of choice. This deployment has proven stable over 100+ steps while training, with growing evaluation performance, an upward RL curve, stable KL mismatch and weight updates progressing normally.
 
 <p align="center">
 <img src="/assets/figures/2026-05-12-native-rl-apis/prime_rl.svg" width="95%">
@@ -342,7 +342,7 @@ The Prime-RL team has validated the RL APIs against a deployment of `zai-org/GLM
 
 ## Conclusion
 
-We've seen growing interest in the vLLM RL community for building on top of the new RL APIs. Some ongoing work from the vLLM RL community includes integrating a new [K8s-native weight transfer engine](https://github.com/vllm-project/vllm/pull/40828) as well as supporting [sharding-aware, RDMA-native weight transfer](https://github.com/vllm-project/vllm/issues/40822) in a generic way. New development is tracked in the [vLLM RL Roadmap](http://github.com/vllm-project/vllm/issues/41733).
+We've seen growing interest in the vLLM RL community for building on top of the new RL APIs. Some ongoing work from the vLLM RL community includes integrating a new [K8s-native weight transfer engine](https://github.com/vllm-project/vllm/pull/40828) as well as supporting [sharding-aware, RDMA-native weight transfer](https://github.com/vllm-project/vllm/issues/40822) in a generic way. New development is tracked in the [vLLM RL Roadmap](https://github.com/vllm-project/vllm/issues/41733).
 
 Read more about the RL tooling in vLLM in the docs:
 
@@ -358,3 +358,4 @@ Thanks to the following groups and individuals who made this possible:
 * **Prime-RL** team (especially [Matej Sirovatka](https://github.com/S1ro1)) and [**Junjie Zhang**](https://github.com/junjzhang) for helping to validate and debug the RL APIs with large-scale runs.
 * **NemoRL** team for providing an optimized packed tensor implementation.
 * [Robert Shaw](https://github.com/robertgshaw2-redhat) for organizing RL-related efforts.
+* [Kyle Sayers](https://github.com/kylesayrs) for making quantized weight reloading possible through layerwise reloading.
