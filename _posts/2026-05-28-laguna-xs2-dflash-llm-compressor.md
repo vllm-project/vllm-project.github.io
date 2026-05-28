@@ -28,7 +28,7 @@ This model was trained on 500k samples from [Ultrachat 200k SFT](https://hugging
 The result is a 5-layer drafter that can predict 8 tokens out with a single forward pass. When verified with Laguna XS.2, it delivers tokens 2-3x faster with [provably](https://arxiv.org/abs/2211.17192) no loss in generation quality.
 
 <p align="center">
-  <img src="/assets/figures/2026-05-21-laguna-xs2-dflash-llm-compressor/laguna_dflash.png" alt="Benchmark results for Laguna XS.2 + DFlash on two different datasets" width="100%">
+  <img src="/assets/figures/2026-05-28-laguna-xs2-dflash-llm-compressor/laguna_dflash.png" alt="Benchmark results for Laguna XS.2 + DFlash on two different datasets" width="100%">
 </p>
 <p align="center"><em>Fig 1: Benchmark results for Laguna XS.2 + DFlash on two different datasets.</em></p>
 
