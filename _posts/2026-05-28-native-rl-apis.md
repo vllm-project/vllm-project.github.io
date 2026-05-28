@@ -59,7 +59,7 @@ Both backends support an optimized packed implementation to minimize serializati
 The core transport logic is implemented with a pluggable `WeightTransferEngine` abstraction to separate weight transport from the worker implementation, allowing users to easily bring in their own implementations. The core idea is that **initialization** and **update weights** phases are typically customized by RL framework developers and include *transport* logic, while start and finish are control messages, and involve transport-agnostic pre/postprocessing in vLLM.
 
 > [!NOTE]
->   The HTTP weight transfer endpoints require `VLLM_SERVER_DEV_MODE=1` to be set.
+> The HTTP weight transfer endpoints require `VLLM_SERVER_DEV_MODE=1` to be set.
 
 ### Example
 
