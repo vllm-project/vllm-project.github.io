@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="740" viewBox="0 0 1280 740">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="70" y="70" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" fill="#111827" text-anchor="start">Remote KV pulls over RDMA</text>
+  <text x="70" y="108" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748b" text-anchor="start">Large-prefix reads of at least 1 GiB in an internal production cluster.</text>
+  <line x1="140" y1="560.0" x2="880" y2="560.0" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="122" y="567.0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#64748b" text-anchor="end">0</text>
+  <line x1="140" y1="462.3809523809524" x2="880" y2="462.3809523809524" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="122" y="469.3809523809524" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#64748b" text-anchor="end">100</text>
+  <line x1="140" y1="364.76190476190476" x2="880" y2="364.76190476190476" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="122" y="371.76190476190476" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#64748b" text-anchor="end">200</text>
+  <line x1="140" y1="267.1428571428571" x2="880" y2="267.1428571428571" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="122" y="274.1428571428571" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#64748b" text-anchor="end">300</text>
+  <line x1="140" y1="169.52380952380952" x2="880" y2="169.52380952380952" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="122" y="176.52380952380952" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#64748b" text-anchor="end">400</text>
+  <line x1="140" y1="169.52380952380952" x2="880" y2="169.52380952380952" stroke="#9ca3af" stroke-width="2" stroke-dasharray="8 8"/>
+  <text x="868" y="157.52380952380952" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="#64748b" text-anchor="end">400 GB/s theoretical aggregate</text>
+  <rect x="235" y="370.6190476190476" width="140" height="189.38095238095238" rx="6" fill="#2563eb"/>
+  <text x="305.0" y="354.6190476190476" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#111827" text-anchor="middle">194</text>
+  <text x="305.0" y="600" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" fill="#111827" text-anchor="middle">Average</text>
+  <rect x="465" y="315.95238095238096" width="140" height="244.04761904761904" rx="6" fill="#16a34a"/>
+  <text x="535.0" y="299.95238095238096" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#111827" text-anchor="middle">250</text>
+  <text x="535.0" y="600" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" fill="#111827" text-anchor="middle">P99</text>
+  <rect x="695" y="304.6285714285714" width="140" height="255.3714285714286" rx="6" fill="#f97316"/>
+  <text x="765.0" y="288.6285714285714" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#111827" text-anchor="middle">261.6</text>
+  <text x="765.0" y="600" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600" fill="#111827" text-anchor="middle">Peak</text>
+  <rect x="940" y="210" width="270" height="220" rx="16" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="1075.0" y="270" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800" fill="#111827" text-anchor="middle">24 GiB</text>
+  <text x="1075.0" y="322" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800" fill="#2563eb" text-anchor="middle">~100 ms</text>
+  <text x="1075.0" y="360" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="400" fill="#64748b" text-anchor="middle">remote pull time</text>
+  <text x="1075.0" y="394" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="400" fill="#64748b" text-anchor="middle">at average throughput</text>
+</svg>
