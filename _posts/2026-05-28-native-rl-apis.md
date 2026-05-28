@@ -2,8 +2,8 @@
 layout: post
 title: "Native RL APIs in vLLM"
 author: "Aaron Hao, Sumanth Hegde, Kyle Sayers, Kourosh Hakhamaneshi, and the vLLM team"
-image: /assets/figures/2026-05-12-native-rl-apis/weight_transfer_nccl.svg
-social_image: /assets/figures/2026-05-12-native-rl-apis/weight_transfer_nccl.svg
+image: /assets/figures/2026-05-28-native-rl-apis/weight_transfer_nccl.svg
+social_image: /assets/figures/2026-05-28-native-rl-apis/weight_transfer_nccl.svg
 read_time_minutes: 12
 tags:
   - reinforcement-learning
@@ -27,7 +27,7 @@ In this post, we introduce two improvements in vLLM:
 In online RL setups, vLLM model weights must be synced periodically to make sure that the rollouts generated are from the latest or a recent version of the model weights, so as to provide more useful feedback.
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/rl_system_overview.png" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/rl_system_overview.png" width="80%">
 <br>
 <em>Figure 1: RL system overview.</em>
 </p>
@@ -58,12 +58,15 @@ Both backends support an optimized packed implementation to minimize serializati
 
 The core transport logic is implemented with a pluggable `WeightTransferEngine` abstraction to separate weight transport from the worker implementation, allowing users to easily bring in their own implementations. The core idea is that **initialization** and **update weights** phases are typically customized by RL framework developers and include *transport* logic, while start and finish are control messages, and involve transport-agnostic pre/postprocessing in vLLM.
 
+!!! note
+    The HTTP weight transfer endpoints require `VLLM_SERVER_DEV_MODE=1` to be set.
+
 ### Example
 
 For example, here is how the different operations would look for weight transfer via NCCL with FP8 quantization on vLLM:
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/weight_transfer_nccl.svg" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/weight_transfer_nccl.svg" width="80%">
 <br>
 <em>Figure 2: Weight transfer via NCCL with FP8 quantization on vLLM.</em>
 </p>
@@ -217,7 +220,7 @@ The above simple API can enable many advanced use-cases. As a prototype, we demo
 In asynchronous RL, weights are updated while inference requests are still in flight. Typically, weight syncing involves three operations in async RL: pausing generation, transferring updated weights, and then resuming generation. Users choose how to deal with in-flight requests (e.g., abort all running requests, or resume generation from previously generated tokens), as well as keeping or discarding the KV cache.
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/async_rl.svg" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/async_rl.svg" width="80%">
 <br>
 <em>Figure 3: Asynchronous RL system diagram, inspired by <a href="https://arxiv.org/pdf/2505.24298v3">AReaL</a>. Training and generation overlap, with training utilizing 4 samples for each step. After a training step finishes, all the engines are paused, weights are updated, the KV cache is discarded, and then the engines are resumed. KV cache is recomputed on resumption and generation progresses as before.</em>
 </p>
@@ -258,7 +261,7 @@ In keep mode:
 Large scale asynchronous RL requires careful coordination for in-flight weight updates in DPEP deployments. In vLLM, a `DPCoordinator` ensures that generation is carefully coordinated across vLLM ranks to prevent deadlocks. More specifically, each DP rank executes a forward pass while there are active requests scheduled in any of the DP ranks.
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/dp_generate.svg" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/dp_generate.svg" width="80%">
 <br>
 <em>Figure 4: DP-coordinated generation across vLLM ranks.</em>
 </p>
@@ -275,7 +278,7 @@ Previously, asynchronous RL in DP deployments with vLLM often led to deadlocks, 
 The same scenario is represented here:
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/vllm_deadlock.svg" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/vllm_deadlock.svg" width="80%">
 <br>
 <em>Figure 5: A deadlock scenario possible in DPEP deployments in vLLM.</em>
 </p>
@@ -311,7 +314,7 @@ Thus, the same scenario as before is handled gracefully:
 12. Weight update finishes successfully.
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/vllm_no_deadlock.svg" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/vllm_no_deadlock.svg" width="80%">
 <br>
 <em>Figure 6: Deadlock-free pause/resume in DPEP deployments with the two-phase protocol.</em>
 </p>
@@ -325,7 +328,7 @@ We demonstrate usage of the new RL APIs in [SkyRL](https://github.com/NovaSky-AI
 In SkyRL, the trainer interacts with inference engines over HTTP. For weight syncing, SkyRL uses the native weight syncing APIs, as well as the native `/pause` and `/resume` APIs for asynchronous RL. The integration with the native RL APIs is detailed in the [docs](https://docs.skyrl.ai/docs/getting-started/inference_architecture), and we demonstrate asynchronous training for Qwen3-1.7B on the original DAPO recipe ([example](https://github.com/NovaSky-AI/SkyRL/blob/dec7137d9c57db59458a677de09add0b24413f26/examples/train/algorithms/dapo/run_dapo_qwen3_1.7b_aime_fully_async_onestep.sh)).
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/skyrl_validation.svg" width="80%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/skyrl_validation.svg" width="80%">
 <br>
 <em>Figure 7: Asynchronous training of Qwen3-1.7B on the DAPO recipe in SkyRL using the native RL APIs.</em>
 </p>
@@ -335,7 +338,7 @@ In SkyRL, the trainer interacts with inference engines over HTTP. For weight syn
 The Prime-RL team has validated the RL APIs against a deployment of `zai-org/GLM-5.1-FP8` with inference running in a P/D disaggregated setup across 16 8xH200 nodes — 2 replicas of 4P+4D both with DPEP32 for both prefill and decode. All instances were also configured with CPU KV cache offloading with a capacity of 1TB per node. The routing across engines was enabled using `vllm-router` which provides cache-aware sticky routing. The Trainer ran a BF16 model equivalent (`zai-org/GLM-5.1`) on another 16 8xH200 nodes, on a custom math environment with [IcePop](https://arxiv.org/abs/2510.18855) as the algorithm of choice. This deployment has proven stable over 100+ steps while training, with growing evaluation performance, an upward RL curve, stable KL mismatch and weight updates progressing normally.
 
 <p align="center">
-<img src="/assets/figures/2026-05-12-native-rl-apis/prime_rl.svg" width="95%">
+<img src="/assets/figures/2026-05-28-native-rl-apis/prime_rl.svg" width="95%">
 <br>
 <em>Figure 8: Prime-RL validation of fully async RL with <code>zai-org/GLM-5.1-FP8</code> across 16 8xH200 nodes.</em>
 </p>
