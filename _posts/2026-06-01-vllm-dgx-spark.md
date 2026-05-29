@@ -11,6 +11,7 @@ tags:
   - nemotron
   - hardware
   - deployment
+  - computex
 ---
 
 NVIDIA DGX Spark is a desk-side system for running large model inference locally, bridging the gap between laptop-scale development and datacenter GPU serving. [vLLM](https://docs.vllm.ai/) is one of the default serving engines in NVIDIA's DGX Spark deployment guidance for NVFP4 models. This post explains how vLLM maps onto the Spark architecture: model selection, runtime flags, unified-memory behavior, OpenAI-compatible serving, Prometheus telemetry, and benchmark results from a local Nemotron-3-Super deployment.
@@ -25,7 +26,7 @@ NVIDIA DGX Spark is a desk-side system for running large model inference locally
 
 - **vLLM is one of the default serving engines for NVIDIA's DGX Spark.** NVIDIA's Spark deployment guidance for NVFP4 models includes vLLM, and the current Nemotron-3-Super Spark recipe uses vLLM's [official OpenAI-compatible server image](https://docs.vllm.ai/en/latest/deployment/docker/) with Spark-specific runtime flags.
 - **DGX Spark architecture shapes the serving configuration.** `sm_121` consumer Blackwell silicon rather than datacenter `sm_100`, a unified CPU+GPU memory pool, and moderate memory bandwidth make continuous batching, paged KV cache, NVFP4 kernels, and Prometheus telemetry especially relevant.
-- **vLLM runtime flags should match DGX Spark's unified-memory profile.** Spark is not a datacenter GPU with a dedicated HBM pool, so serving flags need to leave room for the rest of the system. `--enforce-eager` is a useful validation baseline for sm_121 deployments while CUDA graph and Triton paths continue to mature. `--gpu-memory-utilization` should leave headroom in the unified memory pool for the operating system, container runtime, and KV cache growth. `--max-num-seqs` should stay low because DGX Spark is better suited to small-batch inference than high-concurrency serving.
+- **vLLM runtime flags should match DGX Spark's unified-memory profile.** Spark is not a datacenter GPU with a dedicated HBM pool, so serving flags need to leave room for the rest of the system. `--gpu-memory-utilization` should leave headroom in the unified memory pool for the operating system, container runtime, and KV cache growth. `--max-num-seqs` should stay low because DGX Spark is better suited to small-batch inference than high-concurrency serving.
 - **vLLM performance on DGX Spark depends strongly on the configuration goal.** Baseline vLLM settings prioritize predictable execution on sm_121 and unified memory; tuned settings can improve throughput by enabling higher-performance features such as Marlin FP4 MoE, FP8 KV cache, async scheduling, and MTP speculative decoding. Kernel choices are model- and release-specific, so treat FlashInfer FP4 MoE, Marlin, and speculative decoding as recipe-level decisions rather than universal defaults.
 
 ## DGX Spark architecture and memory model
@@ -64,9 +65,11 @@ The most useful Spark signals are KV-cache utilization (`vllm:kv_cache_usage_per
 
 ### Official vLLM image for DGX Spark
 
-DGX Spark is best served with a stack that is built and tested for its `sm_121` target. The current Nemotron-3-Super Spark recipe uses vLLM's official OpenAI-compatible server image, [`vllm/vllm-openai:cu130-nightly`](https://hub.docker.com/r/vllm/vllm-openai/tags?name=cu130-nightly), together with Spark-specific parser, FP4, scheduling, and memory settings.
+DGX Spark is best served with a stack that is built and tested for its `sm_121` target. The current Nemotron-3-Super Spark recipe uses vLLM's official OpenAI-compatible server image. At the time of our run, we used the CUDA 13 nightly track, [`vllm/vllm-openai:cu130-nightly`](https://hub.docker.com/r/vllm/vllm-openai/tags?name=cu130-nightly), with Spark-specific parser, FP4, scheduling, and memory settings.
 
-The important point is that Spark does not require a bespoke serving interface: it runs through vLLM's standard OpenAI-compatible server. The Spark-specific work is in the model recipe, image tag, and runtime flags that match the GB10 `sm_121` profile.
+Because nightly tags move over time, treat `cu130-nightly` as a compatibility track rather than a reproducible pin. For a deployment, validate the model recipe against a specific release image, commit-specific nightly tag, or image digest, then keep that exact image reference in your runbook.
+
+The important point is that Spark does not require a bespoke serving interface: it runs through vLLM's standard OpenAI-compatible server. The Spark-specific work is in the model recipe, tested image reference, and runtime flags that match the GB10 `sm_121` profile.
 
 ## Runtime configuration and environment variables
 
@@ -101,41 +104,39 @@ Avoid making the first `vllm serve` invocation also perform a large model downlo
 
 The example command uses `vllm serve nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4` plus the flags below.
 
-**`--enforce-eager`.** Disables CUDA graph capture. In our setup, it is the key stability flag for a predictable Spark baseline. DGX Spark uses the `sm_121` target, and some CUDA graph and Triton paths are still being tuned for that profile. For hybrid architectures such as Nemotron's Mamba-2 path, CUDA-graph behavior can be model- and release-specific. Eager mode trades throughput for a more dependable serving baseline.
-
 **`--gpu-memory-utilization`.** The fraction of GPU-visible memory vLLM is allowed to claim. On Spark this is a fraction of the unified pool, so the setting should leave room for the operating system, kernel page cache, container runtime, KV cache growth, and any other process touching that same memory. Start from the model recipe, then tune based on observed memory headroom and workload concurrency.
 
-**`--max-model-len 32768`.** The maximum prompt + completion length, which sets KV-cache budget per slot. 32K is a reasonable middle for chat workloads. For tighter short-context demos you can drop this to 8192 and free up budget for more concurrent slots.
+**`--max-model-len 32768`.** The maximum prompt + completion length accepted by the server. 32K is a reasonable middle for chat workloads. For tighter short-context demos you can lower this cap to match the application, but it should not be treated as a fixed worst-case KV reservation for every in-flight request; vLLM schedules based on the active context used by running requests.
 
 **`--max-num-seqs 4`.** The maximum number of in-flight sequences vLLM will admit. For Nemotron NVFP4 on Spark, the current recipe keeps this low. Above four concurrent decode streams the per-token bandwidth tax can outweigh continuous-batching gains, and time-to-first-token spikes.
 
-**`--enable-prefix-caching`.** vLLM's [automatic prefix caching](https://docs.vllm.ai/en/latest/design/prefix_caching/) reuses KV blocks across requests that share an opening prompt. This is useful for chat workloads with a long system prompt. For hybrid architectures, confirm support in your vLLM version and model recipe; the application should remain correct even when cache hits are zero.
+**Automatic prefix caching.** vLLM's [automatic prefix caching](https://docs.vllm.ai/en/latest/design/prefix_caching/) reuses KV blocks across requests that share an opening prompt. It is enabled by default in vLLM V1, so the example below does not pass `--enable-prefix-caching`. It is useful for chat workloads with a long shared system prompt, but the application should remain correct even when cache hits are zero.
 
 **Tool and reasoning parser flags.** vLLM can parse model-specific reasoning traces and tool-call formats into structured OpenAI-compatible response fields. On Spark, these flags should follow the model recipe rather than a hardware default: set a reasoning parser only for models that emit supported reasoning blocks, and set `--enable-auto-tool-choice` plus a tool-call parser only when your client needs tool calls. For Nemotron-3-Super, NVIDIA's current Spark guidance uses `--tool-call-parser qwen3_coder`, `--reasoning-parser-plugin /app/super_v3_reasoning_parser.py`, and `--reasoning-parser super_v3`.
 
-A few flags we do not currently set are still relevant. **[`--kv-cache-dtype fp8`](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/)** cuts KV-cache memory roughly in half and is common in tuned configs; it is useful when increasing concurrent slots or `--max-model-len`. **[`--speculative-config`](https://docs.vllm.ai/en/latest/features/speculative_decoding/)** enables speculative decoding; for Nemotron-3-Super, NVIDIA's Spark guide uses the model's MTP path. **`--tensor-parallel-size 2`** is only meaningful if two Sparks are linked through the ConnectX-7 ports; it can be used to serve Llama-3.3-70B FP8 across the pair.
+A few flags we do not currently set are still relevant. **[`--kv-cache-dtype fp8`](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/)** cuts KV-cache memory roughly in half and is common in tuned configs; it is useful when the workload has larger active context or more in-flight requests. **[`--speculative-config`](https://docs.vllm.ai/en/latest/features/speculative_decoding/)** enables speculative decoding; for Nemotron-3-Super, NVIDIA's Spark guide uses the model's MTP path. **`--tensor-parallel-size 2`** is only meaningful if two Sparks are linked through the ConnectX-7 ports; it can be used to serve Llama-3.3-70B FP8 across the pair.
 
-### NVFP4 settings for single-GPU Spark
+### When to override vLLM defaults
 
-On single-GPU DGX Spark, NVFP4 serving is mainly about selecting the FP4 kernel path that matches the model, image tag, and `sm_121` runtime. Treat these settings as recipe-level choices rather than universal vLLM defaults, and check the vLLM recipe plus NVIDIA guide before copying them to a different NVFP4 model.
+vLLM's default heuristics are designed to select the right quantized linear, MoE, and checkpoint-loading paths for the installed version. On single-GPU DGX Spark, start with the model recipe and vLLM defaults, then add explicit overrides only when they are intentional for the exact model, image, and hardware combination you validated.
 
-**NVFP4 GEMM and MoE backend.** Spark NVFP4 recipes commonly choose an explicit GEMM/MoE backend instead of relying on implicit defaults. For Nemotron-3-Super single-GPU serving, NVIDIA documents `VLLM_NVFP4_GEMM_BACKEND=marlin` with `--moe-backend marlin`.
+**Backend selection.** Leave quantized linear and MoE backend selection on `auto` unless your tested recipe requires a specific backend. If you do intentionally pin Marlin, prefer the CLI flags `--linear-backend marlin` and `--moe-backend marlin`; older environment variables for this path are deprecated.
 
-**FlashInfer FP4 MoE.** FlashInfer FP4 MoE support is model- and release-specific on Spark. For Nemotron-3-Super, the current single-GPU recipe sets `VLLM_USE_FLASHINFER_MOE_FP4=0` because the documented path uses Marlin for FP4.
+**Version-specific workarounds.** Some Spark recipes include compatibility environment variables for a specific image tag. Treat those as version-specific workarounds, not general vLLM requirements. For example, a FlashInfer allreduce backend override is not needed for a single-Spark command that does not use tensor parallelism.
 
-**Image-version compatibility settings.** Some Spark recipes include compatibility environment variables for a specific image tag. For example, NVIDIA's current Nemotron-3-Super guide sets `VLLM_FLASHINFER_ALLREDUCE_BACKEND=trtllm` and notes that the underlying issue is fixed upstream, so treat it as a version-specific workaround rather than a general vLLM requirement.
-
-**`--quantization fp4`.** When serving an NVFP4 checkpoint, make the FP4 quantization path explicit if the recipe or image version expects it.
+**Checkpoint quantization.** vLLM detects checkpoint quantization from the model config. For a pre-quantized NVFP4 checkpoint, leave `--quantization` unset; use it only when you intentionally want vLLM to apply a quantization method at load time.
 
 ### Pre-warming the JIT
 
 Cold-start behavior depends on the model, kernels, image tag, and request path. In our Nemotron-3-Super Spark setup, the first request after `vllm serve` boots triggers Inductor and FlashInfer JIT codegen and can take roughly 25 seconds. Avoid sending that path to an end user. Fire a small `ping` from the application at startup that exercises the same client path as the real workload (same model, same `chat_template_kwargs`, just `max_tokens=3`). Once the relevant kernels are warm, the same short prompt path returns in under half a second in our setup.
 
+Initial weight load is a separate problem from request warmup. If the 10-15 minute safetensor load time matters for your deployment, evaluate vLLM's [fastsafetensors](https://docs.vllm.ai/en/latest/models/extensions/fastsafetensor/) or [InstantTensor](https://docs.vllm.ai/en/latest/models/extensions/instanttensor/) loading paths against your exact model, image, and storage stack.
+
 ### Predictability and throughput tuning
 
 The Spark vLLM configuration can be tuned for either predictable demo operation or maximum throughput:
 
-For the predictable baseline — what we run — `--enforce-eager` is on, `--kv-cache-dtype` is unset, and speculative decoding is disabled. This keeps the serving path simple while validating the exact model, image tag, parser plugins, and application behavior.
+For the baseline measurements in this post, we keep the serving path conservative: `--enforce-eager` is on, `--kv-cache-dtype` is unset, and speculative decoding is disabled. Treat those as measured recipe choices, not universal Spark defaults.
 
 For maximum throughput, the configuration becomes more recipe-specific: eager mode can be disabled for models whose CUDA-graph paths are known-good, Marlin or FlashInfer can be selected for the relevant FP4 MoE path, the KV cache can move to FP8, async scheduling can be enabled, and speculative decoding can run when the model publishes a compatible draft path. Community-tuned reports show meaningful gains, but the exact lift depends on the model, prompt shape, batch pattern, and vLLM release.
 
@@ -151,16 +152,13 @@ To test the configuration beyond simple `curl` calls, we built [vllm-spark-game]
 
 ### The Docker invocation
 
-The full Docker command for this example workload, with the host-mounted Hugging Face cache for weight reuse across restarts:
+The full Docker command for this example workload, with the host-mounted Hugging Face cache for weight reuse across restarts. The snippet keeps `cu130-nightly` visible as the tested compatibility track; for a reproducible deployment, replace it with the exact release tag, commit-specific nightly tag, or image digest you validated.
 
 ```bash
 wget https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/raw/main/super_v3_reasoning_parser.py
 
 docker run -d --name vllm --ipc=host --restart unless-stopped \
   --gpus all -p 8000:8000 \
-  -e VLLM_NVFP4_GEMM_BACKEND=marlin \
-  -e VLLM_USE_FLASHINFER_MOE_FP4=0 \
-  -e VLLM_FLASHINFER_ALLREDUCE_BACKEND=trtllm \
   -e HF_TOKEN="$HF_TOKEN" \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   -v "$PWD/super_v3_reasoning_parser.py:/app/super_v3_reasoning_parser.py" \
@@ -172,16 +170,13 @@ docker run -d --name vllm --ipc=host --restart unless-stopped \
     --gpu-memory-utilization 0.85 \
     --enforce-eager \
     --max-num-seqs 4 \
-    --moe-backend marlin \
-    --quantization fp4 \
     --reasoning-parser-plugin /app/super_v3_reasoning_parser.py \
     --reasoning-parser super_v3 \
     --enable-auto-tool-choice \
-    --tool-call-parser qwen3_coder \
-    --enable-prefix-caching
+    --tool-call-parser qwen3_coder
 ```
 
-First load takes 10-15 minutes (seventeen safetensor shards). Verify readiness with `curl -sS http://localhost:8000/v1/models | jq -r '.data[0].id'`; the command should return `nemotron-3-super`.
+First load takes 10-15 minutes in our setup with the default safetensor loading path. For deployments where startup time matters, evaluate fastsafetensors or InstantTensor before finalizing the runbook. Verify readiness with `curl -sS http://localhost:8000/v1/models | jq -r '.data[0].id'`; the command should return `nemotron-3-super`.
 
 ### Deployment shape
 
@@ -233,7 +228,7 @@ We ran a five-scenario sweep against a local vLLM OpenAI-compatible endpoint hos
 
 ## Operational takeaways
 
-Picking the right model class is the first tuning decision: a 100-130B MoE NVFP4 model is well matched to Spark, while a 70B dense model is usually bandwidth-limited for interactive use. An official vLLM image plus a Spark-tested recipe avoids source-build risk unless custom kernels are required. `--enforce-eager` is a useful validation baseline for current sm_121 deployments. `--gpu-memory-utilization` should be tuned for the unified memory pool and the other processes sharing it. Pre-warming the JIT avoids sending cold-start latency to the first user request. `/metrics` exposes the KV-cache utilization and TTFT histograms needed to understand load behavior.
+Picking the right model class is the first tuning decision: a 100-130B MoE NVFP4 model is well matched to Spark, while a 70B dense model is usually bandwidth-limited for interactive use. An official vLLM image plus a Spark-tested recipe avoids source-build risk unless custom kernels are required. `--gpu-memory-utilization` should be tuned for the unified memory pool and the other processes sharing it. Pre-warming the JIT avoids sending cold-start latency to the first user request. `/metrics` exposes the KV-cache utilization and TTFT histograms needed to understand load behavior.
 
 ## Concluding thoughts
 
