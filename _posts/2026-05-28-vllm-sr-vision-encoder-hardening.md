@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "From Text to Multimodal Routing: Hardening Vision Signals in vLLM Semantic Router"
-author: "David Shrader, Huamin Chen, Xunzhuo Liu, and the vLLM Semantic Router Team"
+author: "David Shrader, Huamin Chen, Xunzhuo Liu, Bowei He, and the vLLM Semantic Router Team"
 image: /assets/figures/2026-05-28-vllm-sr-vision-encoder-hardening/hero.png
 tags:
   - ecosystem
