@@ -135,7 +135,7 @@ Once the vision path is trustworthy, VSR can treat images as first-class evidenc
 
 This is the natural continuation of the Iris and Athena direction. Iris made routing decisions composable. Athena made the router more strategic by adding a stronger model stack, model selection, memory, replay, and richer signal handling. Multimodal routing extends that same architecture from language-only control to request-level control.
 
-The public demo associated with this work is [cyclotron.shrader.cloud](https://cyclotron.shrader.cloud). Today it demonstrates the text-routing version of the policy pattern: domain relevance checks, privacy-sensitive routing, and blocked outcomes before model invocation. That demo is important because it shows the policy shape before images are added.
+The public demo associated with this work is [shrader.dev](https://shrader.dev). Today it demonstrates the text-routing version of the policy pattern: domain relevance checks, privacy-sensitive routing, and blocked outcomes before model invocation. That demo is important because it shows the policy shape before images are added.
 
 ![](/assets/figures/2026-05-28-vllm-sr-vision-encoder-hardening/cyclotron-demo.png)
 
@@ -166,7 +166,7 @@ Text routing was the first control surface. Multimodal routing is the next one. 
 Getting started:
 
 - Project repository: [vllm-project/semantic-router](https://github.com/vllm-project/semantic-router)
-- Live demo: [cyclotron.shrader.cloud](https://cyclotron.shrader.cloud)
+- Live demo: [shrader.dev](https://shrader.dev)
 
 ## Acknowledgments
 
