@@ -74,7 +74,7 @@ There was still useful learning from the encoder chase. The larger SigLIP2-so400
 
 The decisive test was simple: run the same mmes model on the same passport fixture through two paths and compare the embedding behavior.
 
-The PyTorch reference path returned cosine **0.7204** against the relevant passport anchor. The deployed Candle-binding path returned **0.1576** on the same image and conceptual pipeline. That is a 5-8x magnitude gap on the same model and fixture.
+The PyTorch reference path returned cosine **0.7204** against the relevant passport anchor. The deployed Candle-binding path returned **0.1576** on the same image and conceptual pipeline. Same model, same fixture: a strong, correct match collapsing toward noise.
 
 ![](/assets/figures/2026-05-28-vllm-sr-vision-encoder-hardening/diagnostic-gap.png)
 
