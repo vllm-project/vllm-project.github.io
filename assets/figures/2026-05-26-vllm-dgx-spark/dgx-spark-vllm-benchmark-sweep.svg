@@ -184,7 +184,6 @@
     </g>
     <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">tok/s</text>
 
-    <line x1="70" y1="102" x2="630" y2="102" stroke="#111827" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>
     <text x="624" y="70" font-size="13" font-weight="600" fill="#111827" text-anchor="end">Decode 17.8-19.1 tok/s band</text>
 
     <rect x="94" y="102" width="80" height="228" fill="#fdb517"/>

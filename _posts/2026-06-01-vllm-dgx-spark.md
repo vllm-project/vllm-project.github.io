@@ -120,7 +120,7 @@ A few flags are useful to evaluate, but they should not be copied into a demo ru
 
 vLLM's default heuristics are designed to select the right quantized linear, MoE, and checkpoint-loading paths for the installed version. On single-GPU DGX Spark, start with the model recipe and vLLM defaults, then add explicit overrides only when they are intentional for the exact model, image, and hardware combination you validated.
 
-**Backend selection.** Leave quantized linear and MoE backend selection on `auto` unless your tested recipe requires a specific backend. The right FP4 path can change with vLLM release and model architecture; recent FlashInfer CUTLASS paths are much stronger than older Spark guidance suggests. If you intentionally pin a backend, prefer CLI flags such as `--linear-backend ...` and `--moe-backend ...`; older environment variables for this path are deprecated.
+**Backend selection.** Leave quantized linear and MoE backend selection on `auto` unless your tested recipe requires a specific backend. The right FP4 path can change with vLLM release and model architecture; recent FlashInfer CUTLASS paths are much stronger than older Spark guidance suggests. If you intentionally pin a backend, prefer CLI flags such as `--linear-backend` and `--moe-backend`; older environment variables for this path are deprecated.
 
 **Version-specific workarounds.** Some Spark recipes include compatibility environment variables for a specific image tag. Treat those as version-specific workarounds, not general vLLM requirements. For example, a FlashInfer allreduce backend override is not needed for a single-Spark command that does not use tensor parallelism.
 
