@@ -88,7 +88,7 @@ Before flag tuning, model choice is the largest performance lever on Spark. The 
 | 8B dense (Llama-3.1) FP8 | yes | ~20 tok/s |
 | 20B MXFP4 MoE (GPT-OSS) | yes | ~50 tok/s |
 | 70B dense FP8 | yes | ~3 tok/s — too slow for interactive |
-| **100–130B MoE NVFP4 (~10–15B active)** | **yes — strong fit** | **~19-67 tok/s measured; varies by recipe** |
+| **100–130B MoE NVFP4 (~10–15B active)** | **yes — strong fit** | **~23-67 tok/s measured; varies by recipe** |
 
 *Table 1. Directional single-user decode rates on DGX Spark across model classes. The 100-130B MoE NVFP4 row is a strong match for the system's memory capacity, active-parameter count, and bandwidth profile.*
 
@@ -179,7 +179,7 @@ First load takes 10-15 minutes in our setup with the default safetensor loading 
 
 ### Benchmark results
 
-We ran a five-scenario sweep against a local vLLM OpenAI-compatible endpoint hosting Nemotron-3-Super-120B-A12B-NVFP4 using the current CUDA-graphs-enabled deployment path; measured decode throughput ranged from 17.8 to 19.1 tok/s across the five scenarios. Each row is the median of three runs after a single warm-up call. Exact token counts come from `stream_options.include_usage`, not chunk counts.
+We ran a five-scenario sweep against a local vLLM OpenAI-compatible endpoint hosting Nemotron-3-Super-120B-A12B-NVFP4 on a single DGX Spark. In our updated single-Spark eval, measured decode throughput stayed in the 22.7-23.7 tok/s range across the scenarios. Each row is the median of three runs after a single warm-up call. Exact token counts come from `stream_options.include_usage`, not chunk counts.
 
 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin:18px 0 20px;">
   <div style="border:1px solid var(--border); border-radius:8px; padding:14px; background:color-mix(in oklab, var(--muted) 45%, transparent);">
@@ -194,32 +194,32 @@ We ran a five-scenario sweep against a local vLLM OpenAI-compatible endpoint hos
   </div>
   <div style="border:1px solid var(--border); border-radius:8px; padding:14px; background:color-mix(in oklab, var(--muted) 45%, transparent);">
     <div style="font-size:0.78rem; font-weight:600; color:var(--muted-foreground); text-transform:uppercase;">Steady decode</div>
-    <div style="font-size:1.65rem; line-height:1.15; font-weight:700; margin-top:4px; white-space:nowrap;">17.8–19.1&nbsp;tok/s</div>
+    <div style="font-size:1.65rem; line-height:1.15; font-weight:700; margin-top:4px; white-space:nowrap;">22.7–23.7&nbsp;tok/s</div>
     <div style="font-size:0.9rem; color:var(--muted-foreground); margin-top:4px;">Measured single-Spark decode range for Nemotron-3-Super across the five scenarios.</div>
   </div>
 </div>
 
 | Scenario | Prompt tok | Gen tok | TTFT | Total latency | Prefill tok/s | Decode tok/s |
 |---|---:|---:|---:|---:|---:|---:|
-| typical judge call (real 20Q) | 58 | 2 | 0.42&nbsp;s | ~0.53&nbsp;s | 140 | 19.0 |
-| medium prompt, short gen | 1,834 | 32 | 1.12&nbsp;s | ~2.80&nbsp;s | 1,636 | 18.2 |
-| long prompt, short gen | 7,234 | 32 | 3.85&nbsp;s | ~5.53&nbsp;s | 1,877 | 17.8 |
-| medium prompt, long gen | 1,834 | 108 | 1.12&nbsp;s | ~6.80&nbsp;s | 1,639 | 19.1 |
-| long prompt, long gen | 7,234 | 124 | 3.84&nbsp;s | ~10.37&nbsp;s | 1,884 | 18.7 |
+| typical judge call (real 20Q) | 58 | 2 | 0.42&nbsp;s | ~0.53&nbsp;s | 140 | ~23 |
+| medium prompt, short gen | 1,834 | 32 | 1.12&nbsp;s | ~2.47&nbsp;s | 1,636 | 23.7 |
+| long prompt, short gen | 7,234 | 32 | 3.85&nbsp;s | ~5.26&nbsp;s | 1,877 | 22.7 |
+| medium prompt, long gen | 1,834 | 108 | 1.12&nbsp;s | ~5.74&nbsp;s | 1,639 | 23.4 |
+| long prompt, long gen | 7,234 | 124 | 3.84&nbsp;s | ~9.26&nbsp;s | 1,884 | 22.9 |
 
-*Table 2. Five-scenario decode sweep on a local vLLM endpoint hosting Nemotron-3-Super-120B-A12B-NVFP4 with a CUDA-graphs-enabled deployment. Each row reports the median of three runs after warm-up.*
+*Table 2. Five-scenario single-Spark eval on a local vLLM endpoint hosting Nemotron-3-Super-120B-A12B-NVFP4. Each row reports the median of three runs after warm-up.*
 
-![Figure 6. vLLM benchmark sweep on DGX Spark showing TTFT, total latency, prefill throughput, and measured decode throughput in the 17.8–19.1 tok/s range for Nemotron-3-Super-120B-A12B-NVFP4.](/assets/figures/2026-05-26-vllm-dgx-spark/dgx-spark-vllm-benchmark-sweep.svg)
+![Figure 6. vLLM benchmark sweep on DGX Spark showing TTFT, total latency, prefill throughput, and measured decode throughput in the 22.7–23.7 tok/s range for Nemotron-3-Super-120B-A12B-NVFP4.](/assets/figures/2026-05-26-vllm-dgx-spark/dgx-spark-vllm-benchmark-sweep.svg)
 
 ### Benchmark interpretation
 
 **Prefill scales near-linearly with prompt length.** TTFT roughly triples when the prompt grows four times. Prefill rate climbs from 140 to nearly 1,900 tokens per second as the prompt gets large enough to amortize per-request overhead. Prefill is compute-bound and parallelizable across the full prompt, so it benefits more directly from the available tensor-core throughput.
 
-**Decode throughput stays in a narrow 17.8–19.1 tok/s band across these runs.** The judge call's user-facing latency matters more than its decode rate, since it generates only two tokens. Decode still depends on active parameter count, FP4 kernel path, CUDA graph behavior, and the exact vLLM image. Treat this as a configuration-specific result for Nemotron-3-Super on one Spark, not a universal ceiling for DGX Spark or vLLM.
+**Decode throughput stays in a narrow 22.7–23.7 tok/s band across these single-Spark eval runs.** The judge call's user-facing latency matters more than its decode rate, since it generates only two tokens. Decode still depends on active parameter count, FP4 kernel path, CUDA graph behavior, and the exact vLLM image. Treat this as a recipe-specific result for Nemotron-3-Super on one DGX Spark, not a universal ceiling for DGX Spark or vLLM.
 
 **Configuration note.** These measurements are specific to the image tag, context length, CUDA graph status, backend path, and scheduling settings used for the run. Report those values alongside any reproduced benchmark.
 
-**Live behavior during a game.** A typical 20-Questions turn sends roughly 1,000-token prompts (system prompt + facts block + secret + question). End-to-end perceived latency remains dominated by TTFT and short decode bursts; for 5–15 output tokens, decode is roughly 0.3–0.8s within the measured 17.8–19.1 tok/s band. KV-cache utilization rarely tops two percent during play. The telemetry view shows `prompt_tps` spike briefly after each turn starts, then `gen_tps` holds within the measured 17.8–19.1 tok/s band during steady generation while the answer streams.
+**Live behavior during a game.** A typical 20-Questions turn sends roughly 1,000-token prompts (system prompt + facts block + secret + question). End-to-end perceived latency remains dominated by TTFT and short decode bursts; for 5–15 output tokens, decode is roughly 0.2–0.7s within the measured 22.7–23.7 tok/s band. KV-cache utilization rarely tops two percent during play. The telemetry view shows `prompt_tps` spike briefly after each turn starts, then `gen_tps` holds within the measured 22.7–23.7 tok/s band during steady generation while the answer streams.
 
 ## Operational takeaways
 
