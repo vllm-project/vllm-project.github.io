@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" font-family="Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="figTitle figDesc">
   <title id="figTitle">DGX Spark model fit and decode rate (batch=1)</title>
-  <desc id="figDesc">Horizontal bar chart of decode tokens per second on DGX Spark with vLLM for four model classes. 100-130B MoE NVFP4 with 10-15B active parameters is highlighted as the strongest fit at 9-67 tok/s depending on tuning. 8B dense Llama-3.1 FP8 reaches ~20 tok/s. 20B MXFP4 MoE GPT-OSS reaches ~50 tok/s. 70B dense FP8 fits but is too slow for interactive at ~3 tok/s.</desc>
+  <desc id="figDesc">Horizontal bar chart of decode tokens per second on DGX Spark with vLLM for four model classes. 100-130B MoE NVFP4 with 10-15B active parameters is highlighted as the strongest fit at ~19-67 tok/s measured, varying by recipe. 8B dense Llama-3.1 FP8 reaches ~20 tok/s. 20B MXFP4 MoE GPT-OSS reaches ~50 tok/s. 70B dense FP8 fits but is too slow for interactive at ~3 tok/s.</desc>
   <defs>
     <pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
       <rect width="8" height="8" fill="#e5e7eb"/>
@@ -49,10 +49,10 @@
   <text x="60" y="434" font-size="14" font-weight="500" fill="#7c5a00">~10-15B active parameters</text>
   <rect x="420" y="398" width="74" height="28" rx="14" fill="#76b900"/>
   <text x="457" y="417" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">YES</text>
-  <!-- Range bar: 9 tok/s -> 520+98=618 ; 67 tok/s -> 520+728=1248 ; width=630 -->
+  <!-- Range bar geometry preserved; label updated to measured recipe range -->
   <rect x="618" y="390" width="630" height="48" rx="6" fill="url(#highlightFill)" stroke="#fdb517" stroke-width="2"/>
-  <text x="933" y="412" font-size="17" font-weight="700" fill="#3a2900" text-anchor="middle">9-67 tok/s</text>
-  <text x="933" y="430" font-size="13" font-weight="500" fill="#5a4000" text-anchor="middle">depending on tuning</text>
+  <text x="933" y="412" font-size="17" font-weight="700" fill="#3a2900" text-anchor="middle">~19-67 tok/s</text>
+  <text x="933" y="430" font-size="13" font-weight="500" fill="#5a4000" text-anchor="middle">measured; varies by recipe</text>
   <!-- STRONGEST FIT badge in top-right corner of the row, separated from any bar -->
   <rect x="1268" y="375" width="128" height="26" rx="13" fill="#111827"/>
   <text x="1332" y="393" font-size="13" font-weight="800" fill="#fdb517" text-anchor="middle">STRONGEST FIT</text>

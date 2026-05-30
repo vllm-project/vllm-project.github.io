@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1040" font-family="Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
   <title id="title">vLLM on DGX Spark 5-scenario benchmark sweep</title>
-  <desc id="desc">Four-panel benchmark figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the predictable baseline config (--enforce-eager). Top-left panel shows TTFT in seconds scales with prompt length, roughly tripling from medium to long prompts. Top-right panel shows total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows decode throughput holding steady around 9 tokens per second across the four realistic scenarios, with the noisy 2-token judge call shown as 18 tokens per second.</desc>
+  <desc id="desc">Four-panel benchmark figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the current CUDA-graphs-enabled deployment. Top-left panel shows TTFT in seconds scaling with prompt length, roughly tripling from medium to long prompts. Top-right panel shows measured total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows decode throughput holding steady around 19 tokens per second across the measured scenarios.</desc>
   <rect width="1440" height="1040" fill="#ffffff"/>
 
   <text x="60" y="48" font-size="30" font-weight="700" fill="#111827">vLLM on DGX Spark: 5-scenario benchmark sweep</text>
-  <text x="60" y="80" font-size="16" fill="#4b5563">Model: Nemotron-3-Super-120B-A12B-NVFP4 (NVFP4 weights), predictable baseline (--enforce-eager)</text>
+  <text x="60" y="80" font-size="16" fill="#4b5563">Model: Nemotron-3-Super-120B-A12B-NVFP4 (NVFP4 weights), CUDA-graphs-enabled deployment</text>
 
   <g transform="translate(60,100)">
     <rect x="0" y="0" width="18" height="14" fill="#30a2ff"/>
@@ -89,15 +89,15 @@
     <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">seconds</text>
 
     <rect x="94" y="323.64" width="80" height="6.36" fill="#30a2ff" opacity="0.55"/>
-    <text x="134" y="313" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">0.53</text>
-    <rect x="206" y="276.36" width="80" height="53.64" fill="#30a2ff" opacity="0.55"/>
-    <text x="246" y="266" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">4.47</text>
-    <rect x="318" y="242.76" width="80" height="87.24" fill="#30a2ff" opacity="0.55"/>
-    <text x="358" y="232" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">7.27</text>
-    <rect x="430" y="173.4" width="80" height="156.6" fill="#30a2ff" opacity="0.55"/>
-    <text x="470" y="163" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">13.05</text>
-    <rect x="542" y="118.32" width="80" height="211.68" fill="#30a2ff" opacity="0.55"/>
-    <text x="582" y="108" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">17.64</text>
+    <text x="134" y="313" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~0.53</text>
+    <rect x="206" y="296.4" width="80" height="33.6" fill="#30a2ff" opacity="0.55"/>
+    <text x="246" y="286" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~2.80</text>
+    <rect x="318" y="263.64" width="80" height="66.36" fill="#30a2ff" opacity="0.55"/>
+    <text x="358" y="253" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~5.53</text>
+    <rect x="430" y="248.4" width="80" height="81.6" fill="#30a2ff" opacity="0.55"/>
+    <text x="470" y="238" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~6.80</text>
+    <rect x="542" y="205.56" width="80" height="124.44" fill="#30a2ff" opacity="0.55"/>
+    <text x="582" y="195" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~10.37</text>
 
     <g font-size="13" fill="#111827" text-anchor="middle">
       <text x="134" y="350">Judge call</text>
@@ -165,7 +165,7 @@
   <g transform="translate(734,560)">
     <rect x="0" y="0" width="650" height="380" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
     <text x="20" y="32" font-size="22" font-weight="700" fill="#111827">Decode throughput (tok/s)</text>
-    <text x="20" y="54" font-size="13" fill="#4b5563">Steady ~9 tok/s for realistic runs; row 1 noisy (2-token sample)</text>
+    <text x="20" y="54" font-size="13" fill="#4b5563">Steady ~19 tok/s across the measured scenarios</text>
 
     <line x1="70" y1="90" x2="70" y2="330" stroke="#111827" stroke-width="1.5"/>
     <line x1="70" y1="330" x2="630" y2="330" stroke="#111827" stroke-width="1.5"/>
@@ -184,21 +184,19 @@
     </g>
     <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">tok/s</text>
 
-    <line x1="70" y1="222" x2="630" y2="222" stroke="#111827" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>
-    <text x="624" y="184" font-size="13" font-weight="600" fill="#111827" text-anchor="end">Decode steady ~9 tok/s</text>
+    <line x1="70" y1="102" x2="630" y2="102" stroke="#111827" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>
+    <text x="624" y="78" font-size="13" font-weight="600" fill="#111827" text-anchor="end">Decode steady ~19 tok/s</text>
 
-    <rect x="94" y="114" width="80" height="216" fill="#fdb517"/>
-    <text x="134" y="103" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">18*</text>
-    <rect x="206" y="214.8" width="80" height="115.2" fill="#fdb517"/>
-    <text x="246" y="204" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.6</text>
-    <rect x="318" y="218.4" width="80" height="111.6" fill="#fdb517"/>
-    <text x="358" y="208" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.3</text>
-    <rect x="430" y="220.8" width="80" height="109.2" fill="#fdb517"/>
-    <text x="470" y="210" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.1</text>
-    <rect x="542" y="222" width="80" height="108" fill="#fdb517"/>
-    <text x="582" y="212" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">9.0</text>
-
-    <text x="134" y="78" font-size="11" fill="#4b5563" text-anchor="middle">* noisy: only 2 tokens</text>
+    <rect x="94" y="102" width="80" height="228" fill="#fdb517"/>
+    <text x="134" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
+    <rect x="206" y="102" width="80" height="228" fill="#fdb517"/>
+    <text x="246" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
+    <rect x="318" y="102" width="80" height="228" fill="#fdb517"/>
+    <text x="358" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
+    <rect x="430" y="102" width="80" height="228" fill="#fdb517"/>
+    <text x="470" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
+    <rect x="542" y="102" width="80" height="228" fill="#fdb517"/>
+    <text x="582" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
 
     <g font-size="13" fill="#111827" text-anchor="middle">
       <text x="134" y="350">Judge call</text>
@@ -224,5 +222,5 @@
     <text x="360" y="40" font-size="13" fill="#111827">5. Long / long = long prompt, long gen (7234 / 124)</text>
   </g>
 
-  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: 5-scenario sweep on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4, predictable baseline (--enforce-eager).</text>
+  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: measured 5-scenario sweep on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4.</text>
 </svg>
