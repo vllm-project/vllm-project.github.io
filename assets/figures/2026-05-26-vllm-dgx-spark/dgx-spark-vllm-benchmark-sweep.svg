@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1040" font-family="Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
   <title id="title">vLLM on DGX Spark 5-scenario benchmark sweep</title>
-  <desc id="desc">Four-panel benchmark figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the current CUDA-graphs-enabled deployment. Top-left panel shows TTFT in seconds scaling with prompt length, roughly tripling from medium to long prompts. Top-right panel shows measured total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows decode throughput holding steady around 19 tokens per second across the measured scenarios.</desc>
+  <desc id="desc">Four-panel benchmark figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the current CUDA-graphs-enabled deployment path. Top-left panel shows measured TTFT in seconds scaling with prompt length, roughly tripling from medium to long prompts. Top-right panel shows measured total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows measured decode throughput staying within a narrow 17.8 to 19.1 tokens per second band across the five scenarios.</desc>
   <rect width="1440" height="1040" fill="#ffffff"/>
 
   <text x="60" y="48" font-size="30" font-weight="700" fill="#111827">vLLM on DGX Spark: 5-scenario benchmark sweep</text>
@@ -165,7 +165,7 @@
   <g transform="translate(734,560)">
     <rect x="0" y="0" width="650" height="380" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
     <text x="20" y="32" font-size="22" font-weight="700" fill="#111827">Decode throughput (tok/s)</text>
-    <text x="20" y="54" font-size="13" fill="#4b5563">Steady ~19 tok/s across the measured scenarios</text>
+    <text x="20" y="54" font-size="13" fill="#4b5563">Measured decode stays in the 17.8-19.1 tok/s range</text>
 
     <line x1="70" y1="90" x2="70" y2="330" stroke="#111827" stroke-width="1.5"/>
     <line x1="70" y1="330" x2="630" y2="330" stroke="#111827" stroke-width="1.5"/>
@@ -185,18 +185,18 @@
     <text x="22" y="210" font-size="14" fill="#4b5563" transform="rotate(-90 22 210)" text-anchor="middle">tok/s</text>
 
     <line x1="70" y1="102" x2="630" y2="102" stroke="#111827" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.55"/>
-    <text x="624" y="78" font-size="13" font-weight="600" fill="#111827" text-anchor="end">Decode steady ~19 tok/s</text>
+    <text x="624" y="70" font-size="13" font-weight="600" fill="#111827" text-anchor="end">Decode 17.8-19.1 tok/s band</text>
 
     <rect x="94" y="102" width="80" height="228" fill="#fdb517"/>
-    <text x="134" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
-    <rect x="206" y="102" width="80" height="228" fill="#fdb517"/>
-    <text x="246" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
-    <rect x="318" y="102" width="80" height="228" fill="#fdb517"/>
-    <text x="358" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
-    <rect x="430" y="102" width="80" height="228" fill="#fdb517"/>
-    <text x="470" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
-    <rect x="542" y="102" width="80" height="228" fill="#fdb517"/>
-    <text x="582" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">~19</text>
+    <text x="134" y="92" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">19.0</text>
+    <rect x="206" y="111.6" width="80" height="218.4" fill="#fdb517"/>
+    <text x="246" y="101.6" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">18.2</text>
+    <rect x="318" y="116.4" width="80" height="213.6" fill="#fdb517"/>
+    <text x="358" y="106.4" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">17.8</text>
+    <rect x="430" y="100.8" width="80" height="229.2" fill="#fdb517"/>
+    <text x="470" y="90.8" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">19.1</text>
+    <rect x="542" y="105.6" width="80" height="224.4" fill="#fdb517"/>
+    <text x="582" y="95.6" font-size="14" font-weight="600" fill="#111827" text-anchor="middle">18.7</text>
 
     <g font-size="13" fill="#111827" text-anchor="middle">
       <text x="134" y="350">Judge call</text>
@@ -222,5 +222,5 @@
     <text x="360" y="40" font-size="13" fill="#111827">5. Long / long = long prompt, long gen (7234 / 124)</text>
   </g>
 
-  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: measured 5-scenario sweep on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4.</text>
+  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: 5-scenario sweep on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4, current CUDA-graphs-enabled deployment path.</text>
 </svg>
