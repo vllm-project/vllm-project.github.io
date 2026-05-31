@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 780" role="img" aria-labelledby="diagramTitle diagramDesc">
+  <title id="diagramTitle">vLLM serving architecture on DGX Spark</title>
+  <desc id="diagramDesc">Left-to-right flow: Client apps connect through an OpenAI-compatible /v1 endpoint and a /metrics Prometheus endpoint into the official vLLM OpenAI server image, which loads the Nemotron-3-Super-120B-A12B-NVFP4 model on DGX Spark hardware (GB10 SoC, sm_121 GPU, 128 GB unified LPDDR5X memory).</desc>
+
+  <defs>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#30a2ff"/>
+    </marker>
+    <marker id="arrowYellow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d18a00"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#76b900"/>
+    </marker>
+  </defs>
+
+  <rect width="1440" height="780" fill="#ffffff"/>
+
+  <text x="720" y="56" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#111827">vLLM Serving Architecture on DGX Spark</text>
+  <text x="720" y="90" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="17" font-weight="400" fill="#4b5563">OpenAI-compatible API into a vLLM container running Nemotron NVFP4 on a single Grace Blackwell desktop</text>
+
+  <!-- Stage 1: Client apps  x: 40..250 -->
+  <g>
+    <rect x="40" y="220" width="210" height="280" rx="14" ry="14" fill="#eff8ff" stroke="#30a2ff" stroke-width="2" filter="url(#cardShadow)"/>
+    <text x="145" y="252" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">Client apps</text>
+    <line x1="60" y1="268" x2="230" y2="268" stroke="#30a2ff" stroke-width="2" opacity="0.5"/>
+
+    <rect x="60" y="284" width="170" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="145" y="310" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" fill="#111827">Chat UIs</text>
+
+    <rect x="60" y="336" width="170" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="145" y="362" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" fill="#111827">Agents</text>
+
+    <rect x="60" y="388" width="170" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="145" y="414" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" fill="#111827">SDKs</text>
+
+    <rect x="60" y="440" width="170" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="145" y="466" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" fill="#111827">Notebooks</text>
+  </g>
+
+  <!-- Arrows clients -> endpoints -->
+  <path d="M 256,300 L 314,300" fill="none" stroke="#30a2ff" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <path d="M 256,420 L 314,420" fill="none" stroke="#30a2ff" stroke-width="4" marker-end="url(#arrowBlue)"/>
+
+  <!-- Stage 2: API endpoints  x: 320..582 -->
+  <g>
+    <rect x="320" y="248" width="262" height="104" rx="14" ry="14" fill="#eff8ff" stroke="#30a2ff" stroke-width="2" filter="url(#cardShadow)"/>
+    <text x="451" y="280" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="20" font-weight="700" fill="#0b5fa6">/v1</text>
+    <text x="451" y="308" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#111827">OpenAI-compatible</text>
+    <text x="451" y="332" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">chat, completions, embeddings</text>
+  </g>
+
+  <g>
+    <rect x="320" y="368" width="262" height="104" rx="14" ry="14" fill="#eff8ff" stroke="#30a2ff" stroke-width="2" filter="url(#cardShadow)"/>
+    <text x="451" y="400" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="20" font-weight="700" fill="#0b5fa6">/metrics</text>
+    <text x="451" y="428" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#111827">Prometheus metrics</text>
+    <text x="451" y="452" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">latency, tokens/s, KV usage</text>
+  </g>
+
+  <!-- API endpoints converge into container (no label overlap) -->
+  <path d="M 586,300 C 612,300 612,358 644,358" fill="none" stroke="#30a2ff" stroke-width="4" marker-end="url(#arrowBlue)"/>
+  <path d="M 586,420 C 612,420 612,382 644,382" fill="none" stroke="#30a2ff" stroke-width="4" marker-end="url(#arrowBlue)"/>
+
+  <!-- Stage 3: vLLM container  x: 650..920 -->
+  <g>
+    <rect x="650" y="200" width="270" height="340" rx="16" ry="16" fill="#fff7e6" stroke="#fdb517" stroke-width="2.5" filter="url(#cardShadow)"/>
+
+    <text x="785" y="234" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">vLLM container</text>
+    <text x="785" y="262" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" font-weight="600" fill="#7a4a00">vllm/vllm-openai:cu130-nightly</text>
+    <line x1="670" y1="278" x2="900" y2="278" stroke="#fdb517" stroke-width="2" opacity="0.6"/>
+
+    <text x="785" y="304" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#111827">vLLM engine</text>
+
+    <rect x="670" y="318" width="230" height="44" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="785" y="346" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#111827">Continuous batching</text>
+
+    <rect x="670" y="374" width="230" height="44" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="785" y="402" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#111827">paged KV cache</text>
+
+    <rect x="670" y="430" width="230" height="44" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="785" y="458" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#111827">Scheduler</text>
+
+    <rect x="670" y="486" width="230" height="44" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="785" y="514" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#111827">CUDA / NCCL runtime</text>
+  </g>
+
+  <!-- container -> model -->
+  <path d="M 924,370 L 974,370" fill="none" stroke="#d18a00" stroke-width="4" marker-end="url(#arrowYellow)"/>
+
+  <!-- Stage 4: Model weights  x: 980..1180 -->
+  <g>
+    <rect x="980" y="220" width="200" height="300" rx="14" ry="14" fill="#f1f9e3" stroke="#76b900" stroke-width="2" filter="url(#cardShadow)"/>
+    <text x="1080" y="254" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">Model weights</text>
+    <line x1="1000" y1="270" x2="1160" y2="270" stroke="#76b900" stroke-width="2" opacity="0.5"/>
+
+    <text x="1080" y="306" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#111827">Nemotron-3-Super</text>
+    <text x="1080" y="328" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#111827">-120B-A12B-NVFP4</text>
+
+    <rect x="1000" y="350" width="160" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="1080" y="376" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#111827">MoE: 120B / 12B active</text>
+
+    <rect x="1000" y="402" width="160" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="1080" y="428" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="15" font-weight="600" fill="#3a6e00">NVFP4 weights</text>
+
+    <rect x="1000" y="454" width="160" height="40" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="1080" y="480" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#111827">~60 GB on disk</text>
+  </g>
+
+  <!-- model -> hardware -->
+  <path d="M 1184,370 L 1228,370" fill="none" stroke="#76b900" stroke-width="4" marker-end="url(#arrowGreen)"/>
+
+  <!-- Stage 5: DGX Spark hardware  x: 1232..1410 -->
+  <g>
+    <rect x="1232" y="200" width="178" height="340" rx="14" ry="14" fill="#f1f9e3" stroke="#76b900" stroke-width="2.5" filter="url(#cardShadow)"/>
+    <text x="1321" y="234" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">NVIDIA</text>
+    <text x="1321" y="258" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">DGX Spark</text>
+    <line x1="1252" y1="276" x2="1390" y2="276" stroke="#76b900" stroke-width="2" opacity="0.6"/>
+
+    <rect x="1252" y="294" width="138" height="56" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="1321" y="316" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="16" font-weight="700" fill="#3a6e00">GB10</text>
+    <text x="1321" y="338" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#4b5563">SoC</text>
+
+    <rect x="1252" y="362" width="138" height="72" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="1321" y="384" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="16" font-weight="700" fill="#3a6e00">sm_121</text>
+    <text x="1321" y="404" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">consumer</text>
+    <text x="1321" y="422" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#111827">Blackwell GPU</text>
+
+    <rect x="1252" y="446" width="138" height="80" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="1321" y="468" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#111827">128 GB unified</text>
+    <text x="1321" y="488" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="15" font-weight="700" fill="#3a6e00">LPDDR5X</text>
+    <text x="1321" y="508" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" fill="#4b5563">memory</text>
+  </g>
+
+  <!-- Stage labels (below cards) -->
+  <g font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#4b5563" text-anchor="middle">
+    <text x="145" y="566">1. Clients</text>
+    <text x="451" y="566">2. API surface</text>
+    <text x="785" y="566">3. vLLM runtime</text>
+    <text x="1080" y="566">4. Weights</text>
+    <text x="1321" y="566">5. Hardware</text>
+  </g>
+
+  <!-- Footer band -->
+  <g>
+    <rect x="40" y="600" width="1360" height="140" rx="14" ry="14" fill="#f8fafc" stroke="#e5e7eb" stroke-width="1"/>
+    <text x="64" y="632" font-family="Inter, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Single-node serving on a desktop-class Grace Blackwell system</text>
+    <text x="64" y="660" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">vLLM streams tokens through the OpenAI-compatible /v1 API and exports Prometheus metrics on /metrics.</text>
+    <text x="64" y="684" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">NVFP4 weights fit inside the 128 GB unified LPDDR5X pool that the GB10 SoC shares between the Arm CPU cluster</text>
+    <text x="64" y="708" font-family="Inter, Helvetica, Arial, sans-serif" font-size="15" fill="#4b5563">and the sm_121 Blackwell GPU, so no host-to-device copies are needed during decode.</text>
+    <text x="64" y="732" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-style="italic" fill="#6b7280">Figure 1. vLLM serving stack on DGX Spark.</text>
+  </g>
+</svg>

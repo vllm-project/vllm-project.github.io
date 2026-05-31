@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" font-family="Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="figTitle figDesc">
+  <title id="figTitle">DGX Spark model-selection guide for vLLM</title>
+  <desc id="figDesc">Model-selection guide for local vLLM serving on DGX Spark. Four model classes are listed with their Spark fit, serving profile, and example model names. Row 1, Compact MoE or low-active-parameter FP4, is single-Spark feasible; example models include openai/gpt-oss-20b, Qwen/Qwen3-30B-A3B-Instruct-2507, and moonshotai/Kimi-Linear-48B-A3B-Instruct. Row 2, Mid-size dense FP8 or FP4, is memory feasible; example models include Qwen/Qwen3-32B, Qwen/Qwen3-32B-FP8, and google/gemma-3-27b-it. Row 3, highlighted, is Large MoE FP4 or NVFP4 in the roughly 100B-130B total parameter range, the single-Spark high-capacity class used in this blog's Nemotron-3-Super local evaluation; example models include nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4 and openai/gpt-oss-120b. Row 4, Frontier-scale MoE or very large dense, is multi-node or data center oriented; example models include deepseek-ai/DeepSeek-V3.2, Qwen/Qwen3-235B-A22B-Instruct-2507, and moonshotai/Kimi-K2-Thinking. This figure is directional model-selection guidance; example model names are class members and are not benchmarked in this post.</desc>
+  <defs>
+    <linearGradient id="highlightFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#30a2ff" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#30a2ff" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1440" height="900" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="60" y="58" font-size="30" font-weight="700" fill="#111827">DGX Spark model-selection guide for vLLM</text>
+  <text x="60" y="88" font-size="17" font-weight="400" fill="#4b5563">Model classes for local vLLM serving on DGX Spark, with example models per class.</text>
+
+  <!-- Column headers -->
+  <text x="60" y="130" font-size="13" font-weight="700" fill="#6b7280" letter-spacing="1.2">MODEL CLASS</text>
+  <text x="440" y="130" font-size="13" font-weight="700" fill="#6b7280" letter-spacing="1.2">SPARK FIT</text>
+  <text x="660" y="130" font-size="13" font-weight="700" fill="#6b7280" letter-spacing="1.2">SERVING PROFILE</text>
+  <text x="1000" y="130" font-size="13" font-weight="700" fill="#6b7280" letter-spacing="1.2">EXAMPLE MODELS</text>
+  <line x1="60" y1="142" x2="1380" y2="142" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- ROW 1: Compact MoE / low-active-parameter FP4 -->
+  <text x="60" y="190" font-size="18" font-weight="600" fill="#111827">Compact MoE / low-active-parameter FP4</text>
+  <rect x="440" y="172" width="160" height="28" rx="14" fill="#76b900"/>
+  <text x="452" y="191" font-size="13" font-weight="700" fill="#111827">Interactive feasible</text>
+  <text x="660" y="190" font-size="14" font-weight="500" fill="#111827">Low memory pressure</text>
+  <text x="660" y="212" font-size="13" font-weight="400" fill="#6b7280">local interactive serving</text>
+  <text x="1000" y="182" font-size="13" font-weight="500" fill="#111827">openai/gpt-oss-20b</text>
+  <text x="1000" y="202" font-size="13" font-weight="400" fill="#4b5563">Qwen/Qwen3-30B-A3B-Instruct-2507</text>
+  <text x="1000" y="222" font-size="13" font-weight="400" fill="#4b5563">moonshotai/Kimi-Linear-48B-A3B-Instruct</text>
+  <line x1="60" y1="248" x2="1380" y2="248" stroke="#f3f4f6" stroke-width="1"/>
+
+  <!-- ROW 2: Mid-size dense FP8 / FP4 -->
+  <text x="60" y="294" font-size="18" font-weight="600" fill="#111827">Mid-size dense FP8 / FP4</text>
+  <rect x="440" y="276" width="135" height="28" rx="14" fill="#76b900"/>
+  <text x="452" y="295" font-size="13" font-weight="700" fill="#111827">Memory feasible</text>
+  <text x="660" y="294" font-size="14" font-weight="500" fill="#111827">Dense-model behavior</text>
+  <text x="660" y="316" font-size="13" font-weight="400" fill="#6b7280">higher decode bandwidth demand than MoE</text>
+  <text x="1000" y="286" font-size="13" font-weight="500" fill="#111827">Qwen/Qwen3-32B</text>
+  <text x="1000" y="306" font-size="13" font-weight="400" fill="#4b5563">Qwen/Qwen3-32B-FP8</text>
+  <text x="1000" y="326" font-size="13" font-weight="400" fill="#4b5563">google/gemma-3-27b-it</text>
+  <line x1="60" y1="352" x2="1380" y2="352" stroke="#f3f4f6" stroke-width="1"/>
+
+  <!-- ROW 3 HIGHLIGHTED: Large MoE FP4 / NVFP4 -->
+  <rect x="40" y="365" width="1360" height="130" rx="12" fill="#e6f4ff" stroke="#30a2ff" stroke-width="2"/>
+  <text x="60" y="408" font-size="22" font-weight="800" fill="#111827">Large MoE FP4 / NVFP4</text>
+  <text x="60" y="434" font-size="14" font-weight="500" fill="#0b3d80">roughly 100B-130B total parameters</text>
+  <text x="60" y="458" font-size="13" font-weight="400" fill="#0b3d80">class used in this blog's Nemotron-3-Super local evaluation</text>
+  <rect x="440" y="397" width="130" height="32" rx="16" fill="url(#highlightFill)" stroke="#30a2ff" stroke-width="1.5"/>
+  <text x="452" y="418" font-size="14" font-weight="700" fill="#0b3d80">High Capacity</text>
+  <text x="660" y="412" font-size="14" font-weight="600" fill="#111827">Larger total parameter count</text>
+  <text x="660" y="436" font-size="13" font-weight="400" fill="#0b3d80">with lower active parameter count</text>
+  <text x="1000" y="410" font-size="13" font-weight="500" fill="#111827">nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4</text>
+  <text x="1000" y="432" font-size="13" font-weight="400" fill="#0b3d80">openai/gpt-oss-120b</text>
+
+  <!-- ROW 4: Frontier-scale MoE / very large dense -->
+  <text x="60" y="544" font-size="18" font-weight="600" fill="#111827">Frontier-scale MoE / very large dense</text>
+  <rect x="440" y="526" width="110" height="28" rx="14" fill="#fdb517"/>
+  <text x="452" y="545" font-size="13" font-weight="700" fill="#3a2900">Multi-node</text>
+  <text x="660" y="544" font-size="14" font-weight="500" fill="#111827">Higher aggregate memory and bandwidth</text>
+  <text x="660" y="566" font-size="13" font-weight="400" fill="#6b7280">not assumed to fit one DGX Spark</text>
+  <text x="1000" y="536" font-size="13" font-weight="500" fill="#111827">deepseek-ai/DeepSeek-V3.2</text>
+  <text x="1000" y="556" font-size="13" font-weight="400" fill="#4b5563">Qwen/Qwen3-235B-A22B-Instruct-2507</text>
+  <text x="1000" y="576" font-size="13" font-weight="400" fill="#4b5563">moonshotai/Kimi-K2-Thinking</text>
+
+  <!-- Footer note -->
+  <rect x="60" y="620" width="1320" height="86" rx="10" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="80" y="650" font-size="15" font-weight="700" fill="#111827">How NVFP4 MoE maps to DGX Spark</text>
+  <text x="80" y="674" font-size="14" font-weight="400" fill="#374151">Decode is bandwidth-bound. NVFP4 MoE with smaller active-parameter sets aligns with DGX Spark's unified memory bandwidth profile.</text>
+  <text x="80" y="694" font-size="13" font-weight="400" fill="#6b7280">Directional model-selection guidance; example model names are class members and are not benchmarked in this post.</text>
+</svg>

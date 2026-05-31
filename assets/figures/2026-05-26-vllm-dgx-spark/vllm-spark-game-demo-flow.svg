@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc" font-family="Inter, Helvetica, Arial, sans-serif">
+  <title id="title">vllm-spark-game demo deployment flow on DGX Spark with vLLM</title>
+  <desc id="desc">Two independent Textual TUI clients (vllm-spark-game and spark-stats) each call into a single local vLLM endpoint on DGX Spark. vllm-spark-game uses the OpenAI Python SDK against the /v1 chat completions endpoint. spark-stats polls the Prometheus /metrics endpoint and also reads GPU stats via NVML.</desc>
+
+  <defs>
+    <marker id="arrowBlue" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L12,6 L0,12 z" fill="#30a2ff"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L12,6 L0,12 z" fill="#76b900"/>
+    </marker>
+  </defs>
+
+  <!-- White background -->
+  <rect x="0" y="0" width="1440" height="900" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="720" y="50" text-anchor="middle" font-size="30" font-weight="700" fill="#111827">vllm-spark-game demo: deployment flow on DGX Spark with vLLM</text>
+  <text x="720" y="82" text-anchor="middle" font-size="16" fill="#4b5563">Two independent Textual TUI clients, one local vLLM endpoint</text>
+
+  <!-- ===== TOP ROW: TUI Cards ===== -->
+
+  <!-- LEFT CARD: vllm-spark-game (vLLM blue) -->
+  <g>
+    <rect x="120" y="115" width="460" height="220" rx="14" ry="14" fill="#eef7ff" stroke="#30a2ff" stroke-width="3"/>
+    <!-- TUI window icon: simple rect with title bar -->
+    <g>
+      <rect x="148" y="143" width="120" height="78" rx="6" ry="6" fill="#111827" stroke="#30a2ff" stroke-width="2"/>
+      <rect x="148" y="143" width="120" height="16" rx="6" ry="6" fill="#30a2ff"/>
+      <circle cx="158" cy="151" r="3" fill="#111827"/>
+      <circle cx="168" cy="151" r="3" fill="#111827"/>
+      <circle cx="178" cy="151" r="3" fill="#111827"/>
+      <text x="156" y="178" font-family="Menlo, Consolas, monospace" font-size="11" fill="#30a2ff">&gt; vllm-spark</text>
+      <text x="156" y="195" font-family="Menlo, Consolas, monospace" font-size="11" fill="#fdb517">? Animal</text>
+      <text x="156" y="211" font-family="Menlo, Consolas, monospace" font-size="11" fill="#76b900">_</text>
+    </g>
+    <!-- Card text -->
+    <text x="290" y="170" font-size="24" font-weight="700" fill="#111827">vllm-spark-game</text>
+    <text x="290" y="200" font-size="14" font-weight="600" fill="#30a2ff">Textual TUI</text>
+    <text x="290" y="226" font-size="15" fill="#4b5563">20 Questions / Merch Negotiation</text>
+    <text x="290" y="260" font-size="14" fill="#4b5563">Interactive game loop</text>
+    <text x="290" y="280" font-size="14" fill="#4b5563">Streams tokens from vLLM</text>
+    <text x="290" y="312" font-size="13" font-style="italic" fill="#4b5563">client = OpenAI(base_url=...)</text>
+  </g>
+
+  <!-- RIGHT CARD: spark-stats (NVIDIA green) -->
+  <g>
+    <rect x="860" y="115" width="460" height="220" rx="14" ry="14" fill="#f1f8e7" stroke="#76b900" stroke-width="3"/>
+    <!-- TUI window icon -->
+    <g>
+      <rect x="888" y="143" width="120" height="78" rx="6" ry="6" fill="#111827" stroke="#76b900" stroke-width="2"/>
+      <rect x="888" y="143" width="120" height="16" rx="6" ry="6" fill="#76b900"/>
+      <circle cx="898" cy="151" r="3" fill="#111827"/>
+      <circle cx="908" cy="151" r="3" fill="#111827"/>
+      <circle cx="918" cy="151" r="3" fill="#111827"/>
+      <text x="896" y="178" font-family="Menlo, Consolas, monospace" font-size="11" fill="#76b900">&gt; spark-stats</text>
+      <text x="896" y="195" font-family="Menlo, Consolas, monospace" font-size="11" fill="#fdb517">GPU 78%</text>
+      <text x="896" y="211" font-family="Menlo, Consolas, monospace" font-size="11" fill="#30a2ff">tok/s 142</text>
+    </g>
+    <!-- Card text -->
+    <text x="1030" y="170" font-size="24" font-weight="700" fill="#111827">spark-stats</text>
+    <text x="1030" y="200" font-size="14" font-weight="600" fill="#76b900">Textual TUI</text>
+    <text x="1030" y="226" font-size="15" fill="#4b5563">Live GPU + vLLM telemetry</text>
+    <text x="1030" y="260" font-size="14" fill="#4b5563">Polls Prometheus metrics</text>
+    <text x="1030" y="280" font-size="14" fill="#4b5563">Reads GPU stats via NVML</text>
+    <text x="1030" y="312" font-size="13" font-style="italic" fill="#4b5563">refresh every 1s</text>
+  </g>
+
+  <!-- ===== ARROWS ===== -->
+
+  <!-- vllm-spark-game (blue) arrow: straight down from card to container -->
+  <path d="M 350 345 L 350 555" stroke="#30a2ff" stroke-width="4" fill="none" marker-end="url(#arrowBlue)"/>
+
+  <!-- spark-stats (green) arrows: fan out into TWO arrows -->
+  <path d="M 1090 345 C 1090 420, 870 480, 770 555" stroke="#76b900" stroke-width="4" fill="none" marker-end="url(#arrowGreen)"/>
+  <path d="M 1090 345 C 1090 420, 1190 480, 1220 555" stroke="#76b900" stroke-width="4" fill="none" marker-end="url(#arrowGreen)"/>
+
+  <!-- ===== ARROW LABELS ===== -->
+
+  <!-- vllm-spark-game label 1: "OpenAI Python SDK" -->
+  <g>
+    <rect x="200" y="362" width="200" height="36" rx="6" ry="6" fill="#ffffff" stroke="#30a2ff" stroke-width="2"/>
+    <text x="300" y="386" text-anchor="middle" font-size="16" font-weight="600" fill="#30a2ff">OpenAI Python SDK</text>
+  </g>
+
+  <!-- vllm-spark-game label 2: "/v1 chat/completions" -->
+  <g>
+    <rect x="200" y="430" width="220" height="36" rx="6" ry="6" fill="#ffffff" stroke="#30a2ff" stroke-width="2"/>
+    <text x="310" y="454" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="15" font-weight="700" fill="#30a2ff">/v1 chat/completions</text>
+  </g>
+
+  <!-- vllm-spark-game label 3: endpoint URL -->
+  <g>
+    <rect x="200" y="495" width="280" height="36" rx="6" ry="6" fill="#ffffff" stroke="#30a2ff" stroke-width="2"/>
+    <text x="340" y="519" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="14" fill="#30a2ff">http://localhost:8000/v1</text>
+  </g>
+
+  <!-- spark-stats LEFT arrow labels (Prometheus / metrics polling), positioned ON the curve -->
+  <!-- Curve passes through (1054,399), (967,450), (862,501). Labels follow the curve. -->
+  <g>
+    <rect x="870" y="378" width="220" height="38" rx="6" ry="6" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+    <text x="980" y="403" text-anchor="middle" font-size="16" font-weight="600" fill="#76b900">Prometheus</text>
+  </g>
+  <g>
+    <rect x="790" y="432" width="220" height="38" rx="6" ry="6" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+    <text x="900" y="457" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="15" font-weight="700" fill="#76b900">/metrics polling</text>
+  </g>
+  <g>
+    <rect x="620" y="500" width="290" height="34" rx="6" ry="6" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+    <text x="765" y="522" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="13" fill="#76b900">http://localhost:8000/metrics</text>
+  </g>
+
+  <!-- spark-stats RIGHT arrow label: "NVML", positioned ON the curve -->
+  <!-- Curve passes through (1106,399), (1144,450), (1187,501). -->
+  <g>
+    <rect x="1115" y="378" width="170" height="38" rx="6" ry="6" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+    <text x="1200" y="403" text-anchor="middle" font-size="16" font-weight="600" fill="#76b900">NVML</text>
+  </g>
+  <g>
+    <rect x="1115" y="432" width="220" height="38" rx="6" ry="6" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+    <text x="1225" y="457" text-anchor="middle" font-size="14" fill="#76b900">GPU stats library</text>
+  </g>
+  <g>
+    <rect x="1100" y="500" width="240" height="34" rx="6" ry="6" fill="#ffffff" stroke="#76b900" stroke-width="2"/>
+    <text x="1220" y="522" text-anchor="middle" font-family="Menlo, Consolas, monospace" font-size="13" fill="#76b900">nvidia-ml-py / pynvml</text>
+  </g>
+
+  <!-- ===== BOTTOM CARD: DGX Spark stack ===== -->
+  <g>
+    <!-- Outer card -->
+    <rect x="140" y="565" width="1160" height="285" rx="16" ry="16" fill="#fffaf0" stroke="#fdb517" stroke-width="4"/>
+
+    <!-- Header bar (top portion rounded) -->
+    <path d="M 156 565 L 1284 565 Q 1300 565 1300 581 L 1300 623 L 140 623 L 140 581 Q 140 565 156 565 Z" fill="#fdb517"/>
+
+    <text x="170" y="603" font-size="22" font-weight="700" fill="#111827">DGX Spark</text>
+    <text x="400" y="603" font-size="18" font-weight="600" fill="#111827">vllm/vllm-openai:cu130-nightly</text>
+    <text x="1280" y="603" text-anchor="end" font-size="20" font-weight="700" fill="#111827">vLLM</text>
+
+    <!-- Body bullets -->
+    <g transform="translate(170, 660)">
+      <!-- Bullet 1: /v1 endpoint -->
+      <circle cx="10" cy="-5" r="5" fill="#30a2ff"/>
+      <text x="28" y="0" font-size="17" font-weight="600" fill="#111827">OpenAI-compatible</text>
+      <text x="222" y="0" font-family="Menlo, Consolas, monospace" font-size="17" font-weight="700" fill="#30a2ff">/v1</text>
+      <text x="262" y="0" font-size="17" fill="#111827">endpoint</text>
+      <text x="356" y="0" font-family="Menlo, Consolas, monospace" font-size="17" font-weight="700" fill="#111827">:8000</text>
+
+      <!-- Bullet 2: /metrics endpoint -->
+      <circle cx="10" cy="35" r="5" fill="#76b900"/>
+      <text x="28" y="40" font-size="17" font-weight="600" fill="#111827">Prometheus</text>
+      <text x="146" y="40" font-family="Menlo, Consolas, monospace" font-size="17" font-weight="700" fill="#76b900">/metrics</text>
+      <text x="240" y="40" font-size="17" fill="#111827">endpoint</text>
+      <text x="334" y="40" font-family="Menlo, Consolas, monospace" font-size="17" font-weight="700" fill="#111827">:8000</text>
+
+      <!-- Bullet 3: model -->
+      <circle cx="10" cy="75" r="5" fill="#fdb517"/>
+      <text x="28" y="80" font-size="17" font-weight="600" fill="#111827">Nemotron-3-Super-120B-A12B-NVFP4</text>
+
+      <!-- Bullet 4: GPU -->
+      <circle cx="10" cy="115" r="5" fill="#111827"/>
+      <text x="28" y="120" font-size="17" font-weight="600" fill="#111827">GB10</text>
+      <text x="80" y="120" font-family="Menlo, Consolas, monospace" font-size="17" font-weight="700" fill="#76b900">sm_121</text>
+      <text x="166" y="120" font-size="17" fill="#111827">+ 128 GB unified LPDDR5X</text>
+
+      <!-- Bullet 5: Paged KV cache -->
+      <circle cx="10" cy="155" r="5" fill="#30a2ff"/>
+      <text x="28" y="160" font-size="17" font-weight="600" fill="#111827">Paged KV cache</text>
+      <text x="182" y="160" font-size="15" fill="#4b5563">in unified memory</text>
+    </g>
+
+    <!-- Side callout: vLLM engine internals -->
+    <g>
+      <rect x="900" y="650" width="370" height="180" rx="10" ry="10" fill="#ffffff" stroke="#4b5563" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="920" y="680" font-size="16" font-weight="700" fill="#111827">vLLM engine internals</text>
+      <text x="920" y="708" font-size="14" fill="#4b5563">- Continuous batching scheduler</text>
+      <text x="920" y="730" font-size="14" fill="#4b5563">- Paged KV cache blocks</text>
+      <text x="920" y="752" font-size="14" fill="#4b5563">- NVFP4 weights, FlashAttention</text>
+      <text x="920" y="774" font-size="14" fill="#4b5563">- Single GPU, tensor-parallel = 1</text>
+      <text x="920" y="804" font-size="13" font-style="italic" fill="#4b5563">listens on 0.0.0.0:8000</text>
+    </g>
+  </g>
+
+  <!-- Independence footnote -->
+  <text x="720" y="880" text-anchor="middle" font-size="14" fill="#4b5563">vllm-spark-game and spark-stats run independently; neither talks to the other - they both speak only to the local vLLM endpoint.</text>
+</svg>
