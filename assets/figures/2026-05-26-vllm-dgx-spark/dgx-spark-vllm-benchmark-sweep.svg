@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1040" font-family="Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
-  <title id="title">vLLM on DGX Spark 5-scenario benchmark sweep</title>
-  <desc id="desc">Four-panel benchmark figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the current CUDA-graphs-enabled deployment path. Top-left panel shows measured TTFT in seconds scaling with prompt length, roughly tripling from medium to long prompts. Top-right panel shows measured total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows measured decode throughput staying within a narrow 22.7 to 23.7 tokens per second band across the five scenarios.</desc>
+  <title id="title">vLLM on DGX Spark 5-scenario single-Spark evaluation sweep</title>
+  <desc id="desc">Four-panel evaluation figure for vLLM serving Nemotron-3-Super-120B-A12B-NVFP4 on DGX Spark with the current CUDA-graphs-enabled deployment path. Top-left panel shows measured TTFT in seconds scaling with prompt length, roughly tripling from medium to long prompts. Top-right panel shows measured total end-to-end latency growing with both prompt and generation length. Bottom-left panel shows prefill throughput rising with prompt length from about 140 to about 1880 tokens per second. Bottom-right panel shows measured decode throughput staying within a narrow 22.7 to 23.7 tokens per second band across the five scenarios.</desc>
   <rect width="1440" height="1040" fill="#ffffff"/>
 
-  <text x="60" y="48" font-size="30" font-weight="700" fill="#111827">vLLM on DGX Spark: 5-scenario benchmark sweep</text>
+  <text x="60" y="48" font-size="30" font-weight="700" fill="#111827">vLLM on DGX Spark: 5-scenario single-Spark evaluation sweep</text>
   <text x="60" y="80" font-size="16" fill="#4b5563">Model: Nemotron-3-Super-120B-A12B-NVFP4 (NVFP4 weights), CUDA-graphs-enabled deployment</text>
 
   <g transform="translate(60,100)">
@@ -223,5 +223,5 @@
     <text x="360" y="40" font-size="13" fill="#111827">5. Long / long = long prompt, long gen (7234 / 124)</text>
   </g>
 
-  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: 5-scenario sweep on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4, current CUDA-graphs-enabled deployment path.</text>
+  <text x="60" y="1025" font-size="13" fill="#4b5563">Source: 5-scenario single-Spark eval on a local vLLM endpoint + Nemotron-3-Super-120B-A12B-NVFP4, current CUDA-graphs-enabled deployment path.</text>
 </svg>
