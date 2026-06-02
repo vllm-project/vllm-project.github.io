@@ -10,3 +10,38 @@
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
 </script>
 {% endif %}
+
+{% assign current_lang = page.lang | default: site.lang | default: "en" %}
+{% assign en_url = nil %}
+{% assign zh_url = nil %}
+
+{% if page.url == "/" or page.url == "/zh/" or page.translation_group == "home" %}
+  {% assign en_url = "/" | absolute_url %}
+  {% assign zh_url = "/zh/" | absolute_url %}
+{% elsif page.layout == "post" %}
+  {% if current_lang == "zh" %}
+    {% assign english_key = page.translation_key | default: page.slug %}
+    {% assign english_post = site.posts | where_exp: "post", "post.lang != 'zh'" | where: "slug", english_key | first %}
+    {% assign zh_url = page.url | absolute_url %}
+    {% if english_post %}
+      {% assign en_url = english_post.url | absolute_url %}
+    {% endif %}
+  {% else %}
+    {% assign translation_key = page.translation_key | default: page.slug %}
+    {% assign zh_post = site.posts | where: "lang", "zh" | where: "translation_key", translation_key | first %}
+    {% assign en_url = page.url | absolute_url %}
+    {% if zh_post %}
+      {% assign zh_url = zh_post.url | absolute_url %}
+    {% endif %}
+  {% endif %}
+{% endif %}
+
+{% if en_url %}
+<link rel="alternate" hreflang="en" href="{{ en_url }}">
+{% endif %}
+{% if zh_url %}
+<link rel="alternate" hreflang="zh" href="{{ zh_url }}">
+{% endif %}
+{% if en_url %}
+<link rel="alternate" hreflang="x-default" href="{{ en_url }}">
+{% endif %}

@@ -1,0 +1,77 @@
+---
+layout: base
+---
+
+{%- assign current_lang = page.lang | default: site.lang | default: "en" -%}
+{%- assign all_posts = site.posts | sort: "date" | reverse -%}
+{%- assign zh_posts = all_posts | where: "lang", "zh" -%}
+
+{%- if current_lang == "zh" -%}
+  {%- assign posts = zh_posts -%}
+{%- else -%}
+  {%- assign posts = all_posts | where_exp: "post", "post.lang != 'zh'" -%}
+{%- endif -%}
+
+<div class="home">
+  {%- if page.title -%}
+    <h1 class="page-heading">{{ page.title }}</h1>
+  {%- endif -%}
+
+  {{ content }}
+
+  {%- if posts.size > 0 -%}
+    {%- if page.list_title -%}
+      <h2 class="post-list-heading">{{ page.list_title }}</h2>
+    {%- endif -%}
+
+    <ul class="post-list">
+      {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+      {%- for post in posts -%}
+      <li>
+        <span class="post-meta">{{ post.date | date: date_format }}</span>
+        <h3>
+          <a class="post-link" href="{{ post.url | relative_url }}">
+            {{ post.title | escape }}
+          </a>
+        </h3>
+        {%- if site.minima.show_excerpts -%}
+          {{ post.excerpt }}
+        {%- endif -%}
+      </li>
+      {%- endfor -%}
+    </ul>
+  {%- elsif current_lang == "zh" -%}
+    <p>暂无中文文章。</p>
+  {%- endif -%}
+
+  {%- if page.show_translation_backlog -%}
+    <h2 class="post-list-heading">{{ page.translation_backlog_title | default: "待翻译文章" }}</h2>
+    {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+    {%- capture backlog_items -%}
+      {%- for post in all_posts -%}
+        {%- if post.lang != "zh" -%}
+          {%- assign translation_key = post.translation_key | default: post.slug -%}
+          {%- assign zh_post = zh_posts | where: "translation_key", translation_key | first -%}
+          {%- unless zh_post -%}
+      <li>
+        <span class="post-meta">{{ post.date | date: date_format }}</span>
+        <h3>
+          <a class="post-link" href="{{ post.url | relative_url }}">
+            {{ post.title | escape }}
+          </a>
+        </h3>
+      </li>
+          {%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if backlog_items != "" -%}
+    <ul class="post-list translation-backlog">
+      {{ backlog_items }}
+    </ul>
+    {%- else -%}
+      <p>当前所有英文文章都已有中文版本。</p>
+    {%- endif -%}
+  {%- endif -%}
+</div>
