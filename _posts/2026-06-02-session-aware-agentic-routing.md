@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Session-Aware Agentic Routing: Continuity-Aware Model Selection for Long-Horizon LLM Agents"
-author: "Xunzhuo Liu, Bowei He, Huamin Chen, Haichen Zhang (AMD), Any Luo (AMD), and the vLLM Semantic Router Team"
+author: "Xunzhuo Liu, Bowei He, Huamin Chen, Haichen Zhang (AMD), Andy Luo (AMD), and the vLLM Semantic Router Team"
 image: /assets/figures/2026-06-02-session-aware-agentic-routing/hero-v2.png
 social_image: /assets/figures/2026-06-02-session-aware-agentic-routing/hero-v2.png
 read_time_minutes: 14
