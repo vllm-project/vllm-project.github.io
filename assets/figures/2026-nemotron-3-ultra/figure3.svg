@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#ffffff"/>
+<text x="420" y="80" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" text-anchor="start" fill="#111" >Nemotron 3 Ultra Saves Up to 30%</text>
+<rect x="120" y="140" width="1360" height="630" rx="10" fill="#fff" stroke="#d8d8d8"/>
+<defs><linearGradient id="frontier" x1="0" x2="1"><stop offset="0" stop-color="#ddffb7"/><stop offset="1" stop-color="#ffffff"/></linearGradient></defs>
+<rect x="160" y="270" width="537.6" height="308.0" fill="url(#frontier)"/>
+<line x1="160" y1="599" x2="1440" y2="599" stroke="#e6d9b8" stroke-width="1"/>
+<text x="135" y="605" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="end" fill="#111" >20</text>
+<line x1="160" y1="467" x2="1440" y2="467" stroke="#e6d9b8" stroke-width="1"/>
+<text x="135" y="473" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="end" fill="#111" >40</text>
+<line x1="160" y1="335" x2="1440" y2="335" stroke="#e6d9b8" stroke-width="1"/>
+<text x="135" y="341" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="end" fill="#111" >60</text>
+<line x1="160" y1="203" x2="1440" y2="203" stroke="#e6d9b8" stroke-width="1"/>
+<text x="135" y="209" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="end" fill="#111" >80</text>
+<text x="320" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$250</text>
+<text x="480" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$500</text>
+<text x="640" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$750</text>
+<text x="800" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$1000</text>
+<text x="960" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$1250</text>
+<text x="1120" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$1500</text>
+<text x="1280" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$1750</text>
+<text x="1440" y="775" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#111" >$2000</text>
+<text x="152" y="165" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="start" fill="#111" >% Coding Tasks\nCompleted</text>
+<text x="800" y="816" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#111" >Cost to Task Completion</text>
+<text x="220" y="315" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start" fill="#76b900" >Cost Efficiency Frontier</text>
+<polyline points="460,586 544,460 659,355 787,269" fill="none" stroke="#76b900" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="460" cy="586" r="8" fill="#76b900"/>
+<circle cx="544" cy="460" r="8" fill="#76b900"/>
+<circle cx="659" cy="355" r="8" fill="#76b900"/>
+<circle cx="787" cy="269" r="8" fill="#76b900"/>
+<polyline points="608,579 800,447 992,335 1088,203" fill="none" stroke="#1f77ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="608" cy="579" r="8" fill="#1f77ff"/>
+<circle cx="800" cy="447" r="8" fill="#1f77ff"/>
+<circle cx="992" cy="335" r="8" fill="#1f77ff"/>
+<circle cx="1088" cy="203" r="8" fill="#1f77ff"/>
+<polyline points="704,579 876,447 1056,342 1248,243" fill="none" stroke="#4ca3ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="704" cy="579" r="8" fill="#4ca3ff"/>
+<circle cx="876" cy="447" r="8" fill="#4ca3ff"/>
+<circle cx="1056" cy="342" r="8" fill="#4ca3ff"/>
+<circle cx="1248" cy="243" r="8" fill="#4ca3ff"/>
+<polyline points="684,579 960,441 1216,335 1376,223" fill="none" stroke="#ff7a1a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="684" cy="579" r="8" fill="#ff7a1a"/>
+<circle cx="960" cy="441" r="8" fill="#ff7a1a"/>
+<circle cx="1216" cy="335" r="8" fill="#ff7a1a"/>
+<circle cx="1376" cy="223" r="8" fill="#ff7a1a"/>
+<text x="787" y="240" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="#111" >Nemotron 3 Ultra</text>
+<text x="1088" y="174" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="#111" >Kimi-K2.6</text>
+<text x="1248" y="213" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="#111" >GLM-5.1</text>
+<text x="1376" y="193" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="#111" >Qwen3.5</text>
+<text x="80" y="825" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" text-anchor="start" fill="#999" >SWE-bench Verified, Code&amp;Agents, DeepInfra</text>
+</svg>
