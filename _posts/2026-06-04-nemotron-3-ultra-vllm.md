@@ -75,6 +75,7 @@ docker run --rm -it --gpus all --ipc=host --network=host \
 The command below is configured for a 8x B200 setup. If your hardware differs, adjust the parallelism flags and related settings for your environment.
 
 ```bash
+export VLLM_USE_FLASHINFER_MOE_FP4=1
 export VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1
 
 vllm serve nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 \
@@ -88,7 +89,6 @@ vllm serve nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 \
   --max-model-len 262144 \
   --gpu-memory-utilization 0.90 \
   --max-num-batched-tokens 32768 \
-  --moe-backend flashinfer_trtllm \
   --enable-flashinfer-autotune \
   --async-scheduling \
   --speculative_config.method mtp \
