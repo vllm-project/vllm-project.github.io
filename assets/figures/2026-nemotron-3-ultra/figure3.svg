@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="926" height="621" viewBox="0 0 926 621">
+  <rect width="926" height="621" fill="#fff"/>
+  <text x="463" y="58" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" text-anchor="middle" fill="#0b0b0b">Nemotron 3 Ultra Saves Up to 30%</text>
+
+  <rect x="29" y="92" width="890" height="482" rx="6" fill="#fff" stroke="#dedede"/>
+
+  <defs>
+    <linearGradient id="frontier" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#dbffad"/>
+      <stop offset="0.52" stop-color="#eaffcf"/>
+      <stop offset="1" stop-color="#fff"/>
+    </linearGradient>
+  </defs>
+
+  <text x="82" y="131" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" text-anchor="middle" fill="#111">% Coding Tasks</text>
+  <text x="82" y="145" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" text-anchor="middle" fill="#111">Completed</text>
+
+  <rect x="138" y="175" width="351" height="263" fill="url(#frontier)"/>
+  <text x="140" y="199" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#76b900">Cost Efficiency Frontier</text>
+
+  <g stroke="#eadfca" stroke-width="1">
+    <line x1="129" y1="453" x2="827" y2="453"/>
+    <line x1="129" y1="380" x2="827" y2="380"/>
+    <line x1="129" y1="307" x2="827" y2="307"/>
+    <line x1="129" y1="234" x2="827" y2="234"/>
+    <line x1="129" y1="161" x2="827" y2="161"/>
+  </g>
+
+  <g font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#111">
+    <text x="113" y="164" text-anchor="end">80</text>
+    <text x="113" y="237" text-anchor="end">60</text>
+    <text x="113" y="310" text-anchor="end">40</text>
+    <text x="113" y="383" text-anchor="end">20</text>
+  </g>
+
+  <g font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#111">
+    <text x="216" y="473" text-anchor="middle">$250</text>
+    <text x="303" y="473" text-anchor="middle">$500</text>
+    <text x="391" y="473" text-anchor="middle">$750</text>
+    <text x="478" y="473" text-anchor="middle">$1,000</text>
+    <text x="565" y="473" text-anchor="middle">$1,250</text>
+    <text x="653" y="473" text-anchor="middle">$1,500</text>
+    <text x="740" y="473" text-anchor="middle">$1,750</text>
+    <text x="827" y="473" text-anchor="middle">$2,000</text>
+  </g>
+
+  <text x="478" y="498" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700" text-anchor="middle" fill="#111">Cost to Task Completion</text>
+  <text x="478" y="511" font-family="Arial, Helvetica, sans-serif" font-size="8" font-weight="700" text-anchor="middle" fill="#111">(US$)</text>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+    <polyline points="294,375 356,302 415,245 478,197" stroke="#7fbd35"/>
+    <polyline points="365,371 471,297 566,235 629,183" stroke="#087dff"/>
+    <polyline points="415,371 519,296 615,233 714,185" stroke="#3ea7ff"/>
+    <polyline points="415,372 566,295 699,232 794,179" stroke="#ff6717"/>
+  </g>
+
+  <g>
+    <circle cx="294" cy="375" r="4.5" fill="#7fbd35"/>
+    <circle cx="356" cy="302" r="4.5" fill="#7fbd35"/>
+    <circle cx="415" cy="245" r="4.5" fill="#7fbd35"/>
+    <circle cx="478" cy="197" r="4.5" fill="#7fbd35"/>
+
+    <circle cx="365" cy="371" r="4.5" fill="#087dff"/>
+    <circle cx="471" cy="297" r="4.5" fill="#087dff"/>
+    <circle cx="566" cy="235" r="4.5" fill="#087dff"/>
+    <circle cx="629" cy="183" r="4.5" fill="#087dff"/>
+
+    <circle cx="415" cy="371" r="4.5" fill="#3ea7ff"/>
+    <circle cx="519" cy="296" r="4.5" fill="#3ea7ff"/>
+    <circle cx="615" cy="233" r="4.5" fill="#3ea7ff"/>
+    <circle cx="714" cy="185" r="4.5" fill="#3ea7ff"/>
+
+    <circle cx="415" cy="372" r="4.5" fill="#ff6717"/>
+    <circle cx="566" cy="295" r="4.5" fill="#ff6717"/>
+    <circle cx="699" cy="232" r="4.5" fill="#ff6717"/>
+    <circle cx="794" cy="179" r="4.5" fill="#ff6717"/>
+  </g>
+
+  <g font-family="Arial, Helvetica, sans-serif" fill="#111">
+    <text x="478" y="161" font-size="14" font-weight="700" text-anchor="middle">Nemotron 3 Ultra</text>
+    <text x="478" y="176" font-size="12" font-weight="700" text-anchor="middle">(550B)</text>
+
+    <text x="629" y="161" font-size="13" font-weight="700" text-anchor="middle">Kimi-K2.6</text>
+    <text x="629" y="171" font-size="7" font-weight="700" text-anchor="middle">(1T)</text>
+
+    <text x="714" y="161" font-size="13" font-weight="700" text-anchor="middle">GLM-5.1</text>
+    <text x="714" y="171" font-size="7" font-weight="700" text-anchor="middle">(744B)</text>
+
+    <text x="814" y="160" font-size="12" font-weight="700" text-anchor="middle">Qwen3.5</text>
+    <text x="814" y="170" font-size="7" font-weight="700" text-anchor="middle">(397B)</text>
+  </g>
+
+  <text x="63" y="551" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#9b9b9b">SWE-bench Verified, CoreWeave, DeepInfra</text>
+</svg>
