@@ -15,7 +15,7 @@ tags:
 </picture>
 </p>
 
-We're excited to announce, with Red Hat and [Andrew Ng](https://en.wikipedia.org/wiki/Andrew_Ng)'s [DeepLearning.AI](https://www.deeplearning.ai/), a hands-on course that walks through LLM fundamentals and the full _optimize, deploy, and benchmark_ AI deployment lifecycle using vLLM and it's ecosystem of tools. It's called [Fast & Efficient LLM Inference with vLLM](https://www.deeplearning.ai/short-courses/fast-efficient-llm-inference-with-vllm/), and it's available now!
+We're excited to announce, with Red Hat and [Andrew Ng](https://en.wikipedia.org/wiki/Andrew_Ng)'s [DeepLearning.AI](https://www.deeplearning.ai/), a hands-on course that walks through LLM fundamentals and the full _optimize, deploy, and benchmark_ AI deployment lifecycle using vLLM and it's ecosystem of tools. It's called [Fast & Efficient LLM Inference with vLLM](https://www.deeplearning.ai/courses/fast-and-efficient-llm-inference-with-vllm), and it's available now!
 
 > "Deploying open-source LLMs efficiently, for many users, with low latency and reasonable cost, is challenging. This course shows you how." — Andrew Ng
 
