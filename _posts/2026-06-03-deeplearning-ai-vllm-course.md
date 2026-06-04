@@ -64,7 +64,7 @@ You take a full-precision Qwen model and quantize it using [LLM Compressor](http
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-06-03-deeplearning-ai-course/quantization-schemes.png" width="80%">
+<img src="/assets/figures/2026-06-03-deeplearning-ai-course/quantization-lab.png" width="80%">
 </picture><br>
 <em>Quantizing a Qwen model with LLM Compressor in the course lab.</em>
 </p>
