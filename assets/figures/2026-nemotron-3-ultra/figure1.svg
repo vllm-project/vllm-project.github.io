@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920">
+<rect width="1600" height="920" rx="18" fill="#ffffff"/>
+<rect x="370" y="42" width="285" height="831" rx="15" fill="#edffd5" stroke="#76b900" stroke-width="5"/>
+<text x="392" y="84" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="start" fill="#111" >Nemotron 3 Ultra</text>
+<text x="392" y="120" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#333" >(550B)</text>
+<text x="677" y="84" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="start" fill="#111" >GLM 5.1</text>
+<text x="677" y="120" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#333" >(744B)</text>
+<text x="962" y="84" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="start" fill="#111" >Kimi K2.6</text>
+<text x="962" y="120" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#333" >(1T)</text>
+<text x="1247" y="84" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="start" fill="#111" >Qwen3.5</text>
+<text x="1247" y="120" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#333" >(397B)</text>
+<line x1="40" x2="1510" y1="138" y2="138" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="243" y2="243" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="348" y2="348" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="453" y2="453" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="558" y2="558" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="663" y2="663" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="768" y2="768" stroke="#b9b9b9" stroke-width="2"/>
+<line x1="40" x2="1510" y1="873" y2="873" stroke="#b9b9b9" stroke-width="2"/>
+<text x="40" y="180" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Agent Productivity</text>
+<text x="40" y="211" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >PinchBench</text>
+<text x="392" y="201" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >91%</text>
+<text x="677" y="201" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >84%</text>
+<text x="962" y="201" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >91%</text>
+<text x="1247" y="201" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >89%</text>
+<text x="40" y="285" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Long-Horizon Planning</text>
+<text x="40" y="316" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >EnterpriseOps-Gym</text>
+<text x="392" y="306" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >33%</text>
+<text x="677" y="306" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >40%</text>
+<text x="962" y="306" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >29%</text>
+<text x="1247" y="306" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >30%</text>
+<text x="40" y="390" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Coding</text>
+<text x="40" y="421" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >Terminal-Bench 2.0</text>
+<text x="392" y="411" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >54%</text>
+<text x="677" y="411" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >64%</text>
+<text x="962" y="411" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >67%</text>
+<text x="1247" y="411" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >53%</text>
+<text x="40" y="495" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Instruction Following</text>
+<text x="40" y="526" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >IFBench</text>
+<text x="392" y="516" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >82%</text>
+<text x="677" y="516" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >77%</text>
+<text x="962" y="516" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >74%</text>
+<text x="1247" y="516" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >78%</text>
+<text x="40" y="600" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Knowledge Work</text>
+<text x="40" y="631" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >GDPVal-AA</text>
+<text x="392" y="621" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >1,448</text>
+<text x="677" y="621" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >1,594</text>
+<text x="962" y="621" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >1,508</text>
+<text x="1247" y="621" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >1,192</text>
+<text x="40" y="705" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Professional Work Tasks</text>
+<text x="40" y="736" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >ProfBench (Search)</text>
+<text x="392" y="726" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >56%</text>
+<text x="677" y="726" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >46%</text>
+<text x="962" y="726" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="800" text-anchor="start" fill="#111" >56%</text>
+<text x="1247" y="726" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >53%</text>
+<text x="40" y="810" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="500" text-anchor="start" fill="#111" >Long Context</text>
+<text x="40" y="841" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#555" >Ruler @1M</text>
+<text x="392" y="831" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >95%</text>
+<text x="677" y="831" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#111" >N/A (max 256K)</text>
+<text x="962" y="831" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#111" >N/A (max 256K)</text>
+<text x="1247" y="831" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400" text-anchor="start" fill="#111" >90%</text>
+</svg>
