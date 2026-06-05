@@ -93,7 +93,7 @@ You simulate realistic traffic patterns with [GuideLLM](https://github.com/vllm-
 
 ## Course Details
 
-- **Course**: [Fast & Efficient LLM Inference with vLLM](https://www.deeplearning.ai/short-courses/fast-efficient-llm-inference-with-vllm/)
+- **Course**: [Fast & Efficient LLM Inference with vLLM](https://www.deeplearning.ai/short-courses/fast-and-efficient-llm-inference-with-vllm/)
 - **Instructor**: [Cedric Clyburn](https://www.linkedin.com/in/cedricclyburn), Senior Developer Advocate at Red Hat
 - **Duration**: ~1.5 hours, 9 video lessons, 3 hands-on code labs
 - **Level**: Intermediate (assumes familiarity with Python and basic LLM concepts)
