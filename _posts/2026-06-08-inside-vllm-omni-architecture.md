@@ -104,6 +104,6 @@ I was running this on a single B200, which is 192GB of HBM3e at 8 TB/s on the Bl
 
 Some resources are linked below if you want to try it out yourself.
 
-**Docker Hub**: [https://hub.docker.com/repository/docker/jitigges/vllm-omni-demo/general](https://hub.docker.com/repository/docker/jitigges/vllm-omni-demo/general)
+**Docker Hub**: [hub.docker.com/r/jitigges/vllm-omni-demo](https://hub.docker.com/r/jitigges/vllm-omni-demo) — pull with `docker pull jitigges/vllm-omni-demo`
 
 **vLLM-Omni docs**: [https://docs.vllm.ai/projects/vllm-omni/en/latest/](https://docs.vllm.ai/projects/vllm-omni/en/latest/)
