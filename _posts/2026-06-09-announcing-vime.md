@@ -23,7 +23,7 @@ vime's mission is to connect slime's training design with vLLM's inference stren
 
 ## Positioning
 
-The vLLM community supports a broad set of LLM post-training frameworks, including [NeMo RL](https://github.com/NVIDIA-NeMo/RL), [OpenRLHF](https://github.com/openrlhf/openrlhf), [verl](https://github.com/verl-project/verl), and others. We built vime to seamlessly bring slime's proven training paradigm into the vLLM ecosystem, offering a production-ready bridge that aligns both projects' rapid release cycles.
+The vLLM community supports a broad set of LLM post-training frameworks, including (in alphabetical order) [NeMo RL](https://github.com/NVIDIA-NeMo/RL), [OpenRLHF](https://github.com/openrlhf/openrlhf), [verl](https://github.com/verl-project/verl), and others. We built vime to seamlessly bring slime's proven training paradigm into the vLLM ecosystem, offering a production-ready bridge that aligns both projects' rapid release cycles.
 
 vime is not meant to be a competitor to these frameworks. Instead, we hope it can coexist with them and provide more options for users. The vLLM community will continue to support vLLM integrations across the broader post-training ecosystem.
 
