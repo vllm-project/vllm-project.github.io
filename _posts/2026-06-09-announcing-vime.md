@@ -13,7 +13,7 @@ tags:
 
 We are excited to introduce [**vime**](https://github.com/vllm-project/vime), an LLM post-training framework within the vLLM ecosystem. Built on slime's training stack and data-generation design, vime connects Megatron and vLLM into a single RL pipeline so distributed training and inference can run reliably under one unified architecture.
 
-slime has proven itself as a strong engineering paradigm for RL post-training: open, lightweight, and efficient. vime brings the vLLM ecosystem to slime, pairing slime's training stack with vLLM's inference strengths into a simple, stable, and efficient main pipeline—delivering stable train-inference alignment, flexible deployment modes, and full-stack GPU support. For example, on Qwen3-30B-A3B with 8-GPU colocate and dapo-math-17k, GB200 end-to-end step speed is about **1.72x** that of H200.
+slime has proven itself as a strong engineering paradigm for RL post-training: open, lightweight, and efficient. vime brings the vLLM ecosystem to slime, pairing slime's training stack with vLLM's inference strengths into a simple, stable, and efficient main pipeline—delivering stable train-inference alignment, flexible deployment modes, and full-stack GPU support.
 
 ## Our Vision
 
