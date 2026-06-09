@@ -13,19 +13,19 @@ tags:
 
 We are excited to introduce [**vime**](https://github.com/vllm-project/vime), an LLM post-training framework within the vLLM ecosystem. Built on slime's training stack and data-generation design, vime connects Megatron and vLLM into a single RL pipeline so distributed training and inference can run reliably under one unified architecture.
 
-Since slime proved out its engineering paradigm, the community has needed more than just "it trains." It needs stable train-inference alignment, flexible deployment modes, and the ability to scale alongside vLLM and the broader hardware ecosystem. vime is built for exactly this: rather than rewriting the RL framework, it builds a simple, stable, and efficient main pipeline between slime and vLLM. Today, vime offers full-stack GPU support; on typical workloads such as Qwen3-30B-A3B with 8-GPU colocate and dapo-math-17k, GB200 end-to-end step speed is about **1.72x** that of H200.
+slime has proven itself as a strong engineering paradigm for RL post-training: open, lightweight, and efficient. vime brings the vLLM ecosystem to slime, pairing slime's training stack with vLLM's inference strengths into a simple, stable, and efficient main pipeline—delivering stable train-inference alignment, flexible deployment modes, and full-stack GPU support.
 
 ## Our Vision
 
-RL frameworks with both battle-tested credibility and open-source DNA have always been rare. [slime](https://github.com/THUDM/slime), validated on models like GLM, stands out as a representative: open, lightweight, concise, and efficient. Yet it does not natively support the vLLM backend or multi-hardware expansion. vLLM, meanwhile, is the most active inference engine in the community, combining cutting-edge techniques with a multi-platform ecosystem and rapid iteration.
+RL frameworks with both battle-tested credibility and open-source DNA have always been rare. [slime](https://github.com/THUDM/slime), validated on models like GLM, stands out as a representative: open, lightweight, concise, and efficient. Yet it does not natively integrate with the vLLM backend. vLLM, meanwhile, is the most active inference engine in the community, combining cutting-edge techniques with a multi-platform ecosystem and rapid iteration.
 
 vime's mission is to connect slime's training design with vLLM's inference strengths into one simple, stable, and efficient pipeline. Developers should not have to trade off between a single hardware stack, training stability, and inference performance.
 
 ## Positioning
 
-The vLLM community supports a broad set of LLM post-training frameworks, including [NeMo RL](https://github.com/NVIDIA-NeMo/RL), [OpenRLHF](https://github.com/openrlhf/openrlhf), [verl](https://github.com/verl-project/verl), and others. We built vime because some post-training users like slime, but the slime maintainers do not have the bandwidth to maintain the vLLM integration.
+The vLLM community supports a broad set of LLM post-training frameworks, including (in alphabetical order) [NeMo RL](https://github.com/NVIDIA-NeMo/RL), [OpenRLHF](https://github.com/openrlhf/openrlhf), [verl](https://github.com/verl-project/verl), and others. We built vime to seamlessly bring slime's proven training paradigm into the vLLM ecosystem, offering a production-ready bridge that aligns both projects' rapid release cycles.
 
-vime is not meant to be a competitor to these frameworks. Instead, we hope it can coexist with them and provide more options for users. The vLLM community will continue to support vLLM integrations across the broader post-training ecosystem. We do not expect heavy new post-training features to be added directly to vime, but bug fixes and performance optimizations are welcome.
+We hope that users with different needs can find the right vLLM-ecosystem choice for their workflows. The vLLM community will continue to support vLLM integrations across the broader post-training ecosystem.
 
 ## Architecture Overview
 
