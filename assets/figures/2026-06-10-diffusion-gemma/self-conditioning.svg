@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="480" viewBox="0 80 780 480" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9333EA"/>
+    </marker>
+    <style>
+      .title{font-size:24px;font-weight:700;fill:#0f172a}
+      .hdr  {font-size:15px;font-weight:700}
+      .sub  {font-size:12px}
+      .lbl  {font-size:12px;font-weight:600}
+      .mono {font-family:'SF Mono',Menlo,Consolas,monospace}
+      .edge {stroke:#475569;stroke-width:2;fill:none}
+    </style>
+  </defs>
+
+  <!-- inputs row -->
+  <rect x="110" y="100" width="220" height="58" rx="11" fill="#F3E8FF" stroke="#9333EA" stroke-width="2"/>
+  <text x="220" y="126" text-anchor="middle" class="hdr" fill="#6b21a8">prev-step probs</text>
+  <text x="220" y="144" text-anchor="middle" class="sub mono" fill="#7e22ce">[CL, vocab]</text>
+
+  <rect x="450" y="100" width="220" height="58" rx="11" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+  <text x="560" y="126" text-anchor="middle" class="hdr" fill="#1E3A8A">canvas embeds</text>
+  <text x="560" y="144" text-anchor="middle" class="sub mono" fill="#1d4ed8">[CL, hidden]</text>
+
+  <!-- converge arrows into MLP -->
+  <path d="M260,158 L330,250" fill="none" stroke="#9333EA" stroke-width="2" marker-end="url(#ap)"/>
+  <text x="250" y="210" text-anchor="end" class="sub" fill="#7e22ce">soft embed</text>
+  <text x="250" y="226" text-anchor="end" class="sub mono" fill="#9333EA">probs·W·norm</text>
+
+  <path d="M520,158 L450,250" fill="none" stroke="#3B82F6" stroke-width="2" marker-end="url(#a)"/>
+  <text x="530" y="214" class="sub" fill="#1d4ed8">residual base</text>
+
+  <!-- MLP -->
+  <rect x="250" y="252" width="280" height="62" rx="12" fill="#FAF5FF" stroke="#9333EA" stroke-width="2"/>
+  <text x="390" y="278" text-anchor="middle" class="hdr" fill="#6b21a8">self-conditioning MLP</text>
+  <text x="390" y="298" text-anchor="middle" class="sub" fill="#7e22ce">gated residual added onto embeds</text>
+
+  <!-- to backbone -->
+  <path class="edge" d="M390,314 V374" marker-end="url(#a)"/>
+
+  <rect x="250" y="376" width="280" height="58" rx="12" fill="#E0F2FE" stroke="#0EA5E9" stroke-width="2"/>
+  <text x="390" y="402" text-anchor="middle" class="hdr" fill="#075985">Gemma backbone</text>
+  <text x="390" y="420" text-anchor="middle" class="sub" fill="#0369a1">decoder mode · bidirectional → next logits</text>
+
+  <!-- feedback loop -->
+  <path d="M250,405 H70 V129 H110" fill="none" stroke="#9333EA" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#ap)"/>
+  <text x="80" y="270" class="lbl" fill="#9333EA">feedback</text>
+  <text x="80" y="286" class="sub" fill="#9333EA">softmax →</text>
+  <text x="80" y="301" class="sub" fill="#9333EA">next step</text>
+
+  <!-- decoder-only note -->
+  <text x="390" y="488" text-anchor="middle" class="sub" fill="#64748b">Decoder steps only — on encoder / commit the probs are zeroed, so the residual is 0.</text>
+</svg>

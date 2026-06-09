@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1452" height="244" viewBox="8 80 1452 244" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94A3B8"/>
+    </marker>
+    <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#B79A6B"/>
+    </marker>
+    <style>
+      .hdr {font-size:14px;font-weight:700}
+      .sub {font-size:11px}
+      .lbl {font-size:12px;font-weight:600}
+      .mini{font-size:9.5px}
+      .mono{font-family:'SF Mono',Menlo,Consolas,monospace}
+      .elbl{font-size:15px;font-weight:700}
+      .edge{stroke:#475569;stroke-width:2;fill:none}
+    </style>
+  </defs>
+
+  <!-- denoising loop container -->
+  <rect x="496" y="150" width="500" height="172" rx="14" fill="#F8FAFC" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="508" y="172" class="lbl" fill="#2563EB">denoising loop</text>
+
+  <!-- prompt -->
+  <rect x="22" y="186" width="92" height="48" rx="24" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="68" y="215" text-anchor="middle" class="lbl" fill="#334155">prompt</text>
+
+  <!-- ENCODER prefill -->
+  <rect x="136" y="175" width="176" height="70" rx="11" fill="#FDEBD0" stroke="#E8973A" stroke-width="2"/>
+  <text x="224" y="196" text-anchor="middle" class="hdr" fill="#7A4A12">ENCODER · prefill</text>
+  <text x="224" y="214" text-anchor="middle" class="sub" fill="#92602a">causal attention</text>
+  <text x="224" y="230" text-anchor="middle" class="sub" fill="#92602a">writes prompt KV</text>
+
+  <!-- canvas -->
+  <rect x="334" y="183" width="156" height="54" rx="11" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="412" y="206" text-anchor="middle" class="sub" fill="#334155">init canvas</text>
+  <text x="412" y="223" text-anchor="middle" class="sub mono" fill="#334155">random(256)</text>
+
+  <!-- DECODER denoise -->
+  <rect x="512" y="175" width="176" height="70" rx="11" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2"/>
+  <text x="600" y="196" text-anchor="middle" class="hdr" fill="#1E3A8A">DECODER · denoise</text>
+  <text x="600" y="214" text-anchor="middle" class="sub" fill="#1d4ed8">bidirectional attention</text>
+  <text x="600" y="230" text-anchor="middle" class="sub" fill="#1d4ed8">reads KV · +self-cond</text>
+
+  <!-- SAMPLE -->
+  <rect x="722" y="175" width="96" height="70" rx="11" fill="#CCFBF1" stroke="#14B8A6" stroke-width="2"/>
+  <text x="770" y="215" text-anchor="middle" class="hdr" fill="#115E59">SAMPLE</text>
+
+  <!-- converged diamond -->
+  <polygon points="916,176 980,210 916,244 852,210" fill="#FEF9C3" stroke="#CA8A04" stroke-width="2"/>
+  <text x="916" y="214" text-anchor="middle" class="lbl" fill="#713F12">converged?</text>
+
+  <!-- ENCODER commit -->
+  <rect x="1002" y="175" width="176" height="70" rx="11" fill="#FDEBD0" stroke="#E8973A" stroke-width="2"/>
+  <text x="1090" y="196" text-anchor="middle" class="hdr" fill="#7A4A12">ENCODER · commit</text>
+  <text x="1090" y="214" text-anchor="middle" class="sub" fill="#92602a">causal attention</text>
+  <text x="1090" y="230" text-anchor="middle" class="sub" fill="#92602a">writes canvas KV · emits 256</text>
+
+  <!-- EOS diamond -->
+  <polygon points="1266,174 1332,210 1266,246 1200,210" fill="#FEF9C3" stroke="#CA8A04" stroke-width="2"/>
+  <text x="1266" y="207" text-anchor="middle" class="lbl" fill="#713F12">EOS?</text>
+  <text x="1266" y="221" text-anchor="middle" class="mini" fill="#92660c">or max len</text>
+
+  <!-- forward connectors -->
+  <path class="edge" d="M114,210 H134" marker-end="url(#arr)"/>
+  <path class="edge" d="M312,210 H332" marker-end="url(#arr)"/>
+  <path class="edge" d="M490,210 H510" marker-end="url(#arr)"/>
+  <path class="edge" d="M688,210 H720" marker-end="url(#arr)"/>
+  <path class="edge" d="M818,210 H850" marker-end="url(#arr)"/>
+  <path class="edge" d="M980,210 H1000" marker-end="url(#arr)"/>
+  <text x="990" y="200" text-anchor="middle" class="elbl" fill="#6B9E83">yes</text>
+  <path class="edge" d="M1178,210 H1198" marker-end="url(#arr)"/>
+
+  <!-- renoise loop (converged? no → decoder), below the row -->
+  <path d="M916,244 V298 H600 V247" fill="none" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrB)"/>
+  <text x="758" y="288" text-anchor="middle" class="elbl" fill="#64748B">no, renoise</text>
+
+  <!-- next-block loop (EOS no → canvas), above the row -->
+  <path d="M1266,174 V104 H412 V180" fill="none" stroke="#B79A6B" stroke-width="2" marker-end="url(#arrO)"/>
+  <text x="839" y="94" text-anchor="middle" class="elbl" fill="#B79A6B">no, next block</text>
+
+  <!-- EOS yes → done -->
+  <path class="edge" d="M1332,210 H1352" marker-end="url(#arr)"/>
+  <text x="1342" y="200" text-anchor="middle" class="elbl" fill="#6B9E83">yes</text>
+  <rect x="1354" y="186" width="96" height="48" rx="24" fill="#1e293b"/>
+  <text x="1402" y="215" text-anchor="middle" class="lbl" fill="#fff">done</text>
+</svg>
