@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "DiffusionGemma in vLLM: First Diffusion LLM Natively Supported in vLLM"
+title: "DiffusionGemma: The First Diffusion LLM (dLLM) Natively Supported in vLLM"
 author: "The vLLM Team and Google Deepmind"
-image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.png
+image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg
 summary: "DiffusionGemma is the first diffusion language model (dLLM) supported in vLLM. We integrated it using model runner v2's ModelState abstraction and reused vLLM's speculative decoding to cleanly demonstrate the flexibility of model runner v2 and how future dLLMs may be supported."
 read_time_minutes: 6
 tags:
@@ -91,25 +91,25 @@ During denoise the sampler reports `num_sampled = 0` and `num_rejected = query_l
 
 ### Dynamic Per-sequence Causal Attention
 
-As described in above, DiffusionGemma operates in two modes: an \*\*encoder\*\* mode that uses causal attention and a \*\*decoder\*\* mode that uses bidirectional attention. Until now, causality was a single batch-wide property – every request in a forward pass shared the same mask type. Typical decoder models use only causal attention, whereas encoder-decoder models such as Whisper use only bidirectional attention in their encoder layers. For DiffusionGemma, however, requests alternate between these modes as the prompt is prefilled and then canvases are iteratively denoised and accepted. To minimize latency, vLLM mixes requests at different stages in the batch during each forward pass. Therefore, we have implemented \*\*dynamic per-sequence causal attention\*\*, which adapts the attention mask to each request’s causality. This situation is depicted in \<FIGURE\>: here, we show a batch with three requests, each at a different stage.
+As described above, DiffusionGemma operates in two modes: an **encoder** mode that uses causal attention and a **decoder** mode that uses bidirectional attention. Until now, causality was a single batch-wide property – every request in a forward pass shared the same mask type. Typical decoder models use only causal attention, whereas encoder-decoder models such as Whisper use only bidirectional attention in their encoder layers. For DiffusionGemma, however, requests alternate between these modes as the prompt is prefilled and then canvases are iteratively denoised and accepted. To minimize latency, vLLM mixes requests at different stages in the batch during each forward pass. Therefore, we have implemented **dynamic per-sequence causal attention**, which adapts the attention mask to each request’s causality. This situation is depicted below: here, we show a batch with three requests, each at a different stage.
 
-\- Request 0 is a prefill of length 6, so it uses causal attention (“encoder” pass), where entries above the diagonal are masked off – each query token only attends to keys from tokens up to and including itself. We also note that attention is computed in tiles (shaped 2x2 in this example, though these are much larger and have hardware-dependent tuning in practice), and tiles containing only masked entries are skipped entirely, saving both compute and the memory bandwidth of loading their K/V tiles from HBM.  
-\- Request 1 has already completed its prefill of length 6, and is now generating new tokens in a decoder mode. Within the canvas of size 4, all queries attend to all keys in the canvas using bidirectional attention. They also attend to all keys in the context. No entries are masked off and no blocks are skipped.  
-\- Finally, request 2 has completed its denoising steps, and its canvas is ready to be accepted. We run the encoder pass one last time, using causal attention and filling the KV cache with the entries from the newly accepted tokens. Again, all queries also attend to the cached keys.
+- Request 0 is a prefill of length 6, so it uses causal attention (“encoder” pass), where entries above the diagonal are masked off – each query token only attends to keys from tokens up to and including itself. We also note that attention is computed in tiles (shaped 2x2 in this example, though these are much larger and have hardware-dependent tuning in practice), and tiles containing only masked entries are skipped entirely, saving both compute and the memory bandwidth of loading their K/V tiles from HBM.  
+- Request 1 has already completed its prefill of length 6, and is now generating new tokens in a decoder mode. Within the canvas of size 4, all queries attend to all keys in the canvas using bidirectional attention. They also attend to all keys in the context. No entries are masked off and no blocks are skipped.  
+- Finally, request 2 has completed its denoising steps, and its canvas is ready to be accepted. We run the encoder pass one last time, using causal attention and filling the KV cache with the entries from the newly accepted tokens. Again, all queries also attend to the cached keys.
 
 ![Dynamic per-sequence causal attention](/assets/figures/2026-06-10-diffusion-gemma/per_seq_causal_attention.svg)
 
-We support this dynamic causal attention in two attention backends: Triton Attention (\`TRITON\_ATTN\`) and FlashAttention 4 (\`FLASH\_ATTN\`). In both of these backends, the single boolean argument \`causal\` is replaced by a tensor indicating the causality of each request. The mask is updated appropriately, and the tiling behavior is preserved.
+We support this dynamic causal attention in two attention backends: Triton Attention (`TRITON_ATTN`) and FlashAttention 4 (`FLASH_ATTN`). In both of these backends, the single boolean argument `causal` is replaced by a tensor indicating the causality of each request. The mask is updated appropriately, and the tiling behavior is preserved.
 
 ### Sliding window attention
 
-Finally, some layers of DiffusionGemma use sliding window attention. For tokens in the canvas, sliding window attention must also become symmetric: for a window size \`W\`, instead of attending only to itself and the \`W\` tokens before it, a canvas token also attends to the \`W\` tokens after it, for a total window size of \`2\*W \+ 1\`. We depict this in \<FIGURE\>:
+Finally, some layers of DiffusionGemma use sliding window attention. For tokens in the canvas, sliding window attention must also become symmetric: for a window size `W`, instead of attending only to itself and the `W` tokens before it, a canvas token also attends to the `W` tokens after it, for a total window size of `2*W + 1`. We depict this below:
 
 ![Per-sequence sliding window attention](/assets/figures/2026-06-10-diffusion-gemma/per_seq_sliding_window.svg)
 
-As before, we show the same three requests, now on a sliding-window layer with \`W=2\`. The same three requests on a sliding-window layer with \`W=2\` are shown above. Requests 0 and 2 (prefill and acceptance) keep the one-sided causal window — each query attends to itself and the \`W\` keys before it, narrowing attention to a band along the diagonal — while the denoising canvas of Request 1 uses the symmetric window, attending to the \`W\` keys on either side and thus only to the context tokens that fall within it.
+As before, the same three requests are shown on a sliding-window layer with `W=2`. Requests 0 and 2 (prefill and acceptance) keep the one-sided causal window — each query attends to itself and the `W` keys before it, narrowing attention to a band along the diagonal — while the denoising canvas of Request 1 uses the symmetric window, attending to the `W` keys on either side and thus only to the context tokens that fall within it.
 
-Supporting this in both backends required only modifying the window's right-hand bound for bidirectional requests: a causal request keeps a left-only window, while a bidirectional request uses a symmetric window of \`W\` on each side.
+Supporting this in both backends required only modifying the window's right-hand bound for bidirectional requests: a causal request keeps a left-only window, while a bidirectional request uses a symmetric window of `W` on each side.
 
 ## Quantized Checkpoint Support
 
@@ -126,74 +126,70 @@ To validate the accuracy of the models, preliminary evaluations were performed b
 
 ### Low-Latency Performance
 
-DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in \`vllm bench serve\`. For consistency in the benchmark, we employ a fixed count of 16 denoising steps for each canvas, with no confidence-based committing (\`confidence\_threshold=0.0\`). This number was selected because it is representative of typical workloads from popular evaluation datasets in our experimentation. We also disable prefix caching, though cache hits are negligible for random data. At FP8 quantization, we observe that vLLM achieves \*\*over 1700 tokens per second\*\* of output token generation in this configuration. Our complete benchmarking command is:
+DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in `vllm bench serve`. For consistency in the benchmark, we employ a fixed count of 16 denoising steps for each canvas, with no confidence-based committing (`confidence_threshold=0.0`). This number was selected because it is representative of typical workloads from popular evaluation datasets in our experimentation. We also disable prefix caching, though cache hits are negligible for random data. At FP8 quantization, we observe that vLLM achieves **over 1700 tokens per second** of output token generation in this configuration. Our complete benchmarking command is:
 
 (UPDATE MODEL NAME)
 
-\`\`\`
+```bash
+vllm serve gg-hf-st/test-checkpoint-26B-RC1 \
+  --max-num-seqs 4 \
+  --max_model_len 8192 \
+  --diffusion-config '{"canvas_length": 256, "max_denoising_steps": 16}' \
+  --hf_overrides '{"diffusion_sampler": "entropy_bound", "diffusion_entropy_bound": 0.1, "diffusion_confidence_threshold": 0.0}' \
+  --trust-remote-code \
+  --quantization "fp8" \
+  --no-enable-prefix-caching \
+  --attention-backend FLASH_ATTN
+```
 
-vllm serve gg-hf-st/test-checkpoint-26B-RC1   
-\--max-num-seqs 4   
-\--max\_model\_len 8192   
-\--diffusion-config '{"canvas\_length": 256, "max\_denoising\_steps": 16}'   
-\--hf\_overrides '{"diffusion\_sampler": "entropy\_bound", "diffusion\_entropy\_bound": 0.1, "diffusion\_confidence\_threshold": 0.0}'   
-\--trust-remote-code   
-\--quantization "fp8"   
-\--no-enable-prefix-caching   
-\--attention-backend FLASH\_ATTN
+```bash
+vllm bench serve \
+  --backend vllm \
+  --base-url http://localhost:8000 \
+  --model "gg-hf-st/test-checkpoint-26B-RC1" \
+  --dataset-name random \
+  --random-input-len 4096 \
+  --random-output-len 512 \
+  --ignore-eos \
+  --num-prompts 500 \
+  --max-concurrency 1
+```
 
-\`\`\`
+Since our output length is 512 and our canvas size is 256, the model will output 2 canvases for each request. The ITL measures the time between the completion of the first and second canvas. Our benchmark yields:
 
-\`\`\`  
-vllm bench serve \\  
-  \--backend vllm \\  
-  \--base-url http://localhost:8000 \\  
-  \--model "gg-hf-st/test-checkpoint-26B-RC1" \\  
-  \--dataset-name random \\  
-  \--random-input-len 4096 \\  
-  \--random-output-len 512 \\  
-  \--ignore-eos \\  
-  \--num-prompts 500 \\  
-  \--max-concurrency 1
+```
+============ Serving Benchmark Result ============
+Successful requests:                     500
+Failed requests:                         0
+Maximum request concurrency:             1
+Benchmark duration (s):                  285.92
+Total input tokens:                      2048000
+Total generated tokens:                  256000
+Request throughput (req/s):              1.75
+Output token throughput (tok/s):         895.36
+Peak output token throughput (tok/s):    5.00
+Peak concurrent requests:                3.00
+Total token throughput (tok/s):          8058.25
+---------------Time to First Token----------------
+Mean TTFT (ms):                          425.87
+Median TTFT (ms):                        321.66
+P99 TTFT (ms):                           603.35
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          0.29
+Median TPOT (ms):                        0.40
+P99 TPOT (ms):                           0.59
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           145.74
+Median ITL (ms):                         203.88
+P99 ITL (ms):                            299.14
+----------------Diffusion Decoding----------------
+Committed throughput (tok/s):            895.36
+Denoising steps per canvas:              15.98
+Committed per denoising step:            16.02
+Committed tokens:                        256000
+Denoising steps:                         15978
+Canvas positions evaluated:              4346368
+==================================================
+```
 
-\`\`\`
-
-Since our output length is 512 and our canvas size is 256, the model will output 2 canvases for each request. The ITL measures the time between the completion of the first and second canvas. Our benchmark yields:  
-\`\`\`  
-`============ Serving Benchmark Result ============`  
-`Successful requests:                     500`  
-`Failed requests:                         0`  
-`Maximum request concurrency:             1`  
-`Benchmark duration (s):                  285.92`  
-`Total input tokens:                      2048000`  
-`Total generated tokens:                  256000`  
-`Request throughput (req/s):              1.75`  
-`Output token throughput (tok/s):         895.36`  
-`Peak output token throughput (tok/s):    5.00`  
-`Peak concurrent requests:                3.00`  
-`Total token throughput (tok/s):          8058.25`  
-`---------------Time to First Token----------------`  
-`Mean TTFT (ms):                          425.87`  
-`Median TTFT (ms):                        321.66`  
-`P99 TTFT (ms):                           603.35`  
-`-----Time per Output Token (excl. 1st token)------`  
-`Mean TPOT (ms):                          0.29`  
-`Median TPOT (ms):                        0.40`  
-`P99 TPOT (ms):                           0.59`  
-`---------------Inter-token Latency----------------`  
-`Mean ITL (ms):                           145.74`  
-`Median ITL (ms):                         203.88`  
-`P99 ITL (ms):                            299.14`  
-`----------------Diffusion Decoding----------------`  
-`Committed throughput (tok/s):            895.36`  
-`Denoising steps per canvas:              15.98`  
-`Committed per denoising step:            16.02`  
-`Committed tokens:                        256000`  
-`Denoising steps:                         15978`  
-`Canvas positions evaluated:              4346368`
-
-`==================================================`
-
-\`\`\`
-
-With each 256-token canvas being generated in an average of 145.74ms, this yields a decode speed of \*\*1756.55 tok/s\*\*.
+With each 256-token canvas being generated in an average of 145.74ms, this yields a decode speed of **1756.55 tok/s**.

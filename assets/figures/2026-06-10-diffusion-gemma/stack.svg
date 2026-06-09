@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="556" height="500" viewBox="162 46 556 500" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="606" height="550" viewBox="137 21 606 550" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<rect id="cream-bg" x="137" y="21" width="606" height="550" rx="12" ry="12" fill="#FBF7EE"/>
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
@@ -28,23 +29,23 @@
   <text x="400" y="198" text-anchor="middle" class="sub" fill="#475569">calls the ModelState hooks every step</text>
 
   <!-- ===== L3 · ModelState (new) ===== -->
-  <rect x="190" y="240" width="420" height="86" rx="11" fill="#F3E8FF" stroke="#9333EA" stroke-width="2"/>
-  <rect x="540" y="248" width="44" height="17" rx="8.5" fill="#9333EA"/>
+  <rect x="190" y="240" width="420" height="86" rx="11" fill="#E6F4FF" stroke="#30A2FF" stroke-width="2"/>
+  <rect x="540" y="248" width="44" height="17" rx="8.5" fill="#30A2FF"/>
   <text x="562" y="260" text-anchor="middle" class="tag" fill="#fff">NEW</text>
-  <text x="400" y="270" text-anchor="middle" class="hdr" fill="#6b21a8">DiffusionGemmaModelState</text>
-  <text x="400" y="294" text-anchor="middle" class="mono" fill="#7e22ce">prepare_attn · prepare_inputs · custom_sampler</text>
-  <text x="400" y="312" text-anchor="middle" class="sub" fill="#7e22ce">per-request causal · embed canvas + self-conditioning</text>
+  <text x="400" y="270" text-anchor="middle" class="hdr" fill="#0A5DA6">DiffusionGemmaModelState</text>
+  <text x="400" y="294" text-anchor="middle" class="mono" fill="#1577C7">prepare_attn · prepare_inputs · custom_sampler</text>
+  <text x="400" y="312" text-anchor="middle" class="sub" fill="#1577C7">per-request causal · embed canvas + self-conditioning</text>
 
   <!-- ===== L4 · Gemma4 forward (reused) ===== -->
   <rect x="190" y="354" width="420" height="60" rx="11" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
   <text x="400" y="389" text-anchor="middle" class="hdr" fill="#334155">Gemma4 backbone forward</text>
 
   <!-- ===== L5 · DiffusionSampler (new) ===== -->
-  <rect x="190" y="442" width="420" height="64" rx="11" fill="#F3E8FF" stroke="#9333EA" stroke-width="2"/>
-  <rect x="540" y="450" width="44" height="17" rx="8.5" fill="#9333EA"/>
+  <rect x="190" y="442" width="420" height="64" rx="11" fill="#E6F4FF" stroke="#30A2FF" stroke-width="2"/>
+  <rect x="540" y="450" width="44" height="17" rx="8.5" fill="#30A2FF"/>
   <text x="562" y="462" text-anchor="middle" class="tag" fill="#fff">NEW</text>
-  <text x="400" y="472" text-anchor="middle" class="hdr" fill="#6b21a8">DiffusionSampler</text>
-  <text x="400" y="492" text-anchor="middle" class="sub" fill="#7e22ce">replaces Sampler + RejectionSampler</text>
+  <text x="400" y="472" text-anchor="middle" class="hdr" fill="#0A5DA6">DiffusionSampler</text>
+  <text x="400" y="492" text-anchor="middle" class="sub" fill="#1577C7">replaces Sampler + RejectionSampler</text>
 
   <!-- down arrows -->
   <path class="edge" d="M280,124 V150" marker-end="url(#arr)"/>
@@ -63,6 +64,6 @@
   <!-- legend -->
   <rect x="190" y="524" width="15" height="12" rx="2" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.2"/>
   <text x="212" y="534" class="sub" fill="#475569">reused vLLM infrastructure (unchanged)</text>
-  <rect x="470" y="524" width="15" height="12" rx="2" fill="#F3E8FF" stroke="#9333EA" stroke-width="1.2"/>
+  <rect x="470" y="524" width="15" height="12" rx="2" fill="#E6F4FF" stroke="#30A2FF" stroke-width="1.2"/>
   <text x="492" y="534" class="sub" fill="#475569">added for diffusion</text>
 </svg>

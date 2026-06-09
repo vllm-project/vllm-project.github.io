@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="751.32pt" height="432.69pt" viewBox="0 0 751.32 432.69" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="795.32" height="476.69" viewBox="-22 -22 795.32 476.69" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<rect id="cream-bg" x="-22" y="-22" width="795.32" height="476.69" rx="15" ry="15" fill="#FBF7EE"/>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
@@ -26,7 +27,7 @@ L 751.32 432.69
 L 751.32 0 
 L 0 0 
 z
-" style="fill: #ffffff"/>
+" style="fill: #FBF7EE"/>
   </g>
   <g id="axes_1">
    <g id="patch_2">

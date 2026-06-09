@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="780" height="480" viewBox="0 80 780 480" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="724" height="464" viewBox="-21 59 724 464" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<rect id="cream-bg" x="-21" y="59" width="724" height="464" rx="14" ry="14" fill="#FBF7EE"/>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>

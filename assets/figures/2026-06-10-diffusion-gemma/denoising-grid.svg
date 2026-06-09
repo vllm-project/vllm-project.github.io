@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="376" viewBox="0 44 1040 376" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1078" height="414" viewBox="-19 25 1078 414" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<rect id="cream-bg" x="-19" y="25" width="1078" height="414" rx="21" ry="21" fill="#FBF7EE"/>
   <defs>
     <style>
       .title{font-size:19px;font-weight:700;fill:#0f172a}
