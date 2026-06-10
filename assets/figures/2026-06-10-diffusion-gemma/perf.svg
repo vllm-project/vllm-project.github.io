@@ -44,10 +44,12 @@
   <text x="659.7" y="82.1" text-anchor="middle" class="val">1288</text>
   <text x="625.7" y="430.0" text-anchor="middle" class="axl">DiffusionGemma</text>
   <text x="625.7" y="447.0" text-anchor="middle" class="ax">FP8<tspan font-size="8px" baseline-shift="20%">‡</tspan></text>
-  <rect x="80" y="26" width="14" height="14" rx="3" fill="#9BD0FF"/>
-  <text x="100" y="38" class="leg">H100</text>
-  <rect x="166" y="26" width="14" height="14" rx="3" fill="#30A2FF"/>
-  <text x="186" y="38" class="leg">H200</text>
+  <rect x="80" y="26" width="13" height="14" rx="2.5" fill="#CBD5E1"/>
+  <rect x="95" y="26" width="13" height="14" rx="2.5" fill="#9BD0FF"/>
+  <text x="114" y="38" class="leg">H100</text>
+  <rect x="180" y="26" width="13" height="14" rx="2.5" fill="#94A3B8"/>
+  <rect x="195" y="26" width="13" height="14" rx="2.5" fill="#30A2FF"/>
+  <text x="214" y="38" class="leg">H200</text>
   <text x="736" y="38" text-anchor="end" class="ax">batch size 1</text>
   <text x="74" y="480" class="fn">* ignoring prefills (not the same as "Output token throughput" from vllm bench serve)</text>
   <text x="74" y="496" class="fn"><tspan font-size="8px" baseline-shift="20%">†</tspan> synthetic 80% acceptance rate      <tspan font-size="8px" baseline-shift="20%">‡</tspan> 16 denoising steps</text>

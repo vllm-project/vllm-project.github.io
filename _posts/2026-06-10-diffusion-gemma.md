@@ -2,7 +2,7 @@
 layout: post
 title: "DiffusionGemma: The First Diffusion LLM (dLLM) Natively Supported in vLLM"
 author: "The vLLM Team and Google DeepMind Team"
-image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg
+image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.png
 summary: "DiffusionGemma is the first diffusion language model (dLLM) supported in vLLM. We integrated it using model runner v2's ModelState abstraction and reused vLLM's speculative decoding to cleanly demonstrate the flexibility of model runner v2 and how future dLLMs may be supported."
 read_time_minutes: 6
 tags:
@@ -10,7 +10,9 @@ tags:
   - ecosystem
   - inference
 ---
-# DiffusionGemma in vLLM
+
+> [!TIP]
+> Looking to deploy DiffusionGemma? See the [vLLM recipe](https://recipes.vllm.ai/Google/diffusiongemma-26B-A4B-it) for deployment instructions.
 
 Google’s DiffusionGemma is a 26B-parameter discrete diffusion language model built on the Gemma4 backbone, and the first dLLM supported in vLLM. Integrating DiffusionGemma into vLLM required supporting a fundamentally different decoding pattern. dLLMs do not fit cleanly into the standard autoregressive serving path: they require bidirectional attention, iterative refinement, block-based generation, and custom sampling behavior at each denoising step.
 
@@ -19,7 +21,7 @@ We integrated DiffusionGemma into vLLM using [model runner v2's](https://vllm.ai
 Unlike standard autoregressive transformers, which generate text one token at a time from left to right, diffusion language models generate tokens by iteratively denoising a fixed-length canvas. This allows the model to refine multiple tokens in parallel across several denoising steps, effectively trading memory bandwidth pressure for additional compute — a particularly attractive tradeoff at low batch sizes, where spare compute is plentiful and memory bandwidth is the bottleneck. Generating many tokens per forward pass can translate into very low latency responses. DiffusionGemma specifically denoises a canvas of 256 tokens at a time.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg" alt="Autoregressive vs. block diffusion" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg" alt="Autoregressive vs. block diffusion" />
   <figcaption>Autoregressive vs. block diffusion decoding.</figcaption>
 </figure>
 
@@ -35,7 +37,7 @@ Because the encoder uses ordinary causal attention and the committed KV is writt
 The loop for a single 256-token block works as follows. After the prompt is prefilled (encoder), the canvas is initialized to random tokens and its state is then set to denoising. Each denoising step runs the backbone in decoder mode over the full canvas, samples a candidate token at every position, and decides which positions to keep. Once the block stops changing, the state is set back to encoding and a final encoder pass commits it — writing its KV and emitting the 256 tokens — and the next block starts from a fresh random canvas.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/sampling-loop-horizontal.svg" alt="DiffusionGemma block sampling loop" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/sampling-loop-horizontal.svg" alt="DiffusionGemma block sampling loop" />
   <figcaption>DiffusionGemma's per-block sampling loop.</figcaption>
 </figure>
 
@@ -48,7 +50,7 @@ Every denoise step re-samples *all* canvas positions, but only the positions the
 DiffusionGemma uses an **entropy-bound** rule to decide how many positions to accept: it walks positions from most confident to least, accepting tokens until their accumulated entropy exceeds a fixed budget. Early on the model is unsure about almost everything, so only a few positions lock in. As those anchors propagate context to their neighbors, the distributions sharpen, more positions fall under the budget, and the block snaps into focus over a handful of steps.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/denoising-grid.svg" alt="Block denoising in context" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/denoising-grid.svg" alt="Block denoising in context" />
   <figcaption>Entropy-bound denoising over several steps.</figcaption>
 </figure>
 
@@ -59,7 +61,7 @@ A canvas is considered **converged** once its best-guess (argmax) prediction sto
 To make the denoising loop more stable and converge faster, DiffusionGemma uses **self-conditioning**: between steps, the model is conditioned on its *own previous prediction*. Instead of feeding back hard tokens, it feeds back the full softmax distribution from the previous step, converts it into a probability-weighted average of token embeddings, and adds it — through a small gated MLP — onto the canvas embeddings before the next pass.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/self-conditioning.svg" alt="Self-conditioning" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/self-conditioning.svg" alt="Self-conditioning" />
   <figcaption>Self-conditioning feedback path.</figcaption>
 </figure>
 
@@ -74,7 +76,7 @@ vLLM's engine already has a very mature and stable speculative decoding path. In
 Concretely, diffusion plugs into the existing stack as follows — the scheduler, model runner, and Gemma4 backbone are reused unchanged, and only the ModelState and sampler are diffusion-specific:
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/stack.svg" alt="How DiffusionGemma plugs into vLLM's speculative-decoding stack" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/stack.svg" alt="How DiffusionGemma plugs into vLLM's speculative-decoding stack" />
   <figcaption>DiffusionGemma in vLLM's software abstractions.</figcaption>
 </figure>
 
@@ -114,7 +116,7 @@ As described above, DiffusionGemma operates in two modes: an **encoder** mode th
 - Finally, request 2 has completed its denoising steps, and its canvas is ready to be accepted. We run the encoder pass one last time, using causal attention and filling the KV cache with the entries from the newly accepted tokens. Again, all queries also attend to the cached keys.
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_causal_attention.svg" alt="Dynamic per-sequence causal attention" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_causal_attention.svg" alt="Dynamic per-sequence causal attention" />
   <figcaption>Dynamic per-sequence causal attention.</figcaption>
 </figure>
 
@@ -125,7 +127,7 @@ We support this dynamic causal attention in two attention backends: Triton Atten
 Finally, some layers of DiffusionGemma use sliding window attention. For tokens in the canvas, sliding window attention must also become symmetric: for a window size `W`, instead of attending only to itself and the `W` tokens before it, a canvas token also attends to the `W` tokens after it, for a total window size of `2*W + 1`. We depict this below:
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_sliding_window.svg" alt="Per-sequence sliding window attention" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_sliding_window.svg" alt="Per-sequence sliding window attention" />
   <figcaption>Dynamic causal sliding-window attention.</figcaption>
 </figure>
 
@@ -149,7 +151,7 @@ To validate the accuracy of the models, preliminary evaluations were performed b
 DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 and H200 using the built-in `vllm bench serve`. The FP8 diffusion model reaches **1,288 generation tokens per second on H200** (~6× a standard autoregressive baseline and ~3× one using multi-token prediction) and **1,008 tokens per second on H100** (~5× and ~2.6×, respectively).
 
 <figure style="text-align: center;">
-  <img src="/assets/figures/2026-06-10-diffusion-gemma/perf.svg" alt="Generation throughput on H100 and H200: FP8 diffusion vs. autoregressive baselines" />
+  <img style="display: block; margin: 0 auto;" src="/assets/figures/2026-06-10-diffusion-gemma/perf.svg" alt="Generation throughput on H100 and H200: FP8 diffusion vs. autoregressive baselines" />
   <figcaption>Generation throughput on H100 and H200 — FP8 diffusion vs. autoregressive baselines. <a href="https://gist.github.com/LucasWilkinson/89185e4dc05d300df33a4ce030973911">repro commands</a></figcaption>
 </figure>
 
