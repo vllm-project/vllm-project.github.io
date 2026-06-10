@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="744" height="482" viewBox="-22 36 744 482" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<rect id="cream-bg" x="-22" y="36" width="744" height="482" rx="14" ry="14" fill="#FBF7EE"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="d" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="t" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0d9488"/>
+    </marker>
+    <style>
+      .title{font-size:18px;font-weight:700;fill:#0f172a}
+      .subt {font-size:12px;fill:#64748b}
+      .pa   {font-size:14px;font-weight:700;fill:#0f172a}
+      .mdl  {font-size:9px;font-weight:700;fill:#1d4d22;text-anchor:middle}
+      .dg   {font-size:9.5px;font-weight:700;fill:#1d4d22;text-anchor:middle}
+      .cv   {font-size:9.5px;font-weight:700;fill:#713F12;text-anchor:middle}
+      .tk   {font-size:11px;text-anchor:middle;fill:#7a3f12}
+      .pm   {font-size:11px;text-anchor:middle;fill:#334155}
+      .note {font-size:11px;fill:#64748b}
+      .lp   {font-size:9px;font-weight:600;fill:#0d9488;text-anchor:middle}
+      .cm   {font-size:9px;font-weight:600;fill:#475569;text-anchor:start}
+      .ell  {font-size:16px;fill:#94a3b8;text-anchor:middle}
+    </style>
+  </defs>
+
+  <!-- ===================== PANEL A : Autoregressive ===================== -->
+  <text x="28" y="74" class="pa">(a) Autoregressive — 1 token / pass</text>
+
+  <!-- dashed feedback: token snakes up through the gap, past the previous AR-LM, into the next from above -->
+  <path d="M123,166 C152,150 152,84 182,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M182,166 C211,150 211,84 241,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M241,166 C270,150 270,84 300,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M300,166 C329,150 329,84 359,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M359,166 C388,150 388,84 418,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M418,166 C447,150 447,84 477,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M477,166 C506,150 506,84 536,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M536,166 C565,150 565,84 595,100" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+
+  <!-- small AR-LM units -->
+  <rect x="158" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="182" y="123" class="mdl">AR-LM</text>
+  <rect x="217" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="241" y="123" class="mdl">AR-LM</text>
+  <rect x="276" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="300" y="123" class="mdl">AR-LM</text>
+  <rect x="335" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="359" y="123" class="mdl">AR-LM</text>
+  <rect x="394" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="418" y="123" class="mdl">AR-LM</text>
+  <rect x="453" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="477" y="123" class="mdl">AR-LM</text>
+  <rect x="512" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="536" y="123" class="mdl">AR-LM</text>
+  <rect x="571" y="106" width="48" height="26" rx="6" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.4"/><text x="595" y="123" class="mdl">AR-LM</text>
+
+  <!-- down arrows -->
+  <path d="M182,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M241,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M300,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M359,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M418,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M477,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M536,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M595,132 V164" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- continuous sequence tape (prompt inline + 8 generated) -->
+  <rect x="36"  y="168" width="56" height="34" rx="4" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.3"/><text x="64"  y="190" class="pm">All</text>
+  <rect x="95"  y="168" width="56" height="34" rx="4" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.3"/><text x="123" y="190" class="pm">work</text>
+  <rect x="154" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="182" y="190" class="tk">and</text>
+  <rect x="213" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="241" y="190" class="tk">no</text>
+  <rect x="272" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="300" y="190" class="tk">play</text>
+  <rect x="331" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="359" y="190" class="tk">makes</text>
+  <rect x="390" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="418" y="190" class="tk">Jack</text>
+  <rect x="449" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="477" y="190" class="tk">a</text>
+  <rect x="508" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="536" y="190" class="tk">dull</text>
+  <rect x="567" y="168" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="595" y="190" class="tk">boy</text>
+  <text x="640" y="190" class="ell">…</text>
+  <text x="64" y="220" class="note" text-anchor="middle">prompt</text>
+
+  <!-- divider -->
+  <line x1="28" y1="248" x2="672" y2="248" stroke="#E2E8F0" stroke-width="1.5"/>
+
+  <!-- ===================== PANEL B : DiffusionGemma ===================== -->
+  <text x="28" y="278" class="pa">(b) DiffusionGemma — 4-token canvas, denoise loop until converged</text>
+
+  <!-- input arrows: committed prefix curves up into each model from the left (dashed) -->
+  <path d="M123,388 C123,342 150,306 213,306" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+  <path d="M384,388 C384,342 414,306 449,306" fill="none" stroke="#334155" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#d)"/>
+
+  <!-- block 1 (center 270) : denoise loop on the RIGHT -->
+  <path d="M316,351 C366,351 366,306 325,306" fill="none" stroke="#0d9488" stroke-width="1.6" marker-end="url(#t)"/>
+  <text x="372" y="300" class="lp">no, denoise</text>
+  <rect x="215" y="292" width="110" height="28" rx="8" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.6"/><text x="270" y="310" class="dg">DiffusionGemma</text>
+  <path d="M270,320 V338" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="224" y="338" width="92" height="26" rx="7" fill="#FEF9C3" stroke="#CA8A04" stroke-width="1.6"/><text x="270" y="355" class="cv">converged?</text>
+  <path d="M270,364 V380" stroke="#475569" stroke-width="1.5"/>
+  <text x="280" y="376" class="cm">yes → commit</text>
+  <path d="M182,380 H359" stroke="#475569" stroke-width="1.5"/>
+  <path d="M182,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M241,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M300,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M359,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- block 2 (center 506) : denoise loop on the RIGHT -->
+  <path d="M552,351 C602,351 602,306 561,306" fill="none" stroke="#0d9488" stroke-width="1.6" marker-end="url(#t)"/>
+  <text x="608" y="300" class="lp">no, denoise</text>
+  <rect x="451" y="292" width="110" height="28" rx="8" fill="#C9E8C9" stroke="#5FB364" stroke-width="1.6"/><text x="506" y="310" class="dg">DiffusionGemma</text>
+  <path d="M506,320 V338" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="460" y="338" width="92" height="26" rx="7" fill="#FEF9C3" stroke="#CA8A04" stroke-width="1.6"/><text x="506" y="355" class="cv">converged?</text>
+  <path d="M506,364 V380" stroke="#475569" stroke-width="1.5"/>
+  <text x="516" y="376" class="cm">yes → commit</text>
+  <path d="M418,380 H595" stroke="#475569" stroke-width="1.5"/>
+  <path d="M418,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M477,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M536,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M595,380 V390" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- continuous sequence tape (prompt inline + 8 block tokens) -->
+  <rect x="36"  y="394" width="56" height="34" rx="4" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.3"/><text x="64"  y="416" class="pm">All</text>
+  <rect x="95"  y="394" width="56" height="34" rx="4" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.3"/><text x="123" y="416" class="pm">work</text>
+  <rect x="154" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="182" y="416" class="tk">and</text>
+  <rect x="213" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="241" y="416" class="tk">no</text>
+  <rect x="272" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="300" y="416" class="tk">play</text>
+  <rect x="331" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="359" y="416" class="tk">makes</text>
+  <rect x="390" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="418" y="416" class="tk">Jack</text>
+  <rect x="449" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="477" y="416" class="tk">a</text>
+  <rect x="508" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="536" y="416" class="tk">dull</text>
+  <rect x="567" y="394" width="56" height="34" rx="4" fill="#F6C99A" stroke="#E08A3C" stroke-width="1.3"/><text x="595" y="416" class="tk">boy</text>
+  <text x="640" y="416" class="ell">…</text>
+  <text x="64" y="446" class="note" text-anchor="middle">prompt</text>
+
+  <!-- block brackets -->
+  <path d="M154,442 V448 H384 V442" fill="none" stroke="#9AA4B2" stroke-width="1.2"/>
+  <path d="M393,442 V448 H623 V442" fill="none" stroke="#9AA4B2" stroke-width="1.2"/>
+  <text x="269" y="462" class="note" text-anchor="middle">block 1 · canvas of 4</text>
+  <text x="508" y="462" class="note" text-anchor="middle">block 2 · canvas of 4</text>
+  <text x="350" y="482" class="note" text-anchor="middle">input = committed prefix · denoise loops until converged · then all 4 positions commit at once (256 in the real model)</text>
+</svg>
