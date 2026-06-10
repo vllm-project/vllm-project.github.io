@@ -52,7 +52,7 @@ DiffusionGemma uses an **entropy-bound** rule to decide how many positions to ac
   <figcaption>Entropy-bound denoising over several steps.</figcaption>
 </figure>
 
-A canvas is considered **converged** once its sampled tokens stop changing across steps and overall confidence is high (or hits a hard denoising step limit). At that point the tokens committed are the model's clean argmax prediction — not the noisy sampled canvas it was carrying between steps.
+A canvas is considered **converged** once its best-guess (argmax) prediction stops changing for a couple of consecutive steps **and** its mean per-token entropy falls below a confidence threshold — or it hits a hard denoising-step limit. At that point the committed tokens are that clean argmax prediction, not the noisy sampled canvas carried between steps.
 
 ### Self-conditioning
 
