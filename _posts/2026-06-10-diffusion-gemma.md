@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "DiffusionGemma: The First Diffusion LLM (dLLM) Natively Supported in vLLM"
-author: "The vLLM Team and Google Team"
+author: "The vLLM Team and Google DeepMind Team"
 image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg
 summary: "DiffusionGemma is the first diffusion language model (dLLM) supported in vLLM. We integrated it using model runner v2's ModelState abstraction and reused vLLM's speculative decoding to cleanly demonstrate the flexibility of model runner v2 and how future dLLMs may be supported."
 read_time_minutes: 6
@@ -221,6 +221,6 @@ With each 256-token canvas being generated in an average of 145.74ms, this yield
 Thanks to everyone who contributed to bringing DiffusionGemma to vLLM. This was a close collaboration between Google DeepMind, the vLLM team, and Red Hat.
 
 - **Google DeepMind:** Martin Kukla, João Gante, Luciano Martins
-- **vLLM:** Lucas Wilkinson (RedHat), Matthew Bonanni (RedHat), Nicolò Lucchesi (RedHat), Dipika Sikka (RedHat), Doug Smith (RedHat), Edward Arthur Quarm Jnr (RedHat), Alon Kellner (RedHat), Nick Hill (Inferact)
+- **vLLM:** Lucas Wilkinson, Matthew Bonanni, Nicolò Lucchesi, Dipika Sikka, Doug Smith, Edward Arthur Quarm Jnr, Alon Kellner (Red Hat), Nick Hill (Inferact)
 - **NVIDIA:** Dimitrios Bariamis, Alec Kohlhoff, Porras Huang, Eugene Rakhmatulin
 
