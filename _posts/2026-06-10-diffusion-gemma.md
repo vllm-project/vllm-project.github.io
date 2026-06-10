@@ -75,7 +75,7 @@ Concretely, diffusion plugs into the existing stack as follows — the scheduler
 
 <figure style="text-align: center;">
   <img src="/assets/figures/2026-06-10-diffusion-gemma/stack.svg" alt="How DiffusionGemma plugs into vLLM's speculative-decoding stack" />
-  <figcaption>DiffusionGemma in vLLM's speculative-decoding stack.</figcaption>
+  <figcaption>DiffusionGemma in vLLM's software abstractions.</figcaption>
 </figure>
 
 ### The ModelState Interface
@@ -126,7 +126,7 @@ Finally, some layers of DiffusionGemma use sliding window attention. For tokens 
 
 <figure style="text-align: center;">
   <img src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_sliding_window.svg" alt="Per-sequence sliding window attention" />
-  <figcaption>Per-sequence sliding-window attention.</figcaption>
+  <figcaption>Dynamic causal sliding-window attention.</figcaption>
 </figure>
 
 As before, the same three requests are shown on a sliding-window layer with `W=2`. Requests 0 and 2 (prefill and acceptance) keep the one-sided causal window — each query attends to itself and the `W` keys before it, narrowing attention to a band along the diagonal — while the denoising canvas of Request 1 uses the symmetric window, attending to the `W` keys on either side and thus only to the context tokens that fall within it.
@@ -220,7 +220,7 @@ With each 256-token canvas being generated in an average of 145.74ms, this yield
 
 Thanks to everyone who contributed to bringing DiffusionGemma to vLLM. This was a close collaboration between Google DeepMind, the vLLM team, and Red Hat.
 
-- **vLLM:** Lucas Wilkinson (RedHat), Matthew Bonanni (RedHat), Nicolò Lucchesi (RedHat), Dipika Sikka (RedHat), Doug Smith (RedHat), Edward Arthur Quarm Jnr (RedHat), Alon Kellner (RedHat), Nick Hill (Inferact)
 - **Google DeepMind:** Martin Kukla, João Gante, Luciano Martins
+- **vLLM:** Lucas Wilkinson (RedHat), Matthew Bonanni (RedHat), Nicolò Lucchesi (RedHat), Dipika Sikka (RedHat), Doug Smith (RedHat), Edward Arthur Quarm Jnr (RedHat), Alon Kellner (RedHat), Nick Hill (Inferact)
 - **NVIDIA:** Dimitrios Bariamis, Alec Kohlhoff, Porras Huang, Eugene Rakhmatulin
 
