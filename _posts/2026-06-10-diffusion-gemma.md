@@ -146,13 +146,16 @@ To validate the accuracy of the models, preliminary evaluations were performed b
 
 ## Results
 
-### Low-Latency Performance
+DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in `vllm bench serve`. The FP8 diffusion model reaches **1,288 generation tokens per second on H200** (~6× a standard autoregressive baseline and ~3× one using multi-token prediction) and **1,008 tokens per second on H100** (~5× and ~2.6×, respectively).
 
-DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in `vllm bench serve`.
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/perf.svg" alt="Generation throughput on H100 and H200: FP8 diffusion vs. autoregressive baselines" />
+  <figcaption>Generation throughput on H100 and H200 — FP8 diffusion vs. autoregressive baselines. <a href="https://gist.github.com/LucasWilkinson/89185e4dc05d300df33a4ce030973911">repro commands</a></figcaption>
+</figure>
 
 ## Acknowledgements
 
-Thanks to everyone who contributed to bringing DiffusionGemma to vLLM. This was a close collaboration between Google DeepMind, the vLLM team, and Red Hat.
+Thanks to everyone who contributed to bringing DiffusionGemma to vLLM. This was a close collaboration between Google DeepMind and the vLLM team.
 
 - **Google DeepMind:** Martin Kukla, João Gante, Luciano Martins
 - **vLLM:** Lucas Wilkinson, Matthew Bonanni, Nicolò Lucchesi, Dipika Sikka, Doug Smith, Edward Arthur Quarm Jnr, Alon Kellner (Red Hat), Nick Hill (Inferact)
