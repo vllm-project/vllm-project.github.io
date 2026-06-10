@@ -25,7 +25,7 @@
 
   <!-- ===== L2 · ModelRunner (reused) ===== -->
   <rect x="190" y="152" width="420" height="60" rx="11" fill="#E2E8F0" stroke="#94A3B8" stroke-width="1.5"/>
-  <text x="400" y="178" text-anchor="middle" class="hdr" fill="#334155">GPU model runner (generic)</text>
+  <text x="400" y="178" text-anchor="middle" class="hdr" fill="#334155">GPU model runner</text>
   <text x="400" y="198" text-anchor="middle" class="sub" fill="#475569">calls the ModelState hooks every step</text>
 
   <!-- ===== L3 · ModelState (new) ===== -->

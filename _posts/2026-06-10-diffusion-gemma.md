@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "DiffusionGemma: The First Diffusion LLM (dLLM) Natively Supported in vLLM"
-author: "The vLLM Team and Google Deepmind"
+author: "The vLLM Team and Google Team"
 image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg
 summary: "DiffusionGemma is the first diffusion language model (dLLM) supported in vLLM. We integrated it using model runner v2's ModelState abstraction and reused vLLM's speculative decoding to cleanly demonstrate the flexibility of model runner v2 and how future dLLMs may be supported."
 read_time_minutes: 6
@@ -18,7 +18,10 @@ We integrated DiffusionGemma into vLLM using [model runner v2's](https://vllm.ai
 
 Unlike standard autoregressive transformers, which generate text one token at a time from left to right, diffusion language models generate tokens by iteratively denoising a fixed-length canvas. This allows the model to refine multiple tokens in parallel across several denoising steps, effectively trading memory bandwidth pressure for additional compute — a particularly attractive tradeoff at low batch sizes, where spare compute is plentiful and memory bandwidth is the bottleneck. Generating many tokens per forward pass can translate into very low latency responses. DiffusionGemma specifically denoises a canvas of 256 tokens at a time.
 
-![Autoregressive vs. block diffusion](/assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg)
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.svg" alt="Autoregressive vs. block diffusion" />
+  <figcaption>Autoregressive vs. block diffusion decoding.</figcaption>
+</figure>
 
 ## DiffusionGemma Architecture and Sampling Loop
 
@@ -31,7 +34,10 @@ Because the encoder uses ordinary causal attention and the committed KV is writt
 
 The loop for a single 256-token block works as follows. After the prompt is prefilled (encoder), the canvas is initialized to random tokens and its state is then set to denoising. Each denoising step runs the backbone in decoder mode over the full canvas, samples a candidate token at every position, and decides which positions to keep. Once the block stops changing, the state is set back to encoding and a final encoder pass commits it — writing its KV and emitting the 256 tokens — and the next block starts from a fresh random canvas.
 
-![DiffusionGemma block sampling loop](/assets/figures/2026-06-10-diffusion-gemma/sampling-loop-horizontal.svg)
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/sampling-loop-horizontal.svg" alt="DiffusionGemma block sampling loop" />
+  <figcaption>DiffusionGemma's per-block sampling loop.</figcaption>
+</figure>
 
 Within a block all 256 positions denoise in parallel; across blocks, generation is still left-to-right, since each new block conditions on all previously committed tokens.
 
@@ -41,7 +47,10 @@ Every denoise step re-samples *all* canvas positions, but only the positions the
 
 DiffusionGemma uses an **entropy-bound** rule to decide how many positions to accept: it walks positions from most confident to least, accepting tokens until their accumulated entropy exceeds a fixed budget. Early on the model is unsure about almost everything, so only a few positions lock in. As those anchors propagate context to their neighbors, the distributions sharpen, more positions fall under the budget, and the block snaps into focus over a handful of steps.
 
-![Block denoising in context](/assets/figures/2026-06-10-diffusion-gemma/denoising-grid.svg)
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/denoising-grid.svg" alt="Block denoising in context" />
+  <figcaption>Entropy-bound denoising over several steps.</figcaption>
+</figure>
 
 A canvas is considered **converged** once its sampled tokens stop changing across steps and overall confidence is high (or hits a hard denoising step limit). At that point the tokens committed are the model's clean argmax prediction — not the noisy sampled canvas it was carrying between steps.
 
@@ -49,7 +58,11 @@ A canvas is considered **converged** once its sampled tokens stop changing acros
 
 To make the denoising loop more stable and converge faster, DiffusionGemma uses **self-conditioning**: between steps, the model is conditioned on its *own previous prediction*. Instead of feeding back hard tokens, it feeds back the full softmax distribution from the previous step, converts it into a probability-weighted average of token embeddings, and adds it — through a small gated MLP — onto the canvas embeddings before the next pass.
 
-![Self-conditioning](/assets/figures/2026-06-10-diffusion-gemma/self-conditioning.svg)  
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/self-conditioning.svg" alt="Self-conditioning" />
+  <figcaption>Self-conditioning feedback path.</figcaption>
+</figure>
+
 This gives each step a memory of what the model believed last time, so even positions that were renoised to random tokens carry forward information from the previous step rather than having to start from scratch. Self-conditioning is active only in decoder/denoise mode — on the encoder prefill and commit passes the feedback is zeroed, so those passes see plain token embeddings.
 
 ## Implementation in vLLM
@@ -60,7 +73,10 @@ vLLM's engine already has a very mature and stable speculative decoding path. In
 
 Concretely, diffusion plugs into the existing stack as follows — the scheduler, model runner, and Gemma4 backbone are reused unchanged, and only the ModelState and sampler are diffusion-specific:
 
-![How DiffusionGemma plugs into vLLM's speculative-decoding stack](/assets/figures/2026-06-10-diffusion-gemma/stack.svg)
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/stack.svg" alt="How DiffusionGemma plugs into vLLM's speculative-decoding stack" />
+  <figcaption>DiffusionGemma in vLLM's speculative-decoding stack.</figcaption>
+</figure>
 
 ### The ModelState Interface
 
@@ -97,7 +113,10 @@ As described above, DiffusionGemma operates in two modes: an **encoder** mode th
 - Request 1 has already completed its prefill of length 6, and is now generating new tokens in a decoder mode. Within the canvas of size 4, all queries attend to all keys in the canvas using bidirectional attention. They also attend to all keys in the context. No entries are masked off and no blocks are skipped.  
 - Finally, request 2 has completed its denoising steps, and its canvas is ready to be accepted. We run the encoder pass one last time, using causal attention and filling the KV cache with the entries from the newly accepted tokens. Again, all queries also attend to the cached keys.
 
-![Dynamic per-sequence causal attention](/assets/figures/2026-06-10-diffusion-gemma/per_seq_causal_attention.svg)
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_causal_attention.svg" alt="Dynamic per-sequence causal attention" />
+  <figcaption>Dynamic per-sequence causal attention.</figcaption>
+</figure>
 
 We support this dynamic causal attention in two attention backends: Triton Attention (`TRITON_ATTN`) and FlashAttention 4 (`FLASH_ATTN`). In both of these backends, the single boolean argument `causal` is replaced by a tensor indicating the causality of each request. The mask is updated appropriately, and the tiling behavior is preserved.
 
@@ -105,7 +124,10 @@ We support this dynamic causal attention in two attention backends: Triton Atten
 
 Finally, some layers of DiffusionGemma use sliding window attention. For tokens in the canvas, sliding window attention must also become symmetric: for a window size `W`, instead of attending only to itself and the `W` tokens before it, a canvas token also attends to the `W` tokens after it, for a total window size of `2*W + 1`. We depict this below:
 
-![Per-sequence sliding window attention](/assets/figures/2026-06-10-diffusion-gemma/per_seq_sliding_window.svg)
+<figure style="text-align: center;">
+  <img src="/assets/figures/2026-06-10-diffusion-gemma/per_seq_sliding_window.svg" alt="Per-sequence sliding window attention" />
+  <figcaption>Per-sequence sliding-window attention.</figcaption>
+</figure>
 
 As before, the same three requests are shown on a sliding-window layer with `W=2`. Requests 0 and 2 (prefill and acceptance) keep the one-sided causal window — each query attends to itself and the `W` keys before it, narrowing attention to a band along the diagonal — while the denoising canvas of Request 1 uses the symmetric window, attending to the `W` keys on either side and thus only to the context tokens that fall within it.
 
@@ -193,3 +215,12 @@ Canvas positions evaluated:              4346368
 ```
 
 With each 256-token canvas being generated in an average of 145.74ms, this yields a decode speed of **1756.55 tok/s**.
+
+## Acknowledgements
+
+Thanks to everyone who contributed to bringing DiffusionGemma to vLLM. This was a close collaboration between Google DeepMind, the vLLM team, and Red Hat.
+
+- **vLLM:** Lucas Wilkinson (RedHat), Matthew Bonanni (RedHat), Nicolò Lucchesi (RedHat), Dipika Sikka (RedHat), Doug Smith (RedHat), Edward Arthur Quarm Jnr (RedHat), Alon Kellner (RedHat), Nick Hill (Inferact)
+- **Google DeepMind:** Martin Kukla, João Gante, Luciano Martins
+- **NVIDIA:** Dimitrios Bariamis, Alec Kohlhoff, Porras Huang, Eugene Rakhmatulin
+
