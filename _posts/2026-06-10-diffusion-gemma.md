@@ -146,7 +146,7 @@ To validate the accuracy of the models, preliminary evaluations were performed b
 
 ## Results
 
-DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in `vllm bench serve`. The FP8 diffusion model reaches **1,288 generation tokens per second on H200** (~6× a standard autoregressive baseline and ~3× one using multi-token prediction) and **1,008 tokens per second on H100** (~5× and ~2.6×, respectively).
+DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 and H200 using the built-in `vllm bench serve`. The FP8 diffusion model reaches **1,288 generation tokens per second on H200** (~6× a standard autoregressive baseline and ~3× one using multi-token prediction) and **1,008 tokens per second on H100** (~5× and ~2.6×, respectively).
 
 <figure style="text-align: center;">
   <img src="/assets/figures/2026-06-10-diffusion-gemma/perf.svg" alt="Generation throughput on H100 and H200: FP8 diffusion vs. autoregressive baselines" />
