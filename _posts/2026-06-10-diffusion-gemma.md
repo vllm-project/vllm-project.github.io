@@ -148,73 +148,7 @@ To validate the accuracy of the models, preliminary evaluations were performed b
 
 ### Low-Latency Performance
 
-DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in `vllm bench serve`. For consistency in the benchmark, we employ a fixed count of 16 denoising steps for each canvas, with no confidence-based committing (`confidence_threshold=0.0`). This number was selected because it is representative of typical workloads from popular evaluation datasets in our experimentation. We also disable prefix caching, though cache hits are negligible for random data. At FP8 quantization, we observe that vLLM achieves **over 1700 tokens per second** of output token generation in this configuration. Our complete benchmarking command is:
-
-(UPDATE MODEL NAME)
-
-```bash
-vllm serve gg-hf-st/test-checkpoint-26B-RC1 \
-  --max-num-seqs 4 \
-  --max_model_len 8192 \
-  --diffusion-config '{"canvas_length": 256, "max_denoising_steps": 16}' \
-  --hf_overrides '{"diffusion_sampler": "entropy_bound", "diffusion_entropy_bound": 0.1, "diffusion_confidence_threshold": 0.0}' \
-  --trust-remote-code \
-  --quantization "fp8" \
-  --no-enable-prefix-caching \
-  --attention-backend FLASH_ATTN
-```
-
-```bash
-vllm bench serve \
-  --backend vllm \
-  --base-url http://localhost:8000 \
-  --model "gg-hf-st/test-checkpoint-26B-RC1" \
-  --dataset-name random \
-  --random-input-len 4096 \
-  --random-output-len 512 \
-  --ignore-eos \
-  --num-prompts 500 \
-  --max-concurrency 1
-```
-
-Since our output length is 512 and our canvas size is 256, the model will output 2 canvases for each request. The ITL measures the time between the completion of the first and second canvas. Our benchmark yields:
-
-```
-============ Serving Benchmark Result ============
-Successful requests:                     500
-Failed requests:                         0
-Maximum request concurrency:             1
-Benchmark duration (s):                  285.92
-Total input tokens:                      2048000
-Total generated tokens:                  256000
-Request throughput (req/s):              1.75
-Output token throughput (tok/s):         895.36
-Peak output token throughput (tok/s):    5.00
-Peak concurrent requests:                3.00
-Total token throughput (tok/s):          8058.25
----------------Time to First Token----------------
-Mean TTFT (ms):                          425.87
-Median TTFT (ms):                        321.66
-P99 TTFT (ms):                           603.35
------Time per Output Token (excl. 1st token)------
-Mean TPOT (ms):                          0.29
-Median TPOT (ms):                        0.40
-P99 TPOT (ms):                           0.59
----------------Inter-token Latency----------------
-Mean ITL (ms):                           145.74
-Median ITL (ms):                         203.88
-P99 ITL (ms):                            299.14
-----------------Diffusion Decoding----------------
-Committed throughput (tok/s):            895.36
-Denoising steps per canvas:              15.98
-Committed per denoising step:            16.02
-Committed tokens:                        256000
-Denoising steps:                         15978
-Canvas positions evaluated:              4346368
-==================================================
-```
-
-With each 256-token canvas being generated in an average of 145.74ms, this yields a decode speed of **1756.55 tok/s**.
+DiffusionGemma’s architecture enables extremely low-latency inference, making it well suited for interactive applications. To evaluate the performance of our implementation in this setting, we benchmarked vLLM at batch size 1 on a single H100 using the built-in `vllm bench serve`.
 
 ## Acknowledgements
 
