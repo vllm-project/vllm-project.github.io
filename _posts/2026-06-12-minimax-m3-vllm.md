@@ -52,28 +52,34 @@ vLLM ships initial day-0 support for MiniMax M3:
 
 ## Quickstart: Run MiniMax M3 with vLLM
 
+On NVIDIA, MSA uses the default attention backend, and the vision encoder runs on the FlashInfer backend (`--mm-encoder-attn-backend FLASHINFER`) with a shared-memory processor cache and a data-parallel encoder.
+
 For the MXFP8 checkpoint on a Blackwell-class node, the starting point is:
 
 ```bash
 vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
-  --trust-remote-code \
-  --tensor-parallel-size 8 \
-  --enable-expert-parallel \
   --block-size 128 \
+  --tensor-parallel-size 8 \
   --tool-call-parser minimax_m3 \
-  --reasoning-parser minimax_m3
+  --enable-auto-tool-choice \
+  --reasoning-parser minimax_m3 \
+  --mm-encoder-attn-backend FLASHINFER \
+  --mm-processor-cache-type shm \
+  --mm-encoder-tp-mode data
 ```
 
 For BF16:
 
 ```bash
 vllm serve MiniMaxAI/MiniMax-M3 \
-  --trust-remote-code \
-  --tensor-parallel-size 8 \
-  --enable-expert-parallel \
   --block-size 128 \
+  --tensor-parallel-size 8 \
   --tool-call-parser minimax_m3 \
-  --reasoning-parser minimax_m3
+  --enable-auto-tool-choice \
+  --reasoning-parser minimax_m3 \
+  --mm-encoder-attn-backend FLASHINFER \
+  --mm-processor-cache-type shm \
+  --mm-encoder-tp-mode data
 ```
 
 The exact recipe depends on the target accelerator, model dtype, context length, traffic shape, and whether the deployment prioritizes throughput, latency, or maximum context capacity. Verification has been done on NVIDIA H200, GB200, and B300. For the full set of NVIDIA and AMD launch recipes, deployment strategies, and tuning knobs, see the [vLLM recipe for MiniMax M3](https://recipes.vllm.ai/MiniMaxAI/MiniMax-M3).
