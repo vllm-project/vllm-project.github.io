@@ -76,7 +76,22 @@ vllm serve MiniMaxAI/MiniMax-M3 \
   --reasoning-parser minimax_m3
 ```
 
-The exact recipe depends on the target accelerator, model dtype, context length, traffic shape, and whether the deployment prioritizes throughput, latency, or maximum context capacity. Verification has been done on H200, GB200 and B300.
+On AMD ROCm (MI350X/MI355X, MI300X/MI325X, ROCm 7.2+), MSA runs on the Triton attention backend, so add `--attention-backend TRITON_ATTN`. On CDNA4 (MI350X/MI355X, gfx950) the MXFP8 variant fits at `--tensor-parallel-size 4`:
+
+```bash
+vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
+  --trust-remote-code \
+  --tensor-parallel-size 4 \
+  --enable-expert-parallel \
+  --block-size 128 \
+  --attention-backend TRITON_ATTN \
+  --tool-call-parser minimax_m3 \
+  --reasoning-parser minimax_m3
+```
+
+Use `--tensor-parallel-size 8` for lower latency or longer context, or run the BF16 checkpoint at TP=8.
+
+The exact recipe depends on the target accelerator, model dtype, context length, traffic shape, and whether the deployment prioritizes throughput, latency, or maximum context capacity. Verification has been done on NVIDIA H200, GB200, and B300, and on AMD MI300X and MI355X. For the full set of NVIDIA and AMD launch recipes, deployment strategies, and tuning knobs, see the [vLLM recipe for MiniMax M3](https://recipes.vllm.ai/MiniMaxAI/MiniMax-M3).
 
 ### Deployment Knobs That Matter
 
