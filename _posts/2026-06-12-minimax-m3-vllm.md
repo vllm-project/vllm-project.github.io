@@ -22,7 +22,7 @@ Publication checklist:
 
 We are excited to announce day-0 vLLM support for the MiniMax M3 family, including the BF16 and MXFP8 checkpoints at [`MiniMaxAI/MiniMax-M3`](https://huggingface.co/MiniMaxAI/MiniMax-M3) and [`MiniMaxAI/MiniMax-M3-MXFP8`](https://huggingface.co/MiniMaxAI/MiniMax-M3-MXFP8).
 
-MiniMax M3 is built for the workloads that are becoming normal in production: million-token context, native multimodal reasoning, coding and agentic workflows, tool use, and controllable thinking behavior. The hard part is not only loading the model. It is making the new MiniMax Sparse Attention path, multimodal preprocessing, MXFP8 MoE execution, prefix caching, and deployment recipes work together in a serving engine that users can actually run.
+MiniMax M3 is built for the workloads that are becoming normal in production: million-token context, native multimodal reasoning, coding and agentic workflows, tool use, and controllable thinking behavior. The hard part is not only loading the model. It is making the new MiniMax Sparse Attention path, multimodal preprocessing, MXFP8 MoE execution, EAGLE3 speculative decoding, prefix caching, and deployment recipes work together in a serving engine that users can actually run.
 
 This post walks through the model features, the vLLM implementation, the kernel and cache work behind the release, and the next optimizations we are landing after day 0.
 
@@ -34,7 +34,8 @@ vLLM ships initial day-0 support for MiniMax M3:
 
 - **Model family:** BF16 and MXFP8 MiniMax M3 checkpoints, with 1M-token context support subject to hardware capacity and deployment configuration.
 - **Core architecture:** MiniMax Sparse Attention (MSA), a hybrid dense/sparse attention design that scores 128-token KV blocks, selects top blocks per query and KV group, and runs GQA attention over the selected blocks.
-- **Serving stack:** `minimax_m3` tool and reasoning parsers, thinking-mode control, text-only and multimodal paths, TP/EP deployment, prefix caching, chunked prefill, and a Docker image available to use.
+- **Serving stack:** `minimax_m3` tool and reasoning parsers, thinking-mode control, text-only and multimodal paths, TP/EP deployment, prefix caching, chunked prefill, EAGLE3 speculative decoding, and a Docker image available to use.
+- **Speculative decoding:** Day-0 EAGLE3 support with the draft model released at [`Inferact/MiniMax-M3-EAGLE3`](https://huggingface.co/Inferact/MiniMax-M3-EAGLE3).
 - **Performance work:** MSA prefill and decode kernels, indexer-score and top-k kernels, fused QKNorm + RoPE + KV insert, GemmaNorm and quantization-path optimizations, and MXFP8 MoE backend integration.
 - **Roadmap:** FP8 indexer/KV-cache work, TRTLLM-Gen MoE, broader disaggregated serving recipes, context-parallel long-prefill work, and further multimodal gateway optimization.
 
@@ -47,6 +48,7 @@ vLLM ships initial day-0 support for MiniMax M3:
 | MXFP8 model weights | Efficient MoE serving for large-scale deployments | DeepGEMM MXFP8 MoE backend on Blackwell-class systems and Marlin MXFP8 on Hopper-class systems |
 | Native multimodality | Image and video inputs alongside text | Model-specific multimodal preprocessing path and vLLM serving integration |
 | Tool and reasoning outputs | Agentic workflows and controllable thinking | `minimax_m3` tool parser, `minimax_m3` reasoning parser, `thinking_mode` chat-template control |
+| EAGLE3 speculative decoding | Draft-model acceleration for generation | Day-0 EAGLE3 recipe with [`Inferact/MiniMax-M3-EAGLE3`](https://huggingface.co/Inferact/MiniMax-M3-EAGLE3) |
 
 ## Quickstart: Run MiniMax M3 with vLLM
 
@@ -80,7 +82,27 @@ The exact recipe depends on the target accelerator, model dtype, context length,
 
 ### Deployment Knobs That Matter
 
-MiniMax M3 has a few knobs that matter more than usual. `--block-size 128` aligns vLLM cache blocks with MSA's sparse block granularity. `--max-model-len` controls the advertised context length and KV capacity planning. `--tensor-parallel-size` and `--enable-expert-parallel` determine how attention, projections, and MoE experts are split across GPUs. The `minimax_m3` tool and reasoning parsers should be enabled for agent workloads, and long-context recipes should state whether prefix caching, chunked prefill, and multimodal preprocessing are enabled for that target.
+MiniMax M3 has a few knobs that matter more than usual. `--block-size 128` aligns vLLM cache blocks with MSA's sparse block granularity. `--max-model-len` controls the advertised context length and KV capacity planning. `--tensor-parallel-size` and `--enable-expert-parallel` determine how attention, projections, and MoE experts are split across GPUs. The `minimax_m3` tool and reasoning parsers should be enabled for agent workloads, and long-context recipes should state whether prefix caching, chunked prefill, EAGLE3 speculative decoding, and multimodal preprocessing are enabled for that target.
+
+### EAGLE3 Speculative Decoding
+
+MiniMax M3 also has day-0 EAGLE3 speculative decoding support in vLLM. The draft model is released at [`Inferact/MiniMax-M3-EAGLE3`](https://huggingface.co/Inferact/MiniMax-M3-EAGLE3), enabling deployments to use a draft-model path for lower generation latency when the workload and acceptance behavior fit the target traffic.
+
+To enable EAGLE3, add a speculative decoding configuration to the serving command:
+
+```bash
+vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
+  --trust-remote-code \
+  --tensor-parallel-size 8 \
+  --enable-expert-parallel \
+  --block-size 128 \
+  --max-model-len 1000000 \
+  --tool-call-parser minimax_m3 \
+  --reasoning-parser minimax_m3 \
+  --speculative-config '{"method":"eagle3","model":"Inferact/MiniMax-M3-EAGLE3","num_speculative_tokens":3,"attention_backend":"FLASH_ATTN"}'
+```
+
+The example uses `num_speculative_tokens=3`, which is a conservative starting point for validation. Production recipes should tune this value against acceptance rate, TPOT, throughput, and target latency for the deployment's traffic mix.
 
 ### Thinking Mode
 
@@ -228,6 +250,16 @@ The optimized decode path uses specialized indexer-score kernels instead of trea
 
 The decode path also has to be careful about memory traffic. Selected KV blocks are sparse in logical sequence space but still page-like in memory, so the kernel should avoid turning sparse pages into large temporary dense tensors unless reuse justifies it.
 
+### Speculative Decoding in the Decode Kernels
+
+EAGLE3 support also requires the MiniMax M3 decode kernels to handle speculative verification efficiently. In speculative decoding, one request can verify multiple draft tokens at once, so the MSA decode kernels cannot assume exactly one query token per request.
+
+One fallback is to use prefill kernels for speculative verification, but that comes at a high cost: prefill kernels are usually tuned for much larger token counts, so they perform poorly on small draft-token batches. They are also usually not compatible with full CUDA graph mode, which is an important optimization for low-latency decoding.
+
+The day-0 implementation updates the MSA decode indexer, top-k selection, and sparse GQA decode kernels to support a uniform `decode_query_len`. The kernels flatten speculative verification tokens in request-major order, then map each query token back to the correct request metadata, sequence length, block table, and causal position. This lets EAGLE3 verification use the decode-specialized split-K path instead of falling back to a less targeted prefill-style path, while keeping the speculative path close to the existing decode implementation.
+
+The same path supports full CUDA graph coverage for uniform speculative decode batches. Kernel launch grids stay shape-stable, selected arguments avoid unnecessary Triton specialization, and padded request rows are handled explicitly so captured graphs can be replayed safely. These details matter because speculative decoding only improves TPOT when draft-token acceptance is not offset by extra kernel launches, recompiles, or cache-state overhead. We expect to keep optimizing this path across different draft lengths, concurrency levels, and traffic mixes.
+
 ### Kernel Fusions
 
 Several smaller kernels were fused or routed through custom ops to reduce launch overhead and HBM round trips:
@@ -249,15 +281,15 @@ CUDA graphs are valuable for decode because M3 introduces several small operatio
 
 ## Release-Candidate Validation
 
-Before the public release, the vLLM team ran daily release-candidate validation across accuracy, throughput, and container usability.
+Before the public release, the vLLM team ran daily release-candidate validation across accuracy, throughput, speculative decoding, and container usability.
 
 The validation loop had three goals:
 
 1. **Functional correctness:** the model loads, serves requests, parses tool and reasoning outputs, and handles text-only plus multimodal inputs.
 2. **Accuracy parity:** benchmark results stay aligned with expected model behavior after kernel, cache, parser, and recipe changes.
-3. **Serving readiness:** container images run with the intended TP/EP settings on target accelerators.
+3. **Serving readiness:** container images run with the intended TP/EP/speculative-decoding settings on target accelerators.
 
-The most useful tests combine short correctness tasks with long-output and long-context workloads. Short tasks catch parser, formatting, and obvious numerical issues quickly. Long-context tasks catch MSA metadata, prefix caching, chunked prefill, and KV-cache layout problems.
+The most useful tests combine short correctness tasks with long-output and long-context workloads. Short tasks catch parser, formatting, and obvious numerical issues quickly. Long-context tasks catch MSA metadata, prefix caching, chunked prefill, and KV-cache layout problems. Speculative decoding tests catch acceptance regressions that may not show up in ordinary accuracy runs.
 
 A June 11 release-candidate snapshot on B300:
 
@@ -266,10 +298,12 @@ A June 11 release-candidate snapshot on B300:
 | GSM8K strict / flexible accuracy | 91.51% / 91.66% |
 | ShareGPT @256 throughput | 8,530 tok/s |
 | ShareGPT @256 TPOT | 56.0 ms |
+| Speculative Sonnet TPOT, concurrency 1 / 16 / 64 | 4.51 / 9.04 / 14.36 ms |
+| Speculative acceptance on Sonnet | ~67%, mean accept length ~3.0 |
 
 These numbers are useful for engineering validation, not a definitive benchmark ranking. Final public measurements should be rerun on locked images, public weights, public recipes, and clearly described hardware.
 
-![Figure 6: Release-candidate validation checks accuracy, throughput, and container usability before public MiniMax M3 recipes are published.](/assets/figures/minimax-m3/validation-dashboard.svg)
+![Figure 6: Release-candidate validation checks accuracy, throughput, and speculative decoding before public MiniMax M3 recipes are published.](/assets/figures/minimax-m3/validation-dashboard.svg)
 
 ## Roadmap: The Path Ahead
 
@@ -286,7 +320,7 @@ The day-0 implementation is the starting line. The next pieces of work are alrea
 
 ### Does vLLM support MiniMax M3?
 
-Yes. This draft covers day-0 vLLM support for the MiniMax M3 BF16 and MXFP8 checkpoints, including MSA attention, model-specific parsers, multimodal preprocessing, TP/EP serving recipes, and a Docker image available to use.
+Yes. This draft covers day-0 vLLM support for the MiniMax M3 BF16 and MXFP8 checkpoints, including MSA attention, model-specific parsers, EAGLE3 speculative decoding, multimodal preprocessing, TP/EP serving recipes, and a Docker image available to use.
 
 ### What is MiniMax Sparse Attention?
 
@@ -298,7 +332,7 @@ No. MXFP8 describes the model weight and MoE execution path. KV-cache dtype is a
 
 ### What settings matter most for 1M-token context?
 
-The important starting points are `--block-size 128`, an explicit `--max-model-len` target such as `1000000`, enough GPU memory for the chosen batch and context shape, and a recipe that states whether prefix caching and chunked prefill are enabled.
+The important starting points are `--block-size 128`, an explicit `--max-model-len` target such as `1000000`, enough GPU memory for the chosen batch and context shape, and a recipe that states whether prefix caching, chunked prefill, and EAGLE3 speculative decoding are enabled.
 
 ## Acknowledgments
 
@@ -309,4 +343,5 @@ Thank you to the teams at MiniMax, NVIDIA, AMD, Inferact and the vLLM community 
 MiniMax M3 builds on several areas of vLLM:
 
 - [Anatomy of vLLM](/blog/2025-09-05-anatomy-of-vllm) for scheduler, KV cache, prefix caching, and distributed execution background.
+- [Speculative Decoding in vLLM](/blog/2024-10-17-spec-decode) and [P-EAGLE](/blog/2026-03-13-p-eagle) for the draft-model path.
 - [Large-Scale Serving with vLLM](/blog/2025-12-17-large-scale-serving), [KV Offloading Connector](/blog/2026-01-08-kv-offloading-connector), and [Moriio KV Connector](/blog/2026-04-07-moriio-kv-connector) for prefix reuse, KV movement, and disaggregated serving.
