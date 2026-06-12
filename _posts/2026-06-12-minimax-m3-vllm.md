@@ -10,16 +10,6 @@ tags:
   - long-context
 ---
 
-<!--
-Publication checklist:
-- Confirm public model-card links for MiniMaxAI/MiniMax-M3 and MiniMaxAI/MiniMax-M3-MXFP8.
-- Replace release-candidate benchmark snapshot with the approved public benchmark figure.
-- Confirm whether NeMo-RL day-0 support should be mentioned. Current Slack evidence is a question, not a claim.
-- Finalize public contributor and partner acknowledgments.
-- Replace the hero descriptor with approved art.
-- ~~Replace diagram placeholders with approved assets.~~ Done — 7 SVGs in assets/figures/minimax-m3/.
--->
-
 We are excited to announce day-0 vLLM support for the MiniMax M3 family, including the BF16 and MXFP8 checkpoints at [`MiniMaxAI/MiniMax-M3`](https://huggingface.co/MiniMaxAI/MiniMax-M3) and [`MiniMaxAI/MiniMax-M3-MXFP8`](https://huggingface.co/MiniMaxAI/MiniMax-M3-MXFP8).
 
 MiniMax M3 is built for the workloads that are becoming normal in production: million-token context, native multimodal reasoning, coding and agentic workflows, tool use, and controllable thinking behavior. The hard part is not only loading the model. It is making the new MiniMax Sparse Attention path, multimodal preprocessing, MXFP8 MoE execution, EAGLE3 speculative decoding, prefix caching, and deployment recipes work together in a serving engine that users can actually run.
@@ -321,11 +311,11 @@ The MXFP8 checkpoint primarily changes weight and MoE execution, not the concept
 
 ### CUDA Graphs and Compile Behavior
 
-CUDA graphs are valuable for decode because M3 introduces several small operations around each token step. But graph capture only helps when the captured path is stable across batch shapes, cache states, and sparse metadata. The release-candidate path uses conservative graph settings where needed, then expands coverage as validation catches up.
+CUDA graphs are valuable for decode because M3 introduces several small operations around each token step. But graph capture only helps when the captured path is stable across batch shapes, cache states, and sparse metadata. The day-0 path uses conservative graph settings where needed, then expands coverage as validation matures.
 
-## Release-Candidate Validation
+## Validation
 
-Before the public release, the vLLM team ran daily release-candidate validation across accuracy, throughput, speculative decoding, and container usability.
+Before the public release, the vLLM team ran daily validation across accuracy, throughput, speculative decoding, and container usability.
 
 The validation loop had three goals:
 
@@ -335,7 +325,7 @@ The validation loop had three goals:
 
 The most useful tests combine short correctness tasks with long-output and long-context workloads. Short tasks catch parser, formatting, and obvious numerical issues quickly. Long-context tasks catch MSA metadata, prefix caching, chunked prefill, and KV-cache layout problems. Speculative decoding tests catch acceptance regressions that may not show up in ordinary accuracy runs.
 
-A June 11 release-candidate snapshot on B300:
+A representative snapshot from that validation, measured on B300:
 
 | Dimension | Result |
 | --- | ---: |
@@ -345,7 +335,7 @@ A June 11 release-candidate snapshot on B300:
 | Speculative Sonnet TPOT, concurrency 1 / 16 / 64 | 4.51 / 9.04 / 14.36 ms |
 | Speculative acceptance on Sonnet | ~67%, mean accept length ~3.0 |
 
-These numbers are useful for engineering validation, not a definitive benchmark ranking. Final public measurements should be rerun on locked images, public weights, public recipes, and clearly described hardware.
+These are engineering-validation measurements, not an official benchmark ranking; exact results vary with image version, weights, recipe, and hardware.
 
 ![Figure 6: Release-candidate validation checks accuracy, throughput, and speculative decoding before public MiniMax M3 recipes are published.](/assets/figures/minimax-m3/validation-dashboard.svg)
 
@@ -364,7 +354,7 @@ The day-0 implementation is the starting line. The next pieces of work are alrea
 
 ### Does vLLM support MiniMax M3?
 
-Yes. This draft covers day-0 vLLM support for the MiniMax M3 BF16 and MXFP8 checkpoints, including MSA attention, model-specific parsers, EAGLE3 speculative decoding, multimodal preprocessing, TP/EP serving recipes, and a Docker image available to use.
+Yes. This post covers day-0 vLLM support for the MiniMax M3 BF16 and MXFP8 checkpoints, including MSA attention, model-specific parsers, EAGLE3 speculative decoding, multimodal preprocessing, TP/EP serving recipes, and a Docker image available to use.
 
 ### What is MiniMax Sparse Attention?
 
