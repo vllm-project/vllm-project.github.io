@@ -36,7 +36,7 @@ vLLM ships initial day-0 support for MiniMax M3:
 - **Core architecture:** MiniMax Sparse Attention (MSA), a hybrid dense/sparse attention design that scores 128-token KV blocks, selects top blocks per query and KV group, and runs GQA attention over the selected blocks.
 - **Serving stack:** `minimax_m3` tool and reasoning parsers, thinking-mode control, text-only and multimodal paths, TP/EP deployment, prefix caching, chunked prefill, and a Docker image available to use.
 - **Performance work:** MSA prefill and decode kernels, indexer-score and top-k kernels, fused QKNorm + RoPE + KV insert, GemmaNorm and quantization-path optimizations, and MXFP8 MoE backend integration.
-- **Roadmap:** FP8 indexer/KV-cache work, NVFP4 paths, TRTLLM-Gen MoE, broader disaggregated serving recipes, context-parallel long-prefill work, and further multimodal gateway optimization.
+- **Roadmap:** FP8 indexer/KV-cache work, TRTLLM-Gen MoE, broader disaggregated serving recipes, context-parallel long-prefill work, and further multimodal gateway optimization.
 
 ## MiniMax M3 Support Matrix
 
@@ -139,7 +139,7 @@ For vLLM deployment, the release work includes model-specific multimodal preproc
 
 ### MXFP8 MoE Weights
 
-The MXFP8 checkpoint is designed for efficient large-scale serving. Validation has used the DeepGEMM MXFP8 MoE backend for Blackwell-class systems, and Marlin MXFP8 for Hopper-class systems. The roadmap includes deeper NVFP4-related paths as those kernels become available.
+The MXFP8 checkpoint is designed for efficient large-scale serving. Validation has used the DeepGEMM MXFP8 MoE backend for Blackwell-class systems, and Marlin MXFP8 for Hopper-class systems.
 
 ## vLLM Implementation
 
@@ -276,7 +276,7 @@ These numbers are useful for engineering validation, not a definitive benchmark 
 The day-0 implementation is the starting line. The next pieces of work are already in flight:
 
 - **FP8 indexer and KV-cache paths:** reduce KV-cache memory pressure and increase batch capacity while preserving sparse-attention accuracy.
-- **NVFP4 and TRTLLM-Gen MoE:** improve Blackwell performance for MXFP8/NVFP4 expert execution.
+- **TRTLLM-Gen MoE:** improve Blackwell performance for MXFP8 expert execution.
 - **Context parallelism:** improve very-long-context prefill scaling when one node is not enough.
 - **Disaggregated serving:** expand NIXL and prefill/decode disaggregation recipes for M3 traffic, building on the directions in [Large-Scale Serving with vLLM](/blog/2025-12-17-large-scale-serving).
 - **Kernel fusion:** reduce the many small indexer, top-k, quantization, and normalization kernels that MSA introduces.
@@ -302,7 +302,7 @@ The important starting points are `--block-size 128`, an explicit `--max-model-l
 
 ## Acknowledgments
 
-Thank you to the MiniMax team, NVIDIA, AMD, and the vLLM community for helping bring up day-0 MiniMax M3 support!
+Thank you to the teams at MiniMax, NVIDIA, AMD, Inferact and the vLLM community for helping bring up day-0 MiniMax M3 support!
 
 ## Related vLLM Reading
 
