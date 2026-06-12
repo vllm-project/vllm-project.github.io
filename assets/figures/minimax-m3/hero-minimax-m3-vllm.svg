@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1072" width="2048" height="1072">
+  <defs>
+    <!-- Subtle diagonal stripe pattern for accent bands (toned down) -->
+    <linearGradient id="goldFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fdb517" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#fdb517" stop-opacity="0.06"/>
+      <stop offset="70%" stop-color="#fdb517" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#fdb517" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="blueFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#30a2ff" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#30a2ff" stop-opacity="0.05"/>
+      <stop offset="70%" stop-color="#30a2ff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#30a2ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="goldFade2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fdb517" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#fdb517" stop-opacity="0.03"/>
+      <stop offset="70%" stop-color="#fdb517" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#fdb517" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="blueFade2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#30a2ff" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#30a2ff" stop-opacity="0.03"/>
+      <stop offset="70%" stop-color="#30a2ff" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#30a2ff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Top edge accent gradient -->
+    <linearGradient id="topAccent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fdb517"/>
+      <stop offset="50%" stop-color="#30a2ff"/>
+      <stop offset="100%" stop-color="#fdb517"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="2048" height="1072" fill="#fafafa" rx="0" ry="0"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="2048" height="4" fill="url(#topAccent)"/>
+
+  <!-- Diagonal accent bands — gold (subtle) -->
+  <g transform="rotate(-8, 1024, 536)">
+    <rect x="-200" y="160" width="2448" height="48" fill="url(#goldFade)" rx="4"/>
+    <rect x="-200" y="220" width="2448" height="24" fill="url(#goldFade2)" rx="4"/>
+  </g>
+
+  <!-- Diagonal accent bands — blue (subtle) -->
+  <g transform="rotate(-8, 1024, 536)">
+    <rect x="-200" y="760" width="2448" height="48" fill="url(#blueFade)" rx="4"/>
+    <rect x="-200" y="820" width="2448" height="24" fill="url(#blueFade2)" rx="4"/>
+  </g>
+
+  <!-- Additional subtle diagonal stripes -->
+  <g transform="rotate(-8, 1024, 536)" opacity="0.3">
+    <rect x="-200" y="270" width="2448" height="6" fill="url(#goldFade2)" rx="2"/>
+    <rect x="-200" y="730" width="2448" height="6" fill="url(#blueFade2)" rx="2"/>
+  </g>
+
+  <!-- vLLM official logo mark (geometric triangles) -->
+  <g transform="translate(944, 180) scale(1.1)">
+    <!-- Shadow triangles (gray) -->
+    <path fill="#d9d9d9" d="m28.465 51.84l0 55.307l-27.654 -55.307z"/>
+    <path fill="#d9d9d9" d="m28.464 107.15l21.73 0l18.653 -70.386l-25.575 13.462z"/>
+    <!-- Gold triangle -->
+    <path fill="#fdb515" d="m27.465 50.843l0 55.307l-27.654 -55.307z"/>
+    <!-- Blue triangle -->
+    <path fill="#30a2ff" d="m27.464 105.15l21.73 0l18.653 -70.386l-25.575 13.462z"/>
+    <!-- LLM text -->
+    <text x="72" y="106.5" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="64" font-weight="400" fill="#434343" letter-spacing="0">LLM</text>
+  </g>
+
+  <!-- Main headline -->
+  <text x="1024" y="500" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="100" font-weight="700" fill="#111111" letter-spacing="-1">
+    Day-0 Support for MiniMax M3
+  </text>
+
+  <!-- Secondary line -->
+  <text x="1024" y="600" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="72" font-weight="500" fill="#333333" letter-spacing="-1">
+    on vLLM!
+  </text>
+
+  <!-- Thin separator line -->
+  <line x1="724" y1="670" x2="1324" y2="670" stroke="#d0d0d0" stroke-width="1"/>
+
+  <!-- Footer chips — solid fills, strong colors, prominent -->
+  <!-- Chip 1: 1M Context -->
+  <g transform="translate(214, 780)">
+    <rect x="0" y="0" width="300" height="68" rx="34" fill="#fef3d0" stroke="#fdb517" stroke-opacity="0.8" stroke-width="2"/>
+    <circle cx="38" cy="34" r="8" fill="#fdb517" opacity="0.9"/>
+    <text x="60" y="42" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#7a5800" letter-spacing="0.3">1M Context</text>
+  </g>
+
+  <!-- Chip 2: MiniMax Sparse Attention -->
+  <g transform="translate(556, 780)">
+    <rect x="0" y="0" width="440" height="68" rx="34" fill="#dceefb" stroke="#30a2ff" stroke-opacity="0.8" stroke-width="2"/>
+    <circle cx="38" cy="34" r="8" fill="#30a2ff" opacity="0.9"/>
+    <text x="60" y="42" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#14567a" letter-spacing="0.3">MiniMax Sparse Attention</text>
+  </g>
+
+  <!-- Chip 3: MXFP8 MoE -->
+  <g transform="translate(1038, 780)">
+    <rect x="0" y="0" width="270" height="68" rx="34" fill="#fef3d0" stroke="#fdb517" stroke-opacity="0.8" stroke-width="2"/>
+    <circle cx="38" cy="34" r="8" fill="#fdb517" opacity="0.9"/>
+    <text x="60" y="42" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#7a5800" letter-spacing="0.3">MXFP8 MoE</text>
+  </g>
+
+  <!-- Chip 4: Multimodal -->
+  <g transform="translate(1350, 780)">
+    <rect x="0" y="0" width="280" height="68" rx="34" fill="#dceefb" stroke="#30a2ff" stroke-opacity="0.8" stroke-width="2"/>
+    <circle cx="38" cy="34" r="8" fill="#30a2ff" opacity="0.9"/>
+    <text x="60" y="42" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#14567a" letter-spacing="0.3">Multimodal</text>
+  </g>
+
+  <!-- Bottom accent bar mirroring top -->
+  <rect x="0" y="1068" width="2048" height="4" fill="url(#topAccent)"/>
+</svg>
