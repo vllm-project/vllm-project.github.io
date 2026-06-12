@@ -60,7 +60,6 @@ vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
   --tensor-parallel-size 8 \
   --enable-expert-parallel \
   --block-size 128 \
-  --max-model-len 1000000 \
   --tool-call-parser minimax_m3 \
   --reasoning-parser minimax_m3
 ```
@@ -73,7 +72,6 @@ vllm serve MiniMaxAI/MiniMax-M3 \
   --tensor-parallel-size 8 \
   --enable-expert-parallel \
   --block-size 128 \
-  --max-model-len 1000000 \
   --tool-call-parser minimax_m3 \
   --reasoning-parser minimax_m3
 ```
@@ -96,7 +94,6 @@ vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
   --tensor-parallel-size 8 \
   --enable-expert-parallel \
   --block-size 128 \
-  --max-model-len 1000000 \
   --tool-call-parser minimax_m3 \
   --reasoning-parser minimax_m3 \
   --speculative-config '{"method":"eagle3","model":"Inferact/MiniMax-M3-EAGLE3","num_speculative_tokens":3,"attention_backend":"FLASH_ATTN"}'
@@ -332,7 +329,7 @@ No. MXFP8 describes the model weight and MoE execution path. KV-cache dtype is a
 
 ### What settings matter most for 1M-token context?
 
-The important starting points are `--block-size 128`, an explicit `--max-model-len` target such as `1000000`, enough GPU memory for the chosen batch and context shape, and a recipe that states whether prefix caching, chunked prefill, and EAGLE3 speculative decoding are enabled.
+The important starting points are `--block-size 128`, enough GPU memory for the chosen batch and context shape, and a recipe that states whether prefix caching, chunked prefill, and EAGLE3 speculative decoding are enabled.
 
 ## Acknowledgments
 
