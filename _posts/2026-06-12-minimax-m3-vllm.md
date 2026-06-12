@@ -302,7 +302,7 @@ The important starting points are `--block-size 128`, an explicit `--max-model-l
 
 ## Acknowledgments
 
-Thank you to the MiniMax team, NVIDIA, AMD, and the vLLM community for helping bring up day-0 MiniMax M3 support!
+We want to thank the Minimax team for open-sourcing Minimax-M3, as well as Minimax leadership for their trust and support in vLLM! The model support is led by Inferact Inc., a company aiming to grow vLLM as the world's AI inference engine and accelerate AI progress by making inference cheaper and faster. NVIDIA and AMD contributed to the hardware support.
 
 ## Related vLLM Reading
 
