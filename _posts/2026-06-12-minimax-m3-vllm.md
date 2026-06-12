@@ -132,12 +132,14 @@ To enable EAGLE3, add a speculative decoding configuration to the serving comman
 
 ```bash
 vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
-  --trust-remote-code \
-  --tensor-parallel-size 8 \
-  --enable-expert-parallel \
   --block-size 128 \
+  --tensor-parallel-size 8 \
   --tool-call-parser minimax_m3 \
+  --enable-auto-tool-choice \
   --reasoning-parser minimax_m3 \
+  --mm-encoder-attn-backend FLASHINFER \
+  --mm-processor-cache-type shm \
+  --mm-encoder-tp-mode data \
   --speculative-config '{"method":"eagle3","model":"Inferact/MiniMax-M3-EAGLE3","num_speculative_tokens":3,"attention_backend":"FLASH_ATTN"}'
 ```
 
