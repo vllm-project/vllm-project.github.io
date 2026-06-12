@@ -60,6 +60,7 @@ For the MXFP8 checkpoint on a Blackwell-class node, the starting point is:
 vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
   --block-size 128 \
   --tensor-parallel-size 8 \
+  --enable-expert-parallel \
   --tool-call-parser minimax_m3 \
   --enable-auto-tool-choice \
   --reasoning-parser minimax_m3 \
@@ -74,6 +75,7 @@ For BF16:
 vllm serve MiniMaxAI/MiniMax-M3 \
   --block-size 128 \
   --tensor-parallel-size 8 \
+  --enable-expert-parallel \
   --tool-call-parser minimax_m3 \
   --enable-auto-tool-choice \
   --reasoning-parser minimax_m3 \
@@ -134,6 +136,7 @@ To enable EAGLE3, add a speculative decoding configuration to the serving comman
 vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
   --block-size 128 \
   --tensor-parallel-size 8 \
+  --enable-expert-parallel \
   --tool-call-parser minimax_m3 \
   --enable-auto-tool-choice \
   --reasoning-parser minimax_m3 \
