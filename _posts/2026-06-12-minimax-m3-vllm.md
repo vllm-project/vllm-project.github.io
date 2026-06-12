@@ -329,7 +329,7 @@ No. MXFP8 describes the model weight and MoE execution path. KV-cache dtype is a
 
 ### What settings matter most for 1M-token context?
 
-The important starting points are `--block-size 128`, enough GPU memory for the chosen batch and context shape, and a recipe that states whether prefix caching, chunked prefill, and EAGLE3 speculative decoding are enabled.
+The important starting points are `--block-size 128`, enough GPU memory for the chosen batch and context shape, and a recipe that states whether prefix caching, chunked prefill, and EAGLE3 speculative decoding are enabled. By default vLLM reads the context length from the model config, so you do not need to set `--max-model-len`. If you have limited GPU memory or do not need the full 1M-token window, you can pass `--max-model-len` to cap it lower and reduce KV-cache pressure.
 
 ## Acknowledgments
 
