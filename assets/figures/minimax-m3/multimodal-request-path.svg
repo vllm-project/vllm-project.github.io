@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <!-- Arrow marker -->
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" fill="#555">
+      <polygon points="0 0, 10 3.5, 0 7"/>
+    </marker>
+    <marker id="arrow-gold" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" fill="#c48a00">
+      <polygon points="0 0, 10 3.5, 0 7"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" fill="#1a7acc">
+      <polygon points="0 0, 10 3.5, 0 7"/>
+    </marker>
+    <!-- Drop shadow filter -->
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.10"/>
+    </filter>
+    <filter id="shadow-lg" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="2" dy="3" stdDeviation="5" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- White background -->
+  <rect width="1600" height="900" fill="#fff"/>
+
+  <!-- ===== CPU ZONE BACKGROUND ===== -->
+  <rect x="30" y="30" width="1130" height="840" rx="18" fill="#fffcf2" stroke="#fdb517" stroke-width="1.5" stroke-dasharray="8 4" opacity="0.55"/>
+  <text x="60" y="68" font-size="15" font-weight="600" fill="#b8860b" letter-spacing="1.5" text-transform="uppercase">CPU ZONE</text>
+
+  <!-- ===== GPU ZONE BACKGROUND ===== -->
+  <rect x="1200" y="30" width="370" height="840" rx="18" fill="#f0f7ff" stroke="#30a2ff" stroke-width="1.5" stroke-dasharray="8 4" opacity="0.55"/>
+  <text x="1230" y="68" font-size="15" font-weight="600" fill="#1a6faa" letter-spacing="1.5" text-transform="uppercase">GPU ZONE</text>
+
+  <!-- ===== 1. USER REQUEST BOX ===== -->
+  <rect x="60" y="310" width="180" height="260" rx="14" fill="#fff" stroke="#888" stroke-width="1.5" filter="url(#shadow-lg)"/>
+  <rect x="60" y="310" width="180" height="42" rx="14" fill="#f5f5f5"/>
+  <text x="150" y="338" text-anchor="middle" font-size="16" font-weight="700" fill="#333">User Request</text>
+  <!-- Divider -->
+  <line x1="75" y1="352" x2="225" y2="352" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Text icon -->
+  <rect x="85" y="370" width="28" height="28" rx="4" fill="#fdb517" opacity="0.15"/>
+  <text x="99" y="390" text-anchor="middle" font-size="16" fill="#b8860b">T</text>
+  <text x="125" y="390" font-size="14" fill="#555">Text</text>
+
+  <!-- Image icon -->
+  <rect x="85" y="415" width="28" height="28" rx="4" fill="#30a2ff" opacity="0.15"/>
+  <rect x="91" y="421" width="16" height="16" rx="2" fill="none" stroke="#30a2ff" stroke-width="1.5"/>
+  <circle cx="96" cy="427" r="2" fill="#30a2ff"/>
+  <polyline points="91,433 97,428 101,432 104,429 107,433" fill="none" stroke="#30a2ff" stroke-width="1"/>
+  <text x="125" y="435" font-size="14" fill="#555">Image</text>
+
+  <!-- Video icon -->
+  <rect x="85" y="460" width="28" height="28" rx="4" fill="#30a2ff" opacity="0.15"/>
+  <rect x="91" y="467" width="14" height="14" rx="2" fill="none" stroke="#30a2ff" stroke-width="1.5"/>
+  <polygon points="106,470 106,479 112,474.5" fill="#30a2ff"/>
+  <text x="125" y="480" font-size="14" fill="#555">Video</text>
+
+  <!-- Branch label -->
+  <text x="150" y="540" text-anchor="middle" font-size="11" fill="#999">multimodal input</text>
+
+  <!-- ===== FORK ARROWS FROM USER REQUEST ===== -->
+  <!-- Arrow to text branch (top) -->
+  <path d="M240,380 L310,260" stroke="#c48a00" stroke-width="2" fill="none" marker-end="url(#arrow-gold)"/>
+  <!-- Arrow to media branch (bottom) -->
+  <path d="M240,490 L310,580" stroke="#1a7acc" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+  <!-- Fork labels -->
+  <text x="260" y="300" font-size="12" fill="#b8860b" font-weight="600" transform="rotate(-28 260 300)">text tokens</text>
+  <text x="252" y="530" font-size="12" fill="#1a7acc" font-weight="600" transform="rotate(24 252 530)">media data</text>
+
+  <!-- ===== TEXT BRANCH (TOP) ===== -->
+  <rect x="320" y="225" width="190" height="60" rx="12" fill="#fff9e5" stroke="#fdb517" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="415" y="252" text-anchor="middle" font-size="15" font-weight="600" fill="#8a6200">Text Tokenization</text>
+  <text x="415" y="270" text-anchor="middle" font-size="11" fill="#b89500">token IDs</text>
+
+  <!-- Long arrow from text tokenization to Combined Payload -->
+  <line x1="510" y1="255" x2="968" y2="410" stroke="#c48a00" stroke-width="2" marker-end="url(#arrow-gold)"/>
+
+  <!-- MEDIA BRANCH (BOTTOM): CPU-Side Preprocessing -->
+  <!-- Background area for media pipeline -->
+  <rect x="310" y="530" width="675" height="150" rx="14" fill="#fff7e0" stroke="#fdb517" stroke-width="1" stroke-dasharray="6 3" opacity="0.6"/>
+  <text x="635" y="560" text-anchor="middle" font-size="13" font-weight="700" fill="#b8860b" letter-spacing="1">CPU-SIDE PREPROCESSING</text>
+
+  <!-- Step 1: Download -->
+  <rect x="325" y="580" width="90" height="48" rx="8" fill="#fff" stroke="#d4a017" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="370" y="609" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Download</text>
+
+  <!-- Arrow -->
+  <line x1="415" y1="604" x2="435" y2="604" stroke="#c48a00" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+
+  <!-- Step 2: Decode -->
+  <rect x="440" y="580" width="80" height="48" rx="8" fill="#fff" stroke="#d4a017" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="480" y="609" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Decode</text>
+
+  <!-- Arrow -->
+  <line x1="520" y1="604" x2="540" y2="604" stroke="#c48a00" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+
+  <!-- Step 3: Frame Sampling -->
+  <rect x="545" y="575" width="100" height="56" rx="8" fill="#fff" stroke="#d4a017" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="595" y="601" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Frame</text>
+  <text x="595" y="617" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Sampling</text>
+  <text x="595" y="641" text-anchor="middle" font-size="9" fill="#999">(video)</text>
+
+  <!-- Arrow -->
+  <line x1="645" y1="604" x2="665" y2="604" stroke="#c48a00" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+
+  <!-- Step 4: Resize / Normalize -->
+  <rect x="670" y="575" width="105" height="56" rx="8" fill="#fff" stroke="#d4a017" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="722" y="601" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Resize /</text>
+  <text x="722" y="617" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Normalize</text>
+
+  <!-- Arrow -->
+  <line x1="775" y1="604" x2="795" y2="604" stroke="#c48a00" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+
+  <!-- Step 5: Patchify -->
+  <rect x="800" y="580" width="82" height="48" rx="8" fill="#fff" stroke="#d4a017" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="841" y="609" text-anchor="middle" font-size="12" font-weight="600" fill="#555">Patchify</text>
+
+  <!-- Arrow -->
+  <line x1="882" y1="604" x2="900" y2="604" stroke="#c48a00" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+
+  <!-- Step 6: Grid Metadata -->
+  <rect x="905" y="575" width="60" height="56" rx="8" fill="#fff" stroke="#d4a017" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="935" y="598" text-anchor="middle" font-size="11" font-weight="600" fill="#555">Grid</text>
+  <text x="935" y="614" text-anchor="middle" font-size="11" font-weight="600" fill="#555">Meta</text>
+  <text x="935" y="627" text-anchor="middle" font-size="11" font-weight="600" fill="#555">data</text>
+
+  <!-- Arrow from media branch to Combined Payload -->
+  <path d="M965,603 L975,520 L1010,490" stroke="#1a7acc" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+
+  <!-- ===== 3. COMBINED PAYLOAD (Merge Point) ===== -->
+  <rect x="970" y="380" width="170" height="110" rx="14" fill="#fff" stroke="#666" stroke-width="2" filter="url(#shadow-lg)"/>
+  <rect x="970" y="380" width="170" height="52" rx="14" fill="#f0f0f0"/>
+  <text x="1055" y="405" text-anchor="middle" font-size="15" font-weight="700" fill="#333">Combined</text>
+  <text x="1055" y="425" text-anchor="middle" font-size="15" font-weight="700" fill="#333">Payload</text>
+  <line x1="985" y1="432" x2="1125" y2="432" stroke="#ddd" stroke-width="1"/>
+  <text x="1055" y="448" text-anchor="middle" font-size="11" fill="#888">token_ids +</text>
+  <text x="1055" y="464" text-anchor="middle" font-size="11" fill="#888">pixel_values +</text>
+  <text x="1055" y="480" text-anchor="middle" font-size="11" fill="#888">mm_kwargs</text>
+
+  <!-- ===== ARROW: Combined Payload to GPU Worker ===== -->
+  <line x1="1140" y1="435" x2="1230" y2="435" stroke="#555" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="1185" y="425" text-anchor="middle" font-size="11" fill="#666" font-weight="600">send</text>
+
+  <!-- ===== CPU / GPU BOUNDARY INDICATOR ===== -->
+  <line x1="1185" y1="100" x2="1185" y2="820" stroke="#aaa" stroke-width="1.5" stroke-dasharray="10 5" opacity="0.5"/>
+  <text x="1185" y="848" text-anchor="middle" font-size="12" fill="#999" font-style="italic">CPU | GPU boundary</text>
+
+  <!-- ===== 4. vLLM GPU WORKER ===== -->
+  <rect x="1240" y="280" width="310" height="320" rx="16" fill="#e8f2fc" stroke="#30a2ff" stroke-width="2" filter="url(#shadow-lg)"/>
+  <!-- Header bar -->
+  <rect x="1240" y="280" width="310" height="50" rx="16" fill="#30a2ff"/>
+  <rect x="1240" y="310" width="310" height="20" fill="#30a2ff"/>
+  <text x="1395" y="312" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">vLLM GPU Worker</text>
+
+  <!-- Sub sections inside GPU worker -->
+  <!-- Vision Encoder -->
+  <rect x="1265" y="350" width="260" height="55" rx="10" fill="#fff" stroke="#30a2ff" stroke-width="1" opacity="0.9"/>
+  <text x="1395" y="375" text-anchor="middle" font-size="14" font-weight="600" fill="#1a6faa">Vision Encoder</text>
+  <text x="1395" y="393" text-anchor="middle" font-size="11" fill="#6aafdb">image/video feature extraction</text>
+
+  <!-- Arrow inside GPU -->
+  <line x1="1395" y1="405" x2="1395" y2="425" stroke="#30a2ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+  <!-- Language Model -->
+  <rect x="1265" y="430" width="260" height="55" rx="10" fill="#fff" stroke="#30a2ff" stroke-width="1" opacity="0.9"/>
+  <text x="1395" y="455" text-anchor="middle" font-size="14" font-weight="600" fill="#1a6faa">Language Model</text>
+  <text x="1395" y="473" text-anchor="middle" font-size="11" fill="#6aafdb">MiniMax-M3 transformer</text>
+
+  <!-- Arrow inside GPU -->
+  <line x1="1395" y1="485" x2="1395" y2="505" stroke="#30a2ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+
+  <!-- KV Cache / Decoding -->
+  <rect x="1265" y="510" width="260" height="55" rx="10" fill="#fff" stroke="#30a2ff" stroke-width="1" opacity="0.9"/>
+  <text x="1395" y="535" text-anchor="middle" font-size="14" font-weight="600" fill="#1a6faa">KV Cache + Decoding</text>
+  <text x="1395" y="553" text-anchor="middle" font-size="11" fill="#6aafdb">autoregressive generation</text>
+
+  <!-- "Model Execution" label under GPU box -->
+  <text x="1395" y="580" text-anchor="middle" font-size="12" fill="#1a6faa" font-weight="600" font-style="italic">Model Execution</text>
+
+  <!-- Output arrow from GPU worker -->
+  <rect x="1320" y="640" width="150" height="45" rx="10" fill="#30a2ff" filter="url(#shadow)"/>
+  <text x="1395" y="668" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Output Tokens</text>
+  <line x1="1395" y1="600" x2="1395" y2="640" stroke="#30a2ff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- ===== TITLE ===== -->
+  <text x="800" y="140" text-anchor="middle" font-size="26" font-weight="800" fill="#222">Multimodal Request Path for MiniMax M3 in vLLM</text>
+  <text x="800" y="170" text-anchor="middle" font-size="15" fill="#777">How text, image, and video inputs are preprocessed on CPU before GPU model execution</text>
+
+  <!-- ===== LEGEND ===== -->
+  <rect x="60" y="770" width="340" height="80" rx="10" fill="#fff" stroke="#ddd" stroke-width="1"/>
+  <text x="80" y="795" font-size="12" font-weight="700" fill="#555">Legend:</text>
+  <line x1="140" y1="790" x2="175" y2="790" stroke="#c48a00" stroke-width="2"/>
+  <text x="182" y="795" font-size="12" fill="#555">Text path</text>
+  <line x1="260" y1="790" x2="295" y2="790" stroke="#1a7acc" stroke-width="2"/>
+  <text x="302" y="795" font-size="12" fill="#555">Media path</text>
+  <rect x="100" y="810" width="20" height="14" rx="3" fill="#fff9e5" stroke="#fdb517" stroke-width="1"/>
+  <text x="128" y="822" font-size="12" fill="#555">CPU preprocessing</text>
+  <rect x="280" y="810" width="20" height="14" rx="3" fill="#e8f2fc" stroke="#30a2ff" stroke-width="1"/>
+  <text x="308" y="822" font-size="12" fill="#555">GPU execution</text>
+</svg>
