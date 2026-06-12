@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrowGray" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#b0b8c4"/>
+    </marker>
+    <marker id="arrowGold" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fdb517"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#30a2ff"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="white"/>
+
+  <!-- ========== TITLE ========== -->
+  <text x="800" y="52" text-anchor="middle" fill="#1e293b" font-size="22" font-weight="700" letter-spacing="0.3">
+    Prefill Scheduling: Query-Major vs. KV-Block-Major
+  </text>
+  <line x1="200" y1="72" x2="1400" y2="72" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- ========== CENTER DIVIDER ========== -->
+  <line x1="800" y1="90" x2="800" y2="860" stroke="#e5e7eb" stroke-width="1.5" stroke-dasharray="8,6"/>
+
+  <!-- ================================================================ -->
+  <!-- LEFT PANEL: Query-Major                                          -->
+  <!-- ================================================================ -->
+
+  <!-- Panel label -->
+  <text x="400" y="115" text-anchor="middle" fill="#64748b" font-size="18" font-weight="600">Query-Major</text>
+  <text x="400" y="140" text-anchor="middle" fill="#94a3b8" font-size="13">Each query loads its own KV blocks from HBM</text>
+
+  <!-- HBM box -->
+  <rect x="520" y="195" width="180" height="430" rx="10" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="610" y="222" text-anchor="middle" fill="#94a3b8" font-size="13" font-weight="600" letter-spacing="0.5">HBM</text>
+
+  <!-- KV blocks inside HBM -->
+  <rect x="545" y="240" width="130" height="34" rx="6" fill="#f1f5f9" stroke="#d1d5db" stroke-width="1"/>
+  <text x="610" y="262" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="500">Block 2</text>
+
+  <rect x="545" y="286" width="130" height="34" rx="6" fill="#f1f5f9" stroke="#d1d5db" stroke-width="1"/>
+  <text x="610" y="308" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="500">Block 5</text>
+
+  <rect x="545" y="340" width="130" height="34" rx="6" fill="#fef9ec" fill-opacity="1" stroke="#fdb517" stroke-width="1.5" stroke-opacity="1" opacity="1"/>
+  <text x="610" y="362" text-anchor="middle" fill="#b8860b" fill-opacity="1" font-size="12" font-weight="600">Block 7</text>
+
+  <rect x="545" y="394" width="130" height="34" rx="6" fill="#fef9ec" fill-opacity="1" stroke="#fdb517" stroke-width="1.5" stroke-opacity="1" opacity="1"/>
+  <text x="610" y="416" text-anchor="middle" fill="#b8860b" fill-opacity="1" font-size="12" font-weight="600">Block 7</text>
+
+  <rect x="545" y="448" width="130" height="34" rx="6" fill="#fef9ec" fill-opacity="1" stroke="#fdb517" stroke-width="1.5" stroke-opacity="1" opacity="1"/>
+  <text x="610" y="470" text-anchor="middle" fill="#b8860b" fill-opacity="1" font-size="12" font-weight="600">Block 7</text>
+
+  <rect x="545" y="502" width="130" height="34" rx="6" fill="#fef9ec" fill-opacity="1" stroke="#fdb517" stroke-width="1.5" stroke-opacity="1" opacity="1"/>
+  <text x="610" y="524" text-anchor="middle" fill="#b8860b" fill-opacity="1" font-size="12" font-weight="600">Block 7</text>
+
+  <!-- "..." between block 5 and the block 7s -->
+  <text x="610" y="576" text-anchor="middle" fill="#cbd5e1" font-size="14">... other blocks ...</text>
+
+  <!-- Query column -->
+  <rect x="155" y="268" width="80" height="38" rx="8" fill="#fef9ec" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="195" y="293" text-anchor="middle" fill="#92710a" font-size="14" font-weight="600">Q1</text>
+
+  <rect x="155" y="332" width="80" height="38" rx="8" fill="#fef9ec" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="195" y="357" text-anchor="middle" fill="#92710a" font-size="14" font-weight="600">Q2</text>
+
+  <rect x="155" y="396" width="80" height="38" rx="8" fill="#fef9ec" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="195" y="421" text-anchor="middle" fill="#92710a" font-size="14" font-weight="600">Q3</text>
+
+  <rect x="155" y="460" width="80" height="38" rx="8" fill="#fef9ec" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="195" y="485" text-anchor="middle" fill="#92710a" font-size="14" font-weight="600">Q4</text>
+
+  <!-- Arrows from each query to HBM (each loads Block 7 separately) -->
+  <!-- Q1 -> Block 7 -->
+  <line x1="235" y1="287" x2="540" y2="355" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowGray)"/>
+  <!-- Q2 -> Block 7 -->
+  <line x1="235" y1="351" x2="540" y2="409" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowGray)"/>
+  <!-- Q3 -> Block 7 -->
+  <line x1="235" y1="415" x2="540" y2="463" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowGray)"/>
+  <!-- Q4 -> Block 7 -->
+  <line x1="235" y1="479" x2="540" y2="517" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowGray)"/>
+
+  <!-- Q1 also loads Block 2 and Block 5 (subtle) -->
+  <line x1="235" y1="280" x2="540" y2="255" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4" marker-end="url(#arrowGray)"/>
+  <line x1="235" y1="284" x2="540" y2="301" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4" marker-end="url(#arrowGray)"/>
+
+  <!-- Annotation: repeated loads -->
+  <text x="400" y="650" text-anchor="middle" fill="#92710a" font-size="14" font-weight="600">Block 7 loaded 4 separate times</text>
+  <text x="400" y="672" text-anchor="middle" fill="#b0b8c4" font-size="12">Redundant HBM bandwidth</text>
+
+  <!-- ================================================================ -->
+  <!-- RIGHT PANEL: KV-Block-Major                                      -->
+  <!-- ================================================================ -->
+
+  <!-- Panel label -->
+  <text x="1200" y="115" text-anchor="middle" fill="#64748b" font-size="18" font-weight="600">KV-Block-Major</text>
+  <text x="1200" y="140" text-anchor="middle" fill="#94a3b8" font-size="13">Each KV block loaded once, reused across queries</text>
+
+  <!-- Step 1 label -->
+  <rect x="860" y="180" width="200" height="30" rx="6" fill="#eef6ff" stroke="#30a2ff" stroke-width="1"/>
+  <text x="960" y="200" text-anchor="middle" fill="#30a2ff" font-size="13" font-weight="600">1. Build K-to-Q Map</text>
+
+  <!-- CSR mapping box -->
+  <rect x="860" y="225" width="200" height="200" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1"/>
+  <text x="960" y="250" text-anchor="middle" fill="#64748b" font-size="11" font-weight="600" letter-spacing="0.5">BLOCK-TO-QUERY CSR</text>
+
+  <!-- Mapping rows -->
+  <text x="888" y="280" fill="#94a3b8" font-size="12" font-weight="500">Block 2</text>
+  <line x1="950" y1="276" x2="976" y2="276" stroke="#d1d5db" stroke-width="1" marker-end="url(#arrowGray)"/>
+  <text x="990" y="280" fill="#64748b" font-size="12">Q1</text>
+
+  <text x="888" y="310" fill="#94a3b8" font-size="12" font-weight="500">Block 5</text>
+  <line x1="950" y1="306" x2="976" y2="306" stroke="#d1d5db" stroke-width="1" marker-end="url(#arrowGray)"/>
+  <text x="990" y="310" fill="#64748b" font-size="12">Q1, Q3</text>
+
+  <line x1="880" y1="325" x2="1040" y2="325" stroke="#e5e7eb" stroke-width="0.5"/>
+
+  <text x="888" y="350" fill="#b8860b" font-size="12" font-weight="600">Block 7</text>
+  <line x1="950" y1="346" x2="976" y2="346" stroke="#fdb517" stroke-width="1.5" marker-end="url(#arrowGold)"/>
+  <text x="990" y="350" fill="#92710a" font-size="12" font-weight="600">Q1, Q2, Q3, Q4</text>
+
+  <line x1="880" y1="365" x2="1040" y2="365" stroke="#e5e7eb" stroke-width="0.5"/>
+
+  <text x="960" y="395" text-anchor="middle" fill="#cbd5e1" font-size="11">...</text>
+
+  <!-- Step 2 label -->
+  <rect x="1120" y="180" width="260" height="30" rx="6" fill="#fef9ec" stroke="#fdb517" stroke-width="1"/>
+  <text x="1250" y="200" text-anchor="middle" fill="#b8860b" font-size="13" font-weight="600">2. Block-Major Execution</text>
+
+  <!-- HBM source -->
+  <rect x="1130" y="248" width="100" height="50" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="1180" y="270" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="600">HBM</text>
+  <text x="1180" y="287" text-anchor="middle" fill="#b8860b" font-size="12" font-weight="600">Block 7</text>
+
+  <!-- Arrow HBM -> SRAM -->
+  <line x1="1230" y1="273" x2="1278" y2="273" stroke="#fdb517" stroke-width="1.5" marker-end="url(#arrowGold)"/>
+  <text x="1254" y="263" text-anchor="middle" fill="#b8860b" font-size="10">1x load</text>
+
+  <!-- SRAM box -->
+  <rect x="1284" y="248" width="100" height="50" rx="8" fill="#fef9ec" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="1334" y="270" text-anchor="middle" fill="#92710a" font-size="11" font-weight="600">SRAM</text>
+  <text x="1334" y="287" text-anchor="middle" fill="#b8860b" font-size="12" font-weight="600">Block 7</text>
+
+  <!-- Fan-out from SRAM to queries -->
+  <line x1="1384" y1="258" x2="1430" y2="240" stroke="#30a2ff" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <line x1="1384" y1="266" x2="1430" y2="271" stroke="#30a2ff" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <line x1="1384" y1="278" x2="1430" y2="302" stroke="#30a2ff" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <line x1="1384" y1="288" x2="1430" y2="333" stroke="#30a2ff" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- Query labels -->
+  <rect x="1436" y="228" width="56" height="26" rx="6" fill="#eef6ff" stroke="#30a2ff" stroke-width="1"/>
+  <text x="1464" y="246" text-anchor="middle" fill="#30a2ff" font-size="12" font-weight="600">Q1</text>
+
+  <rect x="1436" y="259" width="56" height="26" rx="6" fill="#eef6ff" stroke="#30a2ff" stroke-width="1"/>
+  <text x="1464" y="277" text-anchor="middle" fill="#30a2ff" font-size="12" font-weight="600">Q2</text>
+
+  <rect x="1436" y="290" width="56" height="26" rx="6" fill="#eef6ff" stroke="#30a2ff" stroke-width="1"/>
+  <text x="1464" y="308" text-anchor="middle" fill="#30a2ff" font-size="12" font-weight="600">Q3</text>
+
+  <rect x="1436" y="321" width="56" height="26" rx="6" fill="#eef6ff" stroke="#30a2ff" stroke-width="1"/>
+  <text x="1464" y="339" text-anchor="middle" fill="#30a2ff" font-size="12" font-weight="600">Q4</text>
+
+  <!-- "reuse" annotation -->
+  <text x="1464" y="372" text-anchor="middle" fill="#94a3b8" font-size="11">reuse in SRAM</text>
+
+  <!-- Arrow from Step 1 to Step 2 -->
+  <line x1="1060" y1="330" x2="1126" y2="273" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrowGray)"/>
+
+  <!-- Step 3: Log-Sum-Exp -->
+  <rect x="1120" y="420" width="260" height="30" rx="6" fill="#f8fafc" stroke="#d1d5db" stroke-width="1"/>
+  <text x="1250" y="440" text-anchor="middle" fill="#64748b" font-size="13" font-weight="600">3. Log-Sum-Exp Combine</text>
+
+  <!-- LSE illustration -->
+  <rect x="1120" y="466" width="260" height="130" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1"/>
+
+  <!-- Q1 partial results -->
+  <text x="1140" y="494" fill="#94a3b8" font-size="12" font-weight="500">Q1:</text>
+  <rect x="1170" y="480" width="52" height="22" rx="4" fill="#f1f5f9" stroke="#d1d5db" stroke-width="1"/>
+  <text x="1196" y="496" text-anchor="middle" fill="#94a3b8" font-size="10">Blk 2</text>
+  <text x="1230" y="494" fill="#cbd5e1" font-size="12">+</text>
+  <rect x="1242" y="480" width="52" height="22" rx="4" fill="#f1f5f9" stroke="#d1d5db" stroke-width="1"/>
+  <text x="1268" y="496" text-anchor="middle" fill="#94a3b8" font-size="10">Blk 5</text>
+  <text x="1302" y="494" fill="#cbd5e1" font-size="12">+</text>
+  <rect x="1314" y="480" width="52" height="22" rx="4" fill="#fef9ec" stroke="#fdb517" stroke-width="1"/>
+  <text x="1340" y="496" text-anchor="middle" fill="#b8860b" font-size="10">Blk 7</text>
+
+  <!-- Q2 partial results -->
+  <text x="1140" y="524" fill="#94a3b8" font-size="12" font-weight="500">Q2:</text>
+  <rect x="1170" y="510" width="52" height="22" rx="4" fill="#f1f5f9" stroke="#d1d5db" stroke-width="1"/>
+  <text x="1196" y="526" text-anchor="middle" fill="#94a3b8" font-size="10">Blk 3</text>
+  <text x="1230" y="524" fill="#cbd5e1" font-size="12">+</text>
+  <rect x="1242" y="510" width="52" height="22" rx="4" fill="#fef9ec" stroke="#fdb517" stroke-width="1"/>
+  <text x="1268" y="526" text-anchor="middle" fill="#b8860b" font-size="10">Blk 7</text>
+
+  <!-- Q3, Q4 ellipsis -->
+  <text x="1250" y="568" text-anchor="middle" fill="#cbd5e1" font-size="12">...</text>
+
+  <!-- LSE arrow and result -->
+  <text x="1250" y="590" text-anchor="middle" fill="#64748b" font-size="11">combine via LSE per query</text>
+
+  <!-- Right panel annotation -->
+  <text x="1200" y="650" text-anchor="middle" fill="#30a2ff" font-size="14" font-weight="600">Each block loaded exactly once</text>
+  <text x="1200" y="672" text-anchor="middle" fill="#b0b8c4" font-size="12">Zero redundant HBM reads</text>
+
+  <!-- ========== BOTTOM SUMMARY LINE ========== -->
+  <line x1="200" y1="740" x2="1400" y2="740" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="800" y="778" text-anchor="middle" fill="#94a3b8" font-size="13">
+    With sparse attention, different queries select different KV blocks. KV-block-major scheduling loads each block once and reuses it in SRAM.
+  </text>
+
+</svg>

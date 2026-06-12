@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <defs>
+    <filter id="cardShadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#000" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="barBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#30a2ff"/>
+      <stop offset="100%" stop-color="#2b8fe0"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <!-- Title -->
+  <rect x="0" y="0" width="1600" height="72" fill="#f8f8f8"/>
+  <text x="800" y="46" fill="#1a1a2e" font-size="26" font-weight="700" text-anchor="middle">Release-Candidate Validation</text>
+
+  <!-- Single centered card -->
+  <g transform="translate(260, 96)">
+    <rect x="0" y="0" width="1080" height="680" rx="10" fill="#ffffff" stroke="#e2e2e8" stroke-width="1.2" filter="url(#cardShadow)"/>
+
+    <!-- Header -->
+    <rect x="0" y="0" width="1080" height="52" rx="10" fill="#f8f8f8"/>
+    <rect x="0" y="42" width="1080" height="10" fill="#f8f8f8"/>
+    <rect x="0" y="48" width="1080" height="3" fill="#fdb517" opacity="0.5"/>
+    <text x="40" y="34" fill="#1a1a2e" font-size="16" font-weight="700" letter-spacing="0.4">ACCURACY &amp; THROUGHPUT</text>
+
+    <!-- ── Accuracy section ── -->
+    <text x="40" y="100" fill="#6b7280" font-size="14" font-weight="600" letter-spacing="0.5">GSM8K ACCURACY</text>
+
+    <!-- Strict Match -->
+    <g transform="translate(40, 122)">
+      <text x="0" y="18" fill="#4b5563" font-size="14" font-weight="500">Strict Match</text>
+      <text x="1000" y="18" fill="#1a1a2e" font-size="14" font-weight="700" text-anchor="end">91.51%</text>
+      <rect x="0" y="30" width="1000" height="30" rx="5" fill="#f0f0f4"/>
+      <rect x="0" y="30" width="915" height="30" rx="5" fill="url(#barBlue)"/>
+      <text x="898" y="51" fill="#ffffff" font-size="14" font-weight="700">91.51%</text>
+    </g>
+
+    <!-- Flexible Match -->
+    <g transform="translate(40, 198)">
+      <text x="0" y="18" fill="#4b5563" font-size="14" font-weight="500">Flexible Match</text>
+      <text x="1000" y="18" fill="#1a1a2e" font-size="14" font-weight="700" text-anchor="end">91.66%</text>
+      <rect x="0" y="30" width="1000" height="30" rx="5" fill="#f0f0f4"/>
+      <rect x="0" y="30" width="917" height="30" rx="5" fill="url(#barBlue)"/>
+      <text x="900" y="51" fill="#ffffff" font-size="14" font-weight="700">91.66%</text>
+    </g>
+
+    <!-- Delta chip -->
+    <g transform="translate(40, 268)">
+      <rect x="0" y="0" width="170" height="36" rx="6" fill="#f0f9ff" stroke="#30a2ff" stroke-width="0.8"/>
+      <text x="16" y="24" fill="#30a2ff" font-size="14" font-weight="600">+0.15 pp flexible</text>
+    </g>
+
+    <!-- Divider -->
+    <line x1="40" y1="330" x2="1040" y2="330" stroke="#e8e8ec" stroke-width="1"/>
+
+    <!-- ── Throughput section ── -->
+    <text x="40" y="370" fill="#6b7280" font-size="14" font-weight="600" letter-spacing="0.5">SHAREGPT THROUGHPUT @ 256 REQUESTS</text>
+
+    <!-- Two metrics side by side -->
+    <!-- Output throughput (left) -->
+    <g transform="translate(40, 396)">
+      <text x="0" y="18" fill="#9ca3af" font-size="13" font-weight="500">Output Throughput</text>
+      <text x="0" y="88" fill="#1a1a2e" font-size="72" font-weight="800">8,530</text>
+      <text x="330" y="88" fill="#6b7280" font-size="28" font-weight="400">tok/s</text>
+      <rect x="0" y="110" width="460" height="10" rx="3" fill="#f0f0f4"/>
+      <rect x="0" y="110" width="390" height="10" rx="3" fill="url(#barBlue)"/>
+    </g>
+
+    <!-- TPOT (right) -->
+    <g transform="translate(560, 396)">
+      <text x="0" y="18" fill="#9ca3af" font-size="13" font-weight="500">Time per Output Token (TPOT)</text>
+      <text x="0" y="88" fill="#1a1a2e" font-size="72" font-weight="800">56.0</text>
+      <text x="195" y="88" fill="#6b7280" font-size="28" font-weight="400">ms</text>
+      <rect x="0" y="110" width="460" height="10" rx="3" fill="#f0f0f4"/>
+      <rect x="0" y="110" width="184" height="10" rx="3" fill="#fdb517"/>
+      <text x="198" y="119" fill="#9ca3af" font-size="11" font-weight="400">lower is better</text>
+    </g>
+
+    <!-- Batch size badge -->
+    <g transform="translate(40, 560)">
+      <rect x="0" y="0" width="140" height="34" rx="6" fill="#f8f8f8" stroke="#e2e2e8" stroke-width="0.8"/>
+      <text x="16" y="22" fill="#6b7280" font-size="13" font-weight="600">256 requests</text>
+    </g>
+    <g transform="translate(200, 560)">
+      <rect x="0" y="0" width="100" height="34" rx="6" fill="#f8f8f8" stroke="#e2e2e8" stroke-width="0.8"/>
+      <text x="16" y="22" fill="#6b7280" font-size="13" font-weight="600">B300</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(0, 810)">
+    <rect x="0" y="0" width="1600" height="90" fill="#f8f8f8"/>
+    <line x1="0" y1="0" x2="1600" y2="0" stroke="#e8e8ec" stroke-width="1"/>
+    <text x="800" y="38" fill="#6b7280" font-size="14" font-weight="500" text-anchor="middle" letter-spacing="0.3">B300  ·  MiniMax-M3-MXFP8  ·  TP8+EP  ·  Release-Candidate Snapshot</text>
+    <text x="800" y="62" fill="#9ca3af" font-size="12" font-weight="400" text-anchor="middle" font-style="italic">Engineering validation — not final public benchmark claims</text>
+  </g>
+</svg>
