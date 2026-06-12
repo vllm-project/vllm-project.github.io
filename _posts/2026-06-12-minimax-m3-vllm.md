@@ -26,6 +26,7 @@ vLLM ships initial day-0 support for MiniMax M3:
 - **Core architecture:** MiniMax Sparse Attention (MSA), a hybrid dense/sparse attention design that scores 128-token KV blocks, selects top blocks per query and KV group, and runs GQA attention over the selected blocks.
 - **Serving stack:** `minimax_m3` tool and reasoning parsers, thinking-mode control, text-only and multimodal paths, TP/EP deployment, prefix caching, chunked prefill, EAGLE3 speculative decoding, and a Docker image available to use.
 - **Speculative decoding:** Day-0 EAGLE3 support with the draft model released at [`Inferact/MiniMax-M3-EAGLE3`](https://huggingface.co/Inferact/MiniMax-M3-EAGLE3).
+- **RL post-training:** Day-0 MiniMax M3 GRPO post-training in [NVIDIA NeMo RL](https://github.com/NVIDIA-NeMo/RL), using vLLM as the generation backend.
 - **Performance work:** MSA prefill and decode kernels, indexer-score and top-k kernels, fused QKNorm + RoPE + KV insert, GemmaNorm and quantization-path optimizations, and MXFP8 MoE backend integration.
 - **Roadmap:** FP8 indexer/KV-cache work, TRTLLM-Gen MoE, broader disaggregated serving recipes, context-parallel long-prefill work, and further multimodal gateway optimization.
 
@@ -339,6 +340,12 @@ These are engineering-validation measurements, not an official benchmark ranking
 
 ![Figure 6: Release-candidate validation checks accuracy, throughput, and speculative decoding before public MiniMax M3 recipes are published.](/assets/figures/minimax-m3/validation-dashboard.svg)
 
+## Beyond Serving: RL Post-Training with NeMo RL
+
+Day-0 support is not only about inference serving. Reinforcement-learning frameworks use vLLM as the generation engine that produces rollouts inside the training loop, so the same MiniMax M3 work that powers serving in [vLLM PR #45381](https://github.com/vllm-project/vllm/pull/45381) also makes M3 post-training possible on day 0.
+
+[NVIDIA NeMo RL](https://github.com/NVIDIA-NeMo/RL) now runs MiniMax M3 with vLLM as a non-colocated generation backend. Short GRPO (Group Relative Policy Optimization) post-training runs have been validated on the BF16 checkpoint, using NeMo AutoModel with expert parallelism and BF16 vLLM generation. Long-run convergence and parallelism strategies beyond expert parallel are still being validated, but the early results show what a solid serving path is worth: the engine that serves M3 is also the one that drives the rollout phase of RL training. The [NeMo RL MiniMax M3 guide](https://github.com/NVIDIA-NeMo/RL/blob/minimax-m3/docs/guides/minimax-m3.md) has the reference recipe.
+
 ## Roadmap: The Path Ahead
 
 The day-0 implementation is the starting line. The next pieces of work are already in flight:
@@ -370,7 +377,7 @@ The important starting points are `--block-size 128`, enough GPU memory for the 
 
 ## Acknowledgments
 
-Thank you to the teams at MiniMax, NVIDIA, AMD, Inferact and the vLLM community for helping bring up day-0 MiniMax M3 support!
+We want to thank the MiniMax team for open-sourcing MiniMax-M3, as well as MiniMax leadership for their trust and support in vLLM! The model support is led by Inferact Inc., a company aiming to grow vLLM as the world's AI inference engine and accelerate AI progress by making inference cheaper and faster. NVIDIA and AMD contributed to the hardware support.
 
 ## Related vLLM Reading
 
@@ -379,3 +386,4 @@ MiniMax M3 builds on several areas of vLLM:
 - [Anatomy of vLLM](/blog/2025-09-05-anatomy-of-vllm) for scheduler, KV cache, prefix caching, and distributed execution background.
 - [Speculative Decoding in vLLM](/blog/2024-10-17-spec-decode) and [P-EAGLE](/blog/2026-03-13-p-eagle) for the draft-model path.
 - [Large-Scale Serving with vLLM](/blog/2025-12-17-large-scale-serving), [KV Offloading Connector](/blog/2026-01-08-kv-offloading-connector), and [Moriio KV Connector](/blog/2026-04-07-moriio-kv-connector) for prefix reuse, KV movement, and disaggregated serving.
+- [NeMo RL: MiniMax M3 guide](https://github.com/NVIDIA-NeMo/RL/blob/minimax-m3/docs/guides/minimax-m3.md) for GRPO RL post-training with vLLM as the generation backend.
