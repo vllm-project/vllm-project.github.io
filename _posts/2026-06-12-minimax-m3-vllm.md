@@ -76,22 +76,43 @@ vllm serve MiniMaxAI/MiniMax-M3 \
   --reasoning-parser minimax_m3
 ```
 
-On AMD ROCm (MI350X/MI355X, MI300X/MI325X, ROCm 7.2+), MSA runs on the Triton attention backend, so add `--attention-backend TRITON_ATTN`. On CDNA4 (MI350X/MI355X, gfx950) the MXFP8 variant fits at `--tensor-parallel-size 4`:
+The exact recipe depends on the target accelerator, model dtype, context length, traffic shape, and whether the deployment prioritizes throughput, latency, or maximum context capacity. Verification has been done on NVIDIA H200, GB200, and B300. For the full set of NVIDIA and AMD launch recipes, deployment strategies, and tuning knobs, see the [vLLM recipe for MiniMax M3](https://recipes.vllm.ai/MiniMaxAI/MiniMax-M3).
+
+### AMD ROCm
+
+MiniMax M3 runs on AMD Instinct GPUs. MSA runs on the Triton attention backend, so AMD deployments add `--attention-backend TRITON_ATTN`; the vision encoder uses the AITER FlashAttention backend (`--mm-encoder-attn-backend ROCM_AITER_FA`) with a shared-memory processor cache and a data-parallel encoder.
+
+For the MXFP8 checkpoint:
 
 ```bash
 vllm serve MiniMaxAI/MiniMax-M3-MXFP8 \
-  --trust-remote-code \
-  --tensor-parallel-size 4 \
-  --enable-expert-parallel \
   --block-size 128 \
+  --tensor-parallel-size 8 \
   --attention-backend TRITON_ATTN \
   --tool-call-parser minimax_m3 \
-  --reasoning-parser minimax_m3
+  --enable-auto-tool-choice \
+  --reasoning-parser minimax_m3 \
+  --mm-encoder-attn-backend ROCM_AITER_FA \
+  --mm-processor-cache-type shm \
+  --mm-encoder-tp-mode data
 ```
 
-Use `--tensor-parallel-size 8` for lower latency or longer context, or run the BF16 checkpoint at TP=8.
+For BF16:
 
-The exact recipe depends on the target accelerator, model dtype, context length, traffic shape, and whether the deployment prioritizes throughput, latency, or maximum context capacity. Verification has been done on NVIDIA H200, GB200, and B300, and on AMD MI300X and MI355X. For the full set of NVIDIA and AMD launch recipes, deployment strategies, and tuning knobs, see the [vLLM recipe for MiniMax M3](https://recipes.vllm.ai/MiniMaxAI/MiniMax-M3).
+```bash
+vllm serve MiniMaxAI/MiniMax-M3 \
+  --block-size 128 \
+  --tensor-parallel-size 8 \
+  --attention-backend TRITON_ATTN \
+  --tool-call-parser minimax_m3 \
+  --enable-auto-tool-choice \
+  --reasoning-parser minimax_m3 \
+  --mm-encoder-attn-backend ROCM_AITER_FA \
+  --mm-processor-cache-type shm \
+  --mm-encoder-tp-mode data
+```
+
+Verification has been done on MI350 Series and MI300 Series GPUs.
 
 ### Deployment Knobs That Matter
 
