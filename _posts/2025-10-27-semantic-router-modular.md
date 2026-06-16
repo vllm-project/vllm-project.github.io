@@ -2,6 +2,7 @@
 layout: post
 title: "From Monolithic to Modular: Scaling Semantic Routing with Extensible LoRA"
 author: "Ivar Flakstad (Hugging Face), OneZero-Y, Huamin Chen (Red Hat), Xunzhuo Liu (Tencent)"
+summary: "How vLLM Semantic Router refactors its Rust classification layer with modular model support, Qwen3-Embedding, EmbeddingGemma, LoRA-based multi-task classification, and concurrent routing execution."
 image: /assets/figures/semantic-router/modular.png
 tags:
   - ecosystem

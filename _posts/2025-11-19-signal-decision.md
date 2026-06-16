@@ -2,6 +2,7 @@
 layout: post
 title: "Signal-Decision Driven Architecture: Reshaping Semantic Routing at Scale"
 author: "vLLM Semantic Router Team"
+summary: "How vLLM Semantic Router replaces fixed domain classification with signal-decision architecture, combining multi-dimensional signals, AND/OR decision logic, model selection, and plugin orchestration for production routing."
 image: /assets/figures/semantic-router/signal-0.png
 tags:
   - ecosystem

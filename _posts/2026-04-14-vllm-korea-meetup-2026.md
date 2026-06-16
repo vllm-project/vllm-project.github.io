@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Korea Meetup 2026 Wrap-Up"
 author: "vLLM Team"
+summary: "What the vLLM Korea Meetup 2026 covered: community growth, vLLM V1 updates, production stack adoption, accelerator integration, vllm-playground, and real-world LLM serving."
 image: /assets/figures/vllm-korea-meetup-2026/banner.jpg
 tags:
   - community

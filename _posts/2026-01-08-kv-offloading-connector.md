@@ -2,6 +2,7 @@
 layout: post
 title: "Inside vLLM’s New KV Offloading Connector: Smarter Memory Transfer for Maximizing Inference Throughput"
 author: "Or Ozeri, Danny Harnik (vLLM Team at IBM Research)"
+summary: "How vLLM's asynchronous KV offloading connector stores KV cache in CPU memory to reduce recomputation, improve throughput under memory pressure, and support pluggable offload backends."
 image: /assets/figures/2026-01-08-kv-offloading-connector/figure2.png
 tags:
   - performance

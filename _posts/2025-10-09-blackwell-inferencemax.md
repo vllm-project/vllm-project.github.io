@@ -2,6 +2,7 @@
 layout: post
 title: "SemiAnalysis InferenceMAX: vLLM and NVIDIA Accelerate Blackwell Inference"
 author: "vLLM Team"
+summary: "How vLLM and NVIDIA optimize Blackwell inference for SemiAnalysis InferenceMAX, improving gpt-oss 120B and Llama 3.3 70B throughput with FP4 kernels, scheduling work, and Pareto-frontier benchmarking."
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-1k-1k.png
 tags:
   - hardware

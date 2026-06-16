@@ -2,6 +2,7 @@
 layout: post
 title: "Serving Geospatial, Vision, and Beyond: Enabling Multimodal Output Processing in vLLM"
 author: Christian Pinto (IBM Research Europe - Dublin), Michele Gazzetti (IBM Research Europe - Dublin), Michael Johnston (IBM Research Europe - Dublin), Maximilien Philippe Marie de Bayser (IBM Research - Brazil)
+summary: "How vLLM expands beyond text generation to serve geospatial, vision, and other non-autoregressive models with pooling-model support, TerraTorch integration, raw tensor handling, and flexible IO processors."
 image: /assets/figures/beyond-text/io-plugins-flow.png
 tags:
   - multimodal

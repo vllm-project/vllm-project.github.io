@@ -2,6 +2,7 @@
 layout: post
 title: "Announcing Day-0 Support for NVIDIA Nemotron 3 Ultra on vLLM"
 author: "NVIDIA Nemotron Team"
+summary: "How to serve NVIDIA Nemotron 3 Ultra with vLLM for long-running agentic reasoning, including BF16 and NVFP4 checkpoints, supported GPU configurations, OpenAI-compatible deployment, and NeMo RL integration."
 image: /assets/figures/2026-nemotron-3-ultra/hero.png
 tags:
   - model-support

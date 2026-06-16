@@ -2,6 +2,7 @@
 layout: post
 title: "No More Retokenization Drift: Returning Token IDs via the OpenAI Compatible API Matters in Agent RL"
 author: "The Agent Lightning (AGL) Team"
+summary: "How vLLM's OpenAI-compatible API can return prompt and response token IDs to prevent retokenization drift in agent reinforcement learning, preserving exact sampled sequences for stable on-policy updates."
 image: /assets/figures/agent-lightning/1_rewards.png
 ---
 

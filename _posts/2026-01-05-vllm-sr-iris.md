@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Semantic Router v0.1 Iris: The First Major Release"
 author: "vLLM Semantic Router Team"
+summary: "What vLLM Semantic Router v0.1 Iris introduces: signal-decision plugin architecture, model selection, safety filtering, semantic caching, hallucination detection, LoRA-based routing models, and production-ready MoM routing."
 image: /assets/figures/semantic-router/iris-0.png
 tags:
   - ecosystem

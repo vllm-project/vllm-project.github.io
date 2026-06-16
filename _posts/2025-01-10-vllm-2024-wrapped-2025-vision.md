@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM 2024 Retrospective and 2025 Vision"
 author: "vLLM Team"
+summary: "A vLLM 2024 retrospective and 2025 roadmap covering community growth, model and hardware support, production adoption, office hours, ecosystem partnerships, and the path toward universal open-source serving."
 image: /assets/figures/vllm-2024-wrapped-2025-roadmap/model-architecture-serving-usage.png
 tags:
   - community

@@ -2,6 +2,7 @@
 layout: post
 title: "How Speculative Decoding Boosts vLLM Performance by up to 2.8x"
 author: "vLLM Team"
+summary: "How speculative decoding works in vLLM, covering EAGLE, Medusa, n-gram proposals, draft and target runners, scheduler and memory-manager changes, and continuous batching for lower token latency."
 image: /assets/figures/spec-decode/figure9.png
 tags:
   - speculative-decoding

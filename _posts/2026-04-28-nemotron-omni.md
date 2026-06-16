@@ -2,6 +2,7 @@
 layout: post
 title: "Run Highly Efficient Multimodal Agentic AI with NVIDIA Nemotron 3 Nano Omni Using vLLM"
 author: "NVIDIA Nemotron Team"
+summary: "How to serve NVIDIA Nemotron 3 Nano Omni with vLLM for multimodal agentic AI, including BF16, FP8, and NVFP4 checkpoints, vision/audio/video inputs, supported GPUs, OpenAI-compatible APIs, and deployment recipes."
 image: /assets/figures/2026-04-28-nemotron-omni/figure1.png
 tags:
   - model-support

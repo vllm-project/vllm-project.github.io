@@ -2,6 +2,7 @@
 layout: post
 title: "Transformers modeling backend integration in vLLM"
 author: "The Hugging Face Team"
+summary: "How vLLM integrates the Hugging Face Transformers modeling backend to serve more model architectures efficiently, including text and vision-language models through model_impl=\"transformers\"."
 image: /assets/figures/transformers-backend/transformers-backend.png
 tags:
   - model-support
