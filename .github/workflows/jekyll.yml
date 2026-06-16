@@ -34,6 +34,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Ruby
         # https://github.com/ruby/setup-ruby/releases/tag/v1.218.0
         uses: ruby/setup-ruby@d781c1b4ed31764801bfae177617bb0446f5ef8d
@@ -41,6 +43,8 @@ jobs:
           ruby-version: '3.4' # Not needed with a .ruby-version file
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 0 # Increment this number if you need to re-download cached gems
+      - name: Check blog post summary front matter for SEO
+        run: ruby scripts/check-blog-summaries.rb
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
