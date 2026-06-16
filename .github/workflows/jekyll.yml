@@ -28,9 +28,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  blog-summary-seo:
+    name: Blog summary SEO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Ruby
+        # https://github.com/ruby/setup-ruby/releases/tag/v1.218.0
+        uses: ruby/setup-ruby@d781c1b4ed31764801bfae177617bb0446f5ef8d
+        with:
+          ruby-version: '3.4' # Not needed with a .ruby-version file
+      - name: Check blog post summary front matter for SEO
+        run: ruby scripts/check-blog-summaries.rb
+
   # Build job
   build:
     runs-on: ubuntu-latest
+    needs: blog-summary-seo
     steps:
       - name: Checkout
         uses: actions/checkout@v4
