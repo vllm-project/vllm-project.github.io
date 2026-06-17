@@ -101,8 +101,19 @@ end
 
 if failures.any?
   warn "Blog post summary check failed."
-  warn "Each changed blog post must include `summary` front matter for SEO."
-  warn "Keep it concise, specific, and #{MAX_SUMMARY_CHARS} characters or fewer."
+  warn
+  warn "Each changed blog post must include a `summary` field in the YAML front matter at the top of the Markdown file."
+  warn "Add it between the opening `---` lines, for example:"
+  warn
+  warn "---"
+  warn "layout: post"
+  warn 'title: "..."'
+  warn 'author: "..."'
+  warn 'summary: "How vLLM serves ExampleModel with FP8 KV cache on NVIDIA GPUs for lower-latency long-context inference."'
+  warn "---"
+  warn
+  warn "Write `summary` as a concise SEO description that names the main vLLM feature, model, release, hardware/backend, or deployment problem covered."
+  warn "Keep it #{MAX_SUMMARY_CHARS} characters or fewer."
   warn
   failures.each { |failure| warn "- #{failure}" }
   exit 1
