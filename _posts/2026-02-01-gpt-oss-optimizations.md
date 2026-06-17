@@ -2,6 +2,7 @@
 layout: post
 title: "GPT-OSS Performance Optimizations on NVIDIA Blackwell: Pushing the Pareto Frontier"
 author: "The vLLM and NVIDIA team"
+summary: "How vLLM and NVIDIA optimized GPT-OSS on Blackwell with FlashInfer, torch.compile fusion, FP8 KV cache, async scheduling, stream interval tuning, and deployment recipes that improve throughput and interactivity."
 image: /assets/figures/blackwell-inferencemax/gpt-oss-120b-8k-1k-nov-jan.png
 tags:
   - performance

@@ -2,6 +2,7 @@
 layout: post
 title: "Introduction to torch.compile and How It Works with vLLM"
 author: "Luka Govedič (Red Hat), Richard Zou (Meta), Addie Stevens (Red Hat), Kaichao You (Tsinghua University), Michael Goin (Red Hat), Saša Zelenović (Red Hat)"
+summary: "How torch.compile works inside vLLM, including TorchDynamo graph capture, TorchInductor code generation, custom compiler passes, graph breaks, model compilation strategy, and performance optimization."
 image: /assets/figures/2025-torch-compile/figure1.png
 tags:
   - performance

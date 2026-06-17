@@ -2,6 +2,7 @@
 layout: post
 title: "Accelerating RLHF with vLLM, Best Practice from OpenRLHF"
 author: "The OpenRLHF Team"
+summary: "How OpenRLHF uses vLLM, Ray, ZeRO-3, AutoTP, Ray placement groups, and weight synchronization to accelerate PPO and RLHF sample generation for reasoning models with long chain-of-thought outputs."
 image: /assets/figures/openrlhf-vllm/ray.png
 tags:
   - large-scale-serving

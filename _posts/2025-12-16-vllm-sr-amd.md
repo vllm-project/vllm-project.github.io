@@ -2,6 +2,7 @@
 layout: post
 title: "AMD × vLLM Semantic Router: Building the System Intelligence Together"
 author: "The AMD and vLLM Semantic Router Team"
+summary: "How AMD and vLLM Semantic Router build GPU-accelerated Mixture-of-Models routing with signals, semantic caching, response storage, PII, jailbreak, and hallucination guardrails."
 image: /assets/figures/semantic-router/amd-0.png
 tags:
   - hardware

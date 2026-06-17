@@ -2,6 +2,7 @@
 layout: post
 title: "Accelerating Laguna XS.2 Inference with vLLM, Speculators, and LLM Compressor"
 author: "Megan Flynn, Dipika Sikka, Alexandre Marques"
+summary: "How Laguna XS.2 is served and optimized in vLLM using first-class model integration, a DFlash speculator trained with Speculators, and FP8, NVFP4, INT4, and INT8 checkpoints from LLM Compressor."
 image: /assets/figures/2026-05-28-laguna-xs2-dflash-llm-compressor/laguna_dflash.png
 tags:
   - quantization

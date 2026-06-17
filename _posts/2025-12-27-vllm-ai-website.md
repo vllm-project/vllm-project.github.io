@@ -2,6 +2,7 @@
 layout: post
 title: "Announcing vllm.ai Website and Some Community Updates"
 author: "vLLM Team"
+summary: "What changed on the new vllm.ai website for vLLM users: installation guidance, events pages, Slack and X community channels, vLLM Daily updates, and a clearer project/community split."
 image: /assets/figures/2025-vllm-website/homepage.jpg
 tags:
   - community

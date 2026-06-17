@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM v0.6.0: 2.7x Throughput Improvement and 5x Latency Reduction"
 author: "vLLM Team"
+summary: "What changed in vLLM v0.6.0 to improve throughput and latency, including API server isolation, reduced CPU overhead, multi-step scheduling, async execution, and benchmarks against earlier vLLM versions."
 image: /assets/figures/perf-v060/llama8B_comparison.png
 tags:
   - performance

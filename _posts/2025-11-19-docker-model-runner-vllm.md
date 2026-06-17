@@ -2,6 +2,7 @@
 layout: post
 title: "Docker Model Runner Integrates vLLM for High-Throughput Inferencing"
 author: "Docker Team"
+summary: "How Docker Model Runner integrates vLLM as an inference backend, letting developers run safetensors models with high-throughput serving, PagedAttention, streaming, and OpenAI-compatible APIs from Docker workflows."
 image: /assets/logos/vllm-logo-text-light.png
 ---
 

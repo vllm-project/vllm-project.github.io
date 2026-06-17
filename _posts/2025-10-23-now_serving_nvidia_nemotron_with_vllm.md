@@ -2,6 +2,7 @@
 layout: post
 title: "Now Serving NVIDIA Nemotron with vLLM"
 author: "NVIDIA Nemotron Team"
+summary: "How vLLM serves NVIDIA Nemotron Nano 2 for agentic reasoning, including hybrid Transformer-Mamba architecture, thinking budget control, open weights and data, throughput benefits, and deployment commands."
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
 tags:
   - model-support

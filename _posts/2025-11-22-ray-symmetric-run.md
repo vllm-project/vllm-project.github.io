@@ -2,6 +2,7 @@
 layout: post
 title: "Streamlined multi-node serving with Ray symmetric-run"
 author: "Richard Liaw (Anyscale/Ray), Kaichao You (vLLM)"
+summary: "How Ray symmetric-run simplifies multi-node vLLM serving by launching the same entrypoint on every Ray cluster node, matching HPC and parallel SSH workflows for distributed model deployments."
 image: /assets/figures/2025-11-25-ray-symmetric-run/symmetric-run.png
 tags:
   - large-scale-serving

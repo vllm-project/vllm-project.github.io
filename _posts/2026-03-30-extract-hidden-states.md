@@ -2,6 +2,7 @@
 layout: post
 title: "Extracting hidden states from vLLM"
 author: "Fynn Schmitt-Ulms"
+summary: "How vLLM extracts verifier hidden states through dummy draft models and KV Connector APIs for speculative decoding, enabling offline and online Speculators training without patching vLLM internals."
 image: /assets/figures/2026-03-30-extract-hidden-states/design_diagram.png
 tags:
   - speculative-decoding

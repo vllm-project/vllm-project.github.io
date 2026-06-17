@@ -2,6 +2,7 @@
 layout: post
 title: "Serving LLMs on AMD MI300X: Best Practices"
 author: "Guest Post by Embedded LLM and Hot Aisle Inc."
+summary: "Best practices for serving LLMs with vLLM on AMD MI300X, covering ROCm setup, Llama 3.1 70B and 405B benchmarks, chunked prefill, multi-step scheduling, prefix caching, graph capture, and AMD tuning."
 image: /assets/figures/vllm-serving-amd/405b1.png
 tags:
   - hardware

@@ -2,6 +2,7 @@
 layout: post
 title: "Advancing Low‑Bit Quantization for LLMs: AutoRound x LLM Compressor"
 author: "Intel Neural Compressor Team, Red Hat AI Model Optimization Team"
+summary: "How Intel AutoRound integrates with LLM Compressor to produce low-bit quantized checkpoints for vLLM, using tuning-based PTQ, W4A16 and related formats, compressed-tensors compatibility, and lightweight calibration."
 image: /assets/figures/2025-12-09-intel-autoround-llmc/autoround-llmc.png
 tags:
   - quantization

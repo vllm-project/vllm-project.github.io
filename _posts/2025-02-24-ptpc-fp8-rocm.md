@@ -2,6 +2,7 @@
 layout: post
 title: "PTPC-FP8: Boosting vLLM Performance on AMD ROCm"
 author: "AMD and Embedded LLM"
+summary: "How PTPC-FP8 quantization improves vLLM performance on AMD ROCm by combining per-token activation scaling and per-channel weight scaling for near-BF16 accuracy with FP8 speed."
 image: /assets/figures/ptpc/PTPC-tumbnail.png
 math: true
 tags:

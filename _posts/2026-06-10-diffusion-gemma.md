@@ -2,8 +2,8 @@
 layout: post
 title: "DiffusionGemma: The First Diffusion LLM (dLLM) Natively Supported in vLLM"
 author: "The vLLM Team and Google DeepMind Team"
+summary: "How vLLM supports DiffusionGemma, the first native diffusion language model in vLLM, using Model Runner V2 state hooks, iterative denoising, bidirectional attention, and reused speculative decoding paths."
 image: /assets/figures/2026-06-10-diffusion-gemma/ar-vs-diffusion.png
-summary: "DiffusionGemma is the first diffusion language model (dLLM) supported in vLLM. We integrated it using model runner v2's ModelState abstraction and reused vLLM's speculative decoding to cleanly demonstrate the flexibility of model runner v2 and how future dLLMs may be supported."
 read_time_minutes: 6
 tags:
   - model

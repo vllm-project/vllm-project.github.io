@@ -2,6 +2,7 @@
 layout: post
 title: "Run Multimodal Reasoning Agents with NVIDIA Nemotron on vLLM"
 author: "NVIDIA Nemotron Team"
+summary: "How to serve NVIDIA Nemotron Nano 2 VL with vLLM for multimodal reasoning agents, including video understanding, document intelligence, Efficient Video Sampling, 128K context, and OpenAI-compatible deployment."
 image: /assets/figures/2025-multimodal-nvidia-nemotron/figure1.png
 tags:
   - model-support

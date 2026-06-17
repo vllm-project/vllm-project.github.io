@@ -2,6 +2,7 @@
 layout: post
 title: "Introducing AIBrix: A Scalable, Cost-Effective Control Plane for vLLM"
 author: "AIBrix Team"
+summary: "What AIBrix adds as a Kubernetes control plane for vLLM: LoRA management, LLM gateway routing, autoscaling, unified runtime, distributed inference, distributed KV cache, heterogeneous serving, and GPU failure detection."
 image: /assets/figures/2025-02-21-aibrix-release/aibrix-architecture-v1.jpeg
 tags:
   - large-scale-serving

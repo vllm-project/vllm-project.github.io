@@ -2,6 +2,7 @@
 layout: post
 title: "Native RL APIs in vLLM"
 author: "Aaron Hao, Sumanth Hegde, Kyle Sayers, Kourosh Hakhamaneshi, and the vLLM team"
+summary: "How vLLM native RL APIs standardize weight syncing and asynchronous RL serving with NCCL and CUDA IPC transfer backends, pause mode, and fixes for fragile DPEP and disaggregated rollout deployments."
 image: /assets/figures/2026-05-28-native-rl-apis/weight_transfer_nccl.svg
 social_image: /assets/figures/2026-05-28-native-rl-apis/weight_transfer_nccl.svg
 read_time_minutes: 12

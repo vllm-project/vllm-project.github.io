@@ -2,6 +2,7 @@
 layout: post
 title: "Distributed Inference with vLLM"
 author: "vLLM Team"
+summary: "A guide to distributed inference in vLLM, covering tensor parallelism, pipeline parallelism, multi-GPU and multi-node serving, KV cache challenges, speculative decoding, communication kernels, and control-plane design."
 image: /assets/logos/vllm-logo-only-light.png
 tags:
   - large-scale-serving

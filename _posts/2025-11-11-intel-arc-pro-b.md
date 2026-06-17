@@ -2,6 +2,7 @@
 layout: post
 title: "Fast and Affordable LLMs serving on Intel Arc Pro B-Series GPUs with vLLM"
 author: "Intel vLLM Team"
+summary: "How vLLM serves LLMs on Intel Arc Pro B-Series GPUs with MoE optimizations, persistent kernels, multi-GPU scaling, LoRA, speculative decoding, structured outputs, and mixed-precision recipes."
 image: /assets/figures/2025-vllm-on-intel-arc/perf-figure1.png
 tags:
   - hardware

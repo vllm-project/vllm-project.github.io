@@ -2,6 +2,7 @@
 layout: post
 title: "Inside vLLM: Anatomy of a High-Throughput LLM Inference System"
 author: "Aleksa Gordic"
+summary: "How vLLM's inference engine works, covering PagedAttention, continuous batching, prefix caching, speculative decoding, multi-GPU serving, scheduling, and benchmarking for high-throughput LLM workloads."
 image: /assets/figures/2025-vllm-anatomy/engine_constructor.png
 tags:
   - large-scale-serving
