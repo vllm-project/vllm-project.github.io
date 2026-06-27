@@ -24,7 +24,7 @@ TTS and text-only LLM inference both use autoregressive models, but the serving 
 
 **Throughput still matters.** In online serving, how much concurrency a single GPU can sustain, and how many seconds of audio it can generate per wall-clock second, directly determines deployment cost. TTS throughput optimization is more complex than LLM throughput optimization because Talker and Code2Wav have different bottlenecks, and the connector between them adds its own transfer cost. Improving throughput means balancing the two stages while removing the bottlenecks inside each one.
 
-![vLLM-Omni TTS serving pipeline](/assets/figures/vllm-omni-tts/tts-serving-pipeline.png)
+<img src="/assets/figures/vllm-omni-tts/tts-serving-pipeline.png" alt="vLLM-Omni TTS serving pipeline" width="100%">
 
 The rest of this post starts with an overview of the optimization techniques we used, then follows Qwen3-TTS as the main example of a full optimization path. We then use VoxCPM2, Higgs Audio V3, and Fish Speech S2 Pro to show why different TTS architectures require different serving strategies.
 
@@ -68,7 +68,7 @@ We decoupled the two responsibilities by introducing separate parameters:
 
 With this design, the connector can use a small chunk size to reduce first-packet latency, while Code2Wav keeps a 300-frame decode window plus 25 frames of left context to preserve cross-chunk quality. The two knobs can be tuned independently[^6].
 
-![Qwen3-TTS connector chunk decoupling](/assets/figures/vllm-omni-tts/qwen3-tts-connector-chunking.png)
+<img src="/assets/figures/vllm-omni-tts/qwen3-tts-connector-chunking.png" alt="Qwen3-TTS connector chunk decoupling" width="100%">
 
 ### 2. Throughput: Stage 0 Decode Preprocessing
 
@@ -83,6 +83,10 @@ The first concrete target was speaker embedding preparation. In Qwen3-TTS voice-
 The next target was `trailing_text`. During decode, the Talker maintains a `trailing_text` sliding window that caches embeddings for generated tokens. Each decode step appends the current token embedding and removes the oldest token. The original implementation used tensor slicing and concatenation, allocating a new tensor frequently. The optimized path tracks an offset and only compacts when the offset crosses a threshold or reaches the end of the buffer (`_TRAILING_TEXT_COMPACT_MIN_FRAMES = 64`). Intermediate decode steps index by offset without allocating a new tensor.
 
 Together with a batched `preprocess_decode_batch` path[^7], and later async D2H, runner hot-path, and connector optimizations, Qwen3-TTS audio throughput on H20 × 2 improved from 26.55 audio-s/s to 42.88 audio-s/s (+61.5%), while P99 E2EL dropped from 17.7s to 9.0s. Full numbers are listed in the performance section.
+
+<img src="/assets/figures/vllm-omni-tts/qwen3-tts-stage0-dispatch-consolidation.png" alt="Qwen3-TTS Stage 0 dispatch consolidation" width="100%">
+
+The trace window above shows the serving-path effect of batching Stage 0 preprocessing: fewer CPU launch calls and fewer small GPU kernel slices in the decode hot path, rather than a claim about higher GPU utilization.
 
 ### 3. Hot-Path Cleanup
 
@@ -128,7 +132,7 @@ MiniCPM4 (28 layers, PagedAttention) → FSQ → MiniCPM4 ResidualLM (8 layers) 
 
 LocDiT performs CFM, or Conditional Flow Matching, diffusion denoising, and AudioVAE reconstructs 48 kHz waveform audio. In vLLM-Omni, VoxCPM2 is not split into multiple runtime stages. Instead, it runs as a single-stage AR TTS pipeline: MiniCPM4, FSQ, ResidualLM, LocDiT, and AudioVAE all execute inside one model instance, and the model directly emits audio. This avoids latent transfer between stages and makes cross-request batching easier for the decode-tail CFM/LocDiT and VAE paths.
 
-![VoxCPM2 single-stage hybrid pipeline](/assets/figures/vllm-omni-tts/voxcpm2-single-stage-pipeline.png)
+<img src="/assets/figures/vllm-omni-tts/voxcpm2-single-stage-pipeline.png" alt="VoxCPM2 single-stage hybrid pipeline" width="100%">
 
 Unlike Qwen3-TTS, which is a two-stage Talker-to-Code2Wav pipeline, VoxCPM2 optimization focuses on two questions: how to make the 28-layer MiniCPM4 faster, and how to stop CFM/LocDiT from underusing the GPU at high concurrency.
 
@@ -141,6 +145,10 @@ The first attempt compiled each layer's `mlp` and `o_proj` separately: 28 layers
 We then wrapped the entire `Model.forward` in `torch.compile` with `fullgraph=False`[^4]. This lets Dynamo see the full 28-layer loop. PagedAttention still causes graph breaks, but Dynamo only needs to memoize a small number of subgraphs. Per-step dispatch drops from many small regions to a few larger regions. RTF dropped from roughly 0.21 to roughly 0.13, making this the largest single optimization for VoxCPM2.
 
 To quantify this, we profiled three configurations: eager, per-layer compile, and whole/unified graph. Per-layer compile reduced part of the kernel count and kernel time, but launch count did not drop. Whole/unified graph was the key step: `cudaLaunchKernel` count dropped by about 71%, kernel events by about 30%, and kernel time by about 27%. Single-request E2E dropped by about 2.6% for per-layer compile and about 6.5% for whole graph.
+
+<img src="/assets/figures/vllm-omni-tts/voxcpm2-compile-dispatch-combined.png" alt="VoxCPM2 compile dispatch timeline and counters" width="100%">
+
+The timeline keeps the profiler view as the main surface, while the embedded full-trace counters show why per-layer compile was not enough: launch count stayed flat until the whole-forward compile path reduced Python-to-compiled boundaries.
 
 We also tried `mode="reduce-overhead"`, which enables automatic CUDA Graph capture. It conflicted with PagedAttention's stateful KV cache. During graph capture, `slot_mapping` becomes fixed; replay can then write attention results to the wrong KV cache location, causing incorrect stop logits and early truncation.
 
@@ -207,6 +215,10 @@ We implemented a Fish-specific Triton kernel for SlowAR decode attention. It doe
 The kernel has two paths. Short sequences up to 1024 tokens use standard online softmax in one pass. The grid is `(batch_size, num_kv_heads)`, and each program handles one batch row and one KV head across its Q heads. Block size is hard-coded to 16, matching vLLM's KV cache block size, so block table lookup is a direct `tl.load` without extra gather logic. Long sequences use a split-partial-combine path: split the sequence into segments, compute partial m/l/acc independently, then merge them using the online softmax recurrence. This keeps reference-audio long-context requests on the fast path.
 
 Dispatch has one subtle detail. The kernel needs sequence length to choose the short or long path, but the exact sequence length lives on GPU. Reading it to CPU would synchronize. Instead, the runner computes a CPU-side `seq_lens_cpu_upper_bound` from computed tokens plus scheduled tokens. The upper bound is always at least the true sequence length. The short path does not under-read, and the long split path does not under-cover. During CUDA Graph capture, the upper bound is set to `max_model_len`, so all graph paths remain covered.
+
+<img src="/assets/figures/vllm-omni-tts/fish-speech-stage0-runtime-shape.png" alt="Fish Speech Stage 0 runtime shape before and after q_len=1 fast path" width="100%">
+
+The trace is a local runtime-shape view of the Fish path before and after the q_len=1 attention specialization. It is meant to complement the kernel design discussion rather than replace the benchmark numbers.
 
 The fast path only applies to Fish SlowAR attention layers. At model load time, we walk `model.layers` and replace each attention layer's `impl.forward` with a wrapper that dispatches to the Fish fast path when the constraints match. Prefill requests, non-Fish models, and unsupported decode shapes use the original attention implementation.
 
