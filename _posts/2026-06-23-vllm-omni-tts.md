@@ -34,15 +34,14 @@ The rest of this post starts with an overview of the optimization techniques we 
 
 Different TTS models have different bottlenecks. vLLM-Omni does not apply one fixed optimization recipe to every model. Instead, we choose optimizations based on each model's pipeline structure, decode state, batch shapes, and numerical constraints.
 
-| Dimension | Qwen3-TTS | VoxCPM2 | Higgs Audio V3 | Fish Speech S2 Pro |
-|---|---|---|---|---|
-| Stage design | Talker → Code2Wav | Single stage: AR + CFM/LocDiT + AudioVAE in one runtime | Talker → Code2Wav | slow_ar + Fast AR → DAC decoder |
-| Batching | Batched Stage 0 decode preprocessing | CFM/LocDiT decode-tail batching, VAE batching | GPU-resident batched decode state | DAC batching, async codec chunking |
-| torch.compile | Keep selected code-predictor paths in PyTorch/fp32 for numerical alignment | Whole-model forward compile with `fullgraph=False` | Not the main source of gains | Fast AR compile with `dynamic=True` |
-| CUDA Graph | Stable-shape paths | Avoid reduce-overhead for KV-cache-sensitive paths | Local MLP CUDA Graph is the main throughput lever | Triton workspace supports capture |
-| Kernel / fusion | Mask precomputation, bucket lookup | LocDiT fused QKV and fused gate-up MLP | FlashInfer attention | Fish-specific q_len=1 Triton KV attention |
-| State / data path | trailing_text offset and compacting | Remove `.item()` syncs, sliding-window VAE | Move multi-codebook state to GPU tensors | Fast AR buffer/KV reuse, tensor payloads |
-| Core bottleneck | Talker Python hot path at high concurrency | Small CFM batches underuse the GPU | Complex multi-codebook state machine with dynamic batch changes | q_len=1 attention and small tensor allocation overhead |
+| Technique | Applies to | Why it matters |
+|---|---|---|
+| Stage separation and connector chunking | Qwen3-TTS, Higgs Audio V3 | Lets Talker latency and Code2Wav throughput be tuned independently. |
+| Batched decode preprocessing | Qwen3-TTS | Reduces repeated per-request Python work in the Talker decode hot path. |
+| Whole-forward `torch.compile` | VoxCPM2 | Lets Dynamo see more of the MiniCPM4 forward loop and reduces Python-to-compiled boundaries. |
+| CFM/LocDiT decode-tail batching | VoxCPM2 | Turns many tiny per-request diffusion calls into larger GPU batches. |
+| GPU-resident decode state | Higgs Audio V3 | Moves multi-codebook state updates out of Python loops and reduces synchronization. |
+| Model-specific q_len=1 attention | Fish Speech S2 Pro | Specializes pure decode attention instead of paying for generic paged/varlen paths. |
 
 The important point is that not every optimization works for every TTS architecture. The engineering challenge is choosing the right lever for the right model shape.
 
@@ -82,7 +81,7 @@ The first concrete target was speaker embedding preparation. In Qwen3-TTS voice-
 
 The next target was `trailing_text`. During decode, the Talker maintains a `trailing_text` sliding window that caches embeddings for generated tokens. Each decode step appends the current token embedding and removes the oldest token. The original implementation used tensor slicing and concatenation, allocating a new tensor frequently. The optimized path tracks an offset and only compacts when the offset crosses a threshold or reaches the end of the buffer (`_TRAILING_TEXT_COMPACT_MIN_FRAMES = 64`). Intermediate decode steps index by offset without allocating a new tensor.
 
-Together with a batched `preprocess_decode_batch` path[^7], and later async D2H, runner hot-path, and connector optimizations, Qwen3-TTS audio throughput on H20 × 2 improved from 26.55 audio-s/s to 42.88 audio-s/s (+61.5%), while P99 E2EL dropped from 17.7s to 9.0s. Full numbers are listed in the performance section.
+The batched `preprocess_decode_batch` path removed one major source of per-request decode overhead[^7]. The final throughput numbers below come from the stacked optimization path, including Stage 0 batching, connector changes, async D2H, runner hot-path cleanup, and CUDA Graph tuning[^1][^6][^7]. In the final stacked run, Qwen3-TTS audio throughput on H20 × 2 improved from 26.55 audio-s/s to 42.88 audio-s/s (+61.5%), while P99 E2EL dropped from 17.7s to 9.0s.
 
 <img src="/assets/figures/vllm-omni-tts/qwen3-tts-stage0-dispatch-consolidation.png" alt="Qwen3-TTS Stage 0 dispatch consolidation" width="100%">
 
@@ -94,7 +93,7 @@ After preprocessing was batched, the remaining profile showed many small Python 
 
 `req_id_to_index` previously used `req_ids.index()`, turning lookups into an O(N²) list scan inside every decode step. Replacing it with a dictionary made lookup O(1). Non-streaming requests do not need to walk the per-output streaming path in the orchestrator, so we skip that path early. The codec-disallowed mask is precomputed into a buffer, allowing `compute_logits` to use `masked_fill` directly instead of rebuilding the mask each time[^1].
 
-Qwen3-TTS uses CUDA Graph in several places. The Talker code predictor has its own graph path depending on the deploy profile. Here we focus on the Code2Wav decoder CUDA Graph. The decoder input shape is `(batch, num_quantizers, codec_frames)`. In chunked decode, `codec_frames` has a small set of values: streaming chunk plus left context, non-streaming `decode_chunk_size + left_context` (300 + 25 = 325), and tail chunks. These values can be enumerated during warmup. `CUDAGraphDecoderWrapper` captures graphs by `(batch_size, frames)` and uses `bisect_left` at inference time to select the nearest padded bucket. If no graph matches, it falls back to eager execution.
+Qwen3-TTS uses CUDA Graph in several places. The Talker code predictor has its own graph path depending on the deploy profile. Here we focus on the Code2Wav decoder CUDA Graph. The decoder input shape is `(batch, num_quantizers, codec_frames)`. In chunked decode, `codec_frames` has a small set of values: streaming chunk plus left context, non-streaming `decode_chunk_frames + decode_left_context_frames` (300 + 25 = 325), and tail chunks. These values can be enumerated during warmup. `CUDAGraphDecoderWrapper` captures graphs by `(batch_size, frames)` and uses `bisect_left` at inference time to select the nearest padded bucket. If no graph matches, it falls back to eager execution.
 
 In repeated c=16 tests with `qwen3_tts.yaml`, Code2Wav CUDA Graph hit rate started at 88% and settled around 81% after five consecutive rounds. The main single-sample shapes, such as `(1, 98) -> 169`, `(1, 73) -> 73`, `(1, 123) -> 169`, and `(1, 325) -> 325`, hit the captured buckets. Fallbacks mostly came from batch-size > 1 shapes such as `(2, 98, 169)` and `(8, 73, 73)`. Across the run, `stream_capture_fallbacks=0`, so no fallback was caused by stream capture failure.
 
@@ -176,7 +175,7 @@ Compared with Qwen3-TTS, Higgs v3 has a different bottleneck. Qwen3-TTS is limit
 
 ### Moving Decode State to the GPU
 
-The main Higgs v3 throughput gain came from moving the per-request Python dict state machine into GPU-resident batched tensors[^10]. The state includes `_decode_last_codes`, `_decode_has_codes`, delay count, EOC countdown, generation-done flags, and related decode metadata. The benefit comes from reducing Python per-request loops, reducing D2H synchronization, and moving sampling/state update logic onto the batched GPU hot path. Together with local MLP CUDA Graph and FlashInfer attention, this reaches 35.26 audio-s/s on a single H20 at c=16.
+The main Higgs v3 throughput gain came from moving the per-request Python dict state machine into GPU-resident batched tensors[^10]. The state includes `_decode_last_codes`, `_decode_has_codes`, delay count, EOC countdown, generation-done flags, and related decode metadata. The benefit comes from reducing Python per-request loops, reducing D2H synchronization, and moving sampling/state update logic onto the batched GPU hot path. In the benchmark reported here, the 35.26 audio-s/s result was measured on a single H20 at c=16 with the eager + local MLP CUDA Graph profile, not the PIECEWISE full-decode graph path.
 
 The hard part is that the vLLM scheduler may reorder, shrink, finish, or remove requests during decode. Row-level state cannot be assumed to equal request-level state. Audio AR state is more complex than text state because delay codebooks, EOC ramp-down, and terminal frames all have semantic meaning. If any state lags by one step, the result is an audio quality problem rather than a clean crash. GPU state, CPU override state, and scheduler tokens must have a single source of truth, or stop semantics become inconsistent.
 
@@ -210,7 +209,7 @@ Unlike Qwen3-TTS, where Python preprocessing is the main bottleneck, Fish Speech
 
 In profiling, Fish slow_ar at high concurrency spent most of its time in q_len=1 SlowAR attention and in the data handoff between DAC and runtime. Generic attention must support many shapes. Fish decode is much narrower: q_len=1, fp16/bf16, head_dim=128, block size 16, and Fish's GQA layout.
 
-We implemented a Fish-specific Triton kernel for SlowAR decode attention. It does not handle prefill or other models. If the request does not meet the shape constraints, execution falls back to the original attention path.
+We implemented a Fish-specific Triton kernel for SlowAR decode attention[^9]. It does not handle prefill or other models. If the request does not meet the shape constraints, execution falls back to the original attention path.
 
 The kernel has two paths. Short sequences up to 1024 tokens use standard online softmax in one pass. The grid is `(batch_size, num_kv_heads)`, and each program handles one batch row and one KV head across its Q heads. Block size is hard-coded to 16, matching vLLM's KV cache block size, so block table lookup is a direct `tl.load` without extra gather logic. Long sequences use a split-partial-combine path: split the sequence into segments, compute partial m/l/acc independently, then merge them using the online softmax recurrence. This keeps reference-audio long-context requests on the fast path.
 
