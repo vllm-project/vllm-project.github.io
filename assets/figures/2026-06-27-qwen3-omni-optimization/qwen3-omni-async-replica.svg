@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">Qwen3-Omni async chunk and stage replicas</title>
+  <desc id="desc">One Thinker feeding two Talker replicas and two Code2Wav replicas.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 24px system-ui, -apple-system, Segoe UI, sans-serif; fill: #111827; }
+      .node-text { font: 700 14px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .node-sub { font: 500 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #475569; }
+      .arrow { stroke: #475569; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 6 6; }
+      .panel { fill: #fbf6ef; stroke: #eee1d2; }
+      .blue { fill: #e8eef7; stroke: #b8c7dc; }
+      .green { fill: #bfe7c7; stroke: #56b879; }
+      .orange { fill: #f6c28b; stroke: #e39a4a; }
+      .yellow { fill: #f8e7a5; stroke: #d9b441; }
+    </style>
+  </defs>
+
+  <rect x="20" y="15" width="1240" height="390" rx="20" class="panel"/>
+  <text x="50" y="58" class="title">Async chunk + stage replicas</text>
+
+  <rect x="80" y="180" width="170" height="64" rx="10" class="blue"/>
+  <text x="115" y="206" class="node-text">Thinker</text>
+  <text x="109" y="228" class="node-sub">text + hidden states</text>
+
+  <rect x="365" y="110" width="170" height="58" rx="10" class="orange"/>
+  <text x="403" y="134" class="node-text">Talker R0</text>
+  <text x="395" y="155" class="node-sub">codec generation</text>
+
+  <rect x="365" y="260" width="170" height="58" rx="10" class="orange"/>
+  <text x="403" y="284" class="node-text">Talker R1</text>
+  <text x="395" y="305" class="node-sub">codec generation</text>
+
+  <rect x="690" y="110" width="185" height="58" rx="10" class="green"/>
+  <text x="726" y="134" class="node-text">Code2Wav R0</text>
+  <text x="727" y="155" class="node-sub">waveform chunks</text>
+
+  <rect x="690" y="260" width="185" height="58" rx="10" class="green"/>
+  <text x="726" y="284" class="node-text">Code2Wav R1</text>
+  <text x="727" y="305" class="node-sub">waveform chunks</text>
+
+  <rect x="1020" y="180" width="150" height="64" rx="10" class="yellow"/>
+  <text x="1058" y="206" class="node-text">Audio</text>
+  <text x="1049" y="228" class="node-sub">streaming output</text>
+
+  <path class="arrow" d="M 250 199 C 299 149 323 139 355 139"/>
+  <path class="arrow" d="M 250 225 C 299 279 323 289 355 289"/>
+  <path class="arrow" d="M 535 139 L 680 139"/>
+  <path class="arrow" d="M 535 289 L 680 289"/>
+  <path class="arrow" d="M 875 139 C 943 155 976 179 1010 199"/>
+  <path class="arrow" d="M 875 289 C 943 273 976 247 1010 225"/>
+  <path class="arrow dash" d="M 290 213 L 960 213"/>
+</svg>

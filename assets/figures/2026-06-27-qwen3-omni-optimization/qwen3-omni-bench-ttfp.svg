@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img">
+<title>Mean audio TTFP (ms) across optimization configs</title>
+<defs><style>
+.title{font:700 24px system-ui,-apple-system,Segoe UI,sans-serif;fill:#111827}
+.panel{fill:#fbf6ef;stroke:#eee1d2}
+.axis{stroke:#c9c1b6;stroke-width:1.4}
+.grid{stroke:#e7ded2;stroke-width:1}
+.tick{font:500 11px system-ui,-apple-system,Segoe UI,sans-serif;fill:#64748b}
+.xtick{font:500 11px system-ui,-apple-system,Segoe UI,sans-serif;fill:#475569}
+.legend{font:600 12px system-ui,-apple-system,Segoe UI,sans-serif;fill:#334155}
+.val{font:600 10px system-ui,-apple-system,Segoe UI,sans-serif;fill:#334155}
+.val-c1{fill:#b45309}
+.val-c32{fill:#15803d}
+.line{fill:none;stroke-width:3}
+</style></defs>
+<rect x="20" y="15" width="1240" height="450" rx="20" class="panel"/>
+<text x="50" y="58" class="title">Mean audio TTFP (ms) across optimization configs</text>
+<line x1="920" y1="78" x2="948" y2="78" class="line" stroke="#e39a4a"/>
+<text x="954" y="82" class="legend">c=1</text>
+<line x1="1010" y1="78" x2="1038" y2="78" class="line" stroke="#56b879"/>
+<text x="1044" y="82" class="legend">c=32</text>
+<line x1="90" y1="400" x2="1180" y2="400" class="axis"/>
+<line x1="90" y1="110" x2="90" y2="400" class="axis"/>
+<line x1="90" y1="400.0" x2="1180" y2="400.0" class="grid"/>
+<text x="80" y="404.0" text-anchor="end" class="tick">100 ms</text>
+<line x1="90" y1="229.1" x2="1180" y2="229.1" class="grid"/>
+<text x="80" y="233.1" text-anchor="end" class="tick">1000 ms</text>
+<polyline class="line" stroke="#e39a4a" points="90.0,159.4 362.5,273.1 635.0,381.1 907.5,384.3 1180.0,381.8"/>
+<circle cx="90.0" cy="159.4" r="5.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="90.0" y="177.4" text-anchor="middle" class="val val-c1">2556 ms</text>
+<circle cx="362.5" cy="273.1" r="5.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="362.5" y="291.1" text-anchor="middle" class="val val-c1">552 ms</text>
+<circle cx="635.0" cy="381.1" r="5.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="635.0" y="399.1" text-anchor="middle" class="val val-c1">129 ms</text>
+<circle cx="907.5" cy="384.3" r="5.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="907.5" y="402.3" text-anchor="middle" class="val val-c1">124 ms</text>
+<circle cx="1180.0" cy="381.8" r="5.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="1180.0" y="399.8" text-anchor="middle" class="val val-c1">128 ms</text>
+<polyline class="line" stroke="#56b879" points="90.0,110.0 362.5,185.5 635.0,280.9 907.5,286.0 1180.0,283.2"/>
+<circle cx="90.0" cy="110.0" r="5.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="90.0" y="96.0" text-anchor="middle" class="val val-c32">4975 ms</text>
+<circle cx="362.5" cy="185.5" r="5.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="362.5" y="171.5" text-anchor="middle" class="val val-c32">1798 ms</text>
+<circle cx="635.0" cy="280.9" r="5.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="635.0" y="266.9" text-anchor="middle" class="val val-c32">497 ms</text>
+<circle cx="907.5" cy="286.0" r="5.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="907.5" y="272.0" text-anchor="middle" class="val val-c32">464 ms</text>
+<circle cx="1180.0" cy="283.2" r="5.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="1180.0" y="269.2" text-anchor="middle" class="val val-c32">482 ms</text>
+<text x="90.0" y="422" text-anchor="middle" class="xtick">Batch</text>
+<text x="362.5" y="422" text-anchor="middle" class="xtick">CUDA</text>
+<text x="362.5" y="436" text-anchor="middle" class="xtick">Graph</text>
+<text x="635.0" y="422" text-anchor="middle" class="xtick">Async</text>
+<text x="635.0" y="436" text-anchor="middle" class="xtick">chunk</text>
+<text x="907.5" y="422" text-anchor="middle" class="xtick">Async</text>
+<text x="907.5" y="436" text-anchor="middle" class="xtick">output</text>
+<text x="1180.0" y="422" text-anchor="middle" class="xtick">Replicas</text>
+</svg>
