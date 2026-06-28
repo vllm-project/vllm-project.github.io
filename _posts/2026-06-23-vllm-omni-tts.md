@@ -298,4 +298,4 @@ The following numbers come from vLLM-Omni cookbook benchmarks. Metrics:
 
 ---
 
-If you are interested in TTS inference optimization, join the `#vllm-omni` channel in [vLLM Slack](https://slack.vllm.ai), or open an issue in [vLLM-Omni GitHub](https://github.com/vllm-project/vllm-omni).
+If you are interested in TTS inference optimization, join the `#sig-omni` channel in [vLLM Slack](https://slack.vllm.ai), or open an issue in [vLLM-Omni GitHub](https://github.com/vllm-project/vllm-omni).
