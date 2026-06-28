@@ -49,7 +49,7 @@ The important point is that not every optimization works for every TTS architect
 
 ## Qwen3-TTS: A Full Optimization Path
 
-Qwen3-TTS is a speech generation model family from the Qwen team. It uses a discrete multi-codebook language-model architecture and a 12 Hz tokenizer for acoustic compression and high-fidelity reconstruction[^11]. Its three variants—Base for voice cloning, CustomVoice for predefined speakers and emotion control, and VoiceDesign for natural-language voice description—share the same two-stage architecture: Talker predicts codec tokens autoregressively, and Code2Wav decodes them in parallel. Qwen3-TTS Code2Wav is a lightweight non-DiT decoder and does not require the iterative denoising loop used by diffusion models.
+Qwen3-TTS is a speech generation model family from the Qwen team. It uses a discrete multi-codebook language-model architecture and a 12 Hz tokenizer for acoustic compression and high-fidelity reconstruction[^11]. Its three variants—Base for voice cloning, CustomVoice for predefined speakers with instruction-based emotion and style control, and VoiceDesign for designing new voices from natural-language descriptions of timbre, emotion, and prosody—share the same two-stage architecture: Talker predicts codec tokens autoregressively, and Code2Wav decodes them in parallel. Qwen3-TTS Code2Wav is a lightweight non-DiT decoder and does not require the iterative denoising loop used by diffusion models.
 
 Among the four models discussed here, Qwen3-TTS has the most standard pipeline shape: Talker → connector → Code2Wav. That makes it a useful example for walking through the full TTS inference optimization process.
 
@@ -279,6 +279,12 @@ The following numbers come from vLLM-Omni cookbook benchmarks. Metrics:
 | Audio throughput | 35.26 audio-s/s |
 | Wall time | 96.5s |
 | Speedup vs. baseline | 2.70× |
+
+---
+
+## Acknowledgements
+
+We thank Minghui Jiang, Yueqian Lin, Canlin Guo, Shunyang Li, Taichang Zhou, Yuekai Zhang, Juan Pablo Zuluaga, Nick Cao, Ruirui Yang, Wenjing Chen, Haiyan Wu, Han Gao, Hongsheng Liu, and Roger Wang for their contributions and feedback.
 
 ---
 
