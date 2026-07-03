@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">Qwen3-Omni optimization stack in vLLM-Omni</title>
+  <desc id="desc">Optimization areas for Qwen3-Omni staged serving in vLLM-Omni.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 24px system-ui, -apple-system, Segoe UI, sans-serif; fill: #111827; }
+      .node-text { font: 700 14px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .node-sub { font: 500 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #475569; }
+      .arrow { stroke: #475569; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 6 6; }
+      .panel { fill: #fbf6ef; stroke: #eee1d2; }
+      .blue { fill: #e8eef7; stroke: #b8c7dc; }
+      .green { fill: #bfe7c7; stroke: #56b879; }
+      .orange { fill: #f6c28b; stroke: #e39a4a; }
+      .yellow { fill: #f8e7a5; stroke: #d9b441; }
+    </style>
+  </defs>
+
+  <rect x="20" y="15" width="1240" height="390" rx="20" class="panel"/>
+  <text x="50" y="58" class="title">Qwen3-Omni optimization stack</text>
+
+  <rect x="60" y="140" width="150" height="64" rx="10" class="blue"/>
+  <text x="135" y="167" text-anchor="middle" class="node-text">Stage split</text>
+  <text x="135" y="189" text-anchor="middle" textLength="138" lengthAdjust="spacingAndGlyphs" class="node-sub">Thinker / Talker / Code2Wav</text>
+
+  <rect x="262" y="140" width="150" height="64" rx="10" class="green"/>
+  <text x="337" y="167" text-anchor="middle" class="node-text">Batch</text>
+  <text x="337" y="189" text-anchor="middle" class="node-sub">AR + Code2Wav</text>
+
+  <rect x="464" y="140" width="150" height="64" rx="10" class="orange"/>
+  <text x="539" y="167" text-anchor="middle" class="node-text">CUDA Graph</text>
+  <text x="539" y="189" text-anchor="middle" class="node-sub">stable chunks</text>
+
+  <rect x="666" y="140" width="150" height="64" rx="10" class="yellow"/>
+  <text x="741" y="167" text-anchor="middle" class="node-text">Async chunk</text>
+  <text x="741" y="189" text-anchor="middle" class="node-sub">overlap IO + compute</text>
+
+  <rect x="868" y="140" width="150" height="64" rx="10" class="green"/>
+  <text x="943" y="167" text-anchor="middle" class="node-text">Async output</text>
+  <text x="943" y="189" text-anchor="middle" class="node-sub">async omni output</text>
+
+  <rect x="1070" y="140" width="150" height="64" rx="10" class="green"/>
+  <text x="1145" y="167" text-anchor="middle" class="node-text">Replicas</text>
+  <text x="1145" y="189" text-anchor="middle" textLength="138" lengthAdjust="spacingAndGlyphs" class="node-sub">scale Talker / Code2Wav</text>
+
+  <rect x="545" y="290" width="190" height="64" rx="10" class="orange"/>
+  <text x="640" y="317" text-anchor="middle" class="node-text">Hot-path cleanup</text>
+  <text x="640" y="339" text-anchor="middle" class="node-sub">GPU-resident decode state</text>
+
+  <path class="arrow" d="M 213 172 L 258 172"/>
+  <path class="arrow" d="M 415 172 L 460 172"/>
+  <path class="arrow" d="M 617 172 L 662 172"/>
+  <path class="arrow" d="M 819 172 L 864 172"/>
+  <path class="arrow" d="M 1021 172 L 1066 172"/>
+  <path class="arrow dash" d="M 943 204 C 900 258 800 290 712 290"/>
+</svg>
