@@ -281,4 +281,4 @@ We thank the Qwen3-Omni contributors in [vLLM-Omni](https://github.com/vllm-proj
 - Stage replicas (§5): support multi-stage deployment[vllm-omni#2396](https://github.com/vllm-project/vllm-omni/pull/2396), omni stage runtime and distributed replica control plane [vllm-omni#3855](https://github.com/vllm-project/vllm-omni/pull/3855)
 - Hot-path cleanup (§6): [vllm-omni#3007](https://github.com/vllm-project/vllm-omni/pull/3007), [vllm-omni#3164](https://github.com/vllm-project/vllm-omni/pull/3164), [vllm-omni#3878](https://github.com/vllm-project/vllm-omni/pull/3878)
 
-If you are interested in Qwen3-Omni serving or omni-modality inference, join the `#vllm-omni` channel in [vLLM Slack](https://slack.vllm.ai), or open an issue in [vLLM-Omni GitHub](https://github.com/vllm-project/vllm-omni).
+If you are interested in Qwen3-Omni serving or omni-modality inference, join the `#sig-omni` channel in [vLLM Slack](https://slack.vllm.ai), or open an issue in [vLLM-Omni GitHub](https://github.com/vllm-project/vllm-omni).
