@@ -160,39 +160,39 @@ The HPC-Ops backends are currently supported only on NVIDIA Hopper-architecture 
 
 ### **Fused MoE: HPC-Ops vs Triton / CUTLASS**
 
-We benchmarked the HPC-Ops MoE backend against the Triton and CUTLASS MoE backends under the Hy3 model configuration, at both TP8 / EP1 and TP1 / EP8 settings. The HPC-Ops vs Best column reports HPC's latency relative to the fastest backend in the same row (100% denotes the best result). Averaged over batch sizes, HPC-Ops is 1.59× faster than the best baseline at TP8 / EP1 and 1.21× at TP1 / EP8, with the largest gains at the small-to-mid batch sizes that dominate low-latency decode.
+We benchmarked the HPC-Ops MoE backend against the Triton and CUTLASS MoE backends under the Hy3 model configuration, at both TP8 / EP1 and TP1 / EP8 settings. Averaged over batch sizes, HPC-Ops is 1.59× faster than the best baseline at TP8 / EP1 and 1.21× at TP1 / EP8, with the largest gains at the small-to-mid batch sizes that dominate low-latency decode.
 
 Table 1: FusedMoE latency (µs) across batch sizes at TP8 / EP1 (expert weights sharded across 8 ranks)
 
-| Batch | HPC-Ops (µs) | Triton (µs) | CUTLASS (µs) | HPC-Ops vs Best |
-| :---- | :---- | :---- | :---- | :---- |
-| 4 | 42.0 | 56.4 | 74.5 | 100.0% |
-| 16 | 85.7 | 124.2 | 209.2 | 100.0% |
-| 32 | 124.0 | 184.3 | 275.6 | 100.0% |
-| 64 | 147.2 | 374.9 | 330.3 | 100.0% |
-| 128 | 161.5 | 302.9 | 345.3 | 100.0% |
-| 256 | 170.1 | 310.9 | 351.6 | 100.0% |
-| 512 | 194.5 | 331.6 | 369.2 | 100.0% |
-| 1024 | 281.4 | 652.7 | 438.3 | 100.0% |
-| 2048 | 491.8 | 731.5 | 794.4 | 100.0% |
-| 4096 | 872.0 | 1366.0 | 1230.7 | 100.0% |
-| 8192 | 1695.0 | 2216.8 | 2362.9 | 100.0% |
-| 16384 | 3241.9 | 4329.1 | 4364.4 | 100.0% |
+| Batch | HPC-Ops (µs) | Triton (µs) | CUTLASS (µs) |
+| :---- | :---- | :---- | :---- |
+| 4 | 42.0 | 56.4 | 74.5 |
+| 16 | 85.7 | 124.2 | 209.2 |
+| 32 | 124.0 | 184.3 | 275.6 |
+| 64 | 147.2 | 374.9 | 330.3 |
+| 128 | 161.5 | 302.9 | 345.3 |
+| 256 | 170.1 | 310.9 | 351.6 |
+| 512 | 194.5 | 331.6 | 369.2 |
+| 1024 | 281.4 | 652.7 | 438.3 |
+| 2048 | 491.8 | 731.5 | 794.4 |
+| 4096 | 872.0 | 1366.0 | 1230.7 |
+| 8192 | 1695.0 | 2216.8 | 2362.9 |
+| 16384 | 3241.9 | 4329.1 | 4364.4 |
 
 Table 2: FusedMoE latency (µs) across batch sizes at TP1 / EP8 (experts sharded across 8 ranks)
 
-| Batch | HPC-Ops (µs) | Triton (µs) | CUTLASS (µs) | HPC-Ops vs Best |
-| :---- | :---- | :---- | :---- | :---- |
-| 4 | 118.6 | 147.4 | 140.4 | 100.0% |
-| 8 | 136.7 | 192.8 | 170.7 | 100.0% |
-| 16 | 149.8 | 198.4 | 263.5 | 100.0% |
-| 32 | 153.6 | 214.6 | 264.4 | 100.0% |
-| 64 | 166.5 | 358.1 | 266.8 | 100.0% |
-| 128 | 213.5 | 251.7 | 272.6 | 100.0% |
-| 256 | 386.2 | 454.9 | 493.5 | 100.0% |
-| 512 | 705.5 | 691.7 | 741.7 | 102.0% |
-| 1024 | 1342.6 | 1369.1 | 1359.1 | 100.0% |
-| 2048 | 2513.9 | 2668.7 | 2530.4 | 100.0% |
+| Batch | HPC-Ops (µs) | Triton (µs) | CUTLASS (µs) |
+| :---- | :---- | :---- | :---- |
+| 4 | 118.6 | 147.4 | 140.4 |
+| 8 | 136.7 | 192.8 | 170.7 |
+| 16 | 149.8 | 198.4 | 263.5 |
+| 32 | 153.6 | 214.6 | 264.4 |
+| 64 | 166.5 | 358.1 | 266.8 |
+| 128 | 213.5 | 251.7 | 272.6 |
+| 256 | 386.2 | 454.9 | 493.5 |
+| 512 | 705.5 | 691.7 | 741.7 |
+| 1024 | 1342.6 | 1369.1 | 1359.1 |
+| 2048 | 2513.9 | 2668.7 | 2530.4 |
 
 ![HPC-Ops FusedMoE on H20 — Hy3](/assets/figures/2026-07-06-vllm-hpc-ops/fused-moe-latency.png)
 
@@ -219,18 +219,18 @@ We further benchmarked the HPC-Ops Attention backend against FlashAttention, Tri
 
 Table 4: Attention latency (ms) vs FlashAttention, Triton, and FlashInfer
 
-| Batch Spec | Type | Batch Size | HPC-Ops (ms) | FlashAttention (ms) | Triton (ms) | FlashInfer (ms) | HPC-Ops vs Best |
-| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
-| q512 | prefill | 1 | 0.047 | 0.069 | 0.123 | 0.070 | 100.0% |
-| q1ks2k | extend | 1 | 0.406 | 0.431 | 1.132 | 0.431 | 100.0% |
-| q2k | prefill | 1 | 0.530 | 0.574 | 1.525 | 0.609 | 100.0% |
-| q4k | prefill | 1 | 2.002 | 2.093 | 5.816 | 2.144 | 100.0% |
-| q8k | prefill | 1 | 7.883 | 7.957 | 22.702 | 8.084 | 100.0% |
-| 2q1ks4k | extend | 2 | 1.835 | 1.830 | 5.046 | 1.829 | 100.3% |
-| 8q1s1k | decode | 8 | 0.019 | 0.031 | 0.035 | 0.021 | 100.0% |
-| 16q1s2k | decode | 16 | 0.054 | 0.098 | 0.106 | 0.052 | 103.9% |
-| 32q1s1k | decode | 32 | 0.057 | 0.102 | 0.080 | 0.058 | 100.0% |
-| 64q1s4k | decode | 64 | 0.299 | 0.620 | 0.510 | 0.340 | 100.0% |
+| Batch Spec | Type | Batch Size | HPC-Ops (ms) | FlashAttention (ms) | Triton (ms) | FlashInfer (ms) |
+| :---- | :---- | :---- | :---- | :---- | :---- | :---- |
+| q512 | prefill | 1 | 0.047 | 0.069 | 0.123 | 0.070 |
+| q1ks2k | extend | 1 | 0.406 | 0.431 | 1.132 | 0.431 |
+| q2k | prefill | 1 | 0.530 | 0.574 | 1.525 | 0.609 |
+| q4k | prefill | 1 | 2.002 | 2.093 | 5.816 | 2.144 |
+| q8k | prefill | 1 | 7.883 | 7.957 | 22.702 | 8.084 |
+| 2q1ks4k | extend | 2 | 1.835 | 1.830 | 5.046 | 1.829 |
+| 8q1s1k | decode | 8 | 0.019 | 0.031 | 0.035 | 0.021 |
+| 16q1s2k | decode | 16 | 0.054 | 0.098 | 0.106 | 0.052 |
+| 32q1s1k | decode | 32 | 0.057 | 0.102 | 0.080 | 0.058 |
+| 64q1s4k | decode | 64 | 0.299 | 0.620 | 0.510 | 0.340 |
 
 ### **End-to-end: Hy3 on 8× H20**
 
