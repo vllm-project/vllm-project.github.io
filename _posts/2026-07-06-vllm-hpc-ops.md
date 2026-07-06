@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "HPC-Ops Backends in vLLM: High-Performance Attention and MoE for Hunyuan Hy3"
+title: "vLLM × HPC-Ops: High-Performance Attention and MoE Backends from Tencent Hunyuan"
 author: "Tencent Hunyuan AI Infra Team and vLLM Team"
 summary: "How HPC-Ops integrates Hopper-optimized attention and FP8 MoE backends into vLLM for Tencent Hunyuan Hy3, improving mixed-length decode, MoE latency, TTFT, and TPOT on NVIDIA H20."
 image: /assets/figures/2026-07-06-vllm-hpc-ops/dynamic-partitioning.png
