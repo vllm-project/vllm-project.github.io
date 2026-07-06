@@ -15,7 +15,7 @@ tags:
 
 ## **TL;DR**
 
-The Attention and MoE kernels from **HPC-Ops** — the production operator library built by the Tencent Hunyuan AI Infra team — are now in vLLM `master` as first-class backends ([AttentionPR \#46020](https://github.com/vllm-project/vllm/pull/46020), [MoE PR \#45924](https://github.com/vllm-project/vllm/pull/45924)). Both are optimized for NVIDIA's Hopper architecture, with the strongest results on H20:
+The Attention and MoE kernels from **HPC-Ops** — the production operator library built by the Tencent Hunyuan AI Infra team — are now in vLLM `main` branch as first-class backends ([AttentionPR \#46020](https://github.com/vllm-project/vllm/pull/46020), [MoE PR \#45924](https://github.com/vllm-project/vllm/pull/45924)). Both are optimized for NVIDIA's Hopper architecture, with the strongest results on H20:
 
 * **Attention:** a per-step, load-balanced decode scheduler plus a fused RoPE \+ QK-Norm \+ KV-write prologue. On mixed-length decode, up to **2.95×** over a static split-KV schedule and **2.25×** on average over FlashInfer and FlashAttention.  
 * **MoE:** a fully fused, low-latency FP8 MoE pipeline. On average **1.59×** at TP8 / EP1 and **1.21×** at TP1 / EP8 over Triton and CUTLASS, with matched output quality.
