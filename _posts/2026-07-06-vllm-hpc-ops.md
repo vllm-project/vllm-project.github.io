@@ -13,7 +13,7 @@ tags:
   - hpc-ops
 ---
 
-The Attention and MoE kernels from [HPC-Ops](https://github.com/Tencent/hpc-ops), the production operator library built by the Tencent Hunyuan AI Infra team, are now available in vLLM `master` as first-class backends through [Attention PR #46020](https://github.com/vllm-project/vllm/pull/46020) and [MoE PR #45924](https://github.com/vllm-project/vllm/pull/45924).
+The Attention and MoE kernels from [HPC-Ops](https://github.com/Tencent/hpc-ops), the production operator library built by the Tencent Hunyuan AI Infra team, are now available in vLLM `main` branch as first-class backends through [Attention PR #46020](https://github.com/vllm-project/vllm/pull/46020) and [MoE PR #45924](https://github.com/vllm-project/vllm/pull/45924).
 
 Both backends are optimized for NVIDIA Hopper architecture, with the strongest measured results on H20. The Attention backend targets mixed-length decode with a per-step, load-balanced scheduler and a fused RoPE + QK-Norm + KV-write prologue. The MoE backend provides a fully fused, low-latency FP8 MoE pipeline. Together, they plug into stock vLLM through standard backend interfaces, without source changes or a long-lived fork.
 
