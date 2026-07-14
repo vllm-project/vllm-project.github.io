@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1060" viewBox="0 0 1440 1060" role="img" aria-labelledby="title desc">
+  <title id="title">vLLM AFD Plugin runtime architecture</title>
+  <desc id="desc">The diagram shows plugin bootstrap and configuration, a request-driven Attention service, a connector-driven FFN service, shared AFD connectors and metadata, and the GPU and Ascend NPU runtime backends.</desc>
+
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#172033" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow-dark" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#526071"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#27836a"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#3976b9"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; }
+      .title { font-size: 36px; font-weight: 700; fill: #172033; }
+      .subtitle { font-size: 17px; font-weight: 400; fill: #5d6978; }
+      .section-label { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; fill: #667384; }
+      .lane-title { font-size: 23px; font-weight: 700; fill: #172033; }
+      .lane-subtitle { font-size: 14px; font-weight: 400; fill: #667384; }
+      .card-title { font-size: 16px; font-weight: 700; fill: #172033; }
+      .card-text { font-size: 13px; font-weight: 400; fill: #4d5968; }
+      .small-title { font-size: 14px; font-weight: 700; fill: #172033; }
+      .small-text { font-size: 12px; font-weight: 400; fill: #536070; }
+      .flow-label { font-size: 12px; font-weight: 700; }
+      .legend { font-size: 12px; font-weight: 600; fill: #5d6978; }
+      .upstream { fill: #eaf3ff; stroke: #91b6e5; stroke-width: 1.5; }
+      .plugin { fill: #f1edff; stroke: #a996d8; stroke-width: 1.5; }
+      .transport { fill: #e9f8f2; stroke: #7bbda6; stroke-width: 1.5; }
+      .patch { fill: #fff5df; stroke: #d9ad5f; stroke-width: 1.5; }
+      .surface { fill: #ffffff; stroke: #d8dee8; stroke-width: 1.5; }
+      .lane-attn { fill: #f8fbff; stroke: #aac6e8; stroke-width: 1.5; }
+      .lane-transport { fill: #f6fcf9; stroke: #9ccdbb; stroke-width: 1.5; }
+      .lane-ffn { fill: #fbf9ff; stroke: #baaadd; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1060" fill="#f5f7fa"/>
+
+  <text x="48" y="55" class="title">vLLM AFD Plugin — Runtime Architecture</text>
+  <text x="48" y="83" class="subtitle">Attention–FFN disaggregation on vLLM 0.19.1 · request-driven Attention · connector-driven FFN</text>
+
+  <g transform="translate(1020,45)">
+    <rect x="0" y="0" width="14" height="14" rx="3" class="upstream"/>
+    <text x="22" y="12" class="legend">vLLM / vLLM-Ascend</text>
+    <rect x="153" y="0" width="14" height="14" rx="3" class="plugin"/>
+    <text x="175" y="12" class="legend">AFD plugin</text>
+    <rect x="272" y="0" width="14" height="14" rx="3" class="transport"/>
+    <text x="294" y="12" class="legend">transport</text>
+  </g>
+
+  <text x="48" y="123" class="section-label">BOOTSTRAP &amp; CONFIGURATION</text>
+
+  <path d="M428 196 H458" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M920 196 H950" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="48" y="140" width="380" height="120" rx="14" class="surface"/>
+    <rect x="48" y="140" width="7" height="120" rx="3" fill="#5c91cf"/>
+    <text x="74" y="170" class="card-title">Launch two vLLM services</text>
+    <text x="74" y="196" class="card-text">vllm serve + explicit --worker-cls</text>
+    <text x="74" y="219" class="card-text">additional_config["afd"]: role · connector · topology</text>
+    <text x="74" y="242" class="card-text">Requests are sent only to the Attention API</text>
+
+    <rect x="460" y="140" width="460" height="120" rx="14" class="plugin"/>
+    <text x="486" y="170" class="card-title">Plugin bootstrap</text>
+    <text x="486" y="196" class="card-text">vllm.general_plugins → afd_plugin:register_afd</text>
+    <text x="486" y="219" class="card-text">Register AFD model wrappers</text>
+    <text x="486" y="242" class="card-text">Apply EngineCore, config and Ascend compatibility patches</text>
+
+    <rect x="952" y="140" width="440" height="120" rx="14" class="plugin"/>
+    <text x="978" y="170" class="card-title">Runtime resolution</text>
+    <text x="978" y="196" class="card-text">Parse + validate AFDConfig and role-specific worker</text>
+    <text x="978" y="219" class="card-text">Select GPU or Ascend NPU model runner</text>
+    <text x="978" y="242" class="card-text">AFDConnectorFactory lazily loads the configured backend</text>
+  </g>
+
+  <text x="48" y="305" class="section-label">RUNTIME DATA PLANE</text>
+
+  <rect x="48" y="322" width="520" height="548" rx="18" class="lane-attn"/>
+  <rect x="592" y="322" width="256" height="548" rx="18" class="lane-transport"/>
+  <rect x="872" y="322" width="520" height="548" rx="18" class="lane-ffn"/>
+
+  <text x="80" y="358" class="lane-title">Attention service</text>
+  <text x="80" y="379" class="lane-subtitle">request-driven · owns scheduling, KV cache and sampling</text>
+  <text x="720" y="358" text-anchor="middle" class="lane-title">AFD transport</text>
+  <text x="720" y="379" text-anchor="middle" class="lane-subtitle">shared contract + metadata</text>
+  <text x="904" y="358" class="lane-title">FFN service</text>
+  <text x="904" y="379" class="lane-subtitle">connector-driven daemon · no request scheduling</text>
+
+  <!-- Attention service vertical flow -->
+  <path d="M308 432 V445" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M308 501 V514" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M308 574 V587" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M308 651 V664" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M308 740 V753" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="80" y="396" width="456" height="36" rx="10" class="upstream"/>
+    <text x="308" y="419" text-anchor="middle" class="small-title">OpenAI API request</text>
+
+    <rect x="80" y="447" width="456" height="54" rx="10" class="upstream"/>
+    <text x="100" y="469" class="card-title">vLLM EngineCore + Scheduler</text>
+    <text x="100" y="490" class="card-text">request batching · KV-cache coordination</text>
+
+    <rect x="80" y="516" width="456" height="58" rx="10" class="plugin"/>
+    <text x="100" y="540" class="card-title">AFD Attention Worker</text>
+    <text x="100" y="561" class="card-text">GPU AFDAttentionWorker · NPU AFDNPUAttentionWorker</text>
+
+    <rect x="80" y="589" width="456" height="62" rx="10" class="plugin"/>
+    <text x="100" y="614" class="card-title">AFD Attention Model Runner</text>
+    <text x="100" y="636" class="card-text">build inputs · install forward context · publish DP metadata</text>
+
+    <rect x="80" y="666" width="456" height="74" rx="10" class="plugin"/>
+    <text x="100" y="691" class="card-title">AFD model wrapper — Attention path</text>
+    <text x="100" y="713" class="card-text">DeepSeek V2/V3 · GLM MoE DSA</text>
+    <text x="100" y="731" class="card-text">attention + KV cache · optional routing/gate metadata</text>
+
+    <rect x="80" y="755" width="456" height="48" rx="10" class="upstream"/>
+    <text x="100" y="776" class="card-title">Native sampling + API response</text>
+    <text x="100" y="794" class="small-text">continues after the final FFN output returns</text>
+  </g>
+
+  <!-- Transport control plane and connector implementations -->
+  <g filter="url(#shadow)">
+    <rect x="612" y="396" width="216" height="64" rx="10" class="transport"/>
+    <text x="720" y="419" text-anchor="middle" class="small-title">AFD metadata</text>
+    <text x="720" y="439" text-anchor="middle" class="small-text">DP · ubatch · layer · graph</text>
+    <text x="720" y="454" text-anchor="middle" class="small-text">forward-context state</text>
+
+    <rect x="612" y="478" width="216" height="58" rx="10" class="transport"/>
+    <text x="720" y="502" text-anchor="middle" class="small-title">AFDConnectorBase</text>
+    <text x="720" y="522" text-anchor="middle" class="small-text">send / receive in both directions</text>
+
+    <rect x="612" y="554" width="216" height="68" rx="10" class="transport"/>
+    <text x="628" y="578" class="small-title">P2pNcclAFDConnector</text>
+    <text x="628" y="598" class="small-text">CUDA · sync · prefill + decode</text>
+    <text x="628" y="614" class="small-text">decode-only CUDA graph</text>
+
+    <rect x="612" y="638" width="216" height="68" rx="10" class="transport"/>
+    <text x="628" y="662" class="small-title">CAMP2pAFDConnector</text>
+    <text x="628" y="682" class="small-text">Ascend · sync · prefill + decode</text>
+    <text x="628" y="698" class="small-text">decode-only ACL graph</text>
+
+    <rect x="612" y="722" width="216" height="68" rx="10" class="transport"/>
+    <text x="628" y="746" class="small-title">CAMAsyncAFDConnector</text>
+    <text x="628" y="766" class="small-text">Ascend · async · prefill only</text>
+    <text x="628" y="782" class="small-text">async DP / MoE ubatching</text>
+  </g>
+
+  <!-- FFN service vertical flow -->
+  <path d="M1132 450 V463" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M1132 527 V540" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+  <path d="M1132 608 V621" fill="none" stroke="#526071" stroke-width="2" marker-end="url(#arrow-dark)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="904" y="396" width="456" height="54" rx="10" class="patch"/>
+    <text x="924" y="419" class="card-title">Patched FFN EngineCore</text>
+    <text x="924" y="440" class="card-text">stops after executor construction; skips scheduler + KV setup</text>
+
+    <rect x="904" y="465" width="456" height="62" rx="10" class="plugin"/>
+    <text x="924" y="490" class="card-title">AFD FFN Worker</text>
+    <text x="924" y="512" class="card-text">starts background connector loop; rejects execute_model requests</text>
+
+    <rect x="904" y="542" width="456" height="66" rx="10" class="plugin"/>
+    <text x="924" y="568" class="card-title">AFD FFN Model Runner</text>
+    <text x="924" y="590" class="card-text">GPU GPUFFNModelRunner · NPU AFDNPUFFNModelRunner</text>
+
+    <rect x="904" y="623" width="456" height="84" rx="10" class="plugin"/>
+    <text x="924" y="649" class="card-title">AFD model wrapper — FFN path</text>
+    <text x="924" y="671" class="card-text">recv Attention activations → compute_ffn_output(layer)</text>
+    <text x="924" y="692" class="card-text">MoE / shared experts → return FFN output</text>
+
+    <rect x="904" y="725" width="456" height="65" rx="10" class="patch"/>
+    <text x="1132" y="750" text-anchor="middle" class="small-title">Daemon-only execution boundary</text>
+    <text x="1132" y="772" text-anchor="middle" class="small-text">no API traffic · no scheduler · empty KV cache</text>
+  </g>
+
+  <!-- Metadata control-plane flow -->
+  <path d="M536 620 H574 Q586 620 586 608 V440 Q586 428 598 428 H612" fill="none" stroke="#6e7e90" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-dark)"/>
+  <path d="M828 428 H856 Q866 428 866 440 V574 Q866 575 876 575 H904" fill="none" stroke="#6e7e90" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow-dark)"/>
+  <rect x="534" y="407" width="132" height="20" rx="10" fill="#f5f7fa"/>
+  <text x="600" y="421" text-anchor="middle" class="flow-label" fill="#667384">control plane</text>
+
+  <!-- Bidirectional activation flow -->
+  <path d="M536 699 H566 Q578 699 578 811 Q578 823 590 823 H850 Q862 823 862 676 Q862 665 874 665 H904" fill="none" stroke="#27836a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="626" y="807" width="188" height="23" rx="11" fill="#e9f8f2"/>
+  <text x="720" y="823" text-anchor="middle" class="flow-label" fill="#216d59">Attention hidden states →</text>
+
+  <path d="M904 694 H884 Q872 694 872 840 Q872 850 860 850 H580 Q568 850 568 728 Q568 716 556 716 H536" fill="none" stroke="#3976b9" stroke-width="3" marker-end="url(#arrow-blue)"/>
+  <rect x="650" y="836" width="140" height="22" rx="11" fill="#eaf3ff"/>
+  <text x="720" y="851" text-anchor="middle" class="flow-label" fill="#315f94">← FFN output</text>
+
+  <text x="48" y="910" class="section-label">BACKEND-SPECIFIC RUNTIMES &amp; SHARED SERVICES</text>
+
+  <g filter="url(#shadow)">
+    <rect x="48" y="928" width="424" height="92" rx="14" class="upstream"/>
+    <text x="72" y="957" class="card-title">GPU runtime</text>
+    <text x="72" y="981" class="card-text">vLLM v1 · CUDA · PyNccl P2P · CUDA graph</text>
+    <text x="72" y="1003" class="card-text">DBO supported with exactly two ubatches</text>
+
+    <rect x="496" y="928" width="424" height="92" rx="14" class="upstream"/>
+    <text x="520" y="957" class="card-title">Ascend NPU runtime</text>
+    <text x="520" y="981" class="card-text">vLLM-Ascend MRv1 · HCCL/CAMP2P · ACL graph</text>
+    <text x="520" y="1003" class="card-text">CAM async DP and AFD-managed MoE ubatching</text>
+
+    <rect x="944" y="928" width="448" height="92" rx="14" class="plugin"/>
+    <text x="968" y="957" class="card-title">Shared AFD services</text>
+    <text x="968" y="981" class="card-text">config + validation · topology · metadata · forward context</text>
+    <text x="968" y="1003" class="card-text">profiling · graph state · lifecycle and compatibility helpers</text>
+  </g>
+
+  <text x="1392" y="1044" text-anchor="end" class="legend">External plugin · no vLLM source-tree edits</text>
+</svg>
