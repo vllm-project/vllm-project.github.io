@@ -82,12 +82,18 @@ Across the measured request rates, the AFD configuration lowers median/P50 time 
 
 The current implementation requires Python 3.10–3.13 and targets vLLM `0.19.1`.
 
+### Install
+
+Check out the installation steps in our [README](https://github.com/vllm-project/afd-plugin#install) for details.
+
+### Deployment Recipes
+
 Deployment commands depend on the backend, connector, model, and rank topology. Instead of duplicating configurations here, use the maintained [AFD Plugin recipes](https://github.com/vllm-project/afd-plugin/tree/main/recipe):
 
 * **GPU synchronous AFD:** the [DeepSeek V2 Lite P2P NCCL recipes](https://github.com/vllm-project/afd-plugin/tree/main/recipe/gpu/p2p_nccl/deepseek_v2_lite) cover decode-oriented colocated and prefill/decode-disaggregated deployments, eager and CUDA graph execution, and multiple DP/TP layouts.
 * **Ascend NPU asynchronous prefill AFD:** the [DeepSeek V3.2 CAM async recipe](https://github.com/vllm-project/afd-plugin/blob/main/recipe/npu/cam_async/DeepSeek-V3.2.md) documents the required environment, topology, AFD configuration, benchmark setup, and current limitations.
 
-Refer to the repository [README](https://github.com/vllm-project/afd-plugin#readme) and recipe directory for the latest installation steps, supported connector matrix, configuration fields, and complete launch commands.
+Refer to the repository README and recipe directory for the latest supported connector matrix, configuration fields, and complete launch commands.
 
 ## Current Scope and Roadmap
 
