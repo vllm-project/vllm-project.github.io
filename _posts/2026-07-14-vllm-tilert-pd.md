@@ -136,4 +136,4 @@ We would love feedback from the community: on the integration surface, on the wo
 
 ## Acknowledgements
 
-We thank the vLLM community for designing the V1 connector interface that made a zero-modification integration possible, and the Mooncake and NIXL projects for the RDMA transfer engines.
+We thank the vLLM community for designing the V1 connector interface that made a zero-modification integration possible, and the Mooncake and NIXL projects for the RDMA transfer engines. We also appreciate [Inferact Inc.](https://inferact.ai/) for the collaboration to improve vLLM-TileRT integration.
