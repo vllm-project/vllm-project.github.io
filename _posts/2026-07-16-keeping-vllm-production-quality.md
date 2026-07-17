@@ -132,6 +132,8 @@ Every 15 minutes, data from our Buildkite pipelines is ingested into Databricks 
 
 With all the available data and full control of the dashboard, we have so much flexibility on building out our observability stack. It gives us an easier time answering these typical questions:
 
+<!-- dashboard-carousel:start -->
+
 ***Is main branch healthy right now?***
 
 ![The CI dashboard showing main-branch health](/assets/figures/2026-07-16-keeping-vllm-production-quality/08-main-branch-health.png)
@@ -155,6 +157,8 @@ Basic correctness test failed once so it’s probably flaky…
 ***Which job takes longest on CI? What’s its duration trend for past 2 weeks?***
 
 ![The CI dashboard showing job-duration trends](/assets/figures/2026-07-16-keeping-vllm-production-quality/11-job-duration-trend.png)
+
+<!-- dashboard-carousel:end -->
 
 Those are just a few examples of what our dashboard can do. Modern coding agents have made this kind of tooling surprisingly approachable, even without deep front-end expertise.
 
