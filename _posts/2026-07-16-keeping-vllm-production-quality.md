@@ -39,21 +39,21 @@ To start, a journey from pull requests to a new version release on vLLM has to g
 
 Every PR starts with lightweight GitHub Actions checks—linting, formatting, and similar guardrails. Once a committer thinks the PR is ready to merge, the heavier unit testing then starts running on Buildkite, our CI platform.
 
-Buildkite assembles each PR’s testing pipeline dynamically: a bootstrap step reads the job definitions, inspects the diff, and schedules only the relevant groups. Change only documentation and you may get a handful of jobs. Touch a few important kernels? Buckle up for 100+ jobs launching in parallel.
+![vLLM CI flow from GitHub Actions checks to dynamically selected Buildkite jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/01-ci-pipeline-and-selected-jobs.png)
 
-![vLLM CI flow from GitHub Actions checks to dynamically selected Buildkite jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/01-dynamic-ci-pipeline.png)
+Buildkite assembles each PR’s testing pipeline dynamically: a bootstrap step reads the job definitions, inspects the diff, and schedules only the relevant groups. Change only documentation and you may get a handful of jobs. Touch a few important kernels? Buckle up for 100+ jobs launching in parallel.
 
 In total, the vLLM CI suite runs 37 test groups and 266 jobs, covering every major component and feature—from different kernels to speculative decoding to LoRA. Groups range from a couple of jobs to a few dozen, and many tests exercise several components at once. Here is a subset:
 
-![vLLM CI test groups and example jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/01-ci-test-groups-266-jobs.png)
+![vLLM CI test groups and example jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/02-ci-test-groups-266-jobs.png)
 
 ### Ensuring test environment is consistent
 
 **A test only means something if it runs the same way every time.** We observe two kinds of drift usually get in the way: the environment can differ across our CI runners, and dependencies can change under us over time. A shared container image removes the first; a pinned dependency graph removes the second.
 
-**Same image, every machine.** With 266 jobs fanning out across dozens of machine types, the fastest way to a flaky, untrustworthy suite is to let each job set up its own slightly different environment. To avoid this, majority of our jobs run inside the same container image, built once at the start of a run and reused everywhere. Our Dockerfile builds in stages, each adding to the one below it.
+**Same container image, every machine.** With 266 jobs fanning out across dozens of machine types, the fastest way to a flaky, untrustworthy result is to let each job set up its own slightly different environment. To avoid this, majority of our jobs run inside the same container image, built once at the start of a run and reused everywhere. Our Dockerfile builds in stages, each adding to the one below it.
 
-![Shared container build stages for vLLM CI and releases](/assets/figures/2026-07-16-keeping-vllm-production-quality/05-container-build-stages-serving-test.png)
+![Shared container build stages for vLLM CI and releases](/assets/figures/2026-07-16-keeping-vllm-production-quality/03-container-build-stages.png)
 
 A `base` stage provides the CUDA toolchain; a `build` stage compiles the wheels on top of it; and a `runtime` stage installs those wheels with their runtime dependencies.
 
@@ -63,13 +63,13 @@ For jobs using that shared image, a kernel test on a B200 and an entrypoints tes
 
 **Same versions, every run**. Dependencies drift over time—and that's the half we learned the hard way.
 
-An unpinned dependency makes failures maddening: the same test passes on Monday and crashes on Wednesday. You read every code change in between; none of it looks related. Hours later, it clicks—FlashInfer shipped a new version on Wednesday, and the build quietly picked it up. And FlashInfer was never alone: nixl, transformers, and their transitive dependencies bit us the same way—each unannounced upgrade a fresh chance to break CI, with the cause buried a dependency layer down.
+An unpinned dependency makes failures tricky to chase down: the same test passes on Monday and crashes on Wednesday. You read every code change in between; none of it looks related. Hours later, it clicks—FlashInfer shipped a new version on Wednesday, and the build quietly picked it up. And FlashInfer was never alone: nixl, transformers, and their transitive dependencies bit us the same way—each unannounced upgrade a fresh chance to break CI, with the cause buried a dependency layer down.
 
-So vLLM CI locks its dependencies. Pinned requirements files are split by build versus runtime and by platform, and the Docker build process picks up the appropriate set.
+So vLLM CI locks its dependencies. We take the top-level dependencies, run them with pip compile to generate the locked files that pin everything, inclduing transitive package too.
 
-![Pinned dependency files used by the vLLM build](/assets/figures/2026-07-16-keeping-vllm-production-quality/06-pinned-dependencies.png)
+![Top-level dependencies compiled into a fully pinned package graph](/assets/figures/2026-07-16-keeping-vllm-production-quality/04-pip-compiled-dependency-graph.png)
 
-Those lock files are compiled from a short list of top-level dependencies, so they pin every transitive package too. Not just PyTorch stays fixed, but everything it brings with it. We update the locks periodically and run the full CI suite each time; between updates, every dependency in the image stays frozen. Since we started pinning the full graph, dependency-caused breakages have gone from a recurring headache to rare.
+We update the locks periodically and run the full CI suite each time. Since we started pinning the full graph, dependency-caused breakages don’t give us headache anymore.
 
 ### Scaling CI compute across a heterogeneous, multi-provider fleet
 
@@ -77,7 +77,7 @@ Each job gets pushed to a runner queue on Buildkite — a pool of machines with 
 
 vLLM CI, at the time of writing, has 58 runner queues spanning a wide range of accelerators, and those hardware are provided by multiple partner organizations.
 
-![vLLM CI runner queues across accelerator types](/assets/figures/2026-07-16-keeping-vllm-production-quality/02-runner-queues.png)
+![vLLM CI runner queues across accelerator vendors and hardware types](/assets/figures/2026-07-16-keeping-vllm-production-quality/05-accelerator-runner-fleet.png)
 
 There’s a limit on how much we can spend on compute. Even if we can afford it, managing all of these machines ourselves is a pretty tough job. CI coverage with this much diversity is only possible because of the generous support and collaboration from many of our amazing partners.
 
@@ -93,11 +93,11 @@ There's more than one way to run that agent, and providers pick whatever fits th
 
 The simplest is a standalone machine — our 8xA100 machine or Arm server. The provider installs the agent, points it at a runner queue, and it runs that loop forever.
 
-![A standalone machine running the Buildkite agent](/assets/figures/2026-07-16-keeping-vllm-production-quality/03-standalone-buildkite-agent.png)
+![A standalone Buildkite agent polling a runner queue and reporting results](/assets/figures/2026-07-16-keeping-vllm-production-quality/06-standalone-buildkite-agent-flow.png)
 
 For machines in a Kubernetes cluster, the same model works through the [Buildkite Agent Stack for Kubernetes](https://github.com/buildkite/agent-stack-k8s). The controller turns each matching job into a Kubernetes Job with a single Pod, which runs the test and reports back. We always recommend this way because it’s very scalable: you don’t need to install Buildkite agents on every single node, just add them into the cluster.
 
-![Buildkite Agent Stack for Kubernetes workflow](/assets/figures/2026-07-16-keeping-vllm-production-quality/04-kubernetes-buildkite-agent.png)
+![Buildkite Agent Stack for Kubernetes creating one pod per CI job](/assets/figures/2026-07-16-keeping-vllm-production-quality/07-kubernetes-buildkite-agent-flow.png)
 
 Either way, onboarding is simple on our end: we create a queue, provide a token, and the provider starts the agent themselves. We don’t need access to the machine. That's what lets vLLM test on more hardware than we could ever afford to own—**a donated fleet worth millions of dollars a year.**
 
@@ -107,7 +107,7 @@ There’s a lot of demand and a hard limit on compute, so we need to make sure n
 
 **MIG-slice the big GPUs**
 
-![Partitioning a GPU with NVIDIA Multi-Instance GPU](/assets/figures/2026-07-16-keeping-vllm-production-quality/07-mig-partitioning.png)
+![Eight H200 GPUs partitioned into 56 Multi-Instance GPU slices](/assets/figures/2026-07-16-keeping-vllm-production-quality/08-h200-mig-slices.png)
 
 Most CI jobs run with smaller models and need far less than a whole GPU. NVIDIA's Multi-Instance GPU (MIG) lets us carve one card into several isolated slices — an H200 becomes seven 18 GB partitions — meaning 7 jobs can share one GPU at a time. We did some math here and realized that in many cases, slicing a big GPU is a lot cheaper than renting smaller GPUs for the same amount of workload!
 
@@ -219,7 +219,7 @@ Generally, each workload mainly runs three tasks:
 
 - Function-calling accuracy via the Berkeley Function-Calling Leaderboard (BFCL)
 
-![The nightly performance and accuracy evaluation workflow](/assets/figures/2026-07-16-keeping-vllm-production-quality/13-perf-eval-workload.png)
+![A nightly vLLM workload running performance, accuracy, and function-calling evaluations](/assets/figures/2026-07-16-keeping-vllm-production-quality/14-nightly-perf-eval-workload.png)
 
 Every night, and for every release candidate, we run the full suite across selected models — DeepSeek V4 Pro/Flash, gpt-oss, Kimi K2.5, MiniMax M2.5 and M3, Qwen3.5, GLM 5.1, Gemma 4, and Nemotron 3 Super — on H200, B200, MI300X, and MI355X. That's 17 model-hardware recipes in total right now, and the list keeps growing. We plan to add support for GB200/GB300, PD disaggregation, and more models very soon.
 
@@ -267,7 +267,7 @@ Since November 2025, we have been maintaining a two-week cadence on vLLM release
 
 Every other Monday, we kick off release week. Here's what that looks like:
 
-![The two-week vLLM release process](/assets/figures/2026-07-16-keeping-vllm-production-quality/17-release-loop.svg)
+![The vLLM release candidate testing and publishing loop](/assets/figures/2026-07-16-keeping-vllm-production-quality/18-release-candidate-loop.png)
 
 ### Start from the safest commit
 
