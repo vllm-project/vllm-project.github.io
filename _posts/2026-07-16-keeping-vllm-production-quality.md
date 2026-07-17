@@ -1,15 +1,17 @@
 ---
 layout: post
-title: "Keeping vLLM stable: a look inside CI, benchmarking, and release process"
+title: "Keeping vLLM Production Quality: a look inside CI, Benchmark, and Release process"
 author: "Kevin Luu"
-summary: "How vLLM keeps rapid development stable with selective CI across diverse accelerators, reproducible environments, nightly performance and accuracy evaluation, automated diagnosis, and a gated two-week release process."
-image: /assets/figures/2026-07-16-keeping-vllm-stable/13-perf-eval-workload.png
-social_image: /assets/figures/2026-07-16-keeping-vllm-stable/13-perf-eval-workload.png
+summary: "How vLLM maintains production quality with selective CI across diverse accelerators, reproducible environments, nightly performance and accuracy evaluation, automated diagnosis, and a gated two-week release process."
+image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero.png
+social_image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero.png
 tags:
   - ci
   - performance
   - release
 ---
+
+![vLLM pull requests passing through CI, performance and accuracy evaluation, and release gates](/assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero.png)
 
 ## Introduction
 
@@ -39,7 +41,7 @@ Buildkite assembles each PR’s testing pipeline dynamically: a bootstrap step r
 
 In total, the vLLM CI suite runs 37 test groups and 266 jobs, covering every major component and feature—from individual kernels to speculative decoding. Groups range from a couple of jobs to a few dozen, and many tests exercise several components at once.
 
-![The vLLM CI test groups and their jobs](/assets/figures/2026-07-16-keeping-vllm-stable/01-ci-test-groups.png)
+![The vLLM CI test groups and their jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/01-ci-test-groups.png)
 
 ### Scaling CI compute with our partners
 
@@ -47,7 +49,7 @@ Each job gets pushed to a runner queue—a pool of machines with a particular ha
 
 vLLM CI has 58 runner queues spanning across many accelerators.
 
-![vLLM CI runner queues across accelerator types](/assets/figures/2026-07-16-keeping-vllm-stable/02-runner-queues.png)
+![vLLM CI runner queues across accelerator types](/assets/figures/2026-07-16-keeping-vllm-production-quality/02-runner-queues.png)
 
 There’s a limit on how much we can spend on compute. Even if we can afford it, managing all of these machines ourselves is a pretty tough job. In other words, CI coverage with this much diversity is possible because of the generous support and collaboration from many of our amazing partners.
 
@@ -61,11 +63,11 @@ There's more than one way to run that agent, and providers pick whatever fits th
 
 The simplest is a standalone machine — our 8xA100 machine or Arm server. The provider installs the agent, points it at a runner queue, and it runs that loop forever.
 
-![A standalone machine running the Buildkite agent](/assets/figures/2026-07-16-keeping-vllm-stable/03-standalone-buildkite-agent.png)
+![A standalone machine running the Buildkite agent](/assets/figures/2026-07-16-keeping-vllm-production-quality/03-standalone-buildkite-agent.png)
 
 For machines in a Kubernetes cluster, the same model works through the [Buildkite Agent Stack for Kubernetes](https://github.com/buildkite/agent-stack-k8s). The controller turns each matching job into a Kubernetes Job with a single Pod, which runs the test and reports back. We always recommend this way because it’s very scalable: you don’t need to install Buildkite agents on every single node, just add them into the cluster.
 
-![Buildkite Agent Stack for Kubernetes workflow](/assets/figures/2026-07-16-keeping-vllm-stable/04-kubernetes-buildkite-agent.png)
+![Buildkite Agent Stack for Kubernetes workflow](/assets/figures/2026-07-16-keeping-vllm-production-quality/04-kubernetes-buildkite-agent.png)
 
 Either way, onboarding is simple on our end: we create a queue, provide a token, and the provider starts the agent themselves. We don’t need access to the machine. That's what lets vLLM test on more hardware than we could ever afford to own—**a donated fleet worth millions of dollars a year.**
 
@@ -75,9 +77,9 @@ All the different hardware creates a new problem: keeping test results consisten
 
 **A test only means something if it runs the same way every time.** Two kinds of drift get in the way: the environment can differ across our many hardware types, and dependencies can change under us over time. A shared container image removes the first; a pinned dependency graph removes the second.
 
-**Same image, every machine.** With 266 jobs fanning out across dozens of machine types, the fastest way to a flaky, untrustworthy suite is to let each job set up its own slightly different environment. To avoid this, majority of our jobs run inside the same container image, built once at the start of a run and reused everywhere. Our Dockerfile builds in stages, each adding to the one below it:
+**Same image, every machine.** With 266 jobs fanning out across dozens of machine types, the fastest way to a flaky, untrustworthy suite is to let each job set up its own slightly different environment. To avoid this, majority of our jobs run inside the same container image, built once at the start of a run and reused everywhere. Our Dockerfile builds in stages, each adding to the one below it.
 
-![Shared container build stages for vLLM CI and releases](/assets/figures/2026-07-16-keeping-vllm-stable/05-container-build-stages.png)
+![Shared container build stages for vLLM CI and releases](/assets/figures/2026-07-16-keeping-vllm-production-quality/05-container-build-stages.png)
 
 A `base` stage provides the CUDA toolchain; a `build` stage compiles the wheels on top of it; and a `runtime` stage installs those wheels with their runtime dependencies.
 
@@ -91,7 +93,7 @@ An unpinned dependency makes failures maddening: the same test passes on Monday 
 
 So vLLM CI locks its dependencies. Pinned requirements files are split by build versus runtime and by platform, and the Docker build process picks up the appropriate set.
 
-![Pinned dependency files used by the vLLM build](/assets/figures/2026-07-16-keeping-vllm-stable/06-pinned-dependencies.png)
+![Pinned dependency files used by the vLLM build](/assets/figures/2026-07-16-keeping-vllm-production-quality/06-pinned-dependencies.png)
 
 Those lock files are compiled from a short list of top-level dependencies, so they pin every transitive package too. Not just PyTorch stays fixed, but everything it brings with it. We update the locks periodically and run the full CI suite each time; between updates, every dependency in the image stays frozen. Since we started pinning the full graph, dependency-caused breakages have gone from a recurring headache to rare.
 
@@ -101,7 +103,7 @@ So far, we’ve focused on getting a single PR’s result correct. Keeping the w
 
 **MIG-slice the big GPUs**
 
-![Partitioning a GPU with NVIDIA Multi-Instance GPU](/assets/figures/2026-07-16-keeping-vllm-stable/07-mig-partitioning.png)
+![Partitioning a GPU with NVIDIA Multi-Instance GPU](/assets/figures/2026-07-16-keeping-vllm-production-quality/07-mig-partitioning.png)
 
 Most CI jobs run with smaller models and need far less than a whole GPU. NVIDIA's Multi-Instance GPU (MIG) lets us carve one card into several isolated slices — an H200 becomes seven 18 GB partitions — meaning 7 jobs can share one GPU at a time. We did some math here and realized that in many cases, slicing a big GPU is a lot cheaper than renting smaller GPUs for the same amount of workload!
 
@@ -132,27 +134,27 @@ With all the available data and full control of the dashboard, we have so much f
 
 ***Is main branch healthy right now?***
 
-![The CI dashboard showing main-branch health](/assets/figures/2026-07-16-keeping-vllm-stable/08-main-branch-health.png)
+![The CI dashboard showing main-branch health](/assets/figures/2026-07-16-keeping-vllm-production-quality/08-main-branch-health.png)
 
 Oops
 
 ***Which test is broken or flaky, and since when?***
 
-![The CI dashboard showing test failures over time](/assets/figures/2026-07-16-keeping-vllm-stable/09-test-failure-history.png)
+![The CI dashboard showing test failures over time](/assets/figures/2026-07-16-keeping-vllm-production-quality/09-test-failure-history.png)
 
-AMD test group started failing since PR #47329 was merged, so we can start from there.
+This AMD hardware test group started failing since PR #47329 was merged, so we can start from there.
 
 Basic correctness test failed once so it’s probably flaky…
 
 ***Is any runner queue congested?***
 
-![The CI dashboard showing runner-queue congestion](/assets/figures/2026-07-16-keeping-vllm-stable/10-runner-queue-congestion.png)
+![The CI dashboard showing runner-queue congestion](/assets/figures/2026-07-16-keeping-vllm-production-quality/10-runner-queue-congestion.png)
 
 `small_cpu_queue_premerge` runner queue looks pretty congested… Its capacity probably topped out at 5 instances, so let’s raise it.
 
 ***Which job takes longest on CI? What’s its duration trend for past 2 weeks?***
 
-![The CI dashboard showing job-duration trends](/assets/figures/2026-07-16-keeping-vllm-stable/11-job-duration-trend.png)
+![The CI dashboard showing job-duration trends](/assets/figures/2026-07-16-keeping-vllm-production-quality/11-job-duration-trend.png)
 
 Those are just a few examples of what our dashboard can do. Modern coding agents have made this kind of tooling surprisingly approachable, even without deep front-end expertise.
 
@@ -164,11 +166,11 @@ Every night, a CI-analyzer bot runs the full suite and compares the results with
 
 The bot has become essential to catching breakages fast, alongside the community effort to fix issues as they land—shout-out to everyone that helps, especially the on-call rotation at Red Hat!
 
-![The CI analyzer bot reporting a regression and suggested revert](/assets/figures/2026-07-16-keeping-vllm-stable/12-ci-analyzer-bot.png)
+![The CI analyzer bot reporting a regression and suggested revert](/assets/figures/2026-07-16-keeping-vllm-production-quality/12-ci-analyzer-bot.png)
 
 ### Green, but not the whole story
 
-Put together, all of this is what lets us trust a green check on a PR: broad test coverage, run across a huge fleet of different accelerators, in consistent environments, and well-monitored. When CI passes, we're confident the change is functionally safe to merge.
+Put together, all of this is what lets us trust a green check on a PR: broad test coverage, run across a huge fleet of different accelerators, in consistent environments, and well-monitored. When CI passes, we're confident it significantly reduces merge risk.
 
 But functionally correct isn't the whole story. A change can pass every test and still make a model slower or its output incorrect. To keep CI fast and affordable, we tend to skip a lot of tests end to end and, more importantly, not closely simulate what vLLM users go through every day. That's what the next layer is for.
 
@@ -194,9 +196,9 @@ Each workload mainly runs three tasks:
 - Model accuracy on math and reasoning benchmarks (GSM8K, GPQA, AIME) using `lm-eval`
 - Function-calling accuracy via the Berkeley Function-Calling Leaderboard (BFCL)
 
-![The nightly performance and accuracy evaluation workflow](/assets/figures/2026-07-16-keeping-vllm-stable/13-perf-eval-workload.png)
+![The nightly performance and accuracy evaluation workflow](/assets/figures/2026-07-16-keeping-vllm-production-quality/13-perf-eval-workload.png)
 
-Every night, and for every release candidate, we run the full suite across popular models — DeepSeek V4 Pro/Flash, GLM 5.1, gpt-oss, Kimi K2.5, MiniMax M3, Qwen3.5, and more — on accelerators including H200, B200, MI300X, MI355X, and GB300.
+Every night, and for every release candidate, we run the full suite across popular models — DeepSeek V4 Pro/Flash, gpt-oss, Kimi K2.5, MiniMax M2.5 and M3, Qwen3.5, GLM 5.1, Gemma 4, and Nemotron 3 Super — on H200, B200, MI300X, and MI355X. That's 17 model-hardware recipes in total right now, and the list keeps growing.
 
 ### Is it still fast?
 
@@ -206,13 +208,13 @@ We turn the nightly numbers into charts that make regressions easy to spot over 
 
 For example, this is a view of our [Performance dashboard](https://ci.vllm.ai/perf):
 
-![Performance history for gpt-oss 120B on H200](/assets/figures/2026-07-16-keeping-vllm-stable/14-performance-trends.svg)
+![Performance history for gpt-oss 120B on H200](/assets/figures/2026-07-16-keeping-vllm-production-quality/14-performance-trends.svg)
 
 *Performance history for gpt-oss 120B on H200 with tensor parallelism 8, split by concurrency.*
 
 The [Compare view](https://ci.vllm.ai/compare) lets us compare two vLLM images head-to-head — say, a release candidate against the last release.
 
-![Comparing two vLLM images in the performance dashboard](/assets/figures/2026-07-16-keeping-vllm-stable/15-compare-view.png)
+![Comparing two vLLM images in the performance dashboard](/assets/figures/2026-07-16-keeping-vllm-production-quality/15-compare-view.png)
 
 ### Is it still correct?
 
@@ -220,7 +222,7 @@ If your vLLM instance is blazing fast but its output is garbage, that speed is w
 
 The [Evaluation dashboard](https://ci.vllm.ai/eval) stores aggregate scores and error bars, then lets us open a run and inspect the underlying question, reference answer, raw response, extracted answer, and correctness result. That sample-level evidence is far more useful than debugging from a single aggregate number.
 
-![Inspecting an incorrect evaluation sample](/assets/figures/2026-07-16-keeping-vllm-stable/16-accuracy-sample-debugging.svg)
+![Inspecting an incorrect evaluation sample](/assets/figures/2026-07-16-keeping-vllm-production-quality/16-accuracy-sample-debugging.svg)
 
 *An incorrect GSM8K sample exposes the exact question, expected answer, model response, and extraction result.*
 
@@ -238,7 +240,7 @@ Since November 2025, we have been maintaining a two-week cadence on vLLM release
 
 Every other Monday, we kick off release week. Here's what that looks like:
 
-![The two-week vLLM release process](/assets/figures/2026-07-16-keeping-vllm-stable/17-release-loop.svg)
+![The two-week vLLM release process](/assets/figures/2026-07-16-keeping-vllm-production-quality/17-release-loop.svg)
 
 ### Start from the safest commit
 
@@ -268,30 +270,32 @@ Sometimes there’s no qualifying candidate at the end of the week, and that’s
 
 ### Ship for every platform
 
-Once a candidate qualifies, we take that commit and start building all artifacts supporting different hardware platforms and CUDA versions, ensuring that everyone out there can use vLLM natively.
+Once a candidate qualifies, we take that commit and start building all artifacts supporting different hardware platforms and CUDA versions, ensuring that everyone out there can use vLLM natively. And before anything ships, we smoke test the built artifacts themselves.
 
 At the time of writing, we are shipping these for every release:
 
 - 6 Python wheels:
-	- CUDA 12.9 x86_64/arm64
-	- CUDA 13.0 x86_64/arm64
-	- CPU x86_64/arm64
+  - CUDA 12.9 x86_64/arm64
+  - CUDA 13.0 x86_64/arm64
+  - CPU x86_64/arm64
 - 11 Docker images:
-	- CUDA 12.9, x86_64/arm64, Ubuntu 22.04/24.04
-	- CUDA 13.0, x86_64/arm64, Ubuntu 22.04/24.04
-	- ROCm
-	- CPU x86_64/arm64
+  - CUDA 12.9, x86_64/arm64, Ubuntu 22.04/24.04
+  - CUDA 13.0, x86_64/arm64, Ubuntu 22.04/24.04
+  - ROCm
+  - CPU x86_64/arm64
 
 ## What's next
 
-I've been bragging a lot about what we've built — but honestly, we still have a lot to do on our roadmap. A few big items:
+I've been bragging a lot about what we've built — but honestly, we still have a lot to do on our roadmap. Some of the big ones:
 
-- **Automatic test selection.** Today we pick which tests run for each PR from a hand-maintained mapping, and it goes stale fast. We want this to be automatic, and we're trying a few angles: LLM-based selection, static analysis, dynamic analysis from code coverage, and labeling source paths to match them to tests.
-- **Faster flaky-test detection and quarantine.** We have plenty of flaky tests — from infra, upstream packages, or tests that just aren't written safely — and we'd like to catch and quarantine them automatically instead of chasing them by hand.
-- **Automatic infra issue detection.** Spot a bad machine quickly and pull it out of the CI fleet on its own, before it fails a pile of jobs.
+- **Automatic test selection.** Today we pick which tests run for each PR from a hand-maintained mapping, and it goes stale fast. We want this to be automatic, and we're trying a few angles: LLM-based selection, static analysis, dynamic analysis, and labeling source paths to match them to tests.
 - **Faster time-to-signal.** CI takes 1–2 hours on average to return a verdict; we'd love to get that under 30 minutes.
-- **Code-coverage reporting.** Our coverage is broad, but we can't yet say for sure that every corner of the codebase is actually exercised.
 - **Leaner unit tests.** A lot of our "unit" tests actually spin up a full vLLM server and fire real requests at it, which slows down CI a lot.
+- **Better exit-code handling.** Some jobs still return the wrong exit code when they fail, like reporting an infra problem as a failed test, making it hard to triage failures and alert/retry jobs.
+- **Faster flaky-test detection and quarantine.** We have plenty of flaky tests — from infra, upstream packages, or tests that just aren't written safely — and we'd like to catch and quarantine them automatically.
+- **Automatic detection for infra issues.** Spot a bad machine quickly and pull it out of the CI fleet on its own, before it fails a pile of jobs.
+- **Better alerting**. We have some basic alerts for congested runner queues and regressions. It’s always nice to have more: high disk pressure on CI runners, jobs suddenly failing far faster than usual, broken dependency install, etc.
+- **Code-coverage reporting.** Our coverage is broad, but we can't yet say for sure that every corner of the codebase is actually exercised.
 
 Working on CI is actually a lot more interesting than most people think. This post only covers the high-level process of how we keep vLLM releases stable; there are plenty of fun technical details I didn't get to cover — maybe in another post :)
 
@@ -320,6 +324,6 @@ I'm deeply grateful to everyone who helped with CI along the way (listed alphabe
 and the amazing partners:
 
 - **AWS, Crusoe, LambdaLabs, Nebius, NVIDIA, Roblox, RunPod** for sponsoring us with compute credits
-- **Buildkite** for letting us run CI free of charge on their platform \<3
+- **Buildkite** for letting us run CI free of charge on their platform &lt;3
 
 Thank you for supporting open source inference!
