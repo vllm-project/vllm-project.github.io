@@ -3,15 +3,15 @@ layout: post
 title: "Keeping vLLM Production Quality: a look inside CI, Benchmark, and Release process"
 author: "Kevin Luu"
 summary: "How vLLM maintains production quality with selective CI across diverse accelerators, reproducible environments, nightly performance and accuracy evaluation, automated diagnosis, and a gated two-week release process."
-image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero.png
-social_image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero.png
+image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero-airport.png
+social_image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero-airport.png
 tags:
   - ci
   - performance
   - release
 ---
 
-![vLLM pull requests passing through CI, performance and accuracy evaluation, and release gates](/assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero.png)
+![vLLM pull requests passing through CI, performance and accuracy evaluation, and release gates](/assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero-airport.png)
 
 ## Intro
 
@@ -45,7 +45,7 @@ Buildkite assembles each PR’s testing pipeline dynamically: a bootstrap step r
 
 In total, the vLLM CI suite runs 37 test groups and 266 jobs, covering every major component and feature—from different kernels to speculative decoding to LoRA. Groups range from a couple of jobs to a few dozen, and many tests exercise several components at once. Here is a subset:
 
-![vLLM CI test groups and example jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/01-ci-test-groups.png)
+![vLLM CI test groups and example jobs](/assets/figures/2026-07-16-keeping-vllm-production-quality/01-ci-test-groups-266-jobs.png)
 
 ### Ensuring test environment is consistent
 
@@ -53,7 +53,7 @@ In total, the vLLM CI suite runs 37 test groups and 266 jobs, covering every maj
 
 **Same image, every machine.** With 266 jobs fanning out across dozens of machine types, the fastest way to a flaky, untrustworthy suite is to let each job set up its own slightly different environment. To avoid this, majority of our jobs run inside the same container image, built once at the start of a run and reused everywhere. Our Dockerfile builds in stages, each adding to the one below it.
 
-![Shared container build stages for vLLM CI and releases](/assets/figures/2026-07-16-keeping-vllm-production-quality/05-container-build-stages.png)
+![Shared container build stages for vLLM CI and releases](/assets/figures/2026-07-16-keeping-vllm-production-quality/05-container-build-stages-serving-test.png)
 
 A `base` stage provides the CUDA toolchain; a `build` stage compiles the wheels on top of it; and a `runtime` stage installs those wheels with their runtime dependencies.
 
