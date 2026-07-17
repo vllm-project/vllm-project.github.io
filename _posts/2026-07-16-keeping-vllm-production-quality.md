@@ -376,7 +376,7 @@ I'm deeply grateful to everyone who helped with CI along the way (listed alphabe
 
 - **Red Hat**: Andy Linfoot, Avinash Singh, Doug Smith, Edward Quarm, Flora Feng, Lucas Wilkinson, Michael Goin, Nicolo Lucchesi, Robert Shaw, Russell Bryant, Tyler Michael Smith, Wentao Ye
 
-- **Reflection AI**: Amr Mahdi
+- **Reflection AI**: Amr Mahdi (contribution made during his time at Meta)
 
 - **Independent contributors**: Cyrus Leung (DarkLight1337), Yuqi Wang (noooop)
 
