@@ -1,13 +1,14 @@
 ---
 layout: post
 title: "Keeping vLLM Production Quality: a look inside CI, Benchmark, and Release process"
-author: "Kevin Luu"
-summary: "How vLLM maintains production quality with selective CI across diverse accelerators, reproducible environments, nightly performance and accuracy evaluation, automated diagnosis, and a gated two-week release process."
+author: "Kevin Luu (Inferact)"
+summary: "How vLLM maintains production quality with extensive CI across diverse accelerators, nightly performance benchmark and accuracy evaluation, and a two-week release process."
 image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero-airport.png
 social_image: /assets/figures/2026-07-16-keeping-vllm-production-quality/00-production-quality-hero-airport.png
 tags:
   - ci
   - performance
+  - evaluation
   - release
 ---
 
@@ -25,7 +26,7 @@ Testing vLLM, especially at this pace, gets harder every day. A change that's cl
 
 In this post, I want to share how we keep vLLM releases stable at this pace: what works, what we've learned, and where we still fall short. It will be mostly about high level processes, not deep into the technical. I will have another post on that.
 
-To start, a journey from pull requests to a new version release on vLLM has to go through three layers:
+A journey from pull requests to a new version release on vLLM has to go through three layers:
 
 - **CI** — how we catch what breaks loudly, on every PR
 
@@ -133,7 +134,7 @@ so we try not to:
 
 - **Warm-cache AMI for builder**: we have a nightly job to build the AMI used for our builder machines with the latest layers already pulled, so our builder machine starts as close to main as possible.
 
-- **Compiler cache**: we leverage **sccache **so that compiled C++/CUDA outputs are cached in an S3 bucket and reused across builds. Every builder machines can read from this bucket, but only builder machines used in main branch can write to it.
+- **Compiler cache**: we leverage **sccache ** so that compiled C++/CUDA outputs are cached in an S3 bucket and reused across builds. Every builder machines can read from this bucket, but only builder machines used in main branch can write to it.
 
 - **Model weights**: the models we test are huge, so for each of the clusters, we download them once to shared storage and every job reads from there, instead of pulling gigabytes each time.
 
