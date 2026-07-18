@@ -354,7 +354,7 @@ None of this is a solo effort. vLLM CI is built and kept alive by the whole comm
 
 I'm deeply grateful to everyone who helped with CI along the way (listed alphabetically):
 
-- **Amazon**: Junpu Fan
+- **Amazon**: Junpu Fan, Liangfu Chen, Omri Shiv,
 
 - **AMD**: Alexei Ivanov, Andreas Karatzas, Kenny Roche, Micah Williamson
 
@@ -372,13 +372,13 @@ I'm deeply grateful to everyone who helped with CI along the way (listed alphabe
 
 - **Meta**: Andrey Talman, Charlotte Qi, Eli Uriegas, Huamin Li, Huy Do, Orion Reblitz-Richardson, Reza Barazesh
 
-- **NVIDIA**: Alec Flowers, Benjamin Chislett, Mathew Wicks, Pen Chung Li, Stefano Castagnetta, Xin Li
+- **NVIDIA**: Alec Flowers, Benjamin Chislett, Mathew Wicks, Pen Chung Li, Stefano Castagnetta, Vadim Gimpelson, Xin Li
 
-- **Red Hat**: Andy Linfoot, Avinash Singh, Doug Smith, Edward Quarm, Flora Feng, Lucas Wilkinson, Michael Goin, Nicolo Lucchesi, Robert Shaw, Russell Bryant, Tarun Kumar, Tyler Michael Smith, Wentao Ye
+- **Red Hat**: Andy Linfoot, Avinash Singh, Doug Smith, Edward Quarm, Flora Feng, Lucas Wilkinson, Luka Govedic, Michael Goin, Nicolo Lucchesi, Robert Shaw, Russell Bryant, Tarun Kumar, Tyler Michael Smith, Wentao Ye
 
 - **Reflection AI**: Amr Mahdi (contribution made during his time at Meta)
 
-- **Independent contributors**: Cyrus Leung (DarkLight1337), Yuqi Wang (noooop)
+- **Independent contributors**: Cyrus Leung (DarkLight1337), Yuqi Wang (noooop), haosdent, Mohammad Angkad
 
 the amazing partners:
 
@@ -386,4 +386,4 @@ the amazing partners:
 
 - **Buildkite** for letting us run CI free of charge on their platform \<3
 
-and finally, two mentors who taught me a lot about CI during my time at Anyscale (Ray): **Lonnie Liu** (OpenAI) and **Cuong Nguyen** (NVIDIA).
+and finally, two mentors who taught me a lot about CI during my time at Anyscale (Ray): **Lonnie Liu** (now at OpenAI) and **Cuong Nguyen** (now at NVIDIA).
