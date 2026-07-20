@@ -374,7 +374,7 @@ I'm deeply grateful to everyone who helped with CI along the way (listed alphabe
 
 - **NVIDIA**: Alec Flowers, Benjamin Chislett, Mathew Wicks, Pen Chung Li, Stefano Castagnetta, Vadim Gimpelson, Xin Li
 
-- **Red Hat**: Andy Linfoot, Avinash Singh, Doug Smith, Edward Quarm, Flora Feng, Lucas Wilkinson, Luka Govedic, Michael Goin, Nicolo Lucchesi, Robert Shaw, Russell Bryant, Tarun Kumar, Tyler Michael Smith, Wentao Ye
+- **Red Hat**: Andy Linfoot, Avinash Singh, Doug Smith, Edward Quarm, Flora Feng, Lucas Wilkinson, Luka Govedic, Matt Bonanni, Michael Goin, Nicolo Lucchesi, Robert Shaw, Russell Bryant, Tarun Kumar, Tyler Michael Smith, Wentao Ye
 
 - **Reflection AI**: Amr Mahdi (contribution made during his time at Meta)
 
