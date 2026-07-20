@@ -10,25 +10,28 @@ tags:
   - ecosystem
 ---
 
-We are excited to introduce [**vLLM AFD Plugin**](https://github.com/vllm-project/afd-plugin), an experimental external plugin that brings **Attention–FFN Disaggregation (AFD)** to vLLM.
+We are excited to introduce [**vLLM AFD Plugin**](https://github.com/vllm-project/afd-plugin), an experimental external plugin that brings **Attention-FFN Disaggregation (AFD)** to vLLM.
 
-Mixture-of-Experts (MoE) inference combines two very different kinds of work inside every transformer layer. Attention is stateful and closely coupled to request scheduling and the KV cache, while the FFN or expert path is dominated by routed expert computation and all-to-all communication. Serving both paths in one worker topology forces them to share the same scaling, execution, and communication choices.
+vLLM AFD Plugin brings AFD into Mixture-of-Experts (MoE) models by separating Attention and FFN into independently deployed services. The plugin preserves vLLM's existing request lifecycle and OpenAI-compatible serving interface, while allowing the Attention and FFN paths to scale independently.
 
-vLLM AFD Plugin separates these paths into independently deployed Attention and FFN services while preserving vLLM's request lifecycle and OpenAI-compatible API on the Attention side. The project currently supports NVIDIA GPUs and Ascend NPUs, synchronous and asynchronous connectors, DeepSeek V2/V3-family model wrappers, and eager, graph, and dual-batch execution paths within clearly validated limits.
+The project currently supports NVIDIA GPUs and Ascend NPUs, synchronous and asynchronous connectors, DeepSeek V2/V3-family model wrappers, and eager, graph, and dual-batch execution paths within clearly validated limits.
 
 > [!NOTE]
 > This project is still experimental and needs more large-scale testing across different hardware backends.
 
-## Why Attention–FFN Disaggregation?
+## Why Attention-FFN Disaggregation?
 
-MoE serving systems must balance several competing demands:
 
-1. **Different scaling dimensions.** Attention capacity follows request state, sequence length, and KV-cache pressure. Expert capacity follows token routing and expert load. AFD gives each path its own rank topology instead of requiring one shared layout.
-2. **Different runtime responsibilities.** Attention needs scheduling, KV-cache coordination, and sampling. FFN execution only needs activations, routing metadata, and a way to return expert outputs. Splitting the services lets the FFN side run as a lightweight connector-driven daemon.
-3. **Backend-specific communication.** CUDA and Ascend expose different collective libraries, graph runtimes, and optimized MoE operators. A common connector contract keeps the model-facing flow stable while allowing each backend to own its data path.
-4. **Room for communication/computation overlap.** Asynchronous dispatch and MoE ubatching can overlap independent stages instead of serializing all expert work behind the Attention path.
+Mixture-of-Experts (MoE) inference combines two very different kinds of work inside every transformer layer. Attention is stateful and closely coupled to request scheduling and the KV cache, while the FFN or expert path is dominated by routed expert computation and all-to-all communication. When both paths share the same worker topology, the serving system must make one set of scaling and execution choices for workloads with very different requirements.
 
-AFD does not yet imply role-pruned model loading: in the current implementation, both services load the full model weights and split the forward execution path. Role-specific weight loading is an important next step.
+Making this separation practical requires addressing several system design challenges:
+
+1. **Attention and FFN have different scaling requirements.** Attention capacity follows request state, sequence length, and KV-cache pressure. Expert capacity follows token routing and expert load. The serving system should support independent scaling by allowing both paths to use different rank topologies, instead of requiring one shared layout.
+2. **Attention and FFN have different runtime responsibilities.** Attention needs scheduling, KV-cache coordination, and sampling. FFN execution only needs activations, routing metadata, and a way to return expert outputs. Splitting the services lets the FFN side run as a lightweight connector-driven daemon.
+3. **Communication is backend-specific.** CUDA and Ascend expose different collective libraries, graph runtimes, and optimized MoE operators. A common connector contract keeps the model-facing flow stable while allowing each backend to own its data path.
+4. **Communication and computation benefit from overlap.** Asynchronous dispatch and MoE ubatching can overlap independent stages instead of serializing all expert work behind the Attention path.
+
+Together, these challenges define the core design goal of AFD: keep vLLM's request-facing Attention path intact, while moving FFN execution behind a narrow connector interface that can scale, communicate, and execute independently.
 
 ## Inside the Architecture
 
@@ -38,11 +41,11 @@ The plugin integrates through vLLM's `vllm.general_plugins` entry point, explici
 
 The runtime has three main parts:
 
-* **Request-driven Attention service.** The Attention worker retains vLLM's scheduler, KV cache, batching, model lifecycle, and sampling path. A plugin-owned model runner installs AFD metadata into the forward context and publishes data-parallel, ubatch, layer, and graph state to the FFN side.
-* **Connector data and control plane.** At each split layer, the model wrapper sends Attention hidden states to the FFN service and receives the computed FFN output. A backend-neutral connector interface carries both tensors and the metadata required to interpret them.
-* **Connector-driven FFN service.** The FFN worker has no request traffic, scheduler, or KV cache. A background loop receives metadata and activations, invokes `compute_ffn_output()` on the plugin-owned model wrapper, and sends the result back to Attention. Requests are always sent to the Attention API server.
+* **Attention service.** The Attention worker retains vLLM's scheduler, KV cache, batching, model lifecycle, and sampling path. A plugin-owned model runner installs AFD metadata into the forward context and publishes data-parallel, ubatch, layer, and graph state to the FFN side.
+* **FFN service.** The FFN worker has no request traffic, scheduler, or KV cache. A background loop receives metadata and activations, invokes `compute_ffn_output()` on the plugin-owned model wrapper, and sends the result back to Attention. Requests are always sent to the Attention API server.
+* **Connector layer.** At each split layer, the connector transfers Attention hidden states together with the execution metadata required by the FFN service, then returns the computed FFN outputs. A backend-neutral connector interface defines this exchange while allowing each backend to implement its own communication and runtime optimizations.
 
-This boundary is deliberately narrow. vLLM continues to own the serving control plane where its existing abstractions fit, while the plugin owns the AFD workers, model runners, connectors, metadata, model split points, and a small set of version-scoped compatibility patches.
+This integration surface is designed to be intentionally small. vLLM continues to own the serving control plane where its existing abstractions fit, while the plugin provides the implementations of AFD workers, model runners, connectors, metadata, model split points, and a small set of version-scoped compatibility patches.
 
 ### Connector and backend support
 
@@ -52,9 +55,9 @@ This boundary is deliberately narrow. vLLM continues to own the serving control 
 | `CAMP2pAFDConnector` | Ascend NPU | Synchronous CAMP2P/HCCL | Decode | `FULL_DECODE_ONLY` ACL graph |
 | `CAMAsyncAFDConnector` | Ascend NPU | Asynchronous CAM | Prefill | Not currently supported |
 
-The same high-level exchange—Attention output to FFN, FFN output back to Attention—is shared across connectors. Backend packages remain separate so CUDA graph behavior, ACL graph behavior, NCCL communication, and Ascend custom operators do not leak into one another.
+The same high-level exchange - Attention output to FFN, FFN output back to Attention - is shared across connectors. Backend packages remain separate so CUDA graph behavior, ACL graph behavior, NCCL communication, and Ascend custom operators do not leak into one another.
 
-### Key features
+### Supported features
 
 * **Native vLLM serving surface.** Existing vLLM users still launch with `vllm serve`, send requests to an OpenAI-compatible endpoint, and configure the runtime through `--additional-config`.
 * **GPU and Ascend implementations.** GPU workers extend vLLM v1 classes, while NPU workers extend vLLM-Ascend classes directly. Shared behavior lives in configuration, topology, metadata, and connector contracts rather than cross-device inheritance.
