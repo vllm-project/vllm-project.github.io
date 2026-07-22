@@ -3,8 +3,8 @@ layout: post
 title: "A Preview of Production-Scale Kimi K3 Support on vLLM"
 author: "vLLM Team"
 summary: "A preview of production-scale Kimi K3 support in vLLM, including KDA-aware prefix caching, fused kernels, optimized MXFP4 MoE, multimodal integration, and initial NVIDIA and AMD paths."
-image: /assets/figures/2026-07-22-kimi-k3-preview/kda-prefix-state.png
-social_image: /assets/figures/2026-07-22-kimi-k3-preview/kda-prefix-state.png
+image: /assets/figures/2026-07-22-kimi-k3-preview/social-preview.png
+social_image: /assets/figures/2026-07-22-kimi-k3-preview/social-preview.png
 tags:
   - models
   - performance
