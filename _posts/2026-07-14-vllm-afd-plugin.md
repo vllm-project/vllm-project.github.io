@@ -37,7 +37,7 @@ Together, these challenges define the core design goal of AFD: keep vLLM's reque
 
 ![vLLM AFD Plugin runtime architecture](/assets/figures/2026-07-14-vllm-afd-plugin/vllm-afd-plugin-architecture.svg)
 
-The plugin integrates through vLLM's `vllm.general_plugins` entry point, explicit `--worker-cls` paths, and the standard `--additional-config` channel. It does not require edits to the vLLM source tree.
+The plugin integrates through vLLM's `vllm.general_plugins` entry point and the standard `--additional-config` channel. It does not require edits to the vLLM source tree.
 
 The runtime has three main parts:
 
@@ -51,16 +51,16 @@ This integration surface is designed to be intentionally small. vLLM continues t
 
 | Connector | Backend | Execution | Recommended stage | Graph support |
 | --- | --- | --- | --- | --- |
-| `P2pNcclAFDConnector` | CUDA | Synchronous P2P | Decode | `FULL_DECODE_ONLY` CUDA graph |
-| `CAMP2pAFDConnector` | Ascend NPU | Synchronous CAMP2P/HCCL | Decode | `FULL_DECODE_ONLY` ACL graph |
-| `CAMAsyncAFDConnector` | Ascend NPU | Asynchronous CAM | Prefill | Not currently supported |
+| `P2pNcclAFDConnector` | GPU | Synchronous P2P | Decode | `FULL_DECODE_ONLY` CUDA graph |
+| `CAMP2pAFDConnector` | NPU | Synchronous CAMP2P/HCCL | Decode | `FULL_DECODE_ONLY` ACL graph |
+| `CAMAsyncAFDConnector` | NPU | Asynchronous CAM | Prefill | Not currently supported |
 
 The same high-level exchange - Attention output to FFN, FFN output back to Attention - is shared across connectors. Backend packages remain separate so CUDA graph behavior, ACL graph behavior, NCCL communication, and Ascend custom operators do not leak into one another.
 
 ### Supported features
 
 * **Native vLLM serving surface.** Existing vLLM users still launch with `vllm serve`, send requests to an OpenAI-compatible endpoint, and configure the runtime through `--additional-config`.
-* **GPU and Ascend implementations.** GPU workers extend vLLM v1 classes, while NPU workers extend vLLM-Ascend classes directly. Shared behavior lives in configuration, topology, metadata, and connector contracts rather than cross-device inheritance.
+* **GPU and NPU implementations.** GPU workers extend vLLM v1 classes, while NPU workers extend vLLM-Ascend classes directly. Shared behavior lives in configuration, topology, metadata, and connector contracts rather than cross-device inheritance.
 * **Synchronous AFD for decode throughput.** `P2pNcclAFDConnector` and `CAMP2pAFDConnector` synchronously exchange Attention activations and FFN outputs, allowing the two roles to scale independently in throughput-oriented decode deployments. Their current graph paths use `FULL_DECODE_ONLY` semantics on CUDA and ACL, respectively.
 * **Asynchronous AFD for prefill.** `CAMAsyncAFDConnector` uses CAM asynchronous dispatch and combine operators to decouple prefill Attention ranks from expert workers. Together with AFD-managed MoE ubatching, it overlaps independent Attention and FFN stages to reduce pipeline stalls. This path currently targets the prefill stage in a prefill/decode-disaggregated deployment and does not yet support graph execution.
 * **MoE model integration.** The plugin registers wrappers for DeepSeek V2/V3-family architectures, including DeepSeek V3.2, and GLM MoE DSA. The wrapper exposes separate Attention and FFN computations while reusing upstream layer implementations.
@@ -70,13 +70,16 @@ The same high-level exchange - Attention output to FFN, FFN output back to Atten
 
 ### Synchronous AFD Decode Throughput with `CAMP2pAFDConnector`
 
-The synchronous decode recipe in [JiusiServe/afd-plugin#67](https://github.com/JiusiServe/afd-plugin/pull/67) compares a conventional EP64 deployment with `CAMP2pAFDConnector`-based AFD deployments for DeepSeek-V3.2 W8A8 on Ascend 910C. The benchmark measures saturated decode throughput rather than online-serving latency.
+The synchronous decode recipe in [vllm-project/afd-plugin#67](https://github.com/vllm-project/afd-plugin/pull/67) compares a conventional EP64 deployment with `CAMP2pAFDConnector`-based AFD deployments for DeepSeek-V3.2 W8A8 on Ascend 910C. The benchmark measures saturated decode throughput rather than online-serving latency.
 
 | Deployment | Physical topology | Total dies |
 | --- | --- | ---: |
 | EP64 | DP64, EP64, TP1 | 64 |
 | 48A16F | 48 Attention ranks, 16 FFN ranks | 64 |
 | 64A16F | 64 Attention ranks, 16 FFN ranks | 80 |
+
+> [!NOTE]
+> These are controlled performance results, not accuracy or production-serving results. Due to limited machine availability, the physical 48A16F and 64A16F deployments simulate logical 192A64F and 256A64F scales. The experiment replaces natural routed expert IDs with a deterministic forced-balancing cycle, which changes model outputs. `AFDDecodeBenchConnector` supplies the decode-only KV state, and DBO is enabled for AFD.
 
 Throughput is normalized by the total number of deployed dies:
 
@@ -99,9 +102,6 @@ EP64 achieves **232.6 tokens/s/die**, 48A16F achieves **220.3 tokens/s/die**, an
 EP64 achieves **168.2 tokens/s/die**, 48A16F achieves **151.4 tokens/s/die**, and 64A16F achieves **183.3 tokens/s/die**. Relative to EP64, the AFD results are **-10.0%** for 48A16F and **+9.0%** for 64A16F.
 
 Across both input lengths, 48A16F is below the EP64 baseline, while 64A16F delivers the highest normalized throughput: **+11.3% at 16K** and **+9.0% at 32K**. This result shows that the Attention-to-FFN allocation matters; disaggregation alone does not guarantee a throughput gain.
-
-> [!NOTE]
-> These are controlled performance results, not accuracy or production-serving results. The experiment replaces natural routed expert IDs with a deterministic forced-balancing cycle, which changes model outputs. Under this setup, the physical 48A16F and 64A16F deployments simulate logical 192A64F and 256A64F scales. `AFDDecodeBenchConnector` supplies the decode-only KV state, and DBO is enabled for AFD. See [PR #67](https://github.com/JiusiServe/afd-plugin/pull/67) for the complete experiment matrix, launch configuration, and limitations.
 
 ### Asynchronous AFD Prefill Performance with `CAMAsyncAFDConnector`
 
