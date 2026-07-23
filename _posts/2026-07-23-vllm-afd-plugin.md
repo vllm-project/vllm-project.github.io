@@ -3,7 +3,7 @@ layout: post
 title: "Announcing vLLM AFD Plugin: Disaggregating Attention and FFN for Flexible MoE Serving"
 author: "AFD Plugin Contributors"
 summary: "What vLLM AFD Plugin adds to the vLLM ecosystem: Attention–FFN disaggregation for MoE serving, GPU and Ascend NPU backends, connector-based execution, and graph and ubatching support."
-image: /assets/figures/2026-07-14-vllm-afd-plugin/vllm-afd-plugin-architecture.svg
+image: /assets/figures/2026-07-23-vllm-afd-plugin/vllm-afd-plugin-architecture.svg
 tags:
   - inference
   - moe
@@ -35,7 +35,7 @@ Together, these challenges define the core design goal of AFD: keep vLLM's reque
 
 ## Inside the Architecture
 
-![vLLM AFD Plugin runtime architecture](/assets/figures/2026-07-14-vllm-afd-plugin/vllm-afd-plugin-architecture.svg)
+![vLLM AFD Plugin runtime architecture](/assets/figures/2026-07-23-vllm-afd-plugin/vllm-afd-plugin-architecture.svg)
 
 The plugin integrates through vLLM's `vllm.general_plugins` entry point and the standard `--additional-config` channel. It does not require edits to the vLLM source tree.
 
@@ -91,13 +91,13 @@ Both workloads use fixed-length inputs and uniformly distributed outputs from 51
 
 #### 16K fixed input
 
-![DeepSeek-V3.2 16K decode throughput per die](/assets/figures/2026-07-14-vllm-afd-plugin/throughput_dsv3-2_16k.png)
+![DeepSeek-V3.2 16K decode throughput per die](/assets/figures/2026-07-23-vllm-afd-plugin/throughput_dsv3-2_16k.png)
 
 EP64 achieves **232.6 tokens/s/die**, 48A16F achieves **220.3 tokens/s/die**, and 64A16F achieves **258.9 tokens/s/die**. Relative to EP64, the AFD results are **-5.3%** for 48A16F and **+11.3%** for 64A16F.
 
 #### 32K fixed input
 
-![DeepSeek-V3.2 32K decode throughput per die](/assets/figures/2026-07-14-vllm-afd-plugin/throughput_dsv3-2_32k.png)
+![DeepSeek-V3.2 32K decode throughput per die](/assets/figures/2026-07-23-vllm-afd-plugin/throughput_dsv3-2_32k.png)
 
 EP64 achieves **168.2 tokens/s/die**, 48A16F achieves **151.4 tokens/s/die**, and 64A16F achieves **183.3 tokens/s/die**. Relative to EP64, the AFD results are **-10.0%** for 48A16F and **+9.0%** for 64A16F.
 
@@ -109,7 +109,7 @@ Due to limited machine availability, we did not evaluate deployments with higher
 
 The repository includes an early CAM async experiment on two Ascend 910C nodes using a DeepSeek V3.2 W8A8 model reduced to 10 layers. The comparison uses forced expert balancing and contrasts a `DP4PCP8 TP1` baseline with an AFD layout consisting of Attention `DP3PCP8 TP1` plus FFN `EP8`.
 
-![Median TTFT comparison for the CAM async experiment](/assets/figures/2026-07-14-vllm-afd-plugin/text_matched_dp_afd_median_ttft.png)
+![Median TTFT comparison for the CAM async experiment](/assets/figures/2026-07-23-vllm-afd-plugin/text_matched_dp_afd_median_ttft.png)
 
 Across the measured request rates, the AFD configuration lowers median/P50 time to first token. At 12 requests per second, median TTFT decreases from **15.1 seconds to 8.0 seconds**, a reduction of approximately **47%**. At both 10 and 12 requests per second, the measured gap is about 7.2 seconds.
 
