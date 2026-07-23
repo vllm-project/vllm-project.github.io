@@ -103,6 +103,8 @@ EP64 achieves **168.2 tokens/s/die**, 48A16F achieves **151.4 tokens/s/die**, an
 
 Across both input lengths, 48A16F is below the EP64 baseline, while 64A16F delivers the highest normalized throughput: **+11.3% at 16K** and **+9.0% at 32K**. This result shows that the Attention-to-FFN allocation matters; disaggregation alone does not guarantee a throughput gain.
 
+Due to limited machine availability, we did not evaluate deployments with higher Attention-to-FFN ratios. The observed trend suggests that, at the ratios tested, the FFN ranks still have compute headroom rather than being compute-bound. Increasing the proportion of Attention ranks may therefore reveal further throughput gains.
+
 ### Asynchronous AFD Prefill Performance with `CAMAsyncAFDConnector`
 
 The repository includes an early CAM async experiment on two Ascend 910C nodes using a DeepSeek V3.2 W8A8 model reduced to 10 layers. The comparison uses forced expert balancing and contrasts a `DP4PCP8 TP1` baseline with an AFD layout consisting of Attention `DP3PCP8 TP1` plus FFN `EP8`.
@@ -111,7 +113,7 @@ The repository includes an early CAM async experiment on two Ascend 910C nodes u
 
 Across the measured request rates, the AFD configuration lowers median/P50 time to first token. At 12 requests per second, median TTFT decreases from **15.1 seconds to 8.0 seconds**, a reduction of approximately **47%**. At both 10 and 12 requests per second, the measured gap is about 7.2 seconds.
 
-**Note**: These numbers are a focused validation of the CAM async execution path, not a general performance claim for full DeepSeek V3.2 or every AFD topology.
+**Note**: These numbers are a focused validation of the CAM async execution path, not a general performance claim for full DeepSeek V3.2 or every AFD topology. The performance gains may also vary across workloads.
 
 ## Getting Started
 
@@ -126,7 +128,7 @@ Check out the installation steps in our [README](https://github.com/vllm-project
 Deployment commands depend on the backend, connector, model, and rank topology. Instead of duplicating configurations here, use the maintained [AFD Plugin recipes](https://github.com/vllm-project/afd-plugin/tree/main/recipe):
 
 * **GPU synchronous AFD:** the [DeepSeek V2 Lite P2P NCCL recipes](https://github.com/vllm-project/afd-plugin/tree/main/recipe/gpu/p2p_nccl/deepseek_v2_lite) cover decode-oriented colocated and prefill/decode-disaggregated deployments, eager and CUDA graph execution, and multiple DP/TP layouts.
-* **Ascend NPU asynchronous prefill AFD:** the [DeepSeek V3.2 CAM async recipe](https://github.com/vllm-project/afd-plugin/blob/main/recipe/npu/cam_async/DeepSeek-V3.2.md) documents the required environment, topology, AFD configuration, benchmark setup, and current limitations.
+* **NPU asynchronous prefill AFD:** the [DeepSeek V3.2 CAM async recipe](https://github.com/vllm-project/afd-plugin/blob/main/recipe/npu/cam_async/DeepSeek-V3.2.md) documents the required environment, topology, AFD configuration, benchmark setup, and current limitations.
 
 Refer to the repository README and recipe directory for the latest supported connector matrix, configuration fields, and complete launch commands.
 
