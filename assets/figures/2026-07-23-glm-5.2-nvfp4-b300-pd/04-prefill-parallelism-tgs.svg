@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1560 760" width="1560" height="760" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <rect x="0" y="0" width="1560" height="760" fill="#fbfbfa"/>
+
+  <!-- title -->
+  <text x="55" y="76" font-size="31" font-weight="700" fill="#1f2328">Prefill parallelism — per-GPU throughput (TGS)</text>
+  <text x="55" y="120" font-size="21" fill="#6b7280">GLM-5.2-NVFP4 prefill · tok/s per GPU</text>
+
+  <!-- legend -->
+  <circle cx="1163" cy="112" r="8" fill="#1a73e8"/>
+  <text x="1181" y="120" font-size="21" fill="#4b5563">8K input</text>
+  <circle cx="1290" cy="112" r="8" fill="#e8542f"/>
+  <text x="1308" y="120" font-size="21" fill="#4b5563">32K input</text>
+
+  <!-- gridlines -->
+  <g stroke="#e5e7eb" stroke-width="1.5">
+    <line x1="278" y1="175" x2="278" y2="665"/>
+    <line x1="653" y1="175" x2="653" y2="665"/>
+    <line x1="1027" y1="175" x2="1027" y2="665"/>
+    <line x1="1400" y1="175" x2="1400" y2="665"/>
+  </g>
+  <line x1="278" y1="665" x2="1400" y2="665" stroke="#d1d5db" stroke-width="1.5"/>
+
+  <!-- x axis labels -->
+  <g font-size="21" fill="#6b7280" text-anchor="middle">
+    <text x="278" y="703">0</text>
+    <text x="653" y="703">5K</text>
+    <text x="1027" y="703">10K</text>
+    <text x="1400" y="703">15K</text>
+  </g>
+
+  <!-- group 1: TP1 DP2 EP -->
+  <text x="258" y="218" font-size="22" font-weight="700" fill="#1f2328" text-anchor="end">TP1 DP2 EP</text>
+  <text x="258" y="252" font-size="20" fill="#9ca3af" text-anchor="end">2 GPUs</text>
+  <rect x="278" y="188" width="969.6" height="40" fill="#1a73e8"/>
+  <text x="1261.6" y="215" font-size="22" font-weight="700" fill="#1f2328">12,963</text>
+  <rect x="278" y="238" width="934.4" height="40" fill="#e8542f"/>
+  <text x="1226.4" y="265" font-size="22" font-weight="700" fill="#1f2328">12,493</text>
+
+  <!-- group 2: TP2 DP1 EP -->
+  <text x="258" y="342" font-size="22" font-weight="700" fill="#1f2328" text-anchor="end">TP2 DP1 EP</text>
+  <text x="258" y="376" font-size="20" fill="#9ca3af" text-anchor="end">2 GPUs</text>
+  <rect x="278" y="312" width="685.2" height="40" fill="#1a73e8"/>
+  <text x="977.2" y="339" font-size="22" font-weight="700" fill="#1f2328">9,161</text>
+  <rect x="278" y="362" width="661.8" height="40" fill="#e8542f"/>
+  <text x="953.8" y="389" font-size="22" font-weight="700" fill="#1f2328">8,848</text>
+
+  <!-- group 3: TP2 -->
+  <text x="258" y="466" font-size="22" font-weight="700" fill="#1f2328" text-anchor="end">TP2</text>
+  <text x="258" y="500" font-size="20" fill="#9ca3af" text-anchor="end">2 GPUs</text>
+  <rect x="278" y="436" width="768.1" height="40" fill="#1a73e8"/>
+  <text x="1060.1" y="463" font-size="22" font-weight="700" fill="#1f2328">10,268</text>
+  <rect x="278" y="486" width="663.3" height="40" fill="#e8542f"/>
+  <text x="955.3" y="513" font-size="22" font-weight="700" fill="#1f2328">8,868</text>
+
+  <!-- group 4: TP1 DP4 EP -->
+  <text x="258" y="590" font-size="22" font-weight="700" fill="#1f2328" text-anchor="end">TP1 DP4 EP</text>
+  <text x="258" y="624" font-size="20" fill="#9ca3af" text-anchor="end">4 GPUs</text>
+  <rect x="278" y="560" width="894.0" height="40" fill="#1a73e8"/>
+  <text x="1186.0" y="587" font-size="22" font-weight="700" fill="#1f2328">11,952</text>
+  <rect x="278" y="610" width="810.1" height="40" fill="#e8542f"/>
+  <text x="1102.1" y="637" font-size="22" font-weight="700" fill="#1f2328">10,830</text>
+</svg>
