@@ -3,6 +3,8 @@ layout: post
 title: "vLLM Runs on NVIDIA Vera Rubin Hardware"
 author: "Tyler Michael Smith, Erwan Gallen, Lucas Wilkinson, and Michael Goin"
 summary: "vLLM now runs end-to-end on pre-release NVIDIA Vera Rubin hardware."
+image: /assets/figures/2026-07-24-vera-rubin/social-preview.png
+social_image: /assets/figures/2026-07-24-vera-rubin/social-preview.png
 tags:
   - hardware-support
 ---
@@ -15,7 +17,9 @@ tags:
 }
 </style>
 
-vLLM now runs end-to-end on pre-release NVIDIA Vera Rubin hardware. This follows PyTorch support for the `sm_107` compute capability in [PR #190654](https://github.com/pytorch/pytorch/pull/190654), vLLM support in [PR #49387](https://github.com/vllm-project/vllm/pull/49387), and a preview release of the [CUDA 13.4 developer toolkit](https://docs.nvidia.com/cuda/developer-preview/13.4/cuda-toolkit-release-notes/index.html).
+![vLLM running on NVIDIA Vera Rubin](/assets/figures/2026-07-24-vera-rubin/social-preview.png)
+
+vLLM now runs end-to-end on pre-release NVIDIA Vera Rubin hardware. This follows PyTorch support for the `sm_107` compute capability in [PR #190654](https://github.com/pytorch/pytorch/pull/190654), vLLM support in [PR #49387](https://github.com/vllm-project/vllm/pull/49387), Triton compiler support in [PR #10936](https://github.com/triton-lang/triton/pull/10936), and a preview release of the [CUDA 13.4 developer toolkit](https://docs.nvidia.com/cuda/developer-preview/13.4/cuda-toolkit-release-notes/index.html).
 
 Here is our first request to a model served on next-generation NVIDIA silicon:
 
@@ -103,10 +107,11 @@ Vera Rubin is a step change over current-generation NVIDIA hardware, and vLLM is
 
 Today's milestone is functional bring-up. In the coming months, we will bring Rubin's new capabilities into vLLM:
 
-- LUT-based GEMMs for improved weight compression
+- [LUT-based GEMMs](https://docs.nvidia.com/cuda/developer-preview/13.4/pdf/ptx_isa_9.4.pdf) for improved weight compression, utilizing 3-bit indices into a per-block E4M3 codebook (3.125 bits per weight), decompressed inside the MMA
 - Locality-aware compute for better memory subsystem utilization
 - Adaptive sparsity instructions for long-context sparse attention
-- Reduced whitespace between kernel launches through PDL improvements such as tile-level triggering
+- Inline TMA descriptor updates via the [`.override` qualifier](https://docs.nvidia.com/cuda/developer-preview/13.4/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-overriding-tensor-property-value). Now one descriptor serves every MoE expert, with per-expert offsets passed inline instead of rewritten in memory, cutting dispatch overhead at low-batch decode
+- Reduced idle gaps between kernel launches through PDL improvements such as tile-level triggering
 
 ## Try it and contribute
 
