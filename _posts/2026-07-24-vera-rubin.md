@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "vLLM Runs on NVIDIA Vera Rubin Hardware"
-author: "Tyler Michael Smith, Erwan Gallen, Lucas Wilkinson, and Michael Goin"
+author: "Tyler Michael Smith, Erwan Gallen, Lucas Wilkinson, and Michael Goin from Red Hat AI"
 summary: "vLLM now runs end-to-end on pre-release NVIDIA Vera Rubin hardware."
 image: /assets/figures/2026-07-24-vera-rubin/social-preview.png
 social_image: /assets/figures/2026-07-24-vera-rubin/social-preview.png
