@@ -20,12 +20,16 @@ Speculative decoding has emerged as a core optimization technique for mitigating
 However, as serving infrastructure evolves, traditional speculative frameworks face a structural ceiling rooted in the way draft tokens are generated. Today, we are excited to showcase how [Speculators](https://github.com/vllm-project/speculators) and [vLLM](https://github.com/vllm-project/vllm) are moving beyond these limitations by providing full open-source support for three state-of-the-art parallel drafting algorithms: [P-EAGLE](https://arxiv.org/abs/2602.01469), [DFlash](https://arxiv.org/abs/2602.06036) and [DSpark](https://arxiv.org/abs/2607.05147).
 
 
-
+<p align="center">
+<div class="artifact-image-grid">
+<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/compare_interactivity_qwen38b_math.png" width="31%">
+<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/compare_interactivity_qwen330b_humaneval.png" width="31%">
+<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/compare_interactivity_gemma431b_humaneval.png" width="31%">
+</div>
+<br>
+<em>Figure 1. Parallel drafting algorithms, such as P-EAGLE, DFlash and DSpark, provide significant performance gains when compared to autoregressive drafting algorithms such as EAGLE-3. Speculator models mentioned above can be found in the [Speculators Collection](https://huggingface.co/collections/RedHatAI/speculator-models) at the RedHatAI HuggingFace Hub.</em>
+</p>
   
-*Figure 1. Parallel drafting algorithms, such as P-EAGLE, DFlash and DSpark, provide significant performance gains when compared to autoregressive drafting algorithms such as EAGLE-3. Speculator models mentioned above can be found in the [Speculators Collection](https://huggingface.co/collections/RedHatAI/speculator-models) at the RedHatAI HuggingFace Hub.*
-
-
-
 # 2. The Limits of Recursive Drafting
 
 The introduction of frameworks like [EAGLE](https://arxiv.org/abs/2401.15077) and [MTP](https://arxiv.org/abs/2404.19737) marked a major paradigm shift in speculative decoding. Instead of forcing the speculator model to guess blindly from surface-level text, EAGLE demonstrated that a speculator architecture could tap directly into the verifier model’s rich internal hidden states, dramatically increasing token acceptance rates.
@@ -34,8 +38,8 @@ Despite this breakthrough, advanced iterations like [EAGLE-3](https://arxiv.org/
 
 This auto-regressive design introduces two major trade-offs in production:
 
-> - **Constraints on Model Size:** Because the drafting cost scales linearly with the speculation length, speculator models are forced to remain extremely small and lightweight to avoid consuming the execution time saved during verifier-model verification.  
-> - **Complex Operational Tuning:** Linear scaling heavily limits the number of drafted tokens in practice. Choosing the optimal speculation length (K) becomes a sensitive variable that engineering teams must constantly adjust depending on the specific use case and real-time server loading.
+- **Constraints on Model Size:** Because the drafting cost scales linearly with the speculation length, speculator models are forced to remain extremely small and lightweight to avoid consuming the execution time saved during verifier-model verification.  
+- **Complex Operational Tuning:** Linear scaling heavily limits the number of drafted tokens in practice. Choosing the optimal speculation length (K) becomes a sensitive variable that engineering teams must constantly adjust depending on the specific use case and real-time server loading.
 
 
 
