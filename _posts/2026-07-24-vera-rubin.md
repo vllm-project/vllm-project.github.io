@@ -113,7 +113,7 @@ Today's milestone is functional bring-up. In the coming months, we will bring Ru
 - Inline TMA descriptor updates via the [`.override` qualifier](https://docs.nvidia.com/cuda/developer-preview/13.4/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-overriding-tensor-property-value). Now one descriptor serves every MoE expert, with per-expert offsets passed inline instead of rewritten in memory, cutting dispatch overhead at low-batch decode
 - Reduced idle gaps between kernel launches through PDL improvements such as tile-level triggering
 
-## Try it and contribute
+## Follow along and contribute
 
 A [tracking issue for Rubin and Vera Rubin support](https://github.com/vllm-project/vllm/issues/49735) will be updated as we discover and work through issues on the new hardware. Join the discussion on [GitHub](https://github.com/vllm-project/vllm) or bring questions to [vLLM Office Hours](https://red.ht/office-hours).
 
