@@ -1,6 +1,5 @@
 ---
-
-## layout: post
+layout: post
 title: "Parallel All the Way Down: Beyond Single-Token Generation with Speculative Decoding"
 author: "Alexandre Marques, Megan Flynn, Helen Zhao, Krishna Teja Chitty Venkata, Chibu Ukachi (Red Hat AI)"
 summary: "Speculators and vLLM now support P-EAGLE, DFlash, and DSpark — three parallel drafting algorithms that move beyond sequential token generation to deliver faster, simpler, and more scalable speculative decoding for LLM serving."
@@ -11,7 +10,7 @@ tags:
   - peagle
   - dflash
   - dspark
-
+---
 
 
 # 1. Introduction
