@@ -7,6 +7,14 @@ tags:
   - hardware-support
 ---
 
+<style>
+.post-content pre,
+.post-content pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+</style>
+
 vLLM now runs end-to-end on pre-release NVIDIA Vera Rubin hardware. This follows PyTorch support for the `sm_107` compute capability in [PR #190654](https://github.com/pytorch/pytorch/pull/190654), vLLM support in [PR #49387](https://github.com/vllm-project/vllm/pull/49387), and a preview release of the [CUDA 13.4 developer toolkit](https://docs.nvidia.com/cuda/developer-preview/13.4/cuda-toolkit-release-notes/index.html).
 
 Here is our first request to a model served on next-generation NVIDIA silicon:
@@ -14,7 +22,13 @@ Here is our first request to a model served on next-generation NVIDIA silicon:
 ```console
 [root@vera-rubin ~]# curl http://localhost:8000/v1/chat/completions \
     -H "Content-Type: application/json" \
-    -d '{"model":"google/gemma-4-31B-it","messages":[{"role":"user","content":"Hello from Vera Rubin!"}],"max_tokens":64}'
+    -d '{
+      "model": "google/gemma-4-31B-it",
+      "messages": [
+        {"role": "user", "content": "Hello from Vera Rubin!"}
+      ],
+      "max_tokens": 64
+    }'
 ```
 
 ```json
@@ -47,7 +61,13 @@ We also verified serving with `poolside/Laguna-XS-2.1`:
 ```console
 [root@vera-rubin ~]# curl http://localhost:8000/v1/chat/completions \
     -H "Content-Type: application/json" \
-    -d '{"model":"poolside/Laguna-XS-2.1","messages":[{"role":"user","content":"Hello from Vera Rubin!"}],"max_tokens":64}'
+    -d '{
+      "model": "poolside/Laguna-XS-2.1",
+      "messages": [
+        {"role": "user", "content": "Hello from Vera Rubin!"}
+      ],
+      "max_tokens": 64
+    }'
 ```
 
 ```json
