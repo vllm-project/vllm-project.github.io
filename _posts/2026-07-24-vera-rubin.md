@@ -107,7 +107,7 @@ Vera Rubin is a step change over current-generation NVIDIA hardware, and vLLM is
 
 Today's milestone is functional bring-up. In the coming months, we will bring Rubin's new capabilities into vLLM:
 
-- [LUT-based GEMMs](https://docs.nvidia.com/cuda/developer-preview/13.4/pdf/ptx_isa_9.4.pdf) for improved weight compression, utilizing 3-bit indices into a per-block E4M3 codebook (3.125 bits per weight), decompressed inside the MMA
+- [LUT-based GEMMs](https://docs.nvidia.com/cuda/developer-preview/13.4/parallel-thread-execution/index.html#tcgen05-decompress-inp-mat) for improved weight compression, utilizing 3-bit indices into a per-block E4M3 codebook (3.125 bits per weight), decompressed inside the MMA
 - Locality-aware compute for better memory subsystem utilization
 - Adaptive sparsity instructions for long-context sparse attention
 - Inline TMA descriptor updates via the [`.override` qualifier](https://docs.nvidia.com/cuda/developer-preview/13.4/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-overriding-tensor-property-value). Now one descriptor serves every MoE expert, with per-expert offsets passed inline instead of rewritten in memory, cutting dispatch overhead at low-batch decode
