@@ -41,7 +41,9 @@ This auto-regressive design introduces two major trade-offs in production:
 - **Constraints on Model Size:** Because the drafting cost scales linearly with the speculation length, speculator models are forced to remain extremely small and lightweight to avoid consuming the execution time saved during verifier-model verification.  
 - **Complex Operational Tuning:** Linear scaling heavily limits the number of drafted tokens in practice. Choosing the optimal speculation length (K) becomes a sensitive variable that engineering teams must constantly adjust depending on the specific use case and real-time server loading.
 
-
+<p align="center">
+<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/ar_vs_parallel.jpg" width="100%">
+</p>
 
 # 3. The Shift to Parallel Drafting
 
