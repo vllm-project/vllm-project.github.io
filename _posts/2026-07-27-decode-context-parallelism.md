@@ -2,7 +2,7 @@
 layout: post
 title: "Efficient Decode Context Parallelism with vLLM for Long Context Workloads"
 date: 2026-07-27
-author: Seong Hee Lee
+author: "Seonghee Lee, Sungsoo Ha, Omri Almog"
 summary: "Decode Context Parallelism (DCP) in vLLM shards KV cache across GPUs by sequence dimension, enabling 3× higher throughput on long-context agentic workloads compared to standard tensor parallelism."
 ---
 
@@ -139,4 +139,4 @@ With native support in vLLM, Decode Context Parallelism is ready to power the ne
 
 This work builds on the vLLM community, whose open-source engine and continued collaboration made this benchmarking effort possible.
 
-We're also grateful to the colleagues across NVIDIA whose input, reviews, and engineering support shaped this study: Sungsoo Ha, Omri Almog, Anahita Bhiwandiwalla, Xin Li, Pavani Majety, Nidhi Bhatia, Roman Ageev, Pen Chung Li, Chris Hoge.
+We're also grateful to the colleagues across NVIDIA whose input, reviews, and engineering support shaped this study: Anahita Bhiwandiwalla, Xin Li, Pavani Majety, Nidhi Bhatia, Roman Ageev, Pen Chung Li, Chris Hoge.
