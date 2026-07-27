@@ -32,7 +32,9 @@ To quantify the benefit of Decode Context Parallelism, we compared a baseline te
 
 ### 2.1 Dataset
 
-The dataset is an [agentic long-context trace from the Dynamo Kimi K2.6 performance recipes](https://github.com/ai-dynamo/dynamo/blob/main/recipes/kimi-k2.6/perf/traces/64k_400_90kv_agent_new_noschedule_short_15perc.jsonl). It's an agentic multi-turn workload of long inputs paired with short generations, chosen to reflect realistic long-horizon agent behavior. Inputs are centered around a median of ~67k tokens and paired with short ~400-token outputs, but the input distribution is bimodal rather than uniformly huge: roughly half the requests sit at 64k+ (≈53%, with a heavy tail reaching ~1M tokens) and half are short-to-mid (≈47% under 64k, ~18% under 8k). About 8% of requests exceed 128k and ~3–4% exceed 256k.
+The dataset is a publicly available agentic long-context trace in Mooncake trace format, published in the [Dynamo Kimi K2.6 performance recipes](https://github.com/ai-dynamo/dynamo/blob/main/recipes/kimi-k2.6/perf/traces/64k_400_90kv_agent_new_noschedule_short_15perc.jsonl). It ships as JSONL where each line is a single request with `input_length`, `output_length`, and `hash_ids` fields, so it can be replayed directly with any Mooncake-compatible harness (e.g. `aiperf --custom-dataset-type mooncake_trace`). The `hash_ids` field encodes shared prefix blocks, making it well-suited for benchmarking KV-cache reuse and prefix-caching behavior.
+
+It's an agentic multi-turn workload of long inputs paired with short generations, chosen to reflect realistic long-horizon agent behavior. Inputs are centered around a median of ~67k tokens and paired with short ~400-token outputs, but the input distribution is bimodal rather than uniformly huge: roughly half the requests sit at 64k+ (≈53%, with a heavy tail reaching ~1M tokens) and half are short-to-mid (≈47% under 64k, ~18% under 8k). About 8% of requests exceed 128k and ~3–4% exceed 256k.
 
 ### 2.2 Benefits of Decode Context Parallelism
 
