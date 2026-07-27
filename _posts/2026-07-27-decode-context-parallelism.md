@@ -64,10 +64,6 @@ Unlike pure TP methods, DCP is able to split KV cache across GPUs by sequence (c
 <img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-5.png" alt="DCP sequence sharding diagram" width="100%">
 </p>
 
-<p align="center">
-<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-6.png" alt="DCP architecture overview" width="100%">
-</p>
-
 ### 4.1 Decode Context Parallelism Process
 
 Standard Decode Context Parallelism keeps the communication pattern simple, following the rhythm **AllGather Q → Compute → AllGather + ReduceScatter**.
