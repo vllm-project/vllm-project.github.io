@@ -141,8 +141,10 @@ Decode Context Parallelism represents a fundamental rethinking of how GPUs are o
 
 With native support in vLLM, Decode Context Parallelism is ready to power the next generation of long-context agentic applications — from document reasoning to multi-session agentic pipelines — at the throughput and latency that production demands. It joins a broader industry move toward Decode Context Parallelism, a direction [NVIDIA has also pursued with Helix Parallelism](https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog22_Helix_Parallelism_Scaling_Multi_Million_Token_Decoding_with_KV_Cache_Sharding.md) in TensorRT-LLM.
 
-## Acknowledgments
+## About Us
 
-This work builds on the vLLM community, whose open-source engine and continued collaboration made this benchmarking effort possible.
+This work was completed by engineers at [NVIDIA](https://www.nvidia.com/). We build and validate high-throughput LLM inference on NVIDIA GPUs — from long-context agentic serving to parallelism strategies like Decode Context Parallelism — and work closely with the vLLM community so that these capabilities land upstream and are usable in production. The DCP results in this post were measured on NVIDIA B200 GPUs with Kimi K2.6 in NVFP4, and the recipes can be reproduced with current vLLM releases that support `--decode-context-parallel-size`.
 
-We're also grateful to the colleagues across NVIDIA whose input, reviews, and engineering support shaped this study: Anahita Bhiwandiwalla, Xin Li, Pavani Majety, Nidhi Bhatia, Roman Ageev, Pen Chung Li, Chris Hoge.
+Special thanks to Anahita Bhiwandiwalla, Xin Li, Pavani Majety, Nidhi Bhatia, Roman Ageev, Pen Chung Li, and Chris Hoge for their reviews, benchmarking support, and engineering input throughout this study.
+
+We also thank the vLLM community, whose open-source engine and continued collaboration made this benchmarking effort possible.
