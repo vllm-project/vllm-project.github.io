@@ -2,7 +2,7 @@
 layout: post
 title: "Efficient Decode Context Parallelism with vLLM for Long Context Workloads"
 date: 2026-07-27
-author: "Seonghee Lee, Sungsoo Ha, Omri Almog"
+author: "Seonghee Lee, Sungsoo Ha, Omri Almog (NVIDIA)"
 summary: "Decode Context Parallelism (DCP) in vLLM shards KV cache across GPUs by sequence dimension, enabling 3× higher throughput on long-context agentic workloads compared to standard tensor parallelism."
 image: /assets/figures/2026-07-27-decode-context-parallelism/figure-1.png
 social_image: /assets/figures/2026-07-27-decode-context-parallelism/figure-1.png
@@ -22,8 +22,13 @@ Decode Context Parallelism addresses this by splitting KV cache across the GPUs 
 
 To quantify the benefit of Decode Context Parallelism, we compared a baseline tensor-parallel deployment against DCP on an identical set of GPUs, holding the model, hardware, and workload fixed and varying only how the KV cache is sharded during decode.
 
-![Throughput comparison figure 1](/assets/figures/2026-07-27-decode-context-parallelism/figure-1.png)
-![Throughput comparison figure 2](/assets/figures/2026-07-27-decode-context-parallelism/figure-2.png)
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-1.png" alt="Throughput comparison figure 1" width="100%">
+</p>
+
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-2.png" alt="Throughput comparison figure 2" width="100%">
+</p>
 
 ### Dataset
 
@@ -33,13 +38,17 @@ The dataset is an [agentic long-context trace from the Dynamo Kimi K2.6 performa
 
 We ran an experiment on a single 8×B200 node serving Kimi K2.6 in NVFP4 with vLLM, sweeping request concurrency from 16 to 512 (see table below). DCP sustains far higher concurrency and delivers markedly higher throughput per GPU across the entire throughput–interactivity Pareto frontier.
 
-![DCP vs TP throughput benchmark](/assets/figures/2026-07-27-decode-context-parallelism/figure-3.png)
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-3.png" alt="DCP vs TP throughput benchmark" width="100%">
+</p>
 
 The difference comes down to where the KV cache lives. Baseline TP replicates the KV cache on every GPU, so peak memory fills quickly. It reaches 100% at a concurrency of 64 and hits a wall, and throughput plateaus near 1,863 tok/s/GPU because no additional requests can fit. On the other hand, DCP shards the KV cache along the sequence dimension, so each GPU stores only 1/N of every request's KV. This allows space on the GPU to support more incoming requests. As a result, even at high concurrencies DCP keeps scaling where TP hits a wall. DCP reaches 6,091 tok/s/GPU at c512 while still sitting at just 82% KV usage. **The core value of DCP is that it sustains far higher concurrency, even on long-context runs, precisely the regime where replicated-KV TP runs out of memory first.**
 
 ### Comparison by Input Lengths
 
-![Performance by input length bands](/assets/figures/2026-07-27-decode-context-parallelism/figure-4.png)
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-4.png" alt="Performance by input length bands" width="100%">
+</p>
 
 We also plotted performance against input length. Each panel is a throughput–interactivity Pareto frontier with requests grouped into input-length bands (64–128k, 128–160k, 160–200k, 200k+) so we can see how performance shifts with context length. **DCP keeps a high, stable frontier even in the 200k+ range** and throughput scales with concurrency while per-user speed stays usable at the long context lengths where the replicated-KV baseline runs out of memory and cannot scale.
 
@@ -51,9 +60,13 @@ Under tensor parallelism, the KV cache is partitioned **by the attention head**.
 
 Unlike pure TP methods, DCP is able to split KV cache across GPUs by sequence (context) dimension. Each GPU is made responsible for the KV cache of a chunk of *token positions* from the same sequence. For a single 200K-token request, GPU 0 might hold the cache for tokens 0–50K, GPU 1 for tokens 50K–100K, GPU 2 for 100K–150K, and GPU 3 for 150K–200K. By sharding KV cache, the KV cache footprint per GPU keeps shrinking as you add GPUs, freeing the memory that lets you raise the batch size and serve higher concurrencies.
 
-![DCP sequence sharding diagram](/assets/figures/2026-07-27-decode-context-parallelism/figure-5.png)
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-5.png" alt="DCP sequence sharding diagram" width="100%">
+</p>
 
-![DCP architecture overview](/assets/figures/2026-07-27-decode-context-parallelism/figure-6.png)
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-6.png" alt="DCP architecture overview" width="100%">
+</p>
 
 ### Decode Context Parallelism Process
 
