@@ -9,6 +9,7 @@ social_image: /assets/figures/2026-07-27-decode-context-parallelism/figure-1.png
 tags:
   - performance
   - attention
+  - parallelism
 ---
 
 ## Introduction
