@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1040" viewBox="0 0 2000 1040" font-family="Helvetica, Arial, sans-serif">
+<rect width="2000" height="1040" fill="#ffffff"/>
+<line x1="1000" y1="40" x2="1000" y2="1000" stroke="#c8c8c8" stroke-width="3" stroke-dasharray="10 12"/>
+<text x="500" y="58" font-size="36" font-weight="700" fill="#1a1a1a" text-anchor="middle">Baseline Tensor Parallelism (tp = 4)</text>
+<text x="500" y="100" font-size="26" font-weight="700" fill="#2f6bd6" text-anchor="middle">splits the KV cache by attention head</text>
+<text x="500" y="140" font-size="22" font-weight="400" fill="#777" text-anchor="middle">KV cache</text>
+<rect x="368.0" y="158" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="412.0" y="158" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="456.0" y="158" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="500.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="544.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="588.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="368.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="412.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="456.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="500.0" y="202" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="544.0" y="202" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="588.0" y="202" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="368.0" y="246" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="412.0" y="246" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="456.0" y="246" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="500.0" y="246" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="544.0" y="246" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="588.0" y="246" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="368.0" y="290" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="412.0" y="290" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="456.0" y="290" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="500.0" y="290" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="544.0" y="290" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="588.0" y="290" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<line x1="500.0" y1="158" x2="500.0" y2="334" stroke="#1a1a1a" stroke-width="4"/>
+<text x="434.0" y="368" font-size="24" font-weight="700" fill="#2f6bd6" text-anchor="middle">Head 0</text>
+<text x="566.0" y="368" font-size="24" font-weight="700" fill="#d13b3b" text-anchor="middle">Head 1</text>
+<path d="M354.0,158 L344.0,158 Q342.0,158 342.0,167 L342.0,325 Q342.0,334 344.0,334 L354.0,334" fill="none" stroke="#888" stroke-width="3"/>
+<text x="326.0" y="246.0" font-size="21" font-weight="700" fill="#666" text-anchor="middle" transform="rotate(-90 326.0 246.0)">seq 0 → 1  (all positions)</text>
+<line x1="500" y1="392" x2="500" y2="432" stroke="#555" stroke-width="4"/>
+<path d="M489,430 L511,430 L500,446 Z" fill="#555"/>
+<text x="530" y="426" font-size="22" font-weight="700" fill="#444" text-anchor="start">shard by head (only K=2 ways)</text>
+<rect x="100" y="520" width="660" height="74" rx="12" fill="#ffffff" stroke="#cccccc" stroke-width="2"/>
+<text x="124" y="565.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 0</text>
+<rect x="240" y="542.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<rect x="274" y="542.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<rect x="308" y="542.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<text x="370" y="565.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">Head 0 · all seq</text>
+<rect x="100" y="616" width="660" height="74" rx="12" fill="#ffffff" stroke="#e5484d" stroke-width="3"/>
+<text x="124" y="661.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 1</text>
+<rect x="240" y="638.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<rect x="274" y="638.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<rect x="308" y="638.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<text x="370" y="661.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">Head 0 · all seq</text>
+<rect x="584" y="634.0" width="152" height="38" rx="19.0" fill="#ffe3e4" stroke="#e5484d" stroke-width="2"/>
+<text x="660.0" y="660.0" font-size="20" font-weight="700" fill="#e5484d" text-anchor="middle">DUPLICATE</text>
+<rect x="100" y="712" width="660" height="74" rx="12" fill="#ffffff" stroke="#cccccc" stroke-width="2"/>
+<text x="124" y="757.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 2</text>
+<rect x="240" y="734.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<rect x="274" y="734.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<rect x="308" y="734.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<text x="370" y="757.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">Head 1 · all seq</text>
+<rect x="100" y="808" width="660" height="74" rx="12" fill="#ffffff" stroke="#e5484d" stroke-width="3"/>
+<text x="124" y="853.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 3</text>
+<rect x="240" y="830.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<rect x="274" y="830.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<rect x="308" y="830.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<text x="370" y="853.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">Head 1 · all seq</text>
+<rect x="584" y="826.0" width="152" height="38" rx="19.0" fill="#ffe3e4" stroke="#e5484d" stroke-width="2"/>
+<text x="660.0" y="852.0" font-size="20" font-weight="700" fill="#e5484d" text-anchor="middle">DUPLICATE</text>
+<path d="M86,524 L80,524 Q70,524 70,534 L70,676 Q70,686 80,686 L86,686" fill="none" stroke="#e5484d" stroke-width="4"/>
+<path d="M86,716 L80,716 Q70,716 70,726 L70,868 Q70,878 80,878 L86,878" fill="none" stroke="#e5484d" stroke-width="4"/>
+<text x="1500" y="58" font-size="36" font-weight="700" fill="#1a1a1a" text-anchor="middle">Decode Context Parallelism (dcp = 4)</text>
+<text x="1500" y="100" font-size="26" font-weight="700" fill="#2a9d54" text-anchor="middle">splits the KV cache by sequence position</text>
+<text x="1410.0" y="140" font-size="22" font-weight="400" fill="#777" text-anchor="middle">KV cache</text>
+<rect x="1278.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="1322.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="1366.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="1410.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="1454.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<rect x="1498.0" y="158" width="44" height="44" fill="#f6e3bf" stroke="#d4b06a" stroke-width="1.5"/>
+<line x1="1278.0" y1="202" x2="1542.0" y2="202" stroke="#1a1a1a" stroke-width="4"/>
+<text x="1560.0" y="188.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq 0–¼</text>
+<rect x="1278.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="1322.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="1366.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="1410.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="1454.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<rect x="1498.0" y="202" width="44" height="44" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="1.5"/>
+<line x1="1278.0" y1="246" x2="1542.0" y2="246" stroke="#1a1a1a" stroke-width="4"/>
+<text x="1560.0" y="232.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq ¼–½</text>
+<rect x="1278.0" y="246" width="44" height="44" fill="#e2d5f2" stroke="#a98fd0" stroke-width="1.5"/>
+<rect x="1322.0" y="246" width="44" height="44" fill="#e2d5f2" stroke="#a98fd0" stroke-width="1.5"/>
+<rect x="1366.0" y="246" width="44" height="44" fill="#e2d5f2" stroke="#a98fd0" stroke-width="1.5"/>
+<rect x="1410.0" y="246" width="44" height="44" fill="#e2d5f2" stroke="#a98fd0" stroke-width="1.5"/>
+<rect x="1454.0" y="246" width="44" height="44" fill="#e2d5f2" stroke="#a98fd0" stroke-width="1.5"/>
+<rect x="1498.0" y="246" width="44" height="44" fill="#e2d5f2" stroke="#a98fd0" stroke-width="1.5"/>
+<line x1="1278.0" y1="290" x2="1542.0" y2="290" stroke="#1a1a1a" stroke-width="4"/>
+<text x="1560.0" y="276.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq ½–¾</text>
+<rect x="1278.0" y="290" width="44" height="44" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="1.5"/>
+<rect x="1322.0" y="290" width="44" height="44" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="1.5"/>
+<rect x="1366.0" y="290" width="44" height="44" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="1.5"/>
+<rect x="1410.0" y="290" width="44" height="44" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="1.5"/>
+<rect x="1454.0" y="290" width="44" height="44" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="1.5"/>
+<rect x="1498.0" y="290" width="44" height="44" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="1.5"/>
+<text x="1560.0" y="320.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq ¾–1</text>
+<line x1="1410.0" y1="158" x2="1410.0" y2="334" stroke="#1a1a1a" stroke-width="4"/>
+<text x="1344.0" y="368" font-size="24" font-weight="700" fill="#2f6bd6" text-anchor="middle">Head 0</text>
+<text x="1476.0" y="368" font-size="24" font-weight="700" fill="#d13b3b" text-anchor="middle">Head 1</text>
+<text x="1560.0" y="368" font-size="20" font-weight="700" fill="#666" text-anchor="start">(all heads)</text>
+<line x1="1500" y1="392" x2="1500" y2="432" stroke="#555" stroke-width="4"/>
+<path d="M1489,430 L1511,430 L1500,446 Z" fill="#555"/>
+<text x="1530" y="426" font-size="22" font-weight="700" fill="#444" text-anchor="start">shard by sequence (÷ 4)</text>
+<rect x="1120" y="520" width="760" height="74" rx="12" fill="#ffffff" stroke="#2a9d54" stroke-width="3"/>
+<text x="1144" y="565.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 0</text>
+<rect x="1270" y="542.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<rect x="1304" y="542.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<rect x="1338" y="542.0" width="30" height="30" fill="#f6e3bf" stroke="#d4b06a" stroke-width="2"/>
+<text x="1405" y="565.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq 0–¼ · all heads</text>
+<rect x="1680" y="538.0" width="176" height="38" rx="19.0" fill="#eaf7ee" stroke="#2a9d54" stroke-width="2"/>
+<text x="1768.0" y="564.0" font-size="20" font-weight="700" fill="#2a9d54" text-anchor="middle">UNIQUE SLICE</text>
+<rect x="1120" y="616" width="760" height="74" rx="12" fill="#ffffff" stroke="#2a9d54" stroke-width="3"/>
+<text x="1144" y="661.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 1</text>
+<rect x="1270" y="638.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<rect x="1304" y="638.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<rect x="1338" y="638.0" width="30" height="30" fill="#cfe0f5" stroke="#6f9fd6" stroke-width="2"/>
+<text x="1405" y="661.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq ¼–½ · all heads</text>
+<rect x="1680" y="634.0" width="176" height="38" rx="19.0" fill="#eaf7ee" stroke="#2a9d54" stroke-width="2"/>
+<text x="1768.0" y="660.0" font-size="20" font-weight="700" fill="#2a9d54" text-anchor="middle">UNIQUE SLICE</text>
+<rect x="1120" y="712" width="760" height="74" rx="12" fill="#ffffff" stroke="#2a9d54" stroke-width="3"/>
+<text x="1144" y="757.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 2</text>
+<rect x="1270" y="734.0" width="30" height="30" fill="#e2d5f2" stroke="#a98fd0" stroke-width="2"/>
+<rect x="1304" y="734.0" width="30" height="30" fill="#e2d5f2" stroke="#a98fd0" stroke-width="2"/>
+<rect x="1338" y="734.0" width="30" height="30" fill="#e2d5f2" stroke="#a98fd0" stroke-width="2"/>
+<text x="1405" y="757.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq ½–¾ · all heads</text>
+<rect x="1680" y="730.0" width="176" height="38" rx="19.0" fill="#eaf7ee" stroke="#2a9d54" stroke-width="2"/>
+<text x="1768.0" y="756.0" font-size="20" font-weight="700" fill="#2a9d54" text-anchor="middle">UNIQUE SLICE</text>
+<rect x="1120" y="808" width="760" height="74" rx="12" fill="#ffffff" stroke="#2a9d54" stroke-width="3"/>
+<text x="1144" y="853.0" font-size="25" font-weight="700" fill="#1a1a1a" text-anchor="start">GPU 3</text>
+<rect x="1270" y="830.0" width="30" height="30" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="2"/>
+<rect x="1304" y="830.0" width="30" height="30" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="2"/>
+<rect x="1338" y="830.0" width="30" height="30" fill="#d2ebd2" stroke="#7cbf7c" stroke-width="2"/>
+<text x="1405" y="853.0" font-size="22" font-weight="400" fill="#555" text-anchor="start">seq ¾–1 · all heads</text>
+<rect x="1680" y="826.0" width="176" height="38" rx="19.0" fill="#eaf7ee" stroke="#2a9d54" stroke-width="2"/>
+<text x="1768.0" y="852.0" font-size="20" font-weight="700" fill="#2a9d54" text-anchor="middle">UNIQUE SLICE</text>
+</svg>

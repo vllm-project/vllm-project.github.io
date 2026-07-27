@@ -61,7 +61,7 @@ Under tensor parallelism, the KV cache is partitioned **by the attention head**.
 Unlike pure TP methods, DCP is able to split KV cache across GPUs by sequence (context) dimension. Each GPU is made responsible for the KV cache of a chunk of *token positions* from the same sequence. For a single 200K-token request, GPU 0 might hold the cache for tokens 0–50K, GPU 1 for tokens 50K–100K, GPU 2 for 100K–150K, and GPU 3 for 150K–200K. By sharding KV cache, the KV cache footprint per GPU keeps shrinking as you add GPUs, freeing the memory that lets you raise the batch size and serve higher concurrencies.
 
 <p align="center">
-<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-5.png" alt="DCP sequence sharding diagram" width="100%">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/dcp_vs_tp_diagram.svg" alt="DCP sequence sharding diagram" width="100%">
 </p>
 
 ### 4.1 Decode Context Parallelism Process
