@@ -44,13 +44,13 @@ We ran an experiment on a single 8×B200 node serving Kimi K2.6 in NVFP4 with vL
 
 The difference comes down to where the KV cache lives. Baseline TP replicates the KV cache on every GPU, so peak memory fills quickly. It reaches 100% at a concurrency of 64 and hits a wall, and throughput plateaus near 1,863 tok/s/GPU because no additional requests can fit. On the other hand, DCP shards the KV cache along the sequence dimension, so each GPU stores only 1/N of every request's KV. This allows space on the GPU to support more incoming requests. As a result, even at high concurrencies DCP keeps scaling where TP hits a wall. DCP reaches 6,091 tok/s/GPU at c512 while still sitting at just 82% KV usage. **The core value of DCP is that it sustains far higher concurrency, even on long-context runs, precisely the regime where replicated-KV TP runs out of memory first.**
 
-### 2.3 Comparison by Input Lengths
+### 2.3 Comparison by Sequence Length
 
 <p align="center">
-<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-4.png" alt="Performance by input length bands" width="100%">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-4.png" alt="DCP Pareto frontier across full sequence-length bands" width="100%">
 </p>
 
-We also plotted performance against input length. Each panel is a throughput–interactivity Pareto frontier with requests grouped into input-length bands (64–128k, 128–160k, 160–200k, 200k+) so we can see how performance shifts with context length. **DCP keeps a high, stable frontier even in the 200k+ range** and throughput scales with concurrency while per-user speed stays usable at the long context lengths where the replicated-KV baseline runs out of memory and cannot scale.
+We also plotted performance against full sequence length (input + output). The figure shows a single throughput–interactivity Pareto frontier with requests grouped into five length bands (&lt;32k, 32–64k, 64–128k, 128–200k, and 200k+) so we can see how performance shifts with context length. **DCP keeps a high, stable frontier even in the 200k+ range**, with the curves for short and long buckets nearly overlapping: throughput scales with concurrency while per-user speed stays usable at the long context lengths where the replicated-KV baseline runs out of memory and cannot scale.
 
 ## 3. Challenges of Serving Long Contexts
 
