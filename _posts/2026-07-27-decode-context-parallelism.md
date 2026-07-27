@@ -50,7 +50,7 @@ The difference comes down to where the KV cache lives. Baseline TP replicates th
 <img src="/assets/figures/2026-07-27-decode-context-parallelism/figure-4.png" alt="DCP Pareto frontier across full sequence-length bands" width="100%">
 </p>
 
-We also plotted performance against full sequence length (input + output). The figure shows a single throughput–interactivity Pareto frontier with requests grouped into six length bands (&lt;8k, 8–32k, 32–64k, 64–128k, 128–200k, and 200k+) so we can see how performance shifts with context length. **DCP keeps a high, stable frontier even in the 200k+ range**, with the curves for short and long buckets nearly overlapping: throughput scales with concurrency while per-user speed stays usable at the long context lengths where the replicated-KV baseline runs out of memory and cannot scale.
+We also plotted performance against full sequence length (input + output). The figure shows a single throughput–interactivity Pareto frontier with requests grouped into five length bands (&lt;32k, 32–64k, 64–128k, 128–200k, and 200k+) so we can see how performance shifts with context length. **DCP keeps a high, stable frontier even in the 200k+ range**, with the curves for short and long buckets nearly overlapping: throughput scales with concurrency while per-user speed stays usable at the long context lengths where the replicated-KV baseline runs out of memory and cannot scale.
 
 ## 3. Challenges of Serving Long Contexts
 
