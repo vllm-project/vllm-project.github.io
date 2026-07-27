@@ -144,7 +144,7 @@ vllm serve Qwen/Qwen3-235B-A22B \
 
 ## 6. Future Work
 
-Looking ahead, we plan to extend DCP along three main directions. We will add support for finer-grained parallelism sizes for both TP and DCP, giving users more precise control over their parallelism layout and reclaiming efficiency lost to over-provisioned sharding. We are also developing better DCP all-to-all (A2A) communication kernels for both multinode and single-node settings, reducing exposed communication and improving overlap with compute as context length and device count grow. Finally, we aim to broaden DCP's reach by extending support to a wider variety of backends and integrating it with speculative decoding, hybrid models, and Dynamic Chunked Pipeline Parallelism, so a much wider range of workloads can benefit from context-parallel efficiency gains.
+Looking ahead, we plan to extend DCP along three main directions. We will add support for finer-grained parallelism sizes for both TP and DCP, giving users more precise control over their parallelism layout and reclaiming efficiency lost to over-provisioned sharding. We are also developing better DCP all-to-all (A2A) communication kernels for both multinode and single-node settings, reducing exposed communication and improving overlap with compute as context length and device count grow. Finally, we aim to broaden DCP's reach by extending support to a wider variety of backends and integrating it with speculative decoding, hybrid models, and Dynamic Chunked Pipeline Parallelism, so a much wider range of workloads can benefit from context-parallel efficiency gains. We are also working on DCP performance benchmarking for the Kimi K3 model, and plan to share those results as that work matures.
 
 ## 7. Conclusion
 
