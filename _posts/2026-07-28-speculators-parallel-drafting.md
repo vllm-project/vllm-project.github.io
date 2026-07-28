@@ -65,7 +65,7 @@ Parallel drafting as a concept has been explored before — [Medusa](https://arx
 
 <p align="center">
 <img src="/assets/figures/2026-07-28-speculators-parallel-drafting/diagram.jpg" width="100%">
-<em>Figure 3. Comparison between P-EAGLE, DFlash and DSpark. P-EAGLE injests hidden states from the verifier as part of the speculator model inputs. DFlash projects hidden states into KV-cache. DSpark buids on a DFlash backbone and adds sequential correction and confidence estimator.
+<em>Figure 3. Comparison between P-EAGLE, DFlash and DSpark. P-EAGLE ingests hidden states from the verifier as part of the speculator model inputs. DFlash projects hidden states into KV-cache. DSpark buids on a DFlash backbone and adds sequential correction and confidence estimator.
 </em>
 </p>
 
