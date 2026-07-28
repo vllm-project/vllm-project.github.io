@@ -144,7 +144,9 @@ vllm serve Qwen/Qwen3-235B-A22B \
 
 ## 6. Future Work
 
-Looking ahead, we plan to extend DCP along three main directions. We will add support for finer-grained parallelism sizes for both TP and DCP, giving users more precise control over their parallelism layout and reclaiming efficiency lost to over-provisioned sharding. We are also developing better DCP all-to-all (A2A) communication kernels for both multinode and single-node settings, reducing exposed communication and improving overlap with compute as context length and device count grow. Finally, we aim to broaden DCP's reach by extending support to a wider variety of backends and integrating it with speculative decoding, hybrid models, and Dynamic Chunked Pipeline Parallelism, so a much wider range of workloads can benefit from context-parallel efficiency gains. We are also working on DCP performance benchmarking for the Kimi K3 model, and plan to share those results as that work matures.
+Looking ahead, we plan to extend DCP along three main directions. We will add support for finer-grained parallelism sizes for both TP and DCP, giving users more precise control over their parallelism layout and reclaiming efficiency lost to over-provisioned sharding. We are also developing better DCP all-to-all (A2A) communication kernels for both multinode and single-node settings, reducing exposed communication and improving overlap with compute as context length and device count grow. Finally, we aim to broaden DCP's reach by extending support to a wider variety of backends and integrating it with speculative decoding, hybrid models, and Dynamic Chunked Pipeline Parallelism, so a much wider range of workloads can benefit from context-parallel efficiency gains.
+
+The community is also expanding DCP to additional models such as GLM-5.2 and Kimi K3, and there is a longer roadmap for Prefill Context Parallelism (PCP). We are working on DCP performance benchmarking for the Kimi K3 model and plan to share those results as that work matures. For deployment guidance and historical notes on DCP, see the [vLLM Decode Context Parallel docs](https://docs.vllm.ai/en/latest/serving/context_parallel_deployment/#decode-context-parallel).
 
 ## 7. Conclusion
 
@@ -158,4 +160,4 @@ This work was completed by engineers at [NVIDIA](https://www.nvidia.com/). We bu
 
 Special thanks to Anahita Bhiwandiwalla, Xin Li, Pavani Majety, Nidhi Bhatia, Roman Ageev, Pen Chung Li, and Chris Hoge for their reviews, benchmarking support, and engineering input throughout this study.
 
-We also thank the vLLM community, whose open-source engine and continued collaboration made this benchmarking effort possible.
+We thank [Moonshot AI](https://www.moonshot.cn/) for the initial Decode Context Parallel work upstreamed in [vLLM #23734](https://github.com/vllm-project/vllm/pull/23734), and [Lucas Wilkinson](https://github.com/LucasWilkinson) for substantial follow-up contributions that helped harden and extend DCP. We also thank the broader vLLM community, whose open-source engine and continued collaboration made this benchmarking effort possible. For more on DCP deployment and related history, see the [vLLM Decode Context Parallel docs](https://docs.vllm.ai/en/latest/serving/context_parallel_deployment/#decode-context-parallel).
