@@ -43,6 +43,8 @@ This auto-regressive design introduces two major trade-offs in production:
 
 <p align="center">
 <img src="/assets/figures/2026-07-24-speculators-parallel-drafting/ar_vs_parallel.jpg" width="100%">
+<em>Figure 2. Parallel drafting generates multiple draft tokens in a single step, whereas auto-regressive drafting generates one draft token per step.
+</em>
 </p>
 
 # 3. The Shift to Parallel Drafting
@@ -59,7 +61,13 @@ Parallel drafting as a concept has been explored before — [Medusa](https://arx
 
 # 4. Under the Hood: Inference & Training Architecture
 
-**P-EAGLE**, **DFlash**, and **DSpark** all build upon the verifier model's hidden states to generate draft tokens in parallel, but each takes a different path to get there. Below we outline what makes each architecture unique.
+**P-EAGLE**, **DFlash**, and **DSpark** all build upon the verifier model's hidden states to generate draft tokens in parallel, but each takes a different path to get there. Figure 3 illustrates their architectures side-by-size.
+
+<p align="center">
+<img src="/assets/figures/2026-07-28-speculators-parallel-drafting/diagram.jpg" width="100%">
+<em>Figure 3. Comparison between P-EAGLE, DFlash and DSpark. P-EAGLE injests hidden states from the verifier as part of the speculator model inputs. DFlash projects hidden states into KV-cache. DSpark buids on a DFlash backbone and adds sequential correction and confidence estimator.
+</em>
+</p>
 
 A shared challenge across all three is training. Any parallel speculator must perform next-K prediction at every token position along a training sequence. For a sequence of length N and a lookahead window of K, naively computing losses across the full matrix causes memory and compute costs to scale prohibitively. Each algorithm addresses this differently.
 
