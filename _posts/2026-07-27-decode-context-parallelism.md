@@ -70,7 +70,7 @@ Unlike pure TP methods, DCP is able to split KV cache across GPUs by sequence (c
 
 Standard Decode Context Parallelism keeps the communication pattern simple, following the rhythm **AllGather Q → Compute → AllGather + ReduceScatter**.
 
-- **AllGather Q:** Each GPU has computed only a fragment of the query, but attention requires the full query vector to score against any key. An all-gather across the DCP group assembles a complete copy of the query on every GPU. This is cheap during decode because the query is a single token.
+- **AllGather Q:** Each GPU has computed only a fragment of the query, but attention requires the full query vector to score against any key. An all-gather across the DCP group assembles a complete copy of the query on every GPU. This is cheap during decode because the query is a single token. As an opt-in alternative for MLA, [vLLM #45964](https://github.com/vllm-project/vllm/pull/45964) can replicate the (small) query projection within each DCP group at load time so decode skips this query all-gather entirely (`VLLM_DCP_Q_REPLICATE=1`).
 
 - **Compute:** Each GPU runs attention between the gathered query and its *local* slice of the KV cache. In vLLM this is `k_up` for MLA or `tensor_broadcast` for GQA.
 
