@@ -3,7 +3,7 @@ layout: post
 title: "Parallel All the Way Down: Beyond Single-Token Generation with Speculative Decoding"
 author: "Alexandre Marques, Megan Flynn, Helen Zhao, Krishna Teja Chitty Venkata, Chibueze Ukachi (Red Hat AI)"
 summary: "Speculators and vLLM now support P-EAGLE, DFlash, and DSpark — three parallel drafting algorithms that move beyond sequential token generation to deliver faster, simpler, and more scalable speculative decoding for LLM serving."
-image: /assets/figures/2026-07-24-speculators-parallel-drafting/ar_vs_parallel.jpg
+image: /assets/figures/2026-07-28-speculators-parallel-drafting/ar_vs_parallel.jpg
 tags:
   - speculators
   - speculative_decoding
@@ -22,9 +22,9 @@ However, as serving infrastructure evolves, traditional speculative frameworks f
 
 <p align="center">
 <div class="artifact-image-grid">
-<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/compare_interactivity_qwen38b_math.png" width="31%">
-<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/compare_interactivity_qwen330b_humaneval.png" width="31%">
-<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/compare_interactivity_gemma431b_humaneval.png" width="31%">
+<img src="/assets/figures/2026-07-28-speculators-parallel-drafting/compare_interactivity_qwen38b_math.png" width="31%">
+<img src="/assets/figures/2026-07-28-speculators-parallel-drafting/compare_interactivity_qwen330b_humaneval.png" width="31%">
+<img src="/assets/figures/2026-07-28-speculators-parallel-drafting/compare_interactivity_gemma431b_humaneval.png" width="31%">
 </div>
 <br>
 <em>Figure 1. Parallel drafting algorithms, such as P-EAGLE, DFlash and DSpark, provide significant performance gains when compared to autoregressive drafting algorithms such as EAGLE-3. Speculator models mentioned above can be found in the [Speculators Collection](https://huggingface.co/collections/RedHatAI/speculator-models) at the RedHatAI HuggingFace Hub.</em>
@@ -42,7 +42,7 @@ This auto-regressive design introduces two major trade-offs in production:
 - **Complex Operational Tuning:** Linear scaling heavily limits the number of drafted tokens in practice. Choosing the optimal speculation length (K) becomes a sensitive variable that engineering teams must constantly adjust depending on the specific use case and real-time server loading.
 
 <p align="center">
-<img src="/assets/figures/2026-07-24-speculators-parallel-drafting/ar_vs_parallel.jpg" width="100%">
+<img src="/assets/figures/2026-07-28-speculators-parallel-drafting/ar_vs_parallel.jpg" width="100%">
 <em>Figure 2. Parallel drafting generates multiple draft tokens in a single step, whereas auto-regressive drafting generates one draft token per step.
 </em>
 </p>
