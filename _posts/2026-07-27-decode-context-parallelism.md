@@ -14,9 +14,19 @@ tags:
 
 ## 1. Introduction
 
-Long-context inference is becoming essential for agentic AI, where assistants may need to reason over large code repositories and long chat histories. Agent-trace benchmarks now run from 64K all the way to 1M tokens and their KV caches are correspondingly large. Under a baseline tensor-parallel (TP) setup, once TP exceeds the number of KV heads, this KV cache is duplicated across GPUs and eats into GPU memory, leaving very little room to serve additional requests. This caps the number of concurrent requests the system can handle, driving down throughput and pushing up cost per token.
+Long-context inference is becoming essential for agentic AI, where assistants may need to reason over large code repositories and long chat histories. Agent-trace benchmarks now run from 64K all the way to 1M tokens and their KV caches are correspondingly large. Under a baseline tensor-parallel (TP) setup, this KV cache is partitioned by attention head, which puts a hard floor on how much it can shrink.
+
+Modern models use one of two attention schemes, and both hit this floor. Grouped-query attention (GQA) models store a small number of KV heads, and TP can only split the KV cache down to one head per GPU; once TP exceeds the number of KV heads, the cache starts duplicating across GPUs. Multi-head latent attention (MLA) models make this even worse: MLA compresses the Key/Value into a single low-rank *latent* vector shared across all query heads, so it effectively has only one KV head. Under normal TP there is nothing to split by head, meaning the latent KV cache is replicated in full across *every* TP rank. In both cases the duplicated KV cache eats into GPU memory, leaving very little room to serve additional requests. This caps the number of concurrent requests the system can handle, driving down throughput and pushing up cost per token.
 
 Decode Context Parallelism addresses this by splitting KV cache across the GPUs so each GPU stores and reads only part of the KV cache. This frees up GPU memory, allowing each GPU to take on more requests and thus run at a larger batch size. On systems with high-bandwidth GPU-to-GPU interconnects, this helps preserve interactive responsiveness while serving many long-context agents at once.
+
+vLLM has supported DCP for almost a year, but we are writing this blog now to highlight the feature, along with the recent improvements and advancements we have made to it, because the rise of long-context agentic use cases has made its benefits more relevant than ever.
+
+<p align="center">
+<img src="/assets/figures/2026-07-27-decode-context-parallelism/kv-parallelism-overview.svg" alt="Overview of KV cache parallelism under TP versus DCP" width="100%">
+</p>
+
+<p align="center"><em>Under plain TP, both attention schemes waste memory on duplicated KV cache: GQA can only split down to one KV head per GPU before it starts replicating, and MLA behaves like a single KV head, so its latent cache is replicated on every rank. DCP instead shards the KV cache along the sequence dimension, so each GPU holds a unique slice and no capacity is wasted on duplicates.</em></p>
 
 ## 2. Performance Results
 
@@ -144,7 +154,7 @@ vllm serve Qwen/Qwen3-235B-A22B \
 
 ## 6. Future Work
 
-Looking ahead, we plan to extend DCP along three main directions. We will add support for finer-grained parallelism sizes for both TP and DCP, giving users more precise control over their parallelism layout and reclaiming efficiency lost to over-provisioned sharding. We are also developing better DCP all-to-all (A2A) communication kernels for both multinode and single-node settings, reducing exposed communication and improving overlap with compute as context length and device count grow. Finally, we aim to broaden DCP's reach by extending support to a wider variety of backends and integrating it with speculative decoding, hybrid models, and Dynamic Chunked Pipeline Parallelism, so a much wider range of workloads can benefit from context-parallel efficiency gains.
+Looking ahead, we plan to extend DCP along several main directions. We will add support for finer-grained parallelism sizes for both TP and DCP, giving users more precise control over their parallelism layout and reclaiming efficiency lost to over-provisioned sharding. We are also developing better DCP all-to-all (A2A) communication kernels for both multinode and single-node settings, reducing exposed communication and improving overlap with compute as context length and device count grow. We are working on better support for MTP and speculative decoding, so that DCP can deliver its efficiency gains without sacrificing the latency benefits of speculative methods, as well as hardening prefill/decode (P/D) disaggregation support to make DCP robust in disaggregated serving deployments. Finally, we aim to broaden DCP's reach by extending support to a wider variety of backends and integrating it with hybrid models and Dynamic Chunked Pipeline Parallelism, so a much wider range of workloads can benefit from context-parallel efficiency gains.
 
 The community is also expanding DCP to additional models such as GLM-5.2 and Kimi K3, and there is a longer roadmap for Prefill Context Parallelism (PCP). We are working on DCP performance benchmarking for the Kimi K3 model and plan to share those results as that work matures. For deployment guidance and historical notes on DCP, see the [vLLM Decode Context Parallel docs](https://docs.vllm.ai/en/latest/serving/context_parallel_deployment/#decode-context-parallel).
 
