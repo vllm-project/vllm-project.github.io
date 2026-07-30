@@ -133,4 +133,4 @@ Parallel drafting is fully supported, open-source, and production-ready today. W
 
 # Errata
 
-The plots in Figure 1 were updated on 7/29/26 at 8pm. The numbers in the original plots proved to be inconsistent with the reported benchmarking conditions due to an erroneous environment setup. However, the relative behavior between models was consistent and the conclusions in the blog are not changed.
+The plots in Figure 1 were updated on 7/29/26. The numbers in the original plots proved to be inconsistent with the reported benchmarking conditions due to an erroneous environment setup. However, the relative behavior between models was consistent and the conclusions in the blog are not changed.
