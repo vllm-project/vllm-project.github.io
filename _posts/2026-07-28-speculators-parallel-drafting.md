@@ -55,17 +55,17 @@ By flattening the drafting phase into a single forward pass, the latency of gene
 
 - **Capacity for Expressiveness:** Because the speculator model only runs once per block, developers can utilize larger, more robust, and more expressive draft architectures. These deeper speculator models capture more complex context and yield higher acceptance rates without introducing a sequential latency penalty.
 
-- **Simplified Parameter Tuning:** Decoupling drafting cost from block length removes he operational burden of hyper-tuning speculation parameters based on fluctuating server loads.
+- **Simplified Parameter Tuning:** Decoupling drafting cost from block length removes the operational burden of hyper-tuning speculation parameters based on fluctuating server loads.
 
 Parallel drafting as a concept has been explored before — [Medusa](https://arxiv.org/abs/2401.10774) and [PARD](https://arxiv.org/abs/2504.18583) are notable earlier examples. P-EAGLE, DFlash, and DSpark build on this foundation by combining parallel execution with deep verifier-state conditioning, the insight that made EAGLE so successful.
 
 # 4. Under the Hood: Inference & Training Architecture
 
-**P-EAGLE**, **DFlash**, and **DSpark** all build upon the verifier model's hidden states to generate draft tokens in parallel, but each takes a different path to get there. Figure 3 illustrates their architectures side-by-size.
+**P-EAGLE**, **DFlash**, and **DSpark** all build upon the verifier model's hidden states to generate draft tokens in parallel, but each takes a different path to get there. Figure 3 illustrates their architectures side-by-side.
 
 <p align="center">
 <img src="/assets/figures/2026-07-28-speculators-parallel-drafting/diagram.jpg" width="100%">
-<em>Figure 3. Comparison between P-EAGLE, DFlash and DSpark. P-EAGLE ingests hidden states from the verifier as part of the speculator model inputs. DFlash projects hidden states into KV-cache. DSpark buids on a DFlash backbone and adds sequential correction and confidence estimator.
+<em>Figure 3. Comparison between P-EAGLE, DFlash and DSpark. P-EAGLE ingests hidden states from the verifier as part of the speculator model inputs. DFlash projects hidden states into KV-cache. DSpark builds on a DFlash backbone and adds sequential correction and confidence estimator.
 </em>
 </p>
 
@@ -130,3 +130,7 @@ Parallel drafting is fully supported, open-source, and production-ready today. W
 - Pre-trained speculators: [Speculators Collection on HuggingFace](https://huggingface.co/collections/RedHatAI/speculator-models)  
 - Training guides: [Speculator tutorials](https://github.com/vllm-project/speculators/blob/main/docs/user_guide/tutorials/index.md)
 
+
+# Errata
+
+The plots in Figure 1 were updated on 7/29/26 at 8pm. The numbers in the original plots proved to be inconsistent with the reported benchmarking conditions due to an erroneous environment setup. However, the relative behavior between models was consistent and the conclusions in the blog are not changed.
