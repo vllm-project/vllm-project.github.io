@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Adaptive Verification in vLLM: dspark confidence-scheduled verification"
+title: "Adaptive Verification in vLLM: DSpark confidence-scheduled verification"
 author: "vLLM Team"
 summary: "Sizing the DSpark draft-verification budget from per-request confidence instead of verifying every drafted token, so one configuration holds the throughput/latency frontier from batch size 1 to 256."
 image: /assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg
@@ -10,13 +10,13 @@ tags:
   - speculative-decoding
 ---
 
-Speculative decoding buys fewer decode steps with more compute. At batch size 1 that is an good trade: the GPU is compute bound, so the extra work (draft tokens) is close to free. At batch size 256 the trade is much more delicate. Draft tokens now competes with real tokens for the same compute, and every rejected token is spent waste of useful compute, with enough rejected tokens them and throughput drops significantly.
+Speculative decoding buys fewer decode steps with more compute. At batch size 1 that is a good trade: the GPU is memory-bound with spare compute, so the extra work (draft tokens) is close to free. At batch size 256 the trade is much more delicate. Draft tokens now compete with real tokens for the same compute, and every rejected token is spent waste of useful compute; with enough rejected tokens the throughput drops significantly.
 
 **TL;DR**: [DSpark](https://arxiv.org/abs/2607.05147)'s confidence head scores each drafted token's chance of surviving verification, so instead of picking a speculation length per deployment, vLLM can decide per step how much of the draft to verify. With adaptive speculation on (`num_speculative_tokens: 7`), speculative decoding is able to provide benefits all the way to concurrency 256 and still maintains the benefits of the longer draft length at lower concurrencies. This reduces the need for users to tune `num_speculative_tokens` to their workload and deployment, and makes DSpark an easier "on-by-default" type of win.
 
 ## The problem
 
-Per-position acceptance decays fast: on DeepSeek-V4-Flash-0731 the last drafted token of a 7-token block survives less than 10% of the time, against more than 70% for the first. That low probability token costs a slot in every verification batch. While the GPU is memory-bound the slot is effectively free and worth the gamble; once it saturates the "gamble" has a real throughput cost. The challenge is that the crossover moves with load and workload dependent acceptance rates, so no static `num_speculative_tokens` is optimal across concurrencies. DSpark tackles this by having an adapative draft budget that takes into account both the load of the system and how confident the dspark head thinks the target model will accept each draft token.
+Per-position acceptance decays fast: on DeepSeek-V4-Flash-0731 the last drafted token of a 7-token block survives less than 10% of the time, against more than 70% for the first. That low probability token costs a slot in every verification batch. While the GPU is memory-bound the slot is effectively free and worth the gamble; once it saturates the "gamble" has a real throughput cost. The challenge is that the crossover moves with load and workload dependent acceptance rates, so no static `num_speculative_tokens` is optimal across concurrencies. DSpark tackles this by having an adaptive draft budget that takes into account both the load of the system and how confident the DSpark head thinks the target model will accept each draft token.
 
 ## Scheduling the budget
 
@@ -30,7 +30,7 @@ Survival only decreases with *k*, so given a draft token budget of *B*, allocati
 
 ![Fixed-length verification versus confidence-scheduled trimming](/assets/figures/2026-07-31-dspark-adaptive-verification/fig1-policy.svg)
 
-*Figure 1. The same batch under both policies. Fixed verification pays for all 21 slots including the ones with near-zero survival; with adapative verfication we only verify the best B=11.*
+*Figure 1. The same batch under both policies. Fixed verification pays for all 21 slots including the ones with near-zero survival; with adaptive verification we only verify the best B=11.*
 
 *B* comes from maximizing expected tokens per unit of step time:
 
