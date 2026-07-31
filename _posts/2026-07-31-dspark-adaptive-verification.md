@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "DSpark in vLLM: Confidence-Scheduled Verification"
-author: "Lucas Wilkinson"
+author: "vLLM Team"
 summary: "Sizing the DSpark draft-verification budget from per-request confidence instead of verifying every drafted token, so one configuration holds the throughput/latency frontier from batch size 1 to 256."
 image: /assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg
 tags:
@@ -123,4 +123,4 @@ done
 
 ## Acknowledgments
 
-Thanks to the DSpark authors for the drafting algorithm and the confidence head, and to DeepSeek for the DeepSeek-V4-Flash checkpoints.
+This work was done by Lucas Wilkinson (Red Hat) and Benjamin Chislett (NVIDIA). Thanks to the DSpark authors for the drafting algorithm and the confidence head, and to DeepSeek for the DeepSeek-V4-Flash checkpoints.
