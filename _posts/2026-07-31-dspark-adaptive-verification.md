@@ -1,0 +1,126 @@
+---
+layout: post
+title: "DSpark in vLLM: Confidence-Scheduled Verification"
+author: "Lucas Wilkinson"
+summary: "Sizing the DSpark draft-verification budget from per-request confidence instead of verifying every drafted token, so one configuration holds the throughput/latency frontier from batch size 1 to 256."
+image: /assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg
+tags:
+  - performance
+  - speculative-decoding
+---
+
+Speculative decoding buys fewer decode steps with more compute. At batch size 1 that is an easy trade: the GPU has capacity to spare, so the extra work is close to free. At batch size 256 the trade is much more delicate. Seven drafted tokens per request add 1,792 tokens of target work to every step, that work now competes with real tokens for the same compute, and every rejected token is spent for nothing — enough of them and throughput drops sharply.
+
+DSpark's confidence head scores each drafted token's chance of surviving verification, so instead of picking a speculation length per deployment, vLLM can decide per step how much of the draft to verify.
+
+One configuration (`num_speculative_tokens: 7`, adaptive on) matches the best fixed speculation length at c=1 and beats it everywhere above, by 2.3× at c ≥ 128 against the fixed-7 config it replaces.
+
+## The problem
+
+Per-position acceptance decays fast: on DeepSeek-V4-Flash-0731 the last drafted token of a 7-token block survives less than 10% of the time, against more than 70% for the first. That token still costs a slot in every verification batch. While the GPU is memory-bound the slot is effectively free; once it saturates the slot has a real throughput cost. The crossover moves with load, so no static `num_speculative_tokens` sits on it — a long block wins at low concurrency and goes underwater at high concurrency, and a short one gives up the latency win it was supposed to buy.
+
+## Scheduling the budget
+
+DSpark drafts a block of γ tokens per pass and emits a confidence per position. The scheduler turns those into survival probabilities, the running product along each request:
+
+```
+S(r, k) = Π_{i ≤ k} confidence(r, i)
+```
+
+Survival only decreases with *k*, so a global top-*B* over survival scores admits a contiguous prefix of each request's draft with no extra constraint. Slots compete across requests: position 5 of a confident request can outrank position 1 of a struggling one.
+
+![Fixed-length verification versus confidence-scheduled trimming](/assets/figures/2026-07-31-dspark-adaptive-verification/fig1-policy.svg)
+
+*Figure 1. The same batch under both policies. Fixed verification pays for all 21 slots including the ones with near-zero survival; the scheduler keeps the best 11.*
+
+*B* comes from maximizing expected tokens per unit of step time:
+
+```
+B* = argmax_B  ( N_sampling + Σ_{j < B} S_sorted[j] ) / ( draft_cost[num_reqs] + verify_cost[T + B] )
+```
+
+The numerator is one bonus token per sampling request plus the survival of the *B* best draft slots; the denominator is a profiled cost table. Both are arrays, so the choice is an `np.argmax` over a cumulative sum and costs microseconds.
+
+Sizing runs on the CPU while the GPU is still working on the previous step, from a double-buffered confidence array that is one step old, smoothed by a per-request EMA (`adaptive_verification_ema_alpha`, default 0.8). Handing those *B* slots out to individual requests runs on the GPU against current values, so the per-request allocation uses current confidences. The selection is written in PyTorch, lowered to Triton by `torch.compile`, and never reads back to the host.
+
+## Varlen decode CUDA graphs
+
+To properly support variable-sized verifications we also need varlen decode CUDA graphs. That requires attention kernel support: the sparse MLA kernels are naturally varlen, since each query token has an independent top-k, and DeepSeek open-sourced a varlen indexer kernel in DeepGEMM, which is integrated as part of [PR #47808](https://github.com/vllm-project/vllm/pull/47808). Decode graphs are captured with `num_reqs = min(num_tokens, max_num_seqs)` and a promised `max_query_len = num_speculative_tokens + 1`, so one graph serves any mix of 1 to `num_speculative_tokens + 1` tokens per request.
+
+## The cost model
+
+The budget rule divides by a step cost, so that cost has to be cheap to look up and close to right. At startup the engine times dummy steps across the shapes it will actually run, taking the median of five runs per shape. That becomes two flat lookup tables: the verification table is indexed by token count, and the drafter table by request count, since drafting costs the same regardless of how many tokens are verified. The two are summed.
+
+![Measured verify and draft cost curves against the lookup tables](/assets/figures/2026-07-31-dspark-adaptive-verification/fig2-costcurve.svg)
+
+*Figure 2. Both cost tables from a real startup profile, with the raw samples faded behind the per-size medians they are built from.*
+
+Inside the captured CUDA graphs cost is a staircase rather than a line, because of cudagraph padding: a batch of 121 tokens runs the 128-token graph and (mostly) pays for all 128. Past the capture limit the staircase ends and cost really is continuous. There is a notable jump where we fall out of the cudagraph region, and that transition is sharp enough in the cost curve to strongly encourage the budget algorithm to stay inside it.
+
+Profiling noise is handled by forcing the curve monotonic. Step cost can genuinely fall as the batch grows, because of kernel tile sizes, so enforcing monotonicity helps smooth out the cost curve.
+
+## Results
+
+DeepSeek-V4-Flash-0731, TP=4 on 4×B300 (SM100), expert parallel, FP8 KV cache, `max_model_len` 8192. The benchmark is 880 prompts at temperature 1.0, 512 output tokens, swept over concurrency 1 to 256. This checkpoint self-drafts in blocks of 5, so only k ≥ 5 is a valid baseline; k=3 is plotted for shape but its output is wrong.
+
+![Aggregate throughput against per-user decode speed for adaptive and fixed speculation lengths](/assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg)
+
+*Figure 3. Each line sweeps concurrency from 1 (bottom right, fast per user, low aggregate) to 256 (top left).*
+
+Every fixed length bends back on itself: it climbs while the GPU has capacity, then turns and gives up both throughput and per-user speed once verification tokens start competing with real ones. Fixed 7 ends up well under no speculation at high load. Adaptive verification is the only arm whose curve stays out on the frontier for the whole sweep — the low-concurrency latency that speculation is for, without the high-concurrency inversion that makes people turn it off.
+
+At the top of the sweep it runs a little over 2× the throughput of fixed 7 at less than half the per-token latency. Accepted length drifts down as load rises, which is the mechanism working: the scheduler stops paying for the tail of the block.
+
+Verification itself is exact — the scheduler changes which drafts are offered, not how they are accepted — so the output distribution is unchanged, and the GSM8K and MT-Bench runs on the branch confirm it.
+
+## Limitations
+
+- FULL varlen decode graphs require `AttentionCGSupport.ALWAYS`, which the DSV4 sparse-MLA, sparse-SWA, and indexer backends report on SM100. Elsewhere decode falls back to PIECEWISE: correct, but no faster.
+- Output logprobs are rejected when adaptive verification is on, because verification compacts logits after the forward pass.
+- The confidence head must be paired with its own checkpoint. Serving it against an NVFP4-requantized target drops mean accepted length from ~4.0 to ~1.3; rejection sampling preserves correctness, so the only symptom is lost speed.
+- Everything here is DeepSeek-V4-Flash. The scheduler is model-agnostic in principle but has not been validated on another target.
+
+## Appendix: reproducing
+
+These match the reproduction section of [PR #47808](https://github.com/vllm-project/vllm/pull/47808).
+
+**Server** (all measurements; ablations are `--speculative-config` deltas):
+
+```bash
+vllm serve deepseek-ai/DeepSeek-V4-Flash-0731 \
+  --tokenizer-mode deepseek_v4 --trust-remote-code \
+  --tensor-parallel-size 4 --enable-expert-parallel \
+  --kv-cache-dtype fp8 --max-model-len 8192 --max-num-seqs 256 \
+  --compilation-config '{"max_cudagraph_capture_size":1024}' \
+  --speculative-config '{"method":"dspark","attention_backend":"FLASH_ATTN","num_speculative_tokens":7,"draft_sample_method":"probabilistic","enable_adaptive_verification":true}'
+```
+
+The draft defaults to the target checkpoint, so `"model"` can be omitted.
+`--kv-cache-dtype fp8` is required: the `fp8_ds_mla` layout rejects other KV
+dtypes. `--max-num-seqs` matters too — the default is 128, which would cap the
+batch below the top of the concurrency sweep.
+
+- fixed k: `"enable_adaptive_verification": false`, `"num_speculative_tokens": k`
+- no speculation: omit `--speculative-config`
+
+**Throughput sweep**, per concurrency `c ∈ {1, 16, 32, 64, 128, 256}`, after one warmup pass (`--speed-bench-output-len 256 --num-prompts 64 --max-concurrency 32`):
+
+```bash
+MODEL=deepseek-ai/DeepSeek-V4-Flash-0731
+for c in 256 128 64 32 16 1; do
+  n=880; [ "$c" = 1 ] && n=240
+  vllm/vllm-rs bench serve \
+    --backend openai-chat --base-url http://127.0.0.1:8000 \
+    --endpoint /v1/chat/completions --model "$MODEL" \
+    --tokenizer "$MODEL" --tokenizer-mode deepseek_v4 \
+    --dataset-name speed-bench --dataset-path <speed-bench.json> \
+    --speed-bench-config qualitative --output-len 512 \
+    --num-prompts $n --max-concurrency $c \
+    --skip-chat-template --temperature 1.0 --seed 0 \
+    --save-result --result-filename adaptive_on_c${c}.json
+done
+```
+
+## Acknowledgments
+
+Thanks to the DSpark authors for the drafting algorithm and the confidence head, and to DeepSeek for the DeepSeek-V4-Flash checkpoints.

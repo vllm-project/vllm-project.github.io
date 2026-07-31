@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 470" width="940" height="470" role="img" aria-label="Aggregate throughput against per-user decode speed for adaptive and fixed speculation lengths" class="fig">
+  <title>Aggregate throughput against per-user decode speed for adaptive and fixed speculation lengths</title>
+  <style>
+    .fig text { font-family: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .t-title { font-size: 14px; font-weight: 650; }
+    .t-label { font-size: 12.5px; }
+    .t-sub   { font-size: 11.5px; }
+    .t-tick  { font-size: 11px; }
+    .t-mut   { font-size: 11px; }
+    .t-val   { font-size: 11px; font-weight: 600; }
+    @media (prefers-color-scheme: dark) {
+      .st-surface { stroke: #1a1a19; }
+      .fl-surface { fill: #1a1a19; }
+      .sc-surface { stop-color: #1a1a19; }
+      .st-k1 { stroke: #7a3213; }
+      .fl-k1 { fill: #7a3213; }
+      .sc-k1 { stop-color: #7a3213; }
+      .st-k2 { stroke: #9c3c15; }
+      .fl-k2 { fill: #9c3c15; }
+      .sc-k2 { stop-color: #9c3c15; }
+      .st-k3 { stroke: #c9501f; }
+      .fl-k3 { fill: #c9501f; }
+      .sc-k3 { stop-color: #c9501f; }
+      .st-k4 { stroke: #eb6834; }
+      .fl-k4 { fill: #eb6834; }
+      .sc-k4 { stop-color: #eb6834; }
+      .st-k5 { stroke: #f28e60; }
+      .fl-k5 { fill: #f28e60; }
+      .sc-k5 { stop-color: #f28e60; }
+      .st-k6 { stroke: #f7ae8a; }
+      .fl-k6 { fill: #f7ae8a; }
+      .sc-k6 { stop-color: #f7ae8a; }
+      .st-k7 { stroke: #fbcfb7; }
+      .fl-k7 { fill: #fbcfb7; }
+      .sc-k7 { stop-color: #fbcfb7; }
+      .st-ink { stroke: #ffffff; }
+      .fl-ink { fill: #ffffff; }
+      .sc-ink { stop-color: #ffffff; }
+      .st-ink2 { stroke: #c3c2b7; }
+      .fl-ink2 { fill: #c3c2b7; }
+      .sc-ink2 { stop-color: #c3c2b7; }
+      .st-ink3 { stroke: #8a8880; }
+      .fl-ink3 { fill: #8a8880; }
+      .sc-ink3 { stop-color: #8a8880; }
+      .st-grid { stroke: #383835; }
+      .fl-grid { fill: #383835; }
+      .sc-grid { stop-color: #383835; }
+      .st-s1 { stroke: #3987e5; }
+      .fl-s1 { fill: #3987e5; }
+      .sc-s1 { stop-color: #3987e5; }
+      .st-s2 { stroke: #d95926; }
+      .fl-s2 { fill: #d95926; }
+      .sc-s2 { stop-color: #d95926; }
+      .st-s3 { stroke: #199e70; }
+      .fl-s3 { fill: #199e70; }
+      .sc-s3 { stop-color: #199e70; }
+      .st-muted { stroke: #7d7b74; }
+      .fl-muted { fill: #7d7b74; }
+      .sc-muted { stop-color: #7d7b74; }
+      .st-q1 { stroke: #184f95; }
+      .fl-q1 { fill: #184f95; }
+      .sc-q1 { stop-color: #184f95; }
+      .st-q2 { stroke: #1c5cab; }
+      .fl-q2 { fill: #1c5cab; }
+      .sc-q2 { stop-color: #1c5cab; }
+      .st-q3 { stroke: #2a78d6; }
+      .fl-q3 { fill: #2a78d6; }
+      .sc-q3 { stop-color: #2a78d6; }
+      .st-q4 { stroke: #5598e7; }
+      .fl-q4 { fill: #5598e7; }
+      .sc-q4 { stop-color: #5598e7; }
+      .st-q5 { stroke: #9ec5f4; }
+      .fl-q5 { fill: #9ec5f4; }
+      .sc-q5 { stop-color: #9ec5f4; }
+      .st-q6 { stroke: #cde2fb; }
+      .fl-q6 { fill: #cde2fb; }
+      .sc-q6 { stop-color: #cde2fb; }
+    }
+  </style>
+  <rect x="0" y="0" width="940" height="470" class="fl-surface" fill="#fcfcfb"/>
+  <g>
+    <text x="66" y="28" class="t-title fl-ink" fill="#0b0b0b" >Throughput against per-user decode speed</text>
+    <text x="66" y="46" class="t-sub fl-ink2" fill="#52514e" >DeepSeek-V4-Flash-0731, TP=4 on B300, 880 prompts × 512 output tokens; each line sweeps concurrency 1→256</text>
+    <line x1="74" y1="408" x2="820" y2="408" class="st-grid" stroke="#e3e2dd" stroke-width="1"/>
+    <text x="64" y="412" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">0</text>
+    <line x1="74" y1="331" x2="820" y2="331" class="st-grid" stroke="#e3e2dd" stroke-width="1"/>
+    <text x="64" y="335" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">3k</text>
+    <line x1="74" y1="254" x2="820" y2="254" class="st-grid" stroke="#e3e2dd" stroke-width="1"/>
+    <text x="64" y="258" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">6k</text>
+    <line x1="74" y1="177" x2="820" y2="177" class="st-grid" stroke="#e3e2dd" stroke-width="1"/>
+    <text x="64" y="181" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">9k</text>
+    <line x1="74" y1="100" x2="820" y2="100" class="st-grid" stroke="#e3e2dd" stroke-width="1"/>
+    <text x="64" y="104" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">12k</text>
+    <text x="64" y="88" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">tok/s</text>
+    <text x="120.0291069862081" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">30</text>
+    <text x="295.0218302396561" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">60</text>
+    <text x="470.014553493104" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">120</text>
+    <text x="645.007276746552" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">240</text>
+    <text x="820" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">480</text>
+    <text x="447" y="458" class="t-sub fl-ink2" fill="#52514e" text-anchor="middle">per-user decode speed (tok/s, 1 / median TPOT)</text>
+    <polyline points="460.8,237.1 384.2,161.5 94.8,244.2" class="st-k1" fill="none" stroke="#f7ae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="460.8" cy="237.1" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="384.2" cy="161.5" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="94.8" cy="244.2" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="104.78629611219456" y="236.24114032065327" class="t-mut fl-ink3" fill="#8a8880" >k=3</text>
+    <polyline points="790.0,398.1 550.6,346.1 475.8,314.7 417.9,262.8 327.5,217.9 74.0,272.1" class="st-k4" fill="none" stroke="#d1541f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="790.0" cy="398.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="550.6" cy="346.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="475.8" cy="314.7" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="417.9" cy="262.8" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="327.5" cy="217.9" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="74.0" cy="272.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="84" y="264.12744672412657" class="t-mut fl-ink3" fill="#8a8880" >k=5</text>
+    <polyline points="785.8,398.1 588.5,334.3 518.8,297.9 447.8,249.8 172.0,299.2 74.0,285.0" class="st-k7" fill="none" stroke="#5c2209" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="785.8" cy="398.1" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="588.5" cy="334.3" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="518.8" cy="297.9" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="447.8" cy="249.8" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="172.0" cy="299.2" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="74.0" cy="285.0" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="84" y="276.98358426048287" class="t-mut fl-ink3" fill="#8a8880" >k=7</text>
+    <polyline points="559.3,403.7 442.9,365.1 380.4,341.1 302.5,310.0 222.9,267.1 165.8,191.0" class="st-s3" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="559.3" cy="403.7" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="442.9" cy="365.1" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="380.4" cy="341.1" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="302.5" cy="310.0" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="222.9" cy="267.1" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="165.8" cy="191.0" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="772.8,398.3 600.2,333.5 537.0,291.1 460.5,234.8 399.8,154.3 263.5,121.7" class="st-s1" fill="none" stroke="#2a78d6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="772.8" cy="398.3" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="600.2" cy="333.5" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="537.0" cy="291.1" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="460.5" cy="234.8" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="399.8" cy="154.3" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="263.5" cy="121.7" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="66" y1="70" x2="88" y2="70" class="st-s1" fill="none" stroke="#2a78d6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="96" y="74" class="t-sub fl-ink2" fill="#52514e" >adaptive</text>
+    <line x1="176" y1="70" x2="198" y2="70" class="st-s3" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="206" y="74" class="t-sub fl-ink2" fill="#52514e" >no spec</text>
+    <defs><linearGradient id="kramp" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" class="sc-k1" stop-color="#f7ae8a"/><stop offset="50%" class="sc-k4" stop-color="#d1541f"/><stop offset="100%" class="sc-k7" stop-color="#5c2209"/></linearGradient></defs>
+    <rect x="282" y="64" width="72" height="12" rx="2" fill="url(#kramp)"/>
+    <text x="364" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k = 3 … 7</text>
+    <text x="762.7709693311226" y="384.27092769535716" class="t-mut fl-ink3" fill="#8a8880" text-anchor="end">c=1</text>
+    <text x="249.54149527439262" y="125.72815043129651" class="t-mut fl-ink3" fill="#8a8880" text-anchor="end">c=256</text>
+  </g>
+</svg>
