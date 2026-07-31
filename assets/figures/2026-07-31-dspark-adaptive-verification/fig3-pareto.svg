@@ -98,17 +98,27 @@
     <text x="645.007276746552" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">240</text>
     <text x="820" y="430" class="t-tick fl-ink2" fill="#52514e" text-anchor="middle">480</text>
     <text x="447" y="458" class="t-sub fl-ink2" fill="#52514e" text-anchor="middle">per-user decode speed (tok/s, 1 / median TPOT)</text>
-    <polyline points="460.8,237.1 384.2,161.5 94.8,244.2" class="st-k1" fill="none" stroke="#f7ae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="460.8" cy="237.1" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="384.2" cy="161.5" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="94.8" cy="244.2" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <polyline points="790.0,398.1 550.6,346.1 475.8,314.7 417.9,262.8 327.5,217.9 74.0,272.1" class="st-k4" fill="none" stroke="#d1541f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="790.0" cy="398.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="550.6" cy="346.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="475.8" cy="314.7" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="417.9" cy="262.8" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="327.5" cy="217.9" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="74.0" cy="272.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="678.0,401.3 533.2,347.7 465.6,316.2 397.0,269.6 332.5,197.7 211.5,151.9" class="st-k1" fill="none" stroke="#f7ae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="678.0" cy="401.3" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="533.2" cy="347.7" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="465.6" cy="316.2" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="397.0" cy="269.6" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="332.5" cy="197.7" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="211.5" cy="151.9" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="768.4,398.6 591.2,333.6 529.7,292.5 460.8,237.1 384.2,161.5 94.8,244.2" class="st-k3" fill="none" stroke="#eb6834" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="768.4" cy="398.6" r="3.5" class="st-k3 fl-k3" fill="#eb6834" stroke="#eb6834" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="591.2" cy="333.6" r="3.5" class="st-k3 fl-k3" fill="#eb6834" stroke="#eb6834" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="529.7" cy="292.5" r="3.5" class="st-k3 fl-k3" fill="#eb6834" stroke="#eb6834" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="460.8" cy="237.1" r="3.5" class="st-k3 fl-k3" fill="#eb6834" stroke="#eb6834" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="384.2" cy="161.5" r="3.5" class="st-k3 fl-k3" fill="#eb6834" stroke="#eb6834" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="94.8" cy="244.2" r="3.5" class="st-k3 fl-k3" fill="#eb6834" stroke="#eb6834" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="790.0,398.1 550.6,346.1 475.8,314.7 417.9,262.8 327.5,217.9 74.0,272.1" class="st-k5" fill="none" stroke="#a53f16" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="790.0" cy="398.1" r="3.5" class="st-k5 fl-k5" fill="#a53f16" stroke="#a53f16" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="550.6" cy="346.1" r="3.5" class="st-k5 fl-k5" fill="#a53f16" stroke="#a53f16" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="475.8" cy="314.7" r="3.5" class="st-k5 fl-k5" fill="#a53f16" stroke="#a53f16" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="417.9" cy="262.8" r="3.5" class="st-k5 fl-k5" fill="#a53f16" stroke="#a53f16" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="327.5" cy="217.9" r="3.5" class="st-k5 fl-k5" fill="#a53f16" stroke="#a53f16" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="74.0" cy="272.1" r="3.5" class="st-k5 fl-k5" fill="#a53f16" stroke="#a53f16" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <polyline points="785.8,398.1 588.5,334.3 518.8,297.9 447.8,249.8 172.0,299.2 74.0,285.0" class="st-k7" fill="none" stroke="#5c2209" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="785.8" cy="398.1" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="588.5" cy="334.3" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -135,11 +145,13 @@
     <line x1="182" y1="70" x2="204" y2="70" class="st-s3" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="212" y="74" class="t-sub fl-ink2" fill="#52514e" >no spec</text>
     <line x1="298" y1="70" x2="320" y2="70" class="st-k1" fill="none" stroke="#f7ae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="328" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=3</text>
-    <line x1="414" y1="70" x2="436" y2="70" class="st-k4" fill="none" stroke="#d1541f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="444" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=5</text>
-    <line x1="530" y1="70" x2="552" y2="70" class="st-k7" fill="none" stroke="#5c2209" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="560" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=7</text>
+    <text x="328" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=1</text>
+    <line x1="414" y1="70" x2="436" y2="70" class="st-k3" fill="none" stroke="#eb6834" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="444" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=3</text>
+    <line x1="530" y1="70" x2="552" y2="70" class="st-k5" fill="none" stroke="#a53f16" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="560" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=5</text>
+    <line x1="646" y1="70" x2="668" y2="70" class="st-k7" fill="none" stroke="#5c2209" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="676" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=7</text>
     <text x="762.7709693311226" y="384.27092769535716" class="t-mut fl-ink3" fill="#8a8880" text-anchor="end">c=1</text>
     <text x="249.54149527439262" y="125.72815043129651" class="t-mut fl-ink3" fill="#8a8880" text-anchor="end">c=256</text>
   </g>

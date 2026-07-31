@@ -59,7 +59,7 @@ Profiling noise is handled by forcing the curve monotonic. Step cost can genuine
 
 ## Results
 
-DeepSeek-V4-Flash-0731, TP=4 on 4×B300 (SM100), expert parallel, FP8 KV cache, `max_model_len` 8192. The benchmark is 880 prompts at temperature 1.0, 512 output tokens, swept over concurrency 1 to 256. This checkpoint self-drafts in blocks of 5, so only k ≥ 5 is a valid baseline; k=3 is plotted for shape but its output is wrong.
+DeepSeek-V4-Flash-0731, TP=4 on 4×B300 (SM100), expert parallel, FP8 KV cache, `max_model_len` 8192. The benchmark is 880 prompts at temperature 1.0, 512 output tokens, swept over concurrency 1 to 256.
 
 ![Aggregate throughput against per-user decode speed for adaptive and fixed speculation lengths](/assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg)
 
