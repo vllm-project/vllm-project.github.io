@@ -4,6 +4,7 @@ title: "Adaptive Verification in vLLM: dspark confidence-scheduled verification"
 author: "vLLM Team"
 summary: "Sizing the DSpark draft-verification budget from per-request confidence instead of verifying every drafted token, so one configuration holds the throughput/latency frontier from batch size 1 to 256."
 image: /assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg
+math: true
 tags:
   - performance
   - speculative-decoding
@@ -21,9 +22,9 @@ Per-position acceptance decays fast: on DeepSeek-V4-Flash-0731 the last drafted 
 
 DSpark drafts a block of γ tokens per pass and emits a confidence per position using a learned confidence head. The scheduler turns those into survival probabilities, the running product along each request:
 
-```
-S(r, k) = Π_{i ≤ k} confidence(r, i)
-```
+$$
+S(r, k) = \prod_{i \leq k} \operatorname{confidence}(r, i)
+$$
 
 Survival only decreases with *k*, so given a draft token budget of *B*, allocating it to the most probable draft sequences is just a global top-*B* over survival scores; that admits a contiguous prefix of each request's draft with no extra constraint. Slots compete across requests: position 5 of a confident request can outrank position 1 of a low-confidence one.
 
@@ -33,9 +34,11 @@ Survival only decreases with *k*, so given a draft token budget of *B*, allocati
 
 *B* comes from maximizing expected tokens per unit of step time:
 
-```
-B* = argmax_B  ( N_sampling + Σ_{j < B} S_sorted[j] ) / ( draft_cost[num_reqs] + verify_cost[T + B] )
-```
+$$
+B^* = \underset{B}{\operatorname{argmax}}\;
+\frac{N_{\mathrm{sampling}} + \sum_{j < B} S_{\mathrm{sorted}}[j]}
+{\operatorname{draft\_cost}[\mathrm{num\_reqs}] + \operatorname{verify\_cost}[T + B]}
+$$
 
 The numerator is one bonus token per sampling request plus the survival of the *B* best draft slots; the denominator is a profiled cost table. Both are arrays, so the choice is an `np.argmax` over a cumulative sum and costs are in microseconds.
 
