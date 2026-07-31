@@ -102,7 +102,6 @@
     <circle cx="460.8" cy="237.1" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="384.2" cy="161.5" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="94.8" cy="244.2" r="3.5" class="st-k1 fl-k1" fill="#f7ae8a" stroke="#f7ae8a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="104.78629611219456" y="236.24114032065327" class="t-mut fl-ink3" fill="#8a8880" >k=3</text>
     <polyline points="790.0,398.1 550.6,346.1 475.8,314.7 417.9,262.8 327.5,217.9 74.0,272.1" class="st-k4" fill="none" stroke="#d1541f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="790.0" cy="398.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="550.6" cy="346.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -110,7 +109,6 @@
     <circle cx="417.9" cy="262.8" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="327.5" cy="217.9" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="74.0" cy="272.1" r="3.5" class="st-k4 fl-k4" fill="#d1541f" stroke="#d1541f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="84" y="264.12744672412657" class="t-mut fl-ink3" fill="#8a8880" >k=5</text>
     <polyline points="785.8,398.1 588.5,334.3 518.8,297.9 447.8,249.8 172.0,299.2 74.0,285.0" class="st-k7" fill="none" stroke="#5c2209" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="785.8" cy="398.1" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="588.5" cy="334.3" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -118,7 +116,6 @@
     <circle cx="447.8" cy="249.8" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="172.0" cy="299.2" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="74.0" cy="285.0" r="3.5" class="st-k7 fl-k7" fill="#5c2209" stroke="#5c2209" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="84" y="276.98358426048287" class="t-mut fl-ink3" fill="#8a8880" >k=7</text>
     <polyline points="559.3,403.7 442.9,365.1 380.4,341.1 302.5,310.0 222.9,267.1 165.8,191.0" class="st-s3" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="559.3" cy="403.7" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="442.9" cy="365.1" r="4.5" class="st-s3 fl-s3" fill="#1baf7a" stroke="#1baf7a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -135,11 +132,14 @@
     <circle cx="263.5" cy="121.7" r="4.5" class="st-s1 fl-s1" fill="#2a78d6" stroke="#2a78d6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
     <line x1="66" y1="70" x2="88" y2="70" class="st-s1" fill="none" stroke="#2a78d6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="96" y="74" class="t-sub fl-ink2" fill="#52514e" >adaptive</text>
-    <line x1="176" y1="70" x2="198" y2="70" class="st-s3" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="206" y="74" class="t-sub fl-ink2" fill="#52514e" >no spec</text>
-    <defs><linearGradient id="kramp" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" class="sc-k1" stop-color="#f7ae8a"/><stop offset="50%" class="sc-k4" stop-color="#d1541f"/><stop offset="100%" class="sc-k7" stop-color="#5c2209"/></linearGradient></defs>
-    <rect x="282" y="64" width="72" height="12" rx="2" fill="url(#kramp)"/>
-    <text x="364" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k = 3 … 7</text>
+    <line x1="182" y1="70" x2="204" y2="70" class="st-s3" fill="none" stroke="#1baf7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="212" y="74" class="t-sub fl-ink2" fill="#52514e" >no spec</text>
+    <line x1="298" y1="70" x2="320" y2="70" class="st-k1" fill="none" stroke="#f7ae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="328" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=3</text>
+    <line x1="414" y1="70" x2="436" y2="70" class="st-k4" fill="none" stroke="#d1541f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="444" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=5</text>
+    <line x1="530" y1="70" x2="552" y2="70" class="st-k7" fill="none" stroke="#5c2209" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="560" y="74" class="t-sub fl-ink2" fill="#52514e" >fixed k=7</text>
     <text x="762.7709693311226" y="384.27092769535716" class="t-mut fl-ink3" fill="#8a8880" text-anchor="end">c=1</text>
     <text x="249.54149527439262" y="125.72815043129651" class="t-mut fl-ink3" fill="#8a8880" text-anchor="end">c=256</text>
   </g>
