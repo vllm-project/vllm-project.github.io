@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "DSpark in vLLM: Confidence-Scheduled Verification"
+title: "Adaptive Verification in vLLM: dspark confidence-scheduled verification"
 author: "vLLM Team"
 summary: "Sizing the DSpark draft-verification budget from per-request confidence instead of verifying every drafted token, so one configuration holds the throughput/latency frontier from batch size 1 to 256."
 image: /assets/figures/2026-07-31-dspark-adaptive-verification/fig3-pareto.svg
@@ -75,12 +75,10 @@ Verification itself is exact — the scheduler changes which drafts are offered,
 
 - FULL varlen decode graphs require `AttentionCGSupport.ALWAYS`, which the DSV4 sparse-MLA, sparse-SWA, and indexer backends report on SM100. Elsewhere decode falls back to PIECEWISE: correct, but no faster.
 - Output logprobs are rejected when adaptive verification is on, because verification compacts logits after the forward pass.
-- The confidence head must be paired with its own checkpoint. Serving it against an NVFP4-requantized target drops mean accepted length from ~4.0 to ~1.3; rejection sampling preserves correctness, so the only symptom is lost speed.
-- Everything here is DeepSeek-V4-Flash. The scheduler is model-agnostic in principle but has not been validated on another target.
 
 ## Appendix: reproducing
 
-These match the reproduction section of [PR #47808](https://github.com/vllm-project/vllm/pull/47808).
+All the commands below are using: [PR #47808](https://github.com/vllm-project/vllm/pull/47808).
 
 **Server** (all measurements; ablations are `--speculative-config` deltas):
 
@@ -121,9 +119,4 @@ done
 
 ## Acknowledgments
 
-This work was done by Lucas Wilkinson (Red Hat) and Benjamin Chislett (NVIDIA). Thanks to the DSpark authors for the drafting algorithm and the confidence head, and to DeepSeek for the DeepSeek-V4-Flash checkpoints.
-
-## References
-
-- Cheng et al., [*DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation*](https://arxiv.org/abs/2607.05147), arXiv:2607.05147.
-- [vllm-project/vllm#47808](https://github.com/vllm-project/vllm/pull/47808) — the vLLM implementation described here.
+This work was done by Lucas Wilkinson (Red Hat) and Benjamin Chislett (NVIDIA). Thanks to the [DSpark](https://arxiv.org/abs/2607.05147) authors for the drafting algorithm and the confidence head, and to DeepSeek for the DeepSeek-V4-Flash checkpoints.
