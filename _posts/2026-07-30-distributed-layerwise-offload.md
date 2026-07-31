@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Distributed Layerwise Offload: Serving 200B+ DiT Models Efficiently in vLLM-Omni"
-author: "Evan Chueng, David Zhao"
+author: "Evan Chueng, david6666666"
 summary: "Sharding transformer weights across DP ranks with H2D + AllGather overlap, enabling large diffusion models (up to 185GB) to run on devices with limited HBM — with zero model code changes."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
