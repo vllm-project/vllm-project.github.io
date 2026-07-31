@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Distributed Layerwise Offload: Serving 200B+ DiT Models Efficiently in vLLM-Omni"
-author: "Jinyi Zhang, Weiqing Chen"
+author: "vLLM-Omni Diffusion Team"
 summary: "Sharding transformer weights across DP ranks with H2D + AllGather overlap, enabling large diffusion models (up to 185GB) to run on devices with limited HBM — with zero model code changes."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
@@ -398,23 +398,43 @@ HBM grows only ~22% from Nano to Super, because only 2 layers of weights reside 
 
 AllGather overhead = 150 ms/step (72 ms stream switch + 10 ms HCCL + 68 ms Python dispatch), model-size independent. With 4 concurrent requests, this fixed cost is amortized 4×.
 
-### Cosmos3-200B Synthetic Model (185 GB, 100 blocks)
+### NVIDIA B300 GPU Results
 
-To validate DLO at extreme scale, we constructed a synthetic 200B-class model by replicating Cosmos3-Super transformer layers to 100 blocks (185 GB on disk in BF16). This is larger than any single-card HBM (64 GB) and exceeds the combined HBM of 2 cards (128 GB) — HSDP cannot run it even with 4 devices.
+To validate platform-agnosticism, we ran the same DLO stack on NVIDIA B300 SXM6 GPUs. All tests use Cosmos3-Super BF16 (124 GB), 4× NVIDIA B300 (physical GPUs 1,5,6,7), Python 3.12.3, PyTorch 2.11.0+cu130, CUDA 13.0, vLLM 0.25.0.
 
-| Scenario | Steps | Resolution | Latency |
-|----------|:-----:|:----------:|:-------:|
-| T2I | 1 | 1024×1024 | 23s |
-| T2I | 5 | 1024×1024 | 58s |
-| T2V | 5 | 832×480 (29 frames) | 61s |
-| T2V | 5 | 1280×720 (121 frames) | 394s |
+Correctness was verified via byte-identical output hashes across all strategies. For example, T2I seed 42 produced identical SHA256 `6e7d2a8c63b88391...` across DLO+AG, no-AG, DLO+USP4, legacy layerwise+USP4, and HSDP+USP4. T2V 832×480×29f seed 17 produced identical 666,029-byte output (SHA256 `c5d38f5d21ca619e...`) across all strategies.
 
-With RFC-3 Iterative Activation (per-head attention + MLP chunking + VAE temporal chunking), the same 200B model supports 4K resolution and longer video generation — scenarios that OOM without RFC-3:
+#### 1024×1024 T2I, 50 steps
 
-| Scenario | Steps | Resolution | Latency | Without RFC-3 |
-|----------|:-----:|:----------:|:-------:|:-------------:|
-| T2I | 1 | 4K | 15s | OOM |
-| T2V | 30 | 720p (720 frames) | 498s | OOM |
+| Strategy | Concurrency | Wave latency | Throughput | Process-tree PSS | Peak HBM/card |
+|----------|:-----------:|:------------:|:----------:|:----------------:|:-------------:|
+| DLO+AG DP4 | 4 | 43.69s (median) | 0.0915 outputs/s | 198–202 GiB | 12.62 GiB |
+| DLO no-AG DP4 | 4 | 112.96s | 0.0354 outputs/s | 532 GiB | 11.43 GiB |
+| HSDP+USP4 | 1 | 15.19s | 0.0658 outputs/s | 483 GiB | 42.00 GiB |
+| legacy layerwise+USP4 | 1 | 105.22s | 0.0095 outputs/s | 533 GiB | 13.99 GiB |
+
+DLO+AG DP4 with 4 concurrent requests achieves **1.39×** the throughput of HSDP+USP4, while using only **30%** of the HBM (12.6 GiB vs 42.0 GiB).
+
+#### 832×480 T2V, 29 frames, 35 steps
+
+| Strategy | Outputs/wave | Wave latency | Throughput | Output SHA |
+|----------|:------------:|:------------:|:----------:|:----------:|
+| DLO+AG DP4 | 4 | 38.79s | 0.1033 outputs/s | c5d38f5d... |
+| HSDP+USP4 | 1 | 15.38s | 0.0653 outputs/s | c5d38f5d... |
+| DLO+AG+USP4 | 1 | 30.79s | 0.0326 outputs/s | c5d38f5d... |
+| legacy layerwise+USP4 | 1 | 81.46s | 0.0123 outputs/s | c5d38f5d... |
+
+#### Workload Latency and HBM (35 steps, DLO+AG DP4 vs HSDP+USP4)
+
+| Workload | DLO+AG (4 outputs) | DLO peak HBM/card | HSDP (1 output) | HSDP peak HBM/card |
+|----------|:------------------:|:-----------------:|:---------------:|:------------------:|
+| 480p, 29f | 38.79s | 14.55 GiB | 15.38s | 43.77 GiB |
+| 480p, ~5s (121f) | 102.58s | 15.88 GiB | 41.36s (125f) | 53.73–62.65 GiB |
+| 480p, ~10s (241f) | 226.70s | 17.33 GiB | 82.47s (245f) | 53.74 GiB |
+| 720p, 5s (121f) | 288.29s | 24.95 GiB | 87.47s | 52.19 GiB |
+| 720p, 10s (241f) | 214.53s (DLO+AG+USP4) | 24.99 GiB | 210.05s | 53.73 GiB |
+
+On 720p 10s (241f), DLO+AG+USP4 completed in 214.53s — within **2.13%** of HSDP's 210.05s — with byte-identical output (SHA256 `08cb679322996ea6...`), while using only **47%** of HSDP's HBM (24.99 GiB vs 53.73 GiB).
 
 ### Extrapolation to 400 GB
 
@@ -450,4 +470,3 @@ We thank the vLLM-Omni contributors, including @hsliuustc0106 and @yuanheng-zhao
 
 - Cosmos3-Nano: 33 GB safetensors (17B params, 72 blocks)
 - Cosmos3-Super: 124 GB safetensors (64B params, 128 blocks)
-- Cosmos3-200B (synthetic): 185 GB safetensors (100 blocks, constructed by replicating Super layers)
