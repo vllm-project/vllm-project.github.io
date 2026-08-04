@@ -34,7 +34,7 @@ Speculative decoding changes this process:
 
 Conditional acceptance rate measures the probability of accepting a draft position given that the preceding positions were accepted. Acceptance length measures the number of tokens emitted per verification cycle. Higher acceptance length can reduce the number of target-model verification steps, but realized throughput also depends on drafting and verification overhead. (Figure 1)
 
-<img src="/assets/figures/2026-07-13-eagle-3-amd-instinct/figure1.png" alt="Greedy speculative decoding proposal and verification flow" style="display:block;margin:0 auto;width:60%;height:auto" />
+<img src="/assets/figures/2026-07-13-eagle-3-amd-instinct/figure1.png" alt="Greedy speculative decoding proposal and verification flow" style="display:block;margin:0 auto;width:100%;height:auto" />
 
 *Figure 1: Greedy speculative decoding with γ=5: the target accepts an α=3-token prefix, rejects the first mismatch, discards later draft tokens, and emits a correction token, returning α+1=4 tokens. If all γ draft tokens are accepted, the extra token is a target-generated bonus token.*
 
@@ -54,7 +54,7 @@ These checkpoints are consumed directly by vLLM on ROCm through the supported MX
 
 A high-acceptance draft is what makes speculative decoding fast, and training one is as much a systems problem as a modeling problem. In our pipeline, vLLM is not just the inference engine — it sits at the center of training too. The AMD Quark team developed and validated the MiniMax-M3 EAGLE3 training workflow on AMD Instinct GPUs, which we use as the running example. (The Kimi-K2.5 and MiniMax-M2.5 EAGLE3 drafts in the inference results below are open-source community drafts from Hugging Face, not trained by us.) (Figure 2)
 
-<img src="/assets/figures/2026-07-13-eagle-3-amd-instinct/figure2.png" alt="vLLM-centric EAGLE3 training and serving pipeline" style="display:block;margin:0 auto;width:80%;height:auto" />
+<img src="/assets/figures/2026-07-13-eagle-3-amd-instinct/figure2.png" alt="vLLM-centric EAGLE3 training and serving pipeline" style="display:block;margin:0 auto;width:100%;height:auto" />
 
 *Figure 2: The vLLM-centric EAGLE3 training pipeline. One vLLM-on-ROCm runtime drives the whole loop: it serves the AMD Quark MXFP4/FP8 target model to synthesize on-policy data (Stage 1), streams the target’s low-, mid-, and high-level hidden states to the trainer (Stage 2), cold-starts the single-layer EAGLE3 draft head under FSDP2 (Stage 3), runs in-loop serve-eval to select the best checkpoint by measured acceptance length (Stage 4), then exports the draft and deploys it for EAGLE3 speculative decoding (Stage 5).*
 
