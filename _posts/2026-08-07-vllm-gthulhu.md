@@ -1,11 +1,10 @@
 ---
 layout: post
-title: "Keeping vLLM Fast Under CPU Pressure: An sched_ext Scheduler for GPU Inference"
+title: "Keeping vLLM Fast Under CPU Pressure: A sched_ext Scheduler for GPU Inference"
 author: "Ian Chen (Creator of Gthulhu)"
 summary: "Optimizing vLLM inference under CPU pressure using Gthulhu, a sched_ext scheduler that prioritizes GPU interrupts and vLLM's hot path."
-image:
- - /assets/figures/2026-08-07-vllm-gthulhu/node_policy.png
- - /assets/figures/2026-08-07-vllm-gthulhu/pod_policy.png
+image: /assets/figures/2026-08-07-vllm-gthulhu/node_policy.png
+social_image: /assets/figures/2026-08-07-vllm-gthulhu/pod_policy.png
 tags:
   - ecosystem
   - performance
@@ -21,7 +20,7 @@ Many people assume "LLM inference is the GPU's job, and the CPU is just a helper
 - **K8s infrastructure eats CPU too**: Daemons like `containerd`, `kubelet`, the CNI (calico), and the device plugin compete for CPU with your workload when the node is under pressure. Once they get starved, cascading problems follow — health-probe timeouts, pods being restarted, and so on.
 - **vLLM itself is CPU-dependent**: Don't forget that tokenization, HTTP/streaming, the `EngineCore` that schedules and submits CUDA kernels, and GPU interrupt handling (IRQ handlers) all run on the CPU. When the CPU is stolen by a noisy neighbor, even the fastest GPU can only sit idle, waiting for the CPU to feed it the next batch of work.
 
-We measured this on a DGX Spark (GB10): under a CPU-heavy scenario like `stress-ng --cpu 16`, vLLM's decode throughput drops from a warm baseline of ~65 t/s straight down to ~30 t/s — **a drop of more than 50%** — with jitter (std) as high as 50%. This isn't because the GPU isn't powerful enough; it's because CPU scheduling failed to protect the latency-critical work (GPU IRQ, EngineCore), which got diluted by background noise.
+We measured this on a DGX Spark (GB10): under a CPU-heavy scenario like `stress-ng --cpu 16`, vLLM's decode throughput can drop by **more than 50%**, with jitter (std) as high as 50%. This isn't because the GPU isn't powerful enough; it's because CPU scheduling failed to protect the latency-critical work (GPU IRQ, EngineCore), which got diluted by background noise.
 
 ### What is Gthulhu, and why introduce it?
 
@@ -33,11 +32,11 @@ In other words, Gthulhu lets us tell the kernel explicitly: "GPU interrupts and 
 
 ## Experiment Environment
 
-- Hardware: [ASUS Ascent GX10](https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/)
+- Hardware: NVIDIA DGX Spark (GB10) / [ASUS Ascent GX10](https://www.asus.com/tw/networking-iot-servers/desktop-ai-supercomputer/ultra-small-ai-supercomputers/asus-ascent-gx10/)
 - Kernel: Linux 6.17
 - LLM Service:
     - vLLM
-    - Microk8s
+    - MicroK8s
     - Model: Qwen/Qwen2.5-0.5B-Instruct
 
 ## Prerequisites
