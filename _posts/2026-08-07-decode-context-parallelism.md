@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Efficient Decode Context Parallelism with vLLM for Long Context Workloads"
-date: 2026-07-27
+date: 2026-08-07
 author: "Seonghee Lee, Sungsoo Ha, Omri Almog (NVIDIA), Lucas Wilkinson (Red Hat AI)"
 summary: "Decode Context Parallelism (DCP) in vLLM shards KV cache across GPUs by sequence dimension, enabling 3× higher throughput on long-context agentic workloads compared to standard tensor parallelism."
 image: /assets/figures/2026-07-27-decode-context-parallelism/figure-1.png
