@@ -313,6 +313,10 @@ A separate [MiniMax-H3 B300 study](https://github.com/lishunyang12/vllm-omni-ran
 
 The paired five-wave mode comparison explains why there is no single global DLO policy. At DP1×SP8, AllGather uses the SP group and improves throughput by 129.4% while reducing P50 latency by 56.6%. At DP4×SP2, its throughput benefit narrows to 2.2%. At DP8×SP1, AllGather reduces throughput by 4.1%, increases P50 latency by 3.8%, and raises the measured per-GPU peak from 20.03 to 94.03 GiB, so rank-local DLO is preferred. FL2VA first-frame and Ref2VA image+audio tests preserve the same latency-to-throughput ordering.
 
+![FL2VA and Ref2VA latency-throughput Pareto frontiers on MiniMax-H3](/assets/figures/2026-07-30-distributed-layerwise-offload/minimax-h3-multimodal-frontiers.png)
+
+*Figure 8: Across the three evaluated routes (n=5 measured waves per route), FL2VA first-frame I2VA and Ref2VA image+audio change the absolute latency and throughput while preserving the DP1×SP8 → DP4×SP2 → DP8×SP1 frontier ordering. Source: [MiniMax-H3 B300 study artifacts](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report).*
+
 These results are a topology study, not a universal production claim. DP2×SP4 was not measured; the experiment covers one node, one input set, one resolution and frame count, and shape validation rather than perceptual quality. It used source commit [`9e73ee1`](https://github.com/vllm-project/vllm-omni/commit/9e73ee1a50ce247c638052011914d8027d717f28) plus a recorded local subgroup-broadcast fix, and the runtime warned that the tested vLLM-Omni and vLLM versions were not release-aligned. The archive provides the [PDF, CSVs, 105 wave samples, environment hashes, local diff, and benchmark runners](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report) for independent review.
 
 ### Extrapolation to 400 GB
