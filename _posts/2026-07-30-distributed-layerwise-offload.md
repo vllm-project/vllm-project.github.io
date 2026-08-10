@@ -20,6 +20,7 @@ vLLM-Omni's Distributed Layerwise Offload enables video generation models larger
 - **Fixed double-buffer scheme**: Exactly 2 layers of weights reside on each device at any time, regardless of model size. In the measured 720p 10s workload, peak HBM grew about 22% (23.1 → 28.1 GB) from the 17B to the 64B model; idle HBM grew about 27% (11.5 → 14.6 GB).
 - **DP multi-concurrency**: Each DP rank processes a different request in parallel, achieving 3.3× throughput vs. single-request HSDP — about 83% of the ideal 4× scaling.
 - **Platform-agnostic**: Works on both NVIDIA GPU (CUDA/NCCL) and Ascend NPU (CANN/HCCL) via vLLM-Omni's platform abstraction layer.
+- **Topology-aware on 8× B300**: Within three evaluated MiniMax-H3 routes, AllGather is best for DP1×SP8 latency and the DP4×SP2 balanced point, while rank-local DLO wins at DP8×SP1 with 183.78 videos/h and 43.97 Wh/video.
 
 In the measured Ascend 910B3 DLO+AllGather runs with Cosmos3-Nano (33 GB) and Cosmos3-Super (124 GB), all configurations produced correct video output and cgroup-visible host memory scaled as O(model_size + dp_size × constant) instead of O(dp_size × model_size). The no-AllGather mode retains a full host copy per rank, while CUDA process-memory accounting includes pinned shards and is reported separately below.
 
@@ -296,6 +297,24 @@ DLO+AG DP4 with 4 concurrent requests achieves **1.39×** the throughput of HSDP
 
 On 720p 10s (241f), DLO+AG+USP4 completed in 214.53s — within **2.13%** of HSDP's 210.05s — with byte-identical output (SHA256 `08cb679322996ea6...`), while using only **47%** of HSDP's HBM (24.99 GiB vs 53.73 GiB).
 
+#### MiniMax-H3 on 8× B300: DLO mode is topology-dependent
+
+A separate [MiniMax-H3 B300 study](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report) by Shunyang Li tests how DP, SP, and the DLO execution mode interact on one 8× NVIDIA B300 SXM6 AC node. Unlike the Cosmos3 measurements above, this workload generates video **and** audio: 768×1344, 124 video frames, stereo audio, BF16, batch size 1 per replica, and 50 requested steps (49 scheduler denoising updates). Each selected T2VA route below contains 20 measured waves across two engine lifecycles after one full warmup per lifecycle. Throughput is output count divided by wave time; energy integrates summed eight-GPU board power per output without subtracting an idle baseline; an external `nvidia-smi` sampler recorded memory and power at a 0.758s median interval.
+
+![Topology-aware DLO policy for MiniMax-H3 on eight B300 GPUs](/assets/figures/2026-07-30-distributed-layerwise-offload/minimax-h3-topology-policy.svg)
+
+*Figure 7: The measured service frontier within the three evaluated routes. Increasing DP trades per-wave latency for concurrent output capacity; the preferred DLO mode changes from AllGather to rank-local at DP8×SP1.*
+
+| Service objective | Topology / DLO mode | Wave P50 | Wave P95 | Sustained throughput | Measured peak/GPU | Board energy/video |
+|-------------------|---------------------|:--------:|:--------:|:--------------------:|:-----------------:|:------------------:|
+| Lowest latency | DP1×SP8 / AllGather | 34.55s | 35.25s | 103.84 videos/h | 26.37 GiB | 68.08 Wh |
+| Balanced knee | DP4×SP2 / AllGather | 94.73s | 95.31s | 151.89 videos/h | 25.11 GiB | 51.76 Wh |
+| Highest throughput / lowest energy | DP8×SP1 / rank-local | 156.74s | 157.03s | 183.78 videos/h | 20.05 GiB | 43.97 Wh |
+
+The paired five-wave mode comparison explains why there is no single global DLO policy. At DP1×SP8, AllGather uses the SP group and improves throughput by 129.4% while reducing P50 latency by 56.6%. At DP4×SP2, its throughput benefit narrows to 2.2%. At DP8×SP1, AllGather reduces throughput by 4.1%, increases P50 latency by 3.8%, and raises the measured per-GPU peak from 20.03 to 94.03 GiB, so rank-local DLO is preferred. FL2VA first-frame and Ref2VA image+audio tests preserve the same latency-to-throughput ordering.
+
+These results are a topology study, not a universal production claim. DP2×SP4 was not measured; the experiment covers one node, one input set, one resolution and frame count, and shape validation rather than perceptual quality. It used source commit [`9e73ee1`](https://github.com/vllm-project/vllm-omni/commit/9e73ee1a50ce247c638052011914d8027d717f28) plus a recorded local subgroup-broadcast fix, and the runtime warned that the tested vLLM-Omni and vLLM versions were not release-aligned. The archive provides the [PDF, CSVs, 105 wave samples, environment hashes, local diff, and benchmark runners](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report) for independent review.
+
 ### Extrapolation to 400 GB
 
 | Model | dp_size | cgroup Peak (est.) | Total RAM (est.) | Fits 2 TB? |
@@ -308,7 +327,7 @@ On 720p 10s (241f), DLO+AG+USP4 completed in 214.53s — within **2.13%** of HSD
 
 ## Acknowledgements
 
-We thank the vLLM-Omni contributors, including @hsliuustc0106 and @yuanheng-zhao for thorough code review feedback, and the Ascend NPU team for hardware support.
+We thank the vLLM-Omni contributors, including @hsliuustc0106 and @yuanheng-zhao for thorough code review feedback, Shunyang Li ([@lishunyang12](https://github.com/lishunyang12)) for the MiniMax-H3 B300 topology study and reproducibility artifacts, and the Ascend NPU team for hardware support.
 
 ## References
 
@@ -324,8 +343,11 @@ We thank the vLLM-Omni contributors, including @hsliuustc0106 and @yuanheng-zhao
 
 - RFC: GitHub Issue #5396
 - Implementation PR: vllm-omni#5397
+- DLO DP concurrent request fix: [vllm-omni#5864](https://github.com/vllm-project/vllm-omni/pull/5864)
+- Independent requests for rank-local DLO DP: [vllm-omni#5911](https://github.com/vllm-project/vllm-omni/pull/5911)
 
-**Model weights:**
+**Models and benchmark artifacts:**
 
 - Cosmos3-Nano: 33 GB safetensors (17B params, 72 blocks)
 - Cosmos3-Super: 124 GB safetensors (64B params, 128 blocks)
+- MiniMax-H3: [B300 DLO research note and reproducibility artifacts](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report)
