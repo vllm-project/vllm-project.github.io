@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "Distributed Layerwise Offload: Serving 200B+ DiT Models Efficiently in vLLM-Omni"
+title: "Distributed Layerwise Offload: Scaling Toward 200B+ DiT Models Efficiently in vLLM-Omni"
 author: "vLLM-Omni Diffusion Team"
-summary: "Sharding transformer weights across DP ranks with H2D + AllGather overlap, enabling large diffusion models (up to 185GB) to run on devices with limited HBM — with zero model code changes."
+summary: "Distributed Layerwise Offload shards and streams DiT weights across devices, serving a measured 124 GB Cosmos3 model on 64 GB HBM and estimating a path toward 200B+ models."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - performance
@@ -17,11 +17,11 @@ vLLM-Omni's Distributed Layerwise Offload enables video generation models larger
 
 - **Meta-device initialization + mmap weight loading**: Weights are loaded as mmap views pointing to shared OS page cache, eliminating O(dp_size × model_size) RSS during model creation. Cold-start peak RSS drops by 73% (178 GB → 47 GB for Cosmos3-Nano DP4).
 - **Weight sharding + AllGather**: Each rank stores only 1/dp_size of the model. Full layer weights are reconstructed at runtime via AllGather, overlapped with computation on dedicated streams.
-- **Fixed double-buffer scheme**: Exactly 2 layers of weights reside on each device at any time, regardless of model size — 22% HBM growth from 17B to 64B model.
-- **DP multi-concurrency**: Each DP rank processes a different request in parallel, achieving 3.3× throughput vs. single-request HSDP, with near-linear scaling.
+- **Fixed double-buffer scheme**: Exactly 2 layers of weights reside on each device at any time, regardless of model size. In the measured 720p 10s workload, peak HBM grew about 22% (23.1 → 28.1 GB) from the 17B to the 64B model; idle HBM grew about 27% (11.5 → 14.6 GB).
+- **DP multi-concurrency**: Each DP rank processes a different request in parallel, achieving 3.3× throughput vs. single-request HSDP — about 83% of the ideal 4× scaling.
 - **Platform-agnostic**: Works on both NVIDIA GPU (CUDA/NCCL) and Ascend NPU (CANN/HCCL) via vLLM-Omni's platform abstraction layer.
 
-Tested on Ascend 910B3 with Cosmos3-Nano (33 GB) and Cosmos3-Super (124 GB): all configurations produce correct video output, with cgroup-visible host memory scaling as O(model_size + dp_size × constant) instead of O(dp_size × model_size).
+In the measured Ascend 910B3 DLO+AllGather runs with Cosmos3-Nano (33 GB) and Cosmos3-Super (124 GB), all configurations produced correct video output and cgroup-visible host memory scaled as O(model_size + dp_size × constant) instead of O(dp_size × model_size). The no-AllGather mode retains a full host copy per rank, while CUDA process-memory accounting includes pinned shards and is reported separately below.
 
 ## Quickstart
 
@@ -47,30 +47,11 @@ The `--dlo-use-allgather` / `--dlo-no-use-allgather` flag controls whether weigh
 
 ## The Problem: Large Diffusion Models vs. HBM and Host Memory
 
-Cosmos3-Super (64B parameters, 124 GB in BF16) cannot fit on a single 64 GB HBM device. The natural approach is to shard across multiple devices, but existing solutions each have limitations:
+Cosmos3-Super (64B parameters, 124 GB in BF16) cannot fit on a single 64 GB HBM device. Existing solutions fall into two families — **offloaders**, which stream weights from host memory, and **parallelism**, which shards resident work across devices — but each has limitations:
 
-```
-┌──────────────────────────────────────────────────┐
-│          Cosmos3-Super (64B, 124 GB BF16)        │
-│                                                  │
-│  ┌──────────────────────────────────────────┐    │
-│  │     Single Device HBM = 64 GB             │    │
-│  │     Model = 124 GB  →  DOES NOT FIT ❌    │    │
-│  └──────────────────────────────────────────┘    │
-│                                                  │
-│  Existing approaches:                            │
-│                                                  │
-│  HSDP:         124/4 = 31 GB/card  →  56 GB     │
-│                (weights + activations = OOM)     │
-│                                                  │
-│  Layerwise:    Full model per rank on CPU        │
-│                4 × 124 GB = 496 GB host RAM ❌   │
-│                                                  │
-│  Our solution:  124/4 = 31 GB/rank (sharded)     │
-│                124 GB total (shared page cache)  │
-│                Only 2 layers on HBM at any time  │
-└──────────────────────────────────────────────────┘
-```
+![Why Distributed Layerwise Offload is needed](/assets/figures/2026-07-30-distributed-layerwise-offload/dlo-problem-overview.svg)
+
+*Figure 1: Offloader and parallelism alternatives for Cosmos3-Super. HSDP uses about 31 GB of weights plus roughly 25 GB of activations and communication buffers per card (about 56 GB total), leaving only 8 GB of headroom; DLO keeps only two layers in HBM while sharding host weights.*
 
 | Approach | Device HBM | Host Memory per Rank | Limitation |
 |----------|:----------:|:--------------------:|------------|
@@ -100,51 +81,27 @@ Each technique builds on the previous one. The walkthrough below takes each in t
 
 **Why.** The original loading path had each rank independently call `load_model(load_device="cpu")` before `offload_backend.enable()`. This caused `param.data.copy_(loaded_weight)` to create dp_size complete private copies of the model in RSS. For Cosmos3-Nano DP4, peak RSS was 178 GB — even though the model is only 33 GB.
 
-**Why it works.** We create the transformer on `torch.device("meta")`, which allocates zero memory — only tensor shapes and dtypes are recorded. We then load weights as mmap views using `safe_open().get_tensor()`, which returns a view into the OS page cache rather than a copy.
+**Why it works.** The offloader converts already-created DiT modules to the meta device with `to_empty(device="meta")`, releasing their parameter storage while retaining tensor metadata. It then replaces those meta parameters with mmap views from `safe_open().get_tensor()`, which point into the OS page cache rather than private copies.
 
 ```python
-# pipeline_cosmos3.py — create transformer on meta device
-with torch.device("meta"):
-    self.transformer = transformer_cls(...)
+# distributed_layerwise_backend.py — release existing DiT parameter storage
+dit_module.to_empty(device="meta")
 
-# distributed_layerwise_backend.py — load as mmap views
+# Resolve an HF repo ID, then replace meta parameters with mmap views
+model_path = download_weights_from_hf(...)
 tensor = safe_open(file_path, framework="pt", device="cpu").get_tensor(ckpt_key)
-parent._parameters[name] = Parameter(tensor)  # points to page cache, 0 RSS
+parent._parameters[name] = Parameter(tensor)  # points to shared page cache
 ```
 
 Since all ranks mmap the same safetensors files, the OS maintains a single copy of each file page in the page cache — shared across all processes. No rank creates a private copy.
 
 For Hugging Face repo IDs (not local paths), we resolve the snapshot path first via `download_weights_from_hf()`, matching the pattern used by vLLM's existing DiffusersPipelineLoader.
 
-**What you gain.** Cold-start peak RSS drops from 178 GB to 47 GB for Cosmos3-Nano DP4 — a 73% reduction. The page cache (1× model_size) is shared and read-only, and can be partially reclaimed by the OS under memory pressure.
+**What you gain.** Cold-start peak RSS drops from 178 GB to 47 GB for Cosmos3-Nano DP4 — a 73% reduction. The 178 GB baseline consists of 132 GB of private model copies, 33 GB of shared page cache, and about 13 GB of framework/transient overhead. The mmap page cache (1× model_size) is shared and read-only, and can be partially reclaimed by the OS under memory pressure.
 
-```
-  Without mmap (baseline)              With mmap (optimized)
-  ─────────────────────────            ─────────────────────────
+![Meta-device and mmap loading memory comparison](/assets/figures/2026-07-30-distributed-layerwise-offload/mmap-loading-memory.svg)
 
-  Rank 0 ┌──────────────┐             Rank 0    ┌──────────┐
-         │ Full Model    │                      │  (empty)  │
-         │ 33 GB (copy)  │             Rank 1    └──────────┘
-  Rank 1 ┌──────────────┐                       ┌──────────┐
-         │ Full Model    │                      │  (empty)  │
-         │ 33 GB (copy)  │             Rank 2    └──────────┘
-  Rank 2 ┌──────────────┐                       ┌──────────┐
-         │ Full Model    │                      │  (empty)  │
-         │ 33 GB (copy)  │             Rank 3    └──────────┘
-  Rank 3 ┌──────────────┐
-         │ Full Model    │             Page Cache (shared)
-         │ 33 GB (copy)  │             ┌──────────────────────┐
-         └──────────────┘             │  33 GB (mmap view)    │
-                                      │  All ranks point here │
-  Page Cache (shared)                  │  0 private copies     │
-  ┌──────────────┐                    └──────────────────────┘
-  │ 33 GB        │
-  └──────────────┘                    ┌────────────────────────┐
-                                      │ cgroup peak: 47 GB     │
-  Total RSS: 4 × 33 = 132 GB          │ (was 178 GB, -73%)     │
-  + page cache: 33 GB                 └────────────────────────┘
-  = 178 GB ❌
-```
+*Figure 2: The measured Cosmos3-Nano DP4 cold-start peak falls from 178 GB to 47 GB by replacing four private weight copies with meta parameters backed by one shared mmap page cache.*
 
 ## 2. Weight Sharding with AllGather Reconstruction
 
@@ -165,26 +122,9 @@ The sharding uses ceil division with zero-padding, so all shards are equal-sized
 
 **What you gain.** Total pinned memory drops from dp_size × model_size to model_size (sum across all ranks). For Cosmos3-Super DP4: 4 × 124 GB → 124 GB total, 31 GB per rank.
 
-```
-  Without sharding (layerwise)         With sharding (dist_offload)
-  ──────────────────────────────       ──────────────────────────────
+![Weight sharding and AllGather reconstruction](/assets/figures/2026-07-30-distributed-layerwise-offload/weight-sharding-allgather.svg)
 
-  Rank 0: [A|B|C|D]  ← full model     Rank 0: [A]  ← 1/4 shard
-  Rank 1: [A|B|C|D]  ← full model     Rank 1: [B]  ← 1/4 shard
-  Rank 2: [A|B|C|D]  ← full model     Rank 2: [C]  ← 1/4 shard
-  Rank 3: [A|B|C|D]  ← full model     Rank 3: [D]  ← 1/4 shard
-
-
-  CPU total: 4 × 124 = 496 GB ❌      CPU total: 124 GB ✓
-
-          AllGather reconstruction:
-          ┌─────────────────────────┐
-          │  Rank 0 sends [A]       │
-          │  Rank 1 sends [B]       │──→ All ranks receive [A|B|C|D]
-          │  Rank 2 sends [C]       │    (full layer weights)
-          │  Rank 3 sends [D]       │
-          └─────────────────────────┘
-```
+*Figure 3: Host-resident weights shrink from one full model per rank to one shard per rank; AllGather reconstructs only the current full layer on each device.*
 
 ## 3. Double-Buffered Prefetch with H2D + AllGather Overlap
 
@@ -207,27 +147,11 @@ The buffers are shared across all blocks — allocated once to the max block siz
 
 On Ascend NPU, `pin_memory()` allocates DMA-capable memory via `/dev/davinci_manager` (the NPU device driver). This memory resides in CPU kernel space and is not tracked by cgroup — a key finding that explains why cgroup peak is much lower than expected.
 
-**What you gain.** HBM holds only 2 layers of weights (~2 GB for Nano, ~3 GB for Super), regardless of model size. From Nano (33 GB) to Super (124 GB), idle HBM grows only 22% (11.5 → 14.6 GB) — the model is 3.8× larger but HBM barely changes.
+**What you gain.** HBM holds only 2 layers of weights (~2 GB for Nano, ~3 GB for Super), regardless of model size. In the measured `dist_offload+SP` 720p 10s workload, peak HBM grows about 22% (23.1 → 28.1 GB) from Nano to Super; idle HBM grows about 27% (11.5 → 14.6 GB). The model is 3.8× larger, but both HBM measurements remain well below 64 GB.
 
-```
-  HBM Usage: Nano vs Super (dist_offload+SP, 720p 10s)
-  ──────────────────────────────────────────────────────
+![HBM usage for Cosmos3-Nano and Cosmos3-Super](/assets/figures/2026-07-30-distributed-layerwise-offload/hbm-nano-vs-super.svg)
 
-  Nano (33 GB)     Super (124 GB)
-  ┌────────┐       ┌────────┐
-  │        │       │        │  ← idle HBM: 14.6 GB
-  │  23.1  │       │  28.1  │  ← peak HBM: 28.1 GB
-  │  GB    │       │  GB    │     (only +22% vs Nano)
-  │        │       │        │
-  │        │       │        │     Model is 3.8× larger
-  │        │       │        │     but HBM barely changes
-  └────────┘       └────────┘
-   64 GB card       64 GB card
-   41 GB free       36 GB free   ← still plenty of headroom
-
-  Compare: HSDP+SP (weights in HBM)
-  Nano: 29.0 GB     Super: 56.3 GB  ← 8 GB headroom only, near OOM
-```
+*Figure 4: Measured `dist_offload+SP` HBM at 720p 10s. Peak HBM rises about 22% from 23.1 GB to 28.1 GB, while the 124 GB model is 3.8× larger; HSDP+SP reaches 56.3 GB on Super.*
 
 ## 4. DP Multi-Concurrency: N Requests in Parallel
 
@@ -235,29 +159,9 @@ On Ascend NPU, `pin_memory()` allocates DMA-capable memory via `/dev/davinci_man
 
 **Why it works.** When `dp_concurrent` is enabled, the scheduler batches up to dp_size requests together. The executor sends all requests in a single broadcast RPC:
 
-```
-  Without DP multi-concurrency:       With DP multi-concurrency:
-  ─────────────────────────────       ─────────────────────────────
+![DP multi-concurrency request flow](/assets/figures/2026-07-30-distributed-layerwise-offload/dp-multi-concurrency.svg)
 
-  Request 1 ──→ [Worker 0]            Request 1 ─┐
-  (wait...)                            Request 2 ─┤──→ [reqs_list] ──→ Broadcast RPC
-  Request 2 ──→ [Worker 0]            Request 3 ─┤
-  (wait...)                            Request 4 ─┘
-  Request 3 ──→ [Worker 0]
-  (wait...)                             ┌───────────────────────────────┐
-  Request 4 ──→ [Worker 0]             │  Worker 0 (dp_rank=0): req[0] │
-                                       │  Worker 1 (dp_rank=1): req[1] │
-  Throughput: 1 req at a time         │  Worker 2 (dp_rank=2): req[2] │
-  All ranks run same request          │  Worker 3 (dp_rank=3): req[3] │
-                                       │                               │
-                                       │  AllGather: weights only     │
-                                       │  (request-independent)       │
-                                       │  Compute: different reqs     │
-                                       └───────────────────────────────┘
-
-                                       Throughput: 4 reqs in parallel
-                                       3.22 fps (3.3× vs HSDP)
-```
+*Figure 5: A single broadcast carries a request list; each DP rank computes a different request while synchronized AllGather calls exchange request-independent weight shards.*
 
 ```python
 # Executor: send all requests at once
@@ -277,48 +181,15 @@ Only the primary rank within each DP replica (SP=0, TP=0, CFG=0, PP=0) replies, 
 
 A validation step rejects concurrent requests with different `num_inference_steps` — since AllGather is a collective, mismatched step counts would cause one rank to exit early while others hang.
 
-**What you gain.** 4 concurrent requests achieve 3.22 fps throughput — 3.3× the HSDP single-request baseline. Scaling is near-linear (4.0×) because AllGather overhead is fixed (~150 ms/step) and amortized across 4 concurrent computations.
+**What you gain.** 4 concurrent requests achieve 3.22 generated video frames/s — 3.3× the HSDP single-request baseline, or about 83% of the ideal 4× scaling. The fixed AllGather overhead (~150 ms/step) is amortized across 4 concurrent computations.
 
 ## Memory Model: Why It Is Not 2× Model Size
 
 A naive analysis would expect 2× model_size in host memory: page cache (1× model) + shard buffers (1× model total). But on Ascend NPU, `pin_memory()` allocates via `/dev/davinci_manager`, placing the shard in CPU kernel DMA memory that is invisible to the cgroup memory controller.
 
-```
-  ┌─────────────────────────────────────────────────────────────────┐
-  │                    Physical System RAM (2 TB)                    │
-  │                                                                 │
-  │  ┌─────────────────────────────────┐  cgroup ✓ (cache)         │
-  │  │  Page Cache (safetensors)        │  1× model_size = 31 GB    │
-  │  │  Shared across all ranks         │  (mmap views, read-only)  │
-  │  └─────────────────────────────────┘                           │
-  │                                                                 │
-  │  ┌──────────┐  ┌──────────┐  cgroup ✓ (rss)                   │
-  │  │ Rank 0   │  │ Rank 1   │  ~3.5 GB × dp_size = 7 GB         │
-  │  │ Framework│  │ Framework│  (Python, torch, HCCL, VAE)        │
-  │  └──────────┘  └──────────┘                                    │
-  │                                                                 │
-  │  ════════════════════════════════════════  cgroup boundary     │
-  │                                                                 │
-  │  ┌─────────────────────────────────┐  cgroup ✗ (kernel DMA)    │
-  │  │  /dev/davinci_manager            │  model_size = 29 GB       │
-  │  │  Rank 0 shard  │  Rank 1 shard   │  (pin_memory, invisible   │
-  │  │  14.5 GB       │  14.5 GB        │   to cgroup, RSS=0)       │
-  │  └─────────────────────────────────┘                           │
-  │                                                                 │
-  └─────────────────────────────────────────────────────────────────┘
+![Ascend host and HBM memory accounting](/assets/figures/2026-07-30-distributed-layerwise-offload/ascend-memory-accounting.svg)
 
-  ┌─────────────────────────────────────────────────────────────────┐
-  │                    NPU HBM (64 GB/card)                         │
-  │                                                                 │
-  │  Framework + HCCL buffers    ~2 GB                             │
-  │  Double-buffer (2 slots)    ~0.8 GB  ← max_block_size × 2     │
-  │  Activations (during infer) ~7 GB                              │
-  │  ─────────────────────────────────                                │
-  │  Total                      ~10 GB  (55 GB headroom)           │
-  │                                                                 │
-  │  NOTE: Shard is NOT in HBM (it's in CPU kernel DMA above)      │
-  └─────────────────────────────────────────────────────────────────┘
-```
+*Figure 6: Ascend memory accounting for Cosmos3-Nano DP2. The cgroup sees shared page cache and framework RSS, while pinned shards allocated through `/dev/davinci_manager` reside in driver-managed CPU DMA memory rather than NPU HBM.*
 
 Verified with clean measurements (Cosmos3-Nano DP2, fresh cgroup):
 
@@ -370,12 +241,14 @@ All tests on Ascend 910B3 (64 GB HBM/card, 2 TB system RAM), Cosmos3-Nano (33 GB
 | Super (124 GB) | DP2 | ~15 GB | — | ~49 GB |
 | Super (124 GB) | DP4 | ~10 GB | — | ~54 GB |
 
-HBM grows only ~22% from Nano to Super, because only 2 layers of weights reside on device — the model is 3.8× larger but HBM barely changes.
+For the measured `dist_offload+SP` 720p 10s workload, peak HBM grows about 22% from Nano to Super (23.1 → 28.1 GB), while idle HBM grows about 27% (11.5 → 14.6 GB). Only 2 layers of weights reside on device, so the 3.8× larger model remains well below the 64 GB limit.
 
 ### Performance
 
-| Strategy | Per-step (ms) | Throughput (fps) | CPU/rank | HBM/card | vs. HSDP |
-|----------|:------------:|:----------------:|:--------:|:--------:|:--------:|
+These Ascend measurements use Cosmos3-Nano at 832×480, 29 frames, and 35 denoising steps. **Generated frames/s** is aggregate output video frames produced per wall-clock second (`29 frames × outputs per wave / wave latency`), not the video's playback frame rate.
+
+| Strategy | Per-step (ms) | Generated frames/s | CPU/rank | HBM/card | vs. HSDP |
+|----------|:-------------:|:------------------:|:--------:|:--------:|:--------:|
 | HSDP+SP (baseline) | 870 | 0.967 | 0 GB | 20.3 GB | — |
 | dist_offload+AG (DP4, 1 req) | 1,020 | 0.806 | 3.5 GB | 12.4 GB | -17% |
 | dist_offload+AG (DP4, 4 req) | 1,020 | 3.22 | 3.5 GB | 12.4 GB | 3.3× |
@@ -388,6 +261,8 @@ AllGather overhead = 150 ms/step (72 ms stream switch + 10 ms HCCL + 68 ms Pytho
 To validate platform-agnosticism, we ran the same DLO stack on NVIDIA B300 SXM6 GPUs. All tests use Cosmos3-Super BF16 (124 GB), 4× NVIDIA B300 (physical GPUs 1,5,6,7), Python 3.12.3, PyTorch 2.11.0+cu130, CUDA 13.0, vLLM 0.25.0.
 
 Correctness was verified via byte-identical output hashes across all strategies. For example, T2I seed 42 produced identical SHA256 `6e7d2a8c63b88391...` across DLO+AG, no-AG, DLO+USP4, legacy layerwise+USP4, and HSDP+USP4. T2V 832×480×29f seed 17 produced identical 666,029-byte output (SHA256 `c5d38f5d21ca619e...`) across all strategies.
+
+CUDA process-tree PSS includes the shared page cache, pinned CPU shards, and framework memory. Ascend cgroup measurements exclude `/dev/davinci_manager`-backed pinned shards, so the GPU PSS and Ascend cgroup figures are not directly comparable.
 
 #### 1024×1024 T2I, 50 steps
 
@@ -411,13 +286,13 @@ DLO+AG DP4 with 4 concurrent requests achieves **1.39×** the throughput of HSDP
 
 #### Workload Latency and HBM (35 steps, DLO+AG DP4 vs HSDP+USP4)
 
-| Workload | DLO+AG (4 outputs) | DLO peak HBM/card | HSDP (1 output) | HSDP peak HBM/card |
-|----------|:------------------:|:-----------------:|:---------------:|:------------------:|
-| 480p, 29f | 38.79s | 14.55 GiB | 15.38s | 43.77 GiB |
-| 480p, ~5s (121f) | 102.58s | 15.88 GiB | 41.36s (125f) | 53.73–62.65 GiB |
-| 480p, ~10s (241f) | 226.70s | 17.33 GiB | 82.47s (245f) | 53.74 GiB |
-| 720p, 5s (121f) | 288.29s | 24.95 GiB | 87.47s | 52.19 GiB |
-| 720p, 10s (241f) | 214.53s (DLO+AG+USP4) | 24.99 GiB | 210.05s | 53.73 GiB |
+| Workload | DLO strategy | DLO outputs/wave | DLO wave latency | DLO peak HBM/card | HSDP outputs/wave | HSDP wave latency | HSDP peak HBM/card |
+|----------|--------------|:----------------:|:----------------:|:-----------------:|:-----------------:|:-----------------:|:------------------:|
+| 480p, 29f | DLO+AG DP4 | 4 | 38.79s | 14.55 GiB | 1 | 15.38s | 43.77 GiB |
+| 480p, ~5s (121f) | DLO+AG DP4 | 4 | 102.58s | 15.88 GiB | 1 | 41.36s (125f) | 53.73–62.65 GiB |
+| 480p, ~10s (241f) | DLO+AG DP4 | 4 | 226.70s | 17.33 GiB | 1 | 82.47s (245f) | 53.74 GiB |
+| 720p, 5s (121f) | DLO+AG DP4 | 4 | 288.29s | 24.95 GiB | 1 | 87.47s | 52.19 GiB |
+| 720p, 10s (241f) | DLO+AG+USP4 | 1 | 214.53s | 24.99 GiB | 1 | 210.05s | 53.73 GiB |
 
 On 720p 10s (241f), DLO+AG+USP4 completed in 214.53s — within **2.13%** of HSDP's 210.05s — with byte-identical output (SHA256 `08cb679322996ea6...`), while using only **47%** of HSDP's HBM (24.99 GiB vs 53.73 GiB).
 
@@ -439,11 +314,10 @@ We thank the vLLM-Omni contributors, including @hsliuustc0106 and @yuanheng-zhao
 
 **Source code:**
 
-- Distributed layerwise offload backend: `distributed_layerwise_backend.py`
+- Distributed layerwise offload backend, meta conversion, and mmap loading: `distributed_layerwise_backend.py`
 - OffloadConfig and strategy selection: `base.py`
 - Multi-queue executor: `multiproc_executor.py`
 - DP multi-concurrency worker: `diffusion_worker.py`
-- Cosmos3 meta device pipeline: `pipeline_cosmos3.py`
 - Unit tests: `test_distributed_layerwise_backend.py`
 
 **RFC and PR:**
