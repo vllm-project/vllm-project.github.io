@@ -486,13 +486,16 @@ decode jumps straight to **17–20 t/s**, and TTFT drops to **95–175 ms**. Not
 
 | Scenario | decode tg64 (t/s) | decode tg128 (t/s) | peak decode (t/s) | e2e_ttft (ms) |
 |:--|--:|--:|--:|--:|
-| A. Baseline | ~6.6 | ~6.7 | ~13.5 | ~350 |
-| B. Gthulhu (no policy) | ~19.3 | ~17.5 | ~28.3 | ~147 |
-| C. Gthulhu + Policy | ~17.8 | **~21.3** | **~29.3** | ~144 |
+| A. Baseline | ~6.6 | ~6.7 | ~13.5 | ~336 |
+| B. Gthulhu (no policy) | ~19.3 | ~17.5 | ~28.3 | ~126 |
+| C. Gthulhu + Policy | ~17.8 | **~21.3** | **~29.3** | ~169 |
+
+![Decode Throughput bar chart](/assets/figures/2026-08-07-vllm-gthulhu/chart_decode.svg)
+![TTFT bar chart](/assets/figures/2026-08-07-vllm-gthulhu/chart_ttft.svg)
 
 Just swapping the scheduler to Gthulhu (A → B) lifts decode throughput from ~6.6 t/s to ~18 t/s —
-**nearly 3×** — and cuts TTFT by more than half; adding the tiered policy on top (B → C) pushes the longer
-`tg128` decode further from ~17.5 t/s to **~21.3 t/s (+22%)**, with peak decode also edging up slightly.
+**nearly 3×** — and cuts TTFT from ~336 ms to ~126 ms (more than halved); adding the tiered policy on top (B → C) pushes the longer
+`tg128` decode further from ~17.5 t/s to **~21.3 t/s (+22%)**, with peak decode also edging up slightly. TTFT in scenario C rises to ~169 ms compared to B, because the tiered policy gives more CPU to decode at the expense of the front-end path (uvicorn, tokenizer) — a trade-off explained in the analysis below.
 
 #### Why does "just swapping the scheduler" have such a big effect?
 
