@@ -289,4 +289,4 @@ But at scale, the choice is between a storage-backed cache hit and a full recomp
 
 ## Acknowledgements
 
-We would like to thank Liran Schour, Chang Guo, Srinivas Krovvidi, Rotem Shavitt, Effi Ofer, and Omer Paz for their contributions to the design and implementation of the tiered KV cache offloading framework, and all other community members who contributed code, reviews, and feedback.
+We would like to thank Liran Schour, Chang Guo, Srinivas Krovvidi, Rotem Shavitt, Effi Ofer, Omer Paz, Kfir Toledo, and Michal Malka for their contributions to the design and implementation of the tiered KV cache offloading framework, and all other community members who contributed code, reviews, and feedback.
