@@ -279,9 +279,9 @@ Storage has higher latency than CPU memory, so it does not reach peak throughput
 But at scale, the choice is between a storage-backed cache hit and a full recompute — storage wins decisively.
 
 **Benchmark setup:**
-- Model: Qwen/Qwen3.6-35B-A3B on a single NVIDIA H100
+- Model: Qwen/Qwen3.6-35B-A3B on 2× NVIDIA H100 (TP=2)
 - Storage tier: filesystem backend on local NVMe
-- Workload: multi-turn conversations, 12K-token initial prompts + 2K tokens per round, 8 rounds
+- Workload: multi-turn conversations, 12K-token initial prompts + 4K tokens per round, 8 rounds
 - Max request concurrency: 64
 - Measures prefiller throughput only (prefill-decode disaggregated)
 
