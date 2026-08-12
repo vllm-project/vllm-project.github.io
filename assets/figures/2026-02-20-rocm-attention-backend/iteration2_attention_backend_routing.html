@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iteration 2: Attention Backend Routing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Flow Diagram - positioning reference for module */
+        .flow-diagram {
+            position: relative;
+            width: 600px;
+            height: 400px;
+        }
+
+        /* Module - matching original exactly */
+        .module {
+            position: absolute;
+            background: linear-gradient(135deg, #e3e8f5 0%, #d4dcf0 100%);
+            border: 2px solid #a8b5d8;
+            border-radius: 12px;
+            padding: 20px 15px;
+            color: #212529;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+        }
+
+        .module:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .module-title {
+            font-weight: bold;
+            font-size: 1em;
+            margin-bottom: 8px;
+            color: #495057;
+            text-align: center;
+        }
+
+        .module-content {
+            font-size: 0.75em;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        /* Classification Substep - matching original */
+        .classification-substep {
+            padding: 6px 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.867em;
+            border: 2px solid #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #495057;
+            transition: all 0.3s ease;
+            line-height: 1.3;
+            margin-top: 8px;
+            width: 470px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .classification-substep.active {
+            background: rgba(102, 126, 234, 0.25);
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* QKV Area */
+        .qkv-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 70;
+        }
+
+        /* QKV Container */
+        .qkv-container {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            transition: all 0.8s ease-out;
+        }
+
+        /* QKV Bar */
+        .qkv-bar {
+            display: flex;
+            height: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* QKV Segment */
+        .qkv-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.6s ease;
+        }
+
+        /* Request Colors - matching original */
+        .segment-r1 {
+            background: #26d0ce;
+        }
+
+        .segment-r2 {
+            background: #1abc9c;
+        }
+
+        /* Path Container - matching original */
+        .path-container {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            margin-top: 95px;
+        }
+
+        /* Path Box - matching original exactly */
+        .path-box {
+            flex: 1;
+            padding: 30px 6px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.0em;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .path-box.prefill {
+            background: rgba(155, 89, 182, 0.15);
+            border-color: #9b59b6;
+            color: #7d3c98;
+        }
+
+        .path-box.extend {
+            background: rgba(39, 174, 96, 0.15);
+            border-color: #27ae60;
+            color: #1e8449;
+        }
+
+        .path-box.decode {
+            background: rgba(230, 126, 34, 0.15);
+            border-color: #e67e22;
+            color: #ca6f1e;
+        }
+
+        .path-box.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px currentColor;
+            border-width: 3px;
+        }
+
+        /* Responsive - disabled to keep horizontal layout */
+        /* @media (max-width: 1000px) {
+            .path-container {
+                flex-direction: column;
+            }
+
+            .path-box {
+                padding: 20px 6px;
+            }
+        } */
+    </style>
+</head>
+<body>
+    <!-- Flow Diagram -->
+    <div class="flow-diagram">
+            <!-- QKV Area (absolute positioned) -->
+            <div class="qkv-area" id="qkvArea">
+                <!-- QKV bars will be created here dynamically -->
+            </div>
+
+            <!-- Attention Backend Module -->
+            <div class="module">
+                <div class="module-title">ROCM_AITER_FA Backend</div>
+                <div class="module-content">
+                    <!-- Classification Substep -->
+                    <div class="classification-substep" id="classificationSubstep">
+                        Classify Request Type
+                    </div>
+                    <!-- Path Boxes -->
+                    <div class="path-container">
+                        <div class="path-box prefill" id="prefillPath">
+                            <div>PREFILL PATH</div>
+                        </div>
+
+                        <div class="path-box extend" id="extendPath">
+                            <div>EXTEND PATH</div>
+                        </div>
+
+                        <div class="path-box decode" id="decodePath">
+                            <div>DECODE PATH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <script>
+        // Global state
+        let isRunning = false;
+        let isPaused = false;
+        let pausePromiseResolve = null;
+
+        // Sleep utility with pause support
+        function sleep(ms) {
+            return new Promise(resolve => {
+                const checkPause = () => {
+                    if (isPaused) {
+                        pausePromiseResolve = () => {
+                            pausePromiseResolve = null;
+                            checkPause();
+                        };
+                    } else {
+                        setTimeout(resolve, ms);
+                    }
+                };
+                checkPause();
+            });
+        }
+
+        // Update stage indicator (removed - no longer needed)
+        function updateStage(title, description) {
+            // Stage indicator removed from UI
+        }
+
+        // Create initial combined QKV bars
+        function createInitialQKVBars() {
+            const qkvArea = document.getElementById('qkvArea');
+
+            // Calculate segment widths - matching original logic
+            const r1Tokens = 1;
+            const r2Tokens = 60;
+            const barWidth = 470;  // Matching original substep width
+            const minSegmentWidth = 40;
+
+            let r1Width = minSegmentWidth;
+            let r2Width = barWidth - minSegmentWidth;
+
+            // Create combined QKV container - centered like classification substep
+            const qkvContainer = document.createElement('div');
+            qkvContainer.className = 'qkv-container';
+            qkvContainer.id = 'combinedQKV';
+
+            // Get classification substep position to align with it
+            const classificationSubstep = document.getElementById('classificationSubstep');
+            const classificationRect = classificationSubstep.getBoundingClientRect();
+            const flowRect = document.querySelector('.flow-diagram').getBoundingClientRect();
+            const module = document.querySelector('.module');
+            const moduleRect = module.getBoundingClientRect();
+
+            // Center horizontally like classification substep (which uses margin: auto)
+            // Account for module's 15px left padding (total content width: 500px - 30px = 470px)
+            const moduleCenterX = moduleRect.left - flowRect.left + 15 + (470 / 2);
+            const moduleCenterY = moduleRect.top - flowRect.top + (moduleRect.height / 2) - 10;
+
+            qkvContainer.style.left = moduleCenterX + 'px';
+            qkvContainer.style.top = moduleCenterY + 'px';
+            qkvContainer.style.transform = 'translate(-50%, -50%)';
+            qkvContainer.style.width = barWidth + 'px';
+
+            // Create Q bar
+            const qBar = document.createElement('div');
+            qBar.className = 'qkv-bar q';
+            qBar.innerHTML = `
+                <div class="qkv-segment segment-r1" style="width: ${r1Width}px; background: #26d0ce;">Q<sub>R1</sub></div>
+                <div class="qkv-segment segment-r2" style="width: ${r2Width}px; background: #1abc9c;">Q<sub>R2</sub></div>
+            `;
+
+            // Create K bar
+            const kBar = document.createElement('div');
+            kBar.className = 'qkv-bar k';
+            kBar.innerHTML = `
+                <div class="qkv-segment segment-r1" style="width: ${r1Width}px; background: #26d0ce;">K<sub>R1</sub></div>
+                <div class="qkv-segment segment-r2" style="width: ${r2Width}px; background: #1abc9c;">K<sub>R2</sub></div>
+            `;
+
+            // Create V bar
+            const vBar = document.createElement('div');
+            vBar.className = 'qkv-bar v';
+            vBar.innerHTML = `
+                <div class="qkv-segment segment-r1" style="width: ${r1Width}px; background: #26d0ce;">V<sub>R1</sub></div>
+                <div class="qkv-segment segment-r2" style="width: ${r2Width}px; background: #1abc9c;">V<sub>R2</sub></div>
+            `;
+
+            qkvContainer.appendChild(qBar);
+            qkvContainer.appendChild(kBar);
+            qkvContainer.appendChild(vBar);
+
+            qkvArea.appendChild(qkvContainer);
+
+            return { r1Width, r2Width, barWidth };
+        }
+
+        // Clean up animation state before restarting
+        async function cleanupAnimationState() {
+            // Fade out current state
+            const qkvArea = document.getElementById('qkvArea');
+            const allContainers = qkvArea.querySelectorAll('.qkv-container');
+
+            // Fade out all QKV containers
+            allContainers.forEach(container => {
+                container.style.opacity = '0';
+            });
+
+            // Wait for fade out
+            await sleep(300);
+
+            // Clear QKV area
+            qkvArea.innerHTML = '';
+
+            // Reset classification
+            const classificationBox = document.getElementById('classificationSubstep');
+            classificationBox.classList.remove('active');
+
+            // Reset path boxes
+            document.getElementById('prefillPath').classList.remove('active');
+            document.getElementById('decodePath').classList.remove('active');
+
+            // Recreate initial QKV bars with fade in
+            const dimensions = createInitialQKVBars();
+            window.qkvDimensions = dimensions;
+
+            // Fade in the new initial state
+            const combinedQKV = document.getElementById('combinedQKV');
+            if (combinedQKV) {
+                combinedQKV.style.opacity = '0';
+                await sleep(50);
+                combinedQKV.style.opacity = '1';
+            }
+        }
+
+        // Main animation function with auto-repeat
+        async function startAnimation() {
+            if (isRunning) return;
+
+            isRunning = true;
+            isPaused = false;
+
+            try {
+                // Continuous loop
+                while (isRunning) {
+                    // Ensure initial QKV bars exist
+                    if (!document.getElementById('combinedQKV')) {
+                        const dimensions = createInitialQKVBars();
+                        window.qkvDimensions = dimensions;
+                    }
+
+                    // Stage 1: Classify requests
+                    await classifyRequests();
+
+                    // Stage 2: Separate QKV bars
+                    const { r1Container, r2Container } = await separateQKVBars();
+
+                    // Stage 3: Route R1 to DECODE
+                    await routeR1ToDecode(r1Container);
+
+                    // Stage 4: Route R2 to PREFILL
+                    await routeR2ToPrefill(r2Container);
+
+                    // Stage 5: Show final state
+                    await showFinalState();
+
+                    // Wait before restarting
+                    await sleep(1000);
+
+                    // Clean up and prepare for next iteration
+                    if (isRunning) {
+                        cleanupAnimationState();
+                    }
+                }
+
+            } catch (error) {
+                if (error.message !== 'Animation stopped') {
+                    console.error('Animation error:', error);
+                }
+            } finally {
+                isRunning = false;
+                isPaused = false;
+                pausePromiseResolve = null;
+            }
+        }
+
+        // Stage 1: Classify requests
+        async function classifyRequests() {
+            updateStage('Stage 1: Classification', 'Determining routing path for each request');
+
+            const classificationBox = document.getElementById('classificationSubstep');
+            classificationBox.classList.add('active');
+
+            // Get all QKV segments and change colors based on routing
+            const r1Segments = document.querySelectorAll('.segment-r1');
+            const r2Segments = document.querySelectorAll('.segment-r2');
+
+            // R1 → DECODE (orange)
+            r1Segments.forEach(segment => {
+                segment.style.background = '#e67e22';
+            });
+
+            // R2 → PREFILL (purple)
+            r2Segments.forEach(segment => {
+                segment.style.background = '#9b59b6';
+            });
+
+            await sleep(2000);
+
+            classificationBox.classList.remove('active');
+            await sleep(500);
+        }
+
+        // Stage 2: Separate QKV bars
+        async function separateQKVBars() {
+            updateStage('Stage 2: Separation', 'Splitting R1 and R2 segments');
+
+            const combinedQKV = document.getElementById('combinedQKV');
+            const qkvArea = document.getElementById('qkvArea');
+            const { r1Width, r2Width, barWidth } = window.qkvDimensions;
+
+            const combinedRect = combinedQKV.getBoundingClientRect();
+            const areaRect = qkvArea.getBoundingClientRect();
+
+            // Create R1 container
+            const r1Container = document.createElement('div');
+            r1Container.className = 'qkv-container';
+            r1Container.id = 'r1QKV';
+            r1Container.style.left = (combinedRect.left - areaRect.left) + 'px';
+            r1Container.style.top = (combinedRect.top - areaRect.top) + 'px';
+            r1Container.style.width = r1Width + 'px';
+
+            // Create R2 container
+            const r2Container = document.createElement('div');
+            r2Container.className = 'qkv-container';
+            r2Container.id = 'r2QKV';
+            r2Container.style.left = (combinedRect.left - areaRect.left + r1Width) + 'px';
+            r2Container.style.top = (combinedRect.top - areaRect.top) + 'px';
+            r2Container.style.width = r2Width + 'px';
+
+            // Create R1 bars (DECODE - orange)
+            r1Container.innerHTML = `
+                <div class="qkv-bar q">
+                    <div class="qkv-segment" style="width: 100%; background: #e67e22;">Q<sub>R1</sub></div>
+                </div>
+                <div class="qkv-bar k">
+                    <div class="qkv-segment" style="width: 100%; background: #e67e22;">K<sub>R1</sub></div>
+                </div>
+                <div class="qkv-bar v">
+                    <div class="qkv-segment" style="width: 100%; background: #e67e22;">V<sub>R1</sub></div>
+                </div>
+            `;
+
+            // Create R2 bars (PREFILL - purple)
+            r2Container.innerHTML = `
+                <div class="qkv-bar q">
+                    <div class="qkv-segment" style="width: 100%; background: #9b59b6;">Q<sub>R2</sub></div>
+                </div>
+                <div class="qkv-bar k">
+                    <div class="qkv-segment" style="width: 100%; background: #9b59b6;">K<sub>R2</sub></div>
+                </div>
+                <div class="qkv-bar v">
+                    <div class="qkv-segment" style="width: 100%; background: #9b59b6;">V<sub>R2</sub></div>
+                </div>
+            `;
+
+            // Hide combined QKV and immediately show separated containers
+            combinedQKV.style.display = 'none';
+            qkvArea.appendChild(r1Container);
+            qkvArea.appendChild(r2Container);
+
+            // Small delay to ensure containers are rendered before animating
+            await sleep(50);
+
+            // Smoothly separate them with larger distance for better visibility
+            r1Container.style.left = (parseFloat(r1Container.style.left) - 50) + 'px';
+            r2Container.style.left = (parseFloat(r2Container.style.left) + 50) + 'px';
+
+            await sleep(1000);
+
+            return { r1Container, r2Container };
+        }
+
+        // Stage 3: Route R1 to DECODE
+        async function routeR1ToDecode(r1Container) {
+            updateStage('Stage 3: R1 Routing', 'Moving R1 to DECODE PATH');
+
+            const decodePath = document.getElementById('decodePath');
+            const qkvArea = document.getElementById('qkvArea');
+
+            const decodeRect = decodePath.getBoundingClientRect();
+            const areaRect = qkvArea.getBoundingClientRect();
+
+            // Calculate target position
+            const targetLeft = decodeRect.left - areaRect.left + 10;
+            const targetTop = decodeRect.top - areaRect.top + 2;
+            const targetWidth = decodeRect.width - 20;
+
+            // Move R1 container
+            r1Container.style.left = targetLeft + 'px';
+            r1Container.style.top = targetTop + 'px';
+            r1Container.style.width = targetWidth + 'px';
+
+            // Highlight decode path box
+            decodePath.classList.add('active');
+
+            await sleep(800);
+
+            decodePath.classList.remove('active');
+
+            await sleep(500);
+        }
+
+        // Stage 4: Route R2 to PREFILL
+        async function routeR2ToPrefill(r2Container) {
+            updateStage('Stage 4: R2 Routing', 'Moving R2 to PREFILL PATH');
+
+            const prefillPath = document.getElementById('prefillPath');
+            const qkvArea = document.getElementById('qkvArea');
+
+            const prefillRect = prefillPath.getBoundingClientRect();
+            const areaRect = qkvArea.getBoundingClientRect();
+
+            // Calculate target position
+            const targetLeft = prefillRect.left - areaRect.left + 10;
+            const targetTop = prefillRect.top - areaRect.top + 2;
+            const targetWidth = prefillRect.width - 20;
+
+            // Move R2 container
+            r2Container.style.left = targetLeft + 'px';
+            r2Container.style.top = targetTop + 'px';
+            r2Container.style.width = targetWidth + 'px';
+
+            // Highlight prefill path box
+            prefillPath.classList.add('active');
+
+            await sleep(800);
+
+            prefillPath.classList.remove('active');
+
+            await sleep(500);
+        }
+
+        // Stage 5: Show final state
+        async function showFinalState() {
+            updateStage('Stage 5: Final State', 'Both requests routed to their respective paths');
+            await sleep(600);
+        }
+
+        // Initialize and auto-start animation on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const dimensions = createInitialQKVBars();
+            window.qkvDimensions = dimensions;
+
+            // Auto-start animation after a brief delay
+            setTimeout(() => {
+                startAnimation();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
