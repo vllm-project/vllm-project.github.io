@@ -215,9 +215,7 @@ vllm serve --model nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4 \
 </picture>
 </p>
 
-Figure 1: Pareto chart comparing inference performance of Nemotron 3.5 Lightning using various speculative decoding techniques on NVIDIA DGX Spark. Config - Prefix - 32K, and then 10 rounds of 2k input and 10k output.
-
-Alt text: Image of Pareto chart showcasing inference performance of Nemotron 3.5 Lightning using various speculative decoding techniques on NVIDIA DGX Spark. Config - Prefix - 32K, and then 10 rounds of 2k input and 10k output.
+Figure 1: Pareto chart comparing inference performance of Nemotron 3.5 Lightning using various speculative decoding techniques on NVIDIA DGX Spark. Config - Prefix - 32K, and then 10 rounds of 2k input and 1k output.
 
 ## Deploy on NVIDIA H100
 
@@ -247,9 +245,7 @@ vllm serve --model nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4 \
 </picture>
 </p>
 
-Figure 2: Pareto chart comparing inference performance of Nemotron 3.5 Lightning using various speculative decoding techniques on NVIDIA H100 GPUs. Config - Prefix - 32K, and then 10 rounds of 2k input and 10k output.
-
-Alt text: Image of Pareto chart showcasing inference performance of Nemotron 3.5 Lightning using various speculative decoding techniques on NVIDIA H100 GPUs. Config - Prefix - 32K, and then 10 rounds of 2k input and 10k output.
+Figure 2: Pareto chart comparing inference performance of Nemotron 3.5 Lightning using various speculative decoding techniques on NVIDIA H100 GPUs. Config - Prefix - 32K, and then 10 rounds of 2k input and 1k output.
 
 # Local Deployment on NVIDIA Jetson
 
@@ -284,8 +280,6 @@ As shown in Figure 3, higher inference throughput and token efficiency places Ne
 </p>
 
 Figure 3: Nemotron 3.5 Lightning leads the efficiency frontier by completing agentic tasks up to 30% faster at comparable accuracies.
-
-Alt text: Line chart comparing PinchBench accuracy with time to complete 10,000 tasks. Nemotron 3.5 Lightning reaches similar accuracy as Qwen3.6 35B 30% faster.
 
 # Summary
 
