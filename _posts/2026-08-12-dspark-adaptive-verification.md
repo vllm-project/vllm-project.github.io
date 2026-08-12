@@ -38,7 +38,7 @@ $$
 B^* = \arg\max_B \frac{N_\mathrm{sampling} + \sum_{j < B} S_\mathrm{sorted}[j]}{\mathrm{draft\_cost}[\mathrm{num\_reqs}] + \mathrm{verify\_cost}[T + B]}
 $$
 
-The numerator is one bonus token per sampling request plus the survival of the *B* best draft slots; the denominator is a profiled cost table. Both are arrays, so the choice is an `np.argmax` over a cumulative sum and costs are in microseconds.
+The numerator is one bonus token per sampling request plus the survival of the *B* best draft slots; *N*<sub>sampling</sub> counts the requests that will actually sample this step, so a request still working through a chunked prefill contributes nothing. The denominator is a profiled cost table, indexed by the step's token count: *T* is the tokens already scheduled that are not drafts, so *T* + *B* is the whole step. Both are arrays, so the choice is an `np.argmax` over a cumulative sum and costs are in microseconds.
 
 Sizing runs on the CPU while the GPU is still working on the previous step, from a double-buffered confidence array that is one step old. Handing those *B* slots out to individual requests runs on the GPU against current values, so the per-request allocation uses current confidences. The selection is written in PyTorch, lowered to Triton by `torch.compile`, and never reads back to the host.
 
