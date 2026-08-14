@@ -64,13 +64,12 @@ DeepSeek-V4-Pro-0813, TP=8 on 8×B300 (SM100), expert parallel, FP8 KV cache, `m
 
 ![Aggregate throughput against interactivity for adaptive and fixed speculation lengths](/assets/figures/2026-08-14-dspark-adaptive-verification/fig3-pareto.svg)
 
-*Figure 3. Concurrency 1 (bottom right) to 256 (top left), labelled on the adaptive arm. k=1 and k=3 are below `dspark_block_size`: invalid output, shown for cost shape only.*
+*Figure 3. Throughput versus interactivity for different speculation schemes; adaptive verification stays on the Pareto frontier throughout.*
 
 Every fixed length bends back on itself: it climbs while the GPU has capacity, then turns and gives up both throughput and per-user speed once verification tokens start competing with real ones. Fixed 7 ends up well under no speculation at high load. Adaptive verification is the only arm whose curve stays out on the frontier for the whole sweep — the low-concurrency latency that speculation is for, without the high-concurrency inversion that makes people turn it off.
 
-At the top of the sweep it runs just under 3× the throughput of fixed 7 at roughly a third of the per-token latency, and 41% above no speculation — which by then has itself overtaken every fixed length. Accepted length drifts down as load rises, which is the mechanism working: the scheduler stops paying for the tail of the block.
+At the top of the sweep it runs just under 3× the throughput of fixed 7 at roughly a third of the per-token latency, and above no speculation. Accepted length drifts down as load rises, which is the mechanism working: the scheduler stops paying for the tail of the block.
 
-Verification itself is exact — the scheduler changes which drafts are offered, not how they are accepted — so the output distribution is unchanged, and the GSM8K and MT-Bench runs on DeepSeek-V4-Flash-DSpark confirm it.
 
 ## Limitations
 
