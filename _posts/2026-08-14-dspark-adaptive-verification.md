@@ -64,15 +64,11 @@ DeepSeek-V4-Pro-0813, TP=8 on 8×B300 (SM100), expert parallel, FP8 KV cache, `m
 
 ![Aggregate throughput against interactivity for adaptive and fixed speculation lengths](/assets/figures/2026-08-14-dspark-adaptive-verification/fig3-pareto.svg)
 
-*Figure 3. Each line sweeps concurrency from 1 (bottom right, fast per user, low aggregate) to 256 (top left); the concurrency labels mark the adaptive arm. The k=1 and k=3 arms draft blocks shorter than the checkpoint's `dspark_block_size`, which produces incorrect output — they are plotted for their cost shape only.*
+*Figure 3. Concurrency 1 (bottom right) to 256 (top left), labelled on the adaptive arm. k=1 and k=3 are below `dspark_block_size`: invalid output, shown for cost shape only.*
 
-Every fixed length bends back on itself: it climbs while the GPU has capacity, then turns and gives up both throughput and per-user speed once verification tokens start competing with real ones. Fixed 7 turns first, peaking at concurrency 64 and then shedding 38% of its own peak throughput. By concurrency 256 every valid fixed length is *below* no speculation at all — k=5 and k=6 by 26%, k=7 by 53% — which is the configuration cliff that makes people turn speculation off under load.
+Every fixed length bends back on itself: it climbs while the GPU has capacity, then turns and gives up both throughput and per-user speed once verification tokens start competing with real ones. Fixed 7 ends up well under no speculation at high load. Adaptive verification is the only arm whose curve stays out on the frontier for the whole sweep — the low-concurrency latency that speculation is for, without the high-concurrency inversion that makes people turn it off.
 
-Adaptive verification is the only arm on the frontier for the whole sweep, and it is the best arm at every concurrency measured: identical to fixed 7 at concurrency 1 (264 tok/s, 3.7 ms, both admitting the whole block because it is free), then 5–10% ahead through concurrency 64, 30% ahead at 128, and 90% ahead of the best fixed length at 256. Against no speculation at the top of the sweep it delivers 8855 tok/s versus 6267, a 41% gain, while also being faster per user (26.0 ms against 33.8 ms) — the only valid arm that improves both axes at saturation.
-
-Accepted length is the mechanism in plain sight: every fixed arm sits flat near 3.4 regardless of load, while adaptive drops from 3.44 at concurrency 1 to 2.65 at 256. The scheduler stops paying for the tail of the block exactly when the tail stops paying for itself.
-
-The k=1 and k=3 arms answer the obvious objection — why not just configure a shorter block for high-concurrency deployments? Because on this checkpoint you cannot: a draft shorter than `dspark_block_size` feeds the block and Markov machinery a layout it does not support, so the output is wrong, and vLLM refuses the configuration at startup (we patched the check out to measure these two curves). Even setting correctness aside, it would not win: k=3 trails adaptive at every concurrency, by 5–9% at low load and 37% at 256.
+At the top of the sweep it runs just under 3× the throughput of fixed 7 at roughly a third of the per-token latency, and 41% above no speculation — which by then has itself overtaken every fixed length. Accepted length drifts down as load rises, which is the mechanism working: the scheduler stops paying for the tail of the block.
 
 Verification itself is exact — the scheduler changes which drafts are offered, not how they are accepted — so the output distribution is unchanged, and the GSM8K and MT-Bench runs on DeepSeek-V4-Flash-DSpark confirm it.
 
