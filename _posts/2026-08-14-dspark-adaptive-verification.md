@@ -64,7 +64,7 @@ DeepSeek-V4-Pro-0813, TP=8 on 8×B300 (SM100), expert parallel, FP8 KV cache, `m
 
 ![Aggregate throughput against interactivity for adaptive and fixed speculation lengths](/assets/figures/2026-08-14-dspark-adaptive-verification/fig3-pareto.svg)
 
-*Figure 3. Each line sweeps concurrency from 1 (bottom right, fast per user, low aggregate) to 256 (top left).*
+*Figure 3. Each line sweeps concurrency from 1 (bottom right, fast per user, low aggregate) to 256 (top left); the concurrency labels mark the adaptive arm. The k=1 and k=3 arms draft blocks shorter than the checkpoint's `dspark_block_size`, which produces incorrect output — they are plotted for their cost shape only.*
 
 Every fixed length bends back on itself: it climbs while the GPU has capacity, then turns and gives up both throughput and per-user speed once verification tokens start competing with real ones. Fixed 7 turns first, peaking at concurrency 64 and then shedding 38% of its own peak throughput. By concurrency 256 every valid fixed length is *below* no speculation at all — k=5 and k=6 by 26%, k=7 by 53% — which is the configuration cliff that makes people turn speculation off under load.
 
@@ -72,7 +72,7 @@ Adaptive verification is the only arm on the frontier for the whole sweep, and i
 
 Accepted length is the mechanism in plain sight: every fixed arm sits flat near 3.4 regardless of load, while adaptive drops from 3.44 at concurrency 1 to 2.65 at 256. The scheduler stops paying for the tail of the block exactly when the tail stops paying for itself.
 
-The dashed arms answer the obvious objection — why not just configure a shorter block for high-concurrency deployments? Because on this checkpoint you cannot: a draft shorter than `dspark_block_size` feeds the block and Markov machinery a layout it does not support, so the output is wrong, and vLLM refuses the configuration at startup (we patched the check out to measure these two curves). Even setting correctness aside, it would not win: k=3 trails adaptive at every concurrency, by 5–9% at low load and 37% at 256.
+The k=1 and k=3 arms answer the obvious objection — why not just configure a shorter block for high-concurrency deployments? Because on this checkpoint you cannot: a draft shorter than `dspark_block_size` feeds the block and Markov machinery a layout it does not support, so the output is wrong, and vLLM refuses the configuration at startup (we patched the check out to measure these two curves). Even setting correctness aside, it would not win: k=3 trails adaptive at every concurrency, by 5–9% at low load and 37% at 256.
 
 Verification itself is exact — the scheduler changes which drafts are offered, not how they are accepted — so the output distribution is unchanged, and the GSM8K and MT-Bench runs on DeepSeek-V4-Flash-DSpark confirm it.
 
