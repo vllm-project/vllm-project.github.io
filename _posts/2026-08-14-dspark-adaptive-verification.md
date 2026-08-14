@@ -62,7 +62,7 @@ Profiling noise is handled by forcing the curve monotonic. Step cost can genuine
 
 DeepSeek-V4-Pro-0813, TP=8 on 8×B300 (SM100), expert parallel, FP8 KV cache, `max_model_len` 8192, on vLLM `main` at `73b8394`. The benchmark is 880 prompts at temperature 1.0, 512 output tokens, swept over concurrency 1 to 256.
 
-![Aggregate throughput against per-user decode speed for adaptive and fixed speculation lengths](/assets/figures/2026-08-14-dspark-adaptive-verification/fig3-pareto.svg)
+![Aggregate throughput against interactivity for adaptive and fixed speculation lengths](/assets/figures/2026-08-14-dspark-adaptive-verification/fig3-pareto.svg)
 
 *Figure 3. Each line sweeps concurrency from 1 (bottom right, fast per user, low aggregate) to 256 (top left).*
 
