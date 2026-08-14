@@ -92,19 +92,19 @@
     <text x="62" y="74" class="t-label fl-ink" fill="#0b0b0b" >fixed — 21 slots verified</text>
     <text x="54" y="132" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">req A</text>
     <rect x="62" y="108" width="40" height="40" class="st-ink2 fl-q6" fill="#104281" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="82" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=0</text>
+    <text x="82" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=0</text>
     <rect x="108" y="108" width="40" height="40" class="st-ink2 fl-q5" fill="#1c5cab" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="128" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=1</text>
+    <text x="128" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=1</text>
     <rect x="154" y="108" width="40" height="40" class="st-ink2 fl-q5" fill="#1c5cab" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="174" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=2</text>
+    <text x="174" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=2</text>
     <rect x="200" y="108" width="40" height="40" class="st-ink2 fl-q4" fill="#2a78d6" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="220" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=3</text>
+    <text x="220" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=3</text>
     <rect x="246" y="108" width="40" height="40" class="st-ink2 fl-q3" fill="#5598e7" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="266" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=4</text>
+    <text x="266" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=4</text>
     <rect x="292" y="108" width="40" height="40" class="st-ink2 fl-q2" fill="#9ec5f4" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="312" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=5</text>
+    <text x="312" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=5</text>
     <rect x="338" y="108" width="40" height="40" class="st-ink2 fl-q2" fill="#9ec5f4" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="358" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=6</text>
+    <text x="358" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=6</text>
     <text x="54" y="190" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">req B</text>
     <rect x="62" y="166" width="40" height="40" class="st-ink2 fl-q5" fill="#1c5cab" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
     <rect x="108" y="166" width="40" height="40" class="st-ink2 fl-q3" fill="#5598e7" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
@@ -124,19 +124,19 @@
     <text x="545" y="74" class="t-label fl-ink" fill="#0b0b0b" >scheduled — 11 slots verified</text>
     <text x="537" y="132" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">req A</text>
     <rect x="545" y="108" width="40" height="40" class="st-ink2 fl-q6" fill="#104281" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="565" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=0</text>
+    <text x="565" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=0</text>
     <rect x="591" y="108" width="40" height="40" class="st-ink2 fl-q5" fill="#1c5cab" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="611" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=1</text>
+    <text x="611" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=1</text>
     <rect x="637" y="108" width="40" height="40" class="st-ink2 fl-q5" fill="#1c5cab" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="657" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=2</text>
+    <text x="657" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=2</text>
     <rect x="683" y="108" width="40" height="40" class="st-ink2 fl-q4" fill="#2a78d6" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="703" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=3</text>
+    <text x="703" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=3</text>
     <rect x="729" y="108" width="40" height="40" class="st-ink2 fl-q3" fill="#5598e7" stroke="#52514e" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="749" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=4</text>
+    <text x="749" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=4</text>
     <rect x="775" y="108" width="40" height="40" class="st-ink3" fill="none" stroke="#8a8880" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4"/>
-    <text x="795" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=5</text>
+    <text x="795" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=5</text>
     <rect x="821" y="108" width="40" height="40" class="st-ink3" fill="none" stroke="#8a8880" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 4"/>
-    <text x="841" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">k=6</text>
+    <text x="841" y="96" class="t-mut fl-ink3" fill="#8a8880" text-anchor="middle">i=6</text>
     <line x1="772" y1="103" x2="772" y2="153" class="st-s2" fill="none" stroke="#eb6834" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="873" y="132" class="t-label fl-ink" fill="#0b0b0b" >5</text>
     <text x="537" y="190" class="t-tick fl-ink2" fill="#52514e" text-anchor="end">req B</text>
