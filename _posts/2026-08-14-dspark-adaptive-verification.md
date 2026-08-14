@@ -20,13 +20,13 @@ Per-position acceptance decays fast: on DeepSeek-V4-Flash-0731 the last drafted 
 
 ## Scheduling the budget
 
-DSpark drafts a block of γ tokens per pass and emits a confidence per position using a learned confidence head. The scheduler turns those into survival probabilities, the running product along each request:
+DSpark drafts a block of *k* tokens per pass (`num_speculative_tokens`) and emits a confidence per position using a learned confidence head. The scheduler turns those into survival probabilities, the running product along each request:
 
 $$
-S(r, k) = \prod_{i \le k} \mathrm{confidence}(r, i)
+S(r, p) = \prod_{i \le p} \mathrm{confidence}(r, i)
 $$
 
-Survival only decreases with *k*, so given a draft token budget of *B*, allocating it to the most probable draft sequences is just a global top-*B* over survival scores; that admits a contiguous prefix of each request's draft with no extra constraint. Slots compete across requests: position 5 of a confident request can outrank position 1 of a low-confidence one.
+Survival only decreases with position *p*, so given a draft token budget of *B*, allocating it to the most probable draft sequences is just a global top-*B* over survival scores; that admits a contiguous prefix of each request's draft with no extra constraint. Slots compete across requests: position 5 of a confident request can outrank position 1 of a low-confidence one.
 
 ![Fixed-length verification versus confidence-scheduled trimming](/assets/figures/2026-08-14-dspark-adaptive-verification/fig1-policy.svg)
 
