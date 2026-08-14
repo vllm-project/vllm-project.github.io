@@ -16,14 +16,14 @@ Speculative decoding buys fewer decode steps with more compute. At batch size 1 
 
 ## The problem
 
-Per-position acceptance decays fast: on DeepSeek-V4-Flash-0731 the last drafted token of a 7-token block survives less than 10% of the time, against more than 70% for the first. That low probability token costs a slot in every verification batch. While the GPU is memory-bound the slot is effectively free and worth the gamble; once it saturates the "gamble" has a real throughput cost. The challenge is that the crossover moves with load and workload dependent acceptance rates, so no static `num_speculative_tokens` is optimal across concurrencies. DSpark tackles this by having an adaptive draft budget that takes into account both the load of the system and how confident the DSpark head thinks the target model will accept each draft token.
+Per-position acceptance decays fast: on DeepSeek-V4-Pro-0813 the last drafted token of a 7-token block survives less than 10% of the time, against more than 70% for the first. That low probability token costs a slot in every verification batch. While the GPU is memory-bound the slot is effectively free and worth the gamble; once it saturates the "gamble" has a real throughput cost. The challenge is that the crossover moves with load and workload dependent acceptance rates, so no static `num_speculative_tokens` is optimal across concurrencies. DSpark tackles this by having an adaptive draft budget that takes into account both the load of the system and how confident the DSpark head thinks the target model will accept each draft token.
 
 ## Scheduling the budget
 
 DSpark drafts a block of *k* tokens per pass (`num_speculative_tokens`) and emits a confidence per position using a learned confidence head. The scheduler turns those into survival probabilities, the running product along each request:
 
 $$
-S(r, k) = \prod_{i \le k} \mathrm{confidence}(r, i)
+S(r, i) = \prod_{j \le i} \mathrm{confidence}(r, j)
 $$
 
 Survival only decreases with position *i*, so given a draft token budget of *B*, allocating it to the most probable draft sequences is just a global top-*B* over survival scores; that admits a contiguous prefix of each request's draft with no extra constraint. Slots compete across requests: position 5 of a confident request can outrank position 1 of a low-confidence one.
@@ -60,16 +60,13 @@ Profiling noise is handled by forcing the curve monotonic. Step cost can genuine
 
 ## Results
 
-DeepSeek-V4-Pro-0813, TP=8 on 8×B300 (SM100), expert parallel, FP8 KV cache, `max_model_len` 8192, on vLLM `main` at `73b8394`. The benchmark is 880 prompts at temperature 1.0, 512 output tokens, swept over concurrency 1 to 256.
+DeepSeek-V4-Pro-0813, TP=8 on 8×B300 (SM100), expert parallel, FP8 KV cache, `max_model_len` 16384, `max_cudagraph_capture_size` 4096, on vLLM `main` at `73b8394`. The benchmark is 880 prompts at temperature 1.0, up to 2048 output tokens, swept over concurrency 1 to 256.
 
 ![Aggregate throughput against interactivity for adaptive and fixed speculation lengths](/assets/figures/2026-08-14-dspark-adaptive-verification/fig3-pareto.svg)
 
 *Figure 3. Throughput versus interactivity for different speculation schemes; adaptive verification stays on the Pareto frontier throughout.*
 
-Every fixed length bends back on itself: it climbs while the GPU has capacity, then turns and gives up both throughput and per-user speed once verification tokens start competing with real ones. Fixed 7 ends up well under no speculation at high load. Adaptive verification is the only arm whose curve stays out on the frontier for the whole sweep — the low-concurrency latency that speculation is for, without the high-concurrency inversion that makes people turn it off.
-
-At the top of the sweep it runs just under 3× the throughput of fixed 7 at roughly a third of the per-token latency, and above no speculation. Accepted length drifts down as load rises, which is the mechanism working: the scheduler stops paying for the tail of the block.
-
+Adaptive verification stays on the edge of the Pareto curve for the whole sweep, and well outside no speculation at both ends. The effect is easy to read off the graph: it behaves like a long fixed block at low concurrency and a short one at high concurrency, which gives you both without having to know the shape of your workload in advance.
 
 ## Limitations
 
@@ -79,7 +76,7 @@ At the top of the sweep it runs just under 3× the throughput of fixed 7 at roug
 
 ## Appendix: reproducing
 
-All the commands below are using [PR #47808](https://github.com/vllm-project/vllm/pull/47808), now merged into vLLM `main`.
+All the commands below are using [PR #47808](https://github.com/vllm-project/vllm/pull/47808), now merged into vLLM `main`; the numbers above were measured at `73b8394`.
 
 **Server** (all measurements; ablations are `--speculative-config` deltas):
 
@@ -87,13 +84,13 @@ All the commands below are using [PR #47808](https://github.com/vllm-project/vll
 vllm serve deepseek-ai/DeepSeek-V4-Pro-0813 \
   --tokenizer-mode deepseek_v4 --trust-remote-code \
   --tensor-parallel-size 8 --enable-expert-parallel \
-  --kv-cache-dtype fp8 --max-model-len 8192 --max-num-seqs 256 \
-  --max-num-batched-tokens 16384 \
-  --compilation-config '{"max_cudagraph_capture_size":1024}' \
+  --kv-cache-dtype fp8 --max-model-len 16384 --max-num-seqs 256 \
+  --max-num-batched-tokens 16384 --gpu-memory-utilization 0.8 \
+  --compilation-config '{"max_cudagraph_capture_size":4096}' \
   --speculative-config '{"method":"dspark","attention_backend":"FLASH_ATTN","num_speculative_tokens":7,"draft_sample_method":"probabilistic","enable_adaptive_verification":true}'
 ```
 
-The draft defaults to the target checkpoint, so `"model"` can be omitted. `--kv-cache-dtype fp8` is required: the `fp8_ds_mla` layout rejects other KV dtypes. `--max-num-seqs` matters too — the default is 128, which would cap the batch below the top of the concurrency sweep.
+The draft defaults to the target checkpoint, so `"model"` can be omitted. `--kv-cache-dtype fp8` is required: the `fp8_ds_mla` layout rejects other KV dtypes. `--max-num-seqs` matters too — the default is 128, which would cap the batch below the top of the concurrency sweep. We increase the `max_cudagraph_capture_size` to `(num_speculative_tokens + 1) * max_num_seq` to ensure every verfication batch is inside a cudagraph. The larger capture size needs more memory for cudagraphs hence `--gpu-memory-utilization 0.8`; at the default it OOMs while capturing.
 
 - fixed k: `"enable_adaptive_verification": false`, `"num_speculative_tokens": k`, for k ≥ `dspark_block_size` (5 on this checkpoint)
 - no speculation: omit `--speculative-config`
@@ -109,14 +106,14 @@ for c in 256 128 64 32 16 1; do
     --endpoint /v1/chat/completions --model "$MODEL" \
     --tokenizer "$MODEL" --tokenizer-mode deepseek_v4 \
     --dataset-name speed_bench --dataset-path <speed-bench-dir> \
-    --speed-bench-dataset-subset qualitative --speed-bench-output-len 512 \
+    --speed-bench-dataset-subset qualitative --speed-bench-output-len 2048 \
     --num-prompts $n --max-concurrency $c --request-rate inf \
     --skip-chat-template --disable-shuffle --temperature 1.0 --seed 0 \
     --save-result --result-filename adaptive_on_c${c}.json
 done
 ```
 
-`--disable-shuffle` plus the fixed prompt set gives every arm identical prompts in identical order; `output_throughput` from the result JSON is the tok/s plotted above.
+`--disable-shuffle` plus the fixed prompt set gives every arm identical prompts in identical order; `output_throughput` from the result JSON is the tok/s plotted above. `--speed-bench-output-len` is a cap, not a target — requests stop at EOS, so the realized average is well under 2048.
 
 ## Acknowledgments
 
