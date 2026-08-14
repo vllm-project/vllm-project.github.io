@@ -3,6 +3,7 @@ layout: post
 title: "Distributed Layerwise Offload: Scaling Toward 200B+ DiT Models Efficiently in vLLM-Omni"
 author: "vLLM-Omni Diffusion Team"
 summary: "Distributed Layerwise Offload shards and streams DiT weights across devices, serving a measured 124 GB Cosmos3 model on 64 GB HBM and estimating a path toward 200B+ models."
+description: "Distributed Layerwise Offload shards and streams DiT weights across devices, serving a measured 124 GB Cosmos3 model on 64 GB HBM and estimating a path toward 200B+ models."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - performance
@@ -15,16 +16,18 @@ tags:
 
 vLLM-Omni's Distributed Layerwise Offload enables video generation models larger than single-device HBM (e.g., Cosmos3-Super 64B / 124 GB) to run across multiple NPUs or GPUs with minimal host memory overhead. The stack includes:
 
-- **Meta-device initialization + mmap weight loading**: Weights are loaded as mmap views pointing to shared OS page cache, eliminating O(dp_size × model_size) RSS during model creation. Cold-start peak RSS drops by 73% (178 GB → 47 GB for Cosmos3-Nano DP4).
+- **Meta-device initialization + mmap weight loading**: Weights are loaded as mmap views pointing to shared OS page cache, eliminating O(dp_size × model_size) RSS during model creation. Cold-start cgroup-visible peak drops by 73% (178 GB → 47 GB for Cosmos3-Nano DP4).
 - **Weight sharding + AllGather**: Each rank stores only 1/dp_size of the model. Full layer weights are reconstructed at runtime via AllGather, overlapped with computation on dedicated streams.
 - **Fixed double-buffer scheme**: Exactly 2 layers of weights reside on each device at any time, regardless of model size. In the measured 720p 10s workload, peak HBM grew about 22% (23.1 → 28.1 GB) from the 17B to the 64B model; idle HBM grew about 27% (11.5 → 14.6 GB).
 - **DP multi-concurrency**: Each DP rank processes a different request in parallel, achieving 3.3× throughput vs. single-request HSDP — about 83% of the ideal 4× scaling.
 - **Platform-agnostic**: Works on both NVIDIA GPU (CUDA/NCCL) and Ascend NPU (CANN/HCCL) via vLLM-Omni's platform abstraction layer.
 - **Topology-aware on 8× B300**: Within three evaluated MiniMax-H3 routes, AllGather is best for DP1×SP8 latency and the DP4×SP2 balanced point, while rank-local DLO wins at DP8×SP1 with 183.78 videos/h and 43.97 Wh/video.
 
-In the measured Ascend 910B3 DLO+AllGather runs with Cosmos3-Nano (33 GB) and Cosmos3-Super (124 GB), all configurations produced correct video output and cgroup-visible host memory scaled as O(model_size + dp_size × constant) instead of O(dp_size × model_size). The no-AllGather mode retains a full host copy per rank, while CUDA process-memory accounting includes pinned shards and is reported separately below.
+In the measured Ascend 910B3 DLO+AllGather runs with Cosmos3-Nano (33 GB) and Cosmos3-Super (124 GB), all configurations produced correct video output and cgroup-visible host memory scaled as O(model_size + dp_size × constant) instead of O(dp_size × model_size). The no-AllGather mode retains a full host copy per rank in pure-DP configurations, while existing TP shards are already rank-local and are reused as-is; CUDA process-memory accounting includes pinned shards and is reported separately below.
 
 ## Quickstart
+
+> **Version requirement.** The two AllGather commands below require vLLM-Omni `v0.27.0rc1` or later with vLLM `0.27.0`. On the `v0.26.0` release, the Cosmos3 DLO+DP path rejects every request because the engine requires `supports_request_batch=True` for multi-request admission, which `Cosmos3OmniDiffusersPipeline` does not declare ([#5953](https://github.com/vllm-project/vllm-omni/issues/5953)). [#5864](https://github.com/vllm-project/vllm-omni/pull/5864) fixes this by bypassing the `supports_request_batch` requirement for DLO+AllGather+DP configurations: each DP rank runs its own request independently through the pipeline's single-request forward path, and the engine collects results from per-rank queues. The no-AllGather DP command is not covered by #5864; independent request dispatch for `--dlo-no-use-allgather` is tracked in [#5911](https://github.com/vllm-project/vllm-omni/pull/5911) (still open). The correctness fix in #5864 does not change the DLO weight-sharding or offload memory mechanism; each measurement section below reports its own environment.
 
 ```bash
 # 4× NPU or GPU — Cosmos3-Nano with DP=4
@@ -44,7 +47,7 @@ vllm serve /path/to/Cosmos3-Nano --omni \
     --dlo-no-use-allgather
 ```
 
-The `--dlo-use-allgather` / `--dlo-no-use-allgather` flag controls whether weights are sharded (default: sharded). When disabled, each rank loads full weights independently — useful when AllGather synchronization overhead outweighs the memory savings.
+The `--dlo-use-allgather` / `--dlo-no-use-allgather` flag controls whether weights are sharded (default: sharded). When disabled, each rank loads the standard loader's rank-local tensors — in pure-DP configurations this is a full model copy, while existing TP shards are already rank-local and are reused as-is. This mode is useful when AllGather synchronization overhead outweighs the memory savings.
 
 ## The Problem: Large Diffusion Models vs. HBM and Host Memory
 
@@ -57,30 +60,30 @@ Cosmos3-Super (64B parameters, 124 GB in BF16) cannot fit on a single 64 GB HBM 
 | Approach | Device HBM | Host Memory per Rank | Limitation |
 |----------|:----------:|:--------------------:|------------|
 | HSDP (FSDP2) | model / N | 0 | HBM fills up: 64B → 56 GB/card (8 GB headroom) |
-| Layerwise offload | 2 layers only | full model | N × model_size host RAM (4 × 124 GB = 496 GB) |
+| Layerwise offload (pure DP) | 2 layers only | full model | N × model_size host RAM (4 × 124 GB = 496 GB) |
 | Tensor Parallel | model / N | 0 | Activation scaling helps, but communication overhead |
 | Dist. Layerwise (ours) | 2 layers only | model / N | Requires AllGather synchronization |
 
-For multi-device deployments, the host memory bottleneck is the killer: traditional layerwise offload stores a full copy of the model on each rank's host memory. With 4 devices, that's 4 × 124 GB = 496 GB — more than most servers have.
+For pure-DP deployments, the host memory bottleneck is the killer: traditional layerwise offload stores a full model copy in each rank's host memory. With 4 devices, that's 4 × 124 GB = 496 GB — more than most servers have. TP deployments may already use rank-local shards, reducing per-rank host memory proportionally.
 
 Worse, during model loading, each rank independently calls `param.data.copy_(loaded_weight)`, creating dp_size complete private copies in RSS. Peak RSS scales as O(dp_size × model_size), reaching 2 TB for a 200B model with dp_size=4.
 
 ## Solution Overview
 
-Distributed Layerwise Offload addresses both the HBM and host memory bottlenecks through four techniques that stack together:
+Distributed Layerwise Offload addresses both the HBM and host memory bottlenecks through four cooperating techniques:
 
 | Technique | Problem It Addresses | Primary Benefit |
 |-----------|---------------------|-----------------|
-| Meta device + mmap | O(dp_size × model) RSS during loading | -73% cold-start peak RSS |
+| Meta device + mmap | O(dp_size × model) RSS during loading | -73% cold-start cgroup-visible peak |
 | Weight sharding + AllGather | N × model_size host memory | 1× model_size total (shared page cache) |
 | Double-buffer prefetch | All weights on device | Only 2 layers on HBM at any time |
 | DP multi-concurrency | Serial request processing | 3.3× throughput via N parallel requests |
 
-Each technique builds on the previous one. The walkthrough below takes each in turn — in the order we implemented it — and answers three questions: Why the problem exists, Why it works, and What you gain.
+The first three techniques make large-model serving memory-feasible; DP multi-concurrency is a throughput optimization that builds on the AllGather synchronization already required by technique 2. The walkthrough below takes each in turn — in the order we implemented it — and answers three questions: Why the problem exists, Why it works, and What you gain.
 
 ## 1. Meta Device + mmap Weight Loading
 
-**Why.** The original loading path had each rank independently call `load_model(load_device="cpu")` before `offload_backend.enable()`. This caused `param.data.copy_(loaded_weight)` to create dp_size complete private copies of the model in RSS. For Cosmos3-Nano DP4, peak RSS was 178 GB — even though the model is only 33 GB.
+**Why.** The original loading path had each rank independently call `load_model(load_device="cpu")` before `offload_backend.enable()`. This caused `param.data.copy_(loaded_weight)` to create dp_size complete private copies of the model in RSS. For Cosmos3-Nano DP4, cgroup-visible peak was 178 GB — even though the model is only 33 GB.
 
 **Why it works.** The offloader converts already-created DiT modules to the meta device with `to_empty(device="meta")`, releasing their parameter storage while retaining tensor metadata. It then replaces those meta parameters with mmap views from `safe_open().get_tensor()`, which point into the OS page cache rather than private copies.
 
@@ -98,7 +101,7 @@ Since all ranks mmap the same safetensors files, the OS maintains a single copy 
 
 For Hugging Face repo IDs (not local paths), we resolve the snapshot path first via `download_weights_from_hf()`, matching the pattern used by vLLM's existing DiffusersPipelineLoader.
 
-**What you gain.** Cold-start peak RSS drops from 178 GB to 47 GB for Cosmos3-Nano DP4 — a 73% reduction. The 178 GB baseline consists of 132 GB of private model copies, 33 GB of shared page cache, and about 13 GB of framework/transient overhead. The mmap page cache (1× model_size) is shared and read-only, and can be partially reclaimed by the OS under memory pressure.
+**What you gain.** Cold-start cgroup-visible peak drops from 178 GB to 47 GB for Cosmos3-Nano DP4 — a 73% reduction. The 178 GB baseline consists of 132 GB of private model copies, 33 GB of shared page cache, and about 13 GB of framework/transient overhead. The mmap page cache (1× model_size) is shared and read-only, and can be partially reclaimed by the OS under memory pressure.
 
 ![Meta-device and mmap loading memory comparison](/assets/figures/2026-07-30-distributed-layerwise-offload/mmap-loading-memory.svg)
 
@@ -106,7 +109,7 @@ For Hugging Face repo IDs (not local paths), we resolve the snapshot path first 
 
 ## 2. Weight Sharding with AllGather Reconstruction
 
-**Why.** Even with mmap loading, the layerwise offload mechanism still copies the full model into each rank's pinned CPU memory for H2D transfers. With 4 devices, that's 4 × 33 GB = 132 GB of pinned memory — and it scales linearly with device count.
+**Why.** Even with mmap loading, the layerwise offload mechanism still copies the full model into each rank's pinned CPU memory for H2D transfers. In the pure-DP baseline measured here, 4 devices means 4 × 33 GB = 132 GB of pinned memory — and it scales linearly with device count.
 
 **Why it works.** Instead of storing the full model, each rank stores only 1/dp_size of the weights. At runtime, the full layer weights are reconstructed via `all_gather_into_tensor` on a dedicated communication stream.
 
@@ -133,9 +136,16 @@ The sharding uses ceil division with zero-padding, so all shards are equal-sized
 
 **Why it works.** We maintain exactly two device buffers (slots), each sized to the largest block in the model. While the compute stream executes layer N (using slot 0), background streams prepare layer N+1 into slot 1:
 
-![DLO Double-Buffer Prefetch Pipeline](/assets/figures/2026-07-30-distributed-layerwise-offload/dlo_pipeline.gif)
+![DLO Double-Buffer Prefetch Pipeline](/assets/figures/2026-07-30-distributed-layerwise-offload/dlo_pipeline_last_frame.png)
 
-*Animation: Three-stream timeline showing Compute (blue), H2D (orange), and AllGather (green) overlapped via double-buffered slots. Red dashed arrows indicate event synchronization — compute waits for AllGather to complete before switching slots.*
+*Figure: Complete three-stream timeline showing Compute (blue), H2D (orange), and AllGather (green) overlapped via double-buffered slots. Red dashed arrows indicate event synchronization — compute waits for AllGather to complete before switching slots.*
+
+<details>
+<summary>Click to play animation</summary>
+
+![DLO Double-Buffer Prefetch Pipeline Animation](/assets/figures/2026-07-30-distributed-layerwise-offload/dlo_pipeline.gif)
+
+</details>
 
 The two-stage preparation runs on separate streams:
 
@@ -180,13 +190,13 @@ req = reqs_list[dp_rank % len(reqs_list)]
 
 Only the primary rank within each DP replica (SP=0, TP=0, CFG=0, PP=0) replies, tagged with `dp_rank` for result matching. The executor collects responses via round-robin polling and sorts by `dp_rank` to match results to requests.
 
-A validation step rejects concurrent requests with different `num_inference_steps` — since AllGather is a collective, mismatched step counts would cause one rank to exit early while others hang.
+A validation step rejects concurrent requests whose batch-compatibility key differs. The key covers spatial/temporal shape (`height`, `width`, `num_frames`, `fps`), CFG/guidance settings (`guidance_scale`, `true_cfg_scale`, `cfg_normalize`), `num_inference_steps`, LoRA identity (`lora_int_id`, `lora_scale`), output count, quality mode, and pipeline-specific `extra_args` — because AllGather is a collective, any mismatch in these shared fields would cause one rank to diverge while others hang. `extra_args` in particular can change the forward schedule, so the engine requires it to be JSON-identical across the wave. Request-local fields such as seeds and generators may differ per rank. Since [#5864](https://github.com/vllm-project/vllm-omni/pull/5864), the pipeline need not declare `supports_request_batch=True`; the engine runs each DP rank's request independently through the pipeline's single-request forward path and collects results from per-rank result queues. Incompatible or empty-prompt waves are rejected before worker dispatch, and a partial-wave timeout fails closed rather than deadlocking the collective.
 
 **What you gain.** 4 concurrent requests achieve 3.22 generated video frames/s — 3.3× the HSDP single-request baseline, or about 83% of the ideal 4× scaling. The fixed AllGather overhead (~150 ms/step) is amortized across 4 concurrent computations.
 
-## Memory Model: Why It Is Not 2× Model Size
+## Ascend Memory Accounting: cgroup-visible vs. Physical RAM
 
-A naive analysis would expect 2× model_size in host memory: page cache (1× model) + shard buffers (1× model total). But on Ascend NPU, `pin_memory()` allocates via `/dev/davinci_manager`, placing the shard in CPU kernel DMA memory that is invisible to the cgroup memory controller.
+A naive analysis would expect 2× model_size in host memory: page cache (1× model) + shard buffers (1× model total). But on Ascend NPU, `pin_memory()` allocates via `/dev/davinci_manager`, placing the shard in CPU kernel DMA memory that is invisible to the cgroup memory controller. Physical RAM ≈ page cache + pinned shards + framework overhead; cgroup does not see the pinned DMA portion, but the server still needs that much physical RAM.
 
 ![Ascend host and HBM memory accounting](/assets/figures/2026-07-30-distributed-layerwise-offload/ascend-memory-accounting.svg)
 
@@ -209,7 +219,7 @@ Slab                  = 3.3 GB  (too small for 29 GB shard)
 | Shard (pinned) | CPU kernel DMA (/dev/davinci_manager) | model_size / dp_size per rank | ✗ |
 | Prefetch buffers | NPU HBM | 2 × block_size per rank | ✗ |
 
-This means cgroup-visible memory scales as O(model_size + dp_size × constant), not O(dp_size × model_size). For a 200B model with dp_size=4: ~423 GB cgroup + ~400 GB kernel DMA = ~823 GB total physical RAM (fits in 2 TB), vs. 2000 GB without mmap.
+This means cgroup-visible memory scales as O(model_size + dp_size × constant), not O(dp_size × model_size) — but total physical RAM is cgroup-visible memory plus the pinned DMA shards that cgroup cannot see. For a 200B model with dp_size=4: ~423 GB cgroup + ~400 GB kernel DMA = ~823 GB total physical RAM (fits in 2 TB), vs. 2000 GB without mmap.
 
 ## Validation Results
 
@@ -255,11 +265,11 @@ These Ascend measurements use Cosmos3-Nano at 832×480, 29 frames, and 35 denois
 | dist_offload+AG (DP4, 4 req) | 1,020 | 3.22 | 3.5 GB | 12.4 GB | 3.3× |
 | dist_offload no-AG | 1,877 | 0.439 | 28.3 GB | 14.1 GB | -55% |
 
-AllGather overhead = 150 ms/step (72 ms stream switch + 10 ms HCCL + 68 ms Python dispatch), model-size independent. With 4 concurrent requests, this fixed cost is amortized 4×.
+AllGather overhead = 150 ms/step (72 ms stream switch + 10 ms HCCL + 68 ms Python dispatch), measured on Cosmos3-Nano DP4. Communication volume varies with layer dimensions, participant count, and topology. With 4 concurrent requests, this fixed cost is amortized 4×.
 
 ### NVIDIA B300 GPU Results
 
-To validate platform-agnosticism, we ran the same DLO stack on NVIDIA B300 SXM6 GPUs. All tests use Cosmos3-Super BF16 (124 GB), 4× NVIDIA B300 (physical GPUs 1,5,6,7), Python 3.12.3, PyTorch 2.11.0+cu130, CUDA 13.0, vLLM 0.25.0.
+To validate platform-agnosticism, we ran the same DLO stack on NVIDIA B300 SXM6 GPUs. The Cosmos3 tests below use Cosmos3-Super BF16 (124 GB), 4× NVIDIA B300 (physical GPUs 1,5,6,7), Python 3.12.3, PyTorch 2.11.0+cu130, CUDA 13.0, vLLM `0.23.0`, and vLLM-Omni commit [`9772bb32`](https://github.com/vllm-project/vllm-omni/commit/9772bb321f558a28c0dca1cb53b44aaf10e4ab69) (a pre-merge snapshot of PR [#5397](https://github.com/vllm-project/vllm-omni/pull/5397); the final merged head contains later loader-gating and TP/mmap validation changes not present in this benchmark). The MiniMax-H3 subsection that follows documents its own vLLM/vLLM-Omni versions, `enforce_eager=True` flag, and a local pipeline patch; those details apply to the MiniMax-H3 study and are not assumed for the Cosmos3 runs.
 
 Correctness was verified via byte-identical output hashes across all strategies. For example, T2I seed 42 produced identical SHA256 `6e7d2a8c63b88391...` across DLO+AG, no-AG, DLO+USP4, legacy layerwise+USP4, and HSDP+USP4. T2V 832×480×29f seed 17 produced identical 666,029-byte output (SHA256 `c5d38f5d21ca619e...`) across all strategies.
 
@@ -299,7 +309,7 @@ On 720p 10s (241f), DLO+AG+USP4 completed in 214.53s — within **2.13%** of HSD
 
 #### MiniMax-H3 on 8× B300: DLO mode is topology-dependent
 
-A separate [MiniMax-H3 B300 study](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report) by Shunyang Li tests how DP, SP, and the DLO execution mode interact on one 8× NVIDIA B300 SXM6 AC node. Unlike the Cosmos3 measurements above, this workload generates video **and** audio: 768×1344, 124 video frames, stereo audio, BF16, batch size 1 per replica, and 50 requested steps (49 scheduler denoising updates). Each selected T2VA route below contains 20 measured waves across two engine lifecycles after one full warmup per lifecycle. Throughput is output count divided by wave time; energy integrates summed eight-GPU board power per output without subtracting an idle baseline; an external `nvidia-smi` sampler recorded memory and power at a 0.758s median interval.
+A separate [MiniMax-H3 B300 study](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report) by Shunyang Li tests how DP, SP, and the DLO execution mode interact on one 8× NVIDIA B300 SXM6 AC node. Unlike the Cosmos3 measurements above, this workload generates video **and** audio: 768×1344, 124 video frames, stereo audio, BF16, batch size 1 per replica, and 50 requested steps (49 scheduler denoising updates). The study's `environment.json.txt` reports vLLM `0.24.0` and vLLM-Omni `0.26.0rc2.dev11+g6607f4a7f` (source commit [`9e73ee1`](https://github.com/vllm-project/vllm-omni/commit/9e73ee1a50ce247c638052011914d8027d717f28)); the runner sets `enforce_eager=True` (graph compilation is disabled) and applies a [local subgroup-broadcast patch](https://github.com/lishunyang12/vllm-omni-rankings/tree/main/scripts/minimax_h3_b300_dlo_industrial_report) to `pipeline_minimax_h3.py`. These results do not represent an unmodified release or the default compiled-graph path. Each selected T2VA route below contains 20 measured waves across two engine lifecycles after one full warmup per lifecycle. Throughput is output count divided by wave time; energy integrates summed eight-GPU board power per output without subtracting an idle baseline; an external `nvidia-smi` sampler recorded memory and power at a 0.758s median interval.
 
 ![Topology-aware DLO policy for MiniMax-H3 on eight B300 GPUs](/assets/figures/2026-07-30-distributed-layerwise-offload/minimax-h3-topology-policy.svg)
 
@@ -321,11 +331,13 @@ These results are a topology study, not a universal production claim. DP2×SP4 w
 
 ### Extrapolation to 400 GB
 
+The following table is a host-capacity extrapolation based on the measured memory model above; no 200B-class model was actually run, and maximum block size, HBM headroom, bandwidth, latency, and output quality at that scale remain unvalidated.
+
 | Model | dp_size | cgroup Peak (est.) | Total RAM (est.) | Fits 2 TB? |
 |-------|:-------:|:------------------:|:----------------:|:----------:|
 | 33 GB | 4 | 47 GB | ~80 GB | ✓ |
-| 124 GB | 4 | 172 GB | ~280 GB | ✓ |
-| 185 GB | 4 | ~220 GB | ~420 GB | ✓ |
+| 124 GB | 4 | 172 GB | ~296 GB | ✓ |
+| 185 GB | 4 | ~220 GB | ~405 GB | ✓ |
 | 400 GB | 4 | ~423 GB | ~823 GB | ✓ |
 | 400 GB | 8 | ~443 GB | ~843 GB | ✓ |
 
