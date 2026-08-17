@@ -67,8 +67,6 @@
   <ellipse cx="305.0" cy="201.25" rx="107.5" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
   <rect x="90.0" y="201.25" width="430.0" height="67.5" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
   <ellipse cx="305.0" cy="268.75" rx="107.5" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <ellipse cx="305.0" cy="224.2" rx="107.5" ry="11.25" fill="none" stroke="#2563eb" stroke-opacity="0.45" stroke-width="1.2"/>
-  <ellipse cx="305.0" cy="244.0" rx="107.5" ry="11.25" fill="none" stroke="#2563eb" stroke-opacity="0.25" stroke-width="1.2"/>
   <text x="305.0" y="229.0" text-anchor="middle" class="node-title" font-size="18.0">Safetensors page cache</text>
   <text x="305.0" y="253.0" text-anchor="middle" class="node-sub">31 GB · shared mmap views · cgroup cache</text>
   </g>
