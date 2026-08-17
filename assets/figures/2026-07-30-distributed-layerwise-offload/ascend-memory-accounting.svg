@@ -64,9 +64,10 @@
   <path id="pin-shards" data-graph-role="edge" data-edge-id="pin-shards" data-source="page-cache" data-target="pinned-shards" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 305,280 L 305,300.4 L 600,300.4 L 600,405" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
   <path id="h2d" data-graph-role="edge" data-edge-id="h2d" data-source="pinned-shards" data-target="double-buffer" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 600,475 L 600,620" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
   <g id="node-page-cache" data-graph-role="node" data-node-id="page-cache" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,190,520,280">
-  <ellipse cx="305.0" cy="201.25" rx="107.5" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <rect x="90.0" y="201.25" width="430.0" height="67.5" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <ellipse cx="305.0" cy="268.75" rx="107.5" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <rect x="90.0" y="201.25" width="430.0" height="67.5" fill="#eff6ff" stroke="none"/>
+  <ellipse cx="305.0" cy="201.25" rx="215.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <path d="M 90,201.25 L 90,268.75 M 520,201.25 L 520,268.75" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+  <ellipse cx="305.0" cy="268.75" rx="215.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
   <text x="305.0" y="229.0" text-anchor="middle" class="node-title" font-size="18.0">Safetensors page cache</text>
   <text x="305.0" y="253.0" text-anchor="middle" class="node-sub">31 GB · shared mmap views · cgroup cache</text>
   </g>

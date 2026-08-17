@@ -63,9 +63,10 @@
   <text x="300.0" y="272.0" text-anchor="middle" class="node-sub">4 × 33 GB = 132 GB</text>
   </g>
   <g id="node-baseline-cache" data-graph-role="node" data-node-id="baseline-cache" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,350,510,440">
-  <ellipse cx="300.0" cy="361.25" rx="105.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <rect x="90.0" y="361.25" width="420.0" height="67.5" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <ellipse cx="300.0" cy="428.75" rx="105.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <rect x="90.0" y="361.25" width="420.0" height="67.5" fill="#eff6ff" stroke="none"/>
+  <ellipse cx="300.0" cy="361.25" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <path d="M 90,361.25 L 90,428.75 M 510,361.25 L 510,428.75" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+  <ellipse cx="300.0" cy="428.75" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
   <text x="300.0" y="389.0" text-anchor="middle" class="node-title" font-size="18.0">Shared page cache</text>
   <text x="300.0" y="413.0" text-anchor="middle" class="node-sub">33 GB safetensors</text>
   </g>
@@ -81,9 +82,10 @@
   <text x="900.0" y="272.0" text-anchor="middle" class="node-sub">0 private weight copies</text>
   </g>
   <g id="node-shared-cache" data-graph-role="node" data-node-id="shared-cache" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="690,350,1110,440">
-  <ellipse cx="900.0" cy="361.25" rx="105.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <rect x="690.0" y="361.25" width="420.0" height="67.5" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
-  <ellipse cx="900.0" cy="428.75" rx="105.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <rect x="690.0" y="361.25" width="420.0" height="67.5" fill="#eff6ff" stroke="none"/>
+  <ellipse cx="900.0" cy="361.25" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <path d="M 690,361.25 L 690,428.75 M 1110,361.25 L 1110,428.75" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+  <ellipse cx="900.0" cy="428.75" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
   <text x="900.0" y="389.0" text-anchor="middle" class="node-title" font-size="18.0">One shared mmap page cache</text>
   <text x="900.0" y="413.0" text-anchor="middle" class="node-sub">33 GB · read-only · reclaimable</text>
   </g>
