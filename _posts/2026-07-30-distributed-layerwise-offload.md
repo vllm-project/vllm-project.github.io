@@ -18,7 +18,7 @@ vLLM-Omni's Distributed Layerwise Offload enables video generation models larger
 
 - **Meta-device initialization + mmap weight loading**: Weights are loaded as mmap views pointing to shared OS page cache, eliminating O(dp_size × model_size) RSS during model creation. Cold-start cgroup-visible peak drops by 73% (178 GB → 47 GB for Cosmos3-Nano DP4).
 - **Weight sharding + AllGather**: Each rank stores only 1/dp_size of the model. Full layer weights are reconstructed at runtime via AllGather, overlapped with computation on dedicated streams.
-- **Fixed double-buffer scheme**: Exactly 2 layers of weights reside on each device at any time, regardless of model size. In the measured 720p 10s workload, peak HBM grew about 22% (23.1 → 28.1 GB) from the 17B to the 64B model; idle HBM grew about 27% (11.5 → 14.6 GB).
+- **Fixed double-buffer scheme**: Exactly 2 layers of weights reside on each device at any time, independent of the total layer count. Buffer capacity still scales with the model's largest block, and total HBM also includes workload-dependent activation and communication buffers. In the measured 720p 10s workload, peak HBM grew about 22% (23.1 → 28.1 GB) from the 17B to the 64B model; idle HBM grew about 27% (11.5 → 14.6 GB).
 - **DP multi-concurrency**: Each DP rank processes a different request in parallel, achieving 3.3× throughput vs. single-request HSDP — about 83% of the ideal 4× scaling.
 - **Platform-agnostic**: Works on both NVIDIA GPU (CUDA/NCCL) and Ascend NPU (CANN/HCCL) via vLLM-Omni's platform abstraction layer.
 - **Topology-aware on 8× B300**: Within three evaluated MiniMax-H3 routes, AllGather is best for DP1×SP8 latency and the DP4×SP2 balanced point, while rank-local DLO wins at DP8×SP1 with 183.78 videos/h and 43.97 Wh/video.
@@ -158,7 +158,7 @@ The buffers are shared across all blocks — allocated once to the max block siz
 
 On Ascend NPU, `pin_memory()` allocates DMA-capable memory via `/dev/davinci_manager` (the NPU device driver). This memory resides in CPU kernel space and is not tracked by cgroup — a key finding that explains why cgroup peak is much lower than expected.
 
-**What you gain.** HBM holds only 2 layers of weights (~2 GB for Nano, ~3 GB for Super), regardless of model size. In the measured `dist_offload+SP` 720p 10s workload, peak HBM grows about 22% (23.1 → 28.1 GB) from Nano to Super; idle HBM grows about 27% (11.5 → 14.6 GB). The model is 3.8× larger, but both HBM measurements remain well below 64 GB.
+**What you gain.** HBM holds only 2 layers of weights (~2 GB for Nano, ~3 GB for Super), independent of the total layer count. The required buffer capacity still grows with the largest block, while total HBM also includes workload-dependent activation and communication buffers. In the measured `dist_offload+SP` 720p 10s workload, peak HBM grows about 22% (23.1 → 28.1 GB) from Nano to Super; idle HBM grows about 27% (11.5 → 14.6 GB). The model is 3.8× larger, but both HBM measurements remain well below 64 GB.
 
 ![HBM usage for Cosmos3-Nano and Cosmos3-Super](/assets/figures/2026-07-30-distributed-layerwise-offload/hbm-nano-vs-super.svg)
 
