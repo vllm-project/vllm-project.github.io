@@ -14,6 +14,8 @@ tags:
 
 ## TL;DR
 
+**Out-of-the-box version:** For the DLO + AllGather quickstart below, use vLLM `0.27.0` with vLLM-Omni `v0.27.0rc1`.
+
 vLLM-Omni's Distributed Layerwise Offload enables video generation models larger than single-device HBM (e.g., Cosmos3-Super 64B / 124 GB) to run across multiple NPUs or GPUs with minimal host memory overhead. The stack includes:
 
 - **Meta-device initialization + mmap weight loading**: Weights are loaded as mmap views pointing to shared OS page cache, eliminating O(dp_size × model_size) RSS during model creation. Cold-start cgroup-visible peak drops by 73% (178 GB → 47 GB for Cosmos3-Nano DP4).
