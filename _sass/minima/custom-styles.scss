@@ -31,6 +31,25 @@ img {
     line-height: 1.4;
 }
 
+.result-figure-label {
+    display: inline-block;
+    margin: 1.5rem 0 0.5rem;
+    padding: 3px 9px;
+    color: var(--minima-brand-color-dark);
+    background: var(--minima-table-zebra-color);
+    border: 1px solid var(--minima-table-border-color);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.result-figure-label + p {
+    margin-top: 0;
+}
+
 .modern-tables .post-content table {
     display: block;
     width: 100%;
