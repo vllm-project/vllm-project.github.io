@@ -31,7 +31,7 @@ We are able to achieve sharded weight transfer for the Kimi K2 model in BF16 in 
 
 
 <p align="center">
-<img src="/assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_overview_1.png" width="100%">
+<img src="/assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_overview.png" width="100%">
 <br>
 <em><b>Overview:</b> Broadcast-based weight transfer vs sharded weight transfer with RDT(NIXL backend). With NCCL, trainer rank 0 forms a collective communication group with all the inference ranks and transfers full weights via broadcast. With the sharded weight transfer engine, we utilize all trainer ranks in the transfer and further only send the shard that is needed. The transfer is further optimized to avoid gathering weights across PP ranks, and skips gathering expert layers.</em>
 </p>
@@ -107,7 +107,7 @@ Most popular RL frameworks like verl, SkyRL, Slime, NemoRL, etc use [Ray](https:
 
 
 <p align="center">
-<img src="/assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_init_flow_1.png" width="100%">
+<img src="/assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_init_flow.png" width="100%">
 <br>
 <em><b>Initialization:</b> Trainer ranks all-gather ownership metadata. Rank-0 transmits ownership \+ transfer metadata to the inference ranks. Inference ranks run through the recording-tensor dry run to build a sharding plan. All ranks allocate and register their RDT buffers for weight transfer.</em>
 </p>
