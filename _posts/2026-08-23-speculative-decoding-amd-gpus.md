@@ -3,7 +3,7 @@ layout: post
 title: "Exploring Speculative Decoding in vLLM on AMD GPUs"
 author: "AMD and Embedded LLM"
 summary: "A practical guide to speculative decoding in vLLM on AMD GPUs, covering draft-and-verify mechanics, MTP, EAGLE-3, DFlash, DSpark, configuration, tuning, and benchmark results."
-image: /assets/figures/2026-08-20-speculative-decoding-amd-gpus/figure-01.svg
+image: /assets/figures/2026-08-23-speculative-decoding-amd-gpus/figure-01.svg
 tags:
   - speculative-decoding
   - amd
@@ -995,7 +995,7 @@ This can reduce the number of target-model decoding rounds when multiple candida
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-08-20-speculative-decoding-amd-gpus/figure-01.svg" width="95%">
+<img src="/assets/figures/2026-08-23-speculative-decoding-amd-gpus/figure-01.svg" width="95%">
 </picture>
 </p>
 
@@ -1007,7 +1007,7 @@ Figure 2 gives an example of one speculative decoding round. Green boxes are dra
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-08-20-speculative-decoding-amd-gpus/figure-02.svg" width="95%">
+<img src="/assets/figures/2026-08-23-speculative-decoding-amd-gpus/figure-02.svg" width="95%">
 </picture>
 </p>
 
@@ -1520,7 +1520,7 @@ Figure 3 gives a visual side-by-side view of the five drafting methods: what the
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-08-20-speculative-decoding-amd-gpus/figure-method-summary.svg" width="100%">
+<img src="/assets/figures/2026-08-23-speculative-decoding-amd-gpus/figure-method-summary.svg" width="100%">
 </picture>
 </p>
 
@@ -1766,7 +1766,7 @@ For throughput, we measure generated tokens per second against a standard autore
   </div>
 </div>
 <div id="plotly-throughput-summary" style="width: 100%; height: 560px;"></div>
-<script src="/assets/figures/2026-08-20-speculative-decoding-amd-gpus/plotly-throughput-summary.js?v=target-model-ids"></script>
+<script src="/assets/figures/2026-08-23-speculative-decoding-amd-gpus/plotly-throughput-summary.js?v=target-model-ids"></script>
 
 <p align="center"><em>Figure 4. Measured output throughput by method and experiment, with the non-speculative baseline included as a reference. Use the selector to switch target models; hover over bars to see speedup and selected proposal length N.</em></p>
 
