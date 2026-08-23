@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="620" viewBox="0 0 1600 620" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax M3 sparse-attention page adapter</title>
+  <desc id="desc">Selected logical 128-token sparse blocks are resolved through the vLLM block table. Each physical 128-token block becomes eight consecutive 16-token page IDs in a compact AITER table. AITER sparse paged attention reads only those pages from a page-16 view of the original KV allocation, without copying KV data.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .stage { font-size: 17px; font-weight: 800; letter-spacing: .055em; fill: #64748b; }
+      .title { font-size: 27px; font-weight: 780; fill: #172033; }
+      .title-compact { font-size: 24px; font-weight: 780; fill: #172033; }
+      .label { font-size: 18px; font-weight: 720; fill: #334155; }
+      .note { font-size: 16px; font-weight: 620; fill: #64748b; }
+      .small { font-size: 14px; font-weight: 720; fill: #475569; }
+      .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 17px; font-weight: 700; fill: #334155; }
+      .page { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 12px; font-weight: 760; }
+      .callout { font-size: 19px; font-weight: 780; }
+    </style>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.07"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#0f9b8e"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="620" fill="#ffffff"/>
+
+  <g class="sans">
+    <!-- Stage 1: selected logical blocks -->
+    <g filter="url(#shadow)">
+      <rect x="55" y="55" width="325" height="305" rx="20" fill="#ffffff" stroke="#ddd6fe" stroke-width="2"/>
+    </g>
+    <rect x="55" y="55" width="325" height="7" rx="3.5" fill="#7c3aed"/>
+    <text x="85" y="97" class="stage">MSA SELECTOR</text>
+    <text x="85" y="132" class="title-compact">Logical 128-token blocks</text>
+    <text x="85" y="162" class="note">Top-k returns block IDs</text>
+
+    <g transform="translate(85,192)">
+      <g fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5">
+        <rect x="0" y="0" width="58" height="54" rx="7"/>
+        <rect x="65" y="0" width="58" height="54" rx="7"/>
+        <rect x="130" y="0" width="58" height="54" rx="7"/>
+        <rect x="195" y="0" width="58" height="54" rx="7"/>
+      </g>
+      <g fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2.5">
+        <rect x="65" y="67" width="52" height="54" rx="7"/>
+        <rect x="125" y="67" width="52" height="54" rx="7"/>
+        <rect x="185" y="67" width="52" height="54" rx="7"/>
+      </g>
+      <g class="mono" text-anchor="middle">
+        <text x="29" y="34">B0</text><text x="94" y="34">B1</text>
+        <text x="159" y="34">B2</text><text x="224" y="34">…</text>
+        <text x="91" y="101" fill="#6d28d9">B1</text>
+        <text x="151" y="101" fill="#6d28d9">B4</text>
+        <text x="211" y="101" fill="#6d28d9">B7</text>
+      </g>
+      <text x="0" y="101" class="small" fill="#6d28d9">top-k</text>
+    </g>
+
+    <!-- Stage 2: logical to physical mapping -->
+    <line x1="400" y1="207" x2="455" y2="207" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="470" y="55" width="310" height="305" rx="20" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+    </g>
+    <rect x="470" y="55" width="310" height="7" rx="3.5" fill="#2563eb"/>
+    <text x="500" y="97" class="stage">vLLM BLOCK TABLE</text>
+    <text x="500" y="132" class="title-compact">Resolve physical blocks</text>
+    <text x="500" y="162" class="note">Allocation may be non-contiguous</text>
+
+    <g transform="translate(500,192)">
+      <rect x="0" y="0" width="250" height="46" rx="9" fill="#eff6ff"/>
+      <rect x="0" y="56" width="250" height="46" rx="9" fill="#eff6ff"/>
+      <rect x="0" y="112" width="250" height="46" rx="9" fill="#eff6ff"/>
+      <g class="mono">
+        <text x="22" y="30">B1</text><text x="88" y="30" fill="#94a3b8">→</text><text x="130" y="30" fill="#1d4ed8">P12</text>
+        <text x="22" y="86">B4</text><text x="88" y="86" fill="#94a3b8">→</text><text x="130" y="86" fill="#1d4ed8">P3</text>
+        <text x="22" y="142">B7</text><text x="88" y="142" fill="#94a3b8">→</text><text x="130" y="142" fill="#1d4ed8">P9</text>
+      </g>
+    </g>
+
+    <!-- Stage 3: compact page-16 table -->
+    <line x1="800" y1="207" x2="855" y2="207" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="870" y="55" width="430" height="305" rx="20" fill="#ffffff" stroke="#99f6e4" stroke-width="2"/>
+    </g>
+    <rect x="870" y="55" width="430" height="7" rx="3.5" fill="#0f9b8e"/>
+    <text x="900" y="97" class="stage">METADATA ADAPTER</text>
+    <text x="900" y="132" class="title">Build a compact page-16 table</text>
+    <text x="900" y="162" class="mono" fill="#0f766e">page = physical_block × 8 + offset</text>
+
+    <g transform="translate(900,191)">
+      <text x="0" y="24" class="mono" fill="#1d4ed8">P12</text>
+      <text x="0" y="78" class="mono" fill="#1d4ed8">P3</text>
+      <text x="0" y="132" class="mono" fill="#1d4ed8">P9</text>
+      <g transform="translate(55,0)" stroke-width="1.4">
+        <g fill="#ccfbf1" stroke="#2dd4bf">
+          <rect x="0" y="0" width="38" height="36" rx="5"/><rect x="42" y="0" width="38" height="36" rx="5"/>
+          <rect x="84" y="0" width="38" height="36" rx="5"/><rect x="126" y="0" width="38" height="36" rx="5"/>
+          <rect x="168" y="0" width="38" height="36" rx="5"/><rect x="210" y="0" width="38" height="36" rx="5"/>
+          <rect x="252" y="0" width="38" height="36" rx="5"/><rect x="294" y="0" width="38" height="36" rx="5"/>
+          <rect x="0" y="54" width="38" height="36" rx="5"/><rect x="42" y="54" width="38" height="36" rx="5"/>
+          <rect x="84" y="54" width="38" height="36" rx="5"/><rect x="126" y="54" width="38" height="36" rx="5"/>
+          <rect x="168" y="54" width="38" height="36" rx="5"/><rect x="210" y="54" width="38" height="36" rx="5"/>
+          <rect x="252" y="54" width="38" height="36" rx="5"/><rect x="294" y="54" width="38" height="36" rx="5"/>
+          <rect x="0" y="108" width="38" height="36" rx="5"/><rect x="42" y="108" width="38" height="36" rx="5"/>
+          <rect x="84" y="108" width="38" height="36" rx="5"/><rect x="126" y="108" width="38" height="36" rx="5"/>
+          <rect x="168" y="108" width="38" height="36" rx="5"/><rect x="210" y="108" width="38" height="36" rx="5"/>
+          <rect x="252" y="108" width="38" height="36" rx="5"/><rect x="294" y="108" width="38" height="36" rx="5"/>
+        </g>
+        <g class="page" text-anchor="middle" fill="#0f766e">
+          <text x="19" y="23">96</text><text x="61" y="23">97</text><text x="103" y="23">98</text><text x="145" y="23">99</text>
+          <text x="187" y="23">100</text><text x="229" y="23">101</text><text x="271" y="23">102</text><text x="313" y="23">103</text>
+          <text x="19" y="77">24</text><text x="61" y="77">25</text><text x="103" y="77">26</text><text x="145" y="77">27</text>
+          <text x="187" y="77">28</text><text x="229" y="77">29</text><text x="271" y="77">30</text><text x="313" y="77">31</text>
+          <text x="19" y="131">72</text><text x="61" y="131">73</text><text x="103" y="131">74</text><text x="145" y="131">75</text>
+          <text x="187" y="131">76</text><text x="229" y="131">77</text><text x="271" y="131">78</text><text x="313" y="131">79</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Stage 4: AITER -->
+    <line x1="1320" y1="207" x2="1365" y2="207" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="1380" y="98" width="165" height="220" rx="20" fill="#ffffff" stroke="#fed7aa" stroke-width="2"/>
+    </g>
+    <rect x="1380" y="98" width="165" height="7" rx="3.5" fill="#f97316"/>
+    <g transform="translate(1425,133)" fill="none" stroke="#f97316" stroke-width="3">
+      <rect x="0" y="0" width="75" height="58" rx="9" fill="#fff7ed"/>
+      <path d="M13 16 H62 M13 29 H62 M13 42 H48"/>
+    </g>
+    <text x="1462.5" y="226" class="title" text-anchor="middle">AITER</text>
+    <text x="1462.5" y="255" class="label" text-anchor="middle">sparse paged</text>
+    <text x="1462.5" y="280" class="label" text-anchor="middle">attention</text>
+
+    <!-- Stable KV data plane -->
+    <line x1="55" y1="403" x2="1545" y2="403" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="55" y="438" width="1490" height="125" rx="20" fill="#ecfdf5" stroke="#5eead4" stroke-width="2"/>
+    <text x="85" y="477" class="stage" fill="#0f766e">KV DATA PLANE · SAME HBM ALLOCATION</text>
+    <text x="85" y="514" class="title">Same KV bytes, page-16 view</text>
+
+    <g transform="translate(655,459)">
+      <rect x="0" y="0" width="440" height="76" rx="10" fill="#ffffff" stroke="#2dd4bf" stroke-width="2"/>
+      <g stroke="#99f6e4" stroke-width="1.5">
+        <line x1="55" y1="0" x2="55" y2="76"/><line x1="110" y1="0" x2="110" y2="76"/>
+        <line x1="165" y1="0" x2="165" y2="76"/><line x1="220" y1="0" x2="220" y2="76"/>
+        <line x1="275" y1="0" x2="275" y2="76"/><line x1="330" y1="0" x2="330" y2="76"/>
+        <line x1="385" y1="0" x2="385" y2="76"/>
+      </g>
+      <g class="small" text-anchor="middle" fill="#0f766e">
+        <text x="27.5" y="45">16</text><text x="82.5" y="45">16</text><text x="137.5" y="45">16</text><text x="192.5" y="45">16</text>
+        <text x="247.5" y="45">16</text><text x="302.5" y="45">16</text><text x="357.5" y="45">16</text><text x="412.5" y="45">16</text>
+      </g>
+    </g>
+
+    <path d="M1115 483 C1260 463 1462 420 1462 318" fill="none" stroke="#0f9b8e" stroke-width="4" stroke-linecap="round" marker-end="url(#green-arrow)"/>
+    <rect x="1160" y="456" width="300" height="48" rx="24" fill="#ffffff" stroke="#5eead4" stroke-width="1.5"/>
+    <text x="1310" y="487" class="callout" text-anchor="middle" fill="#0f766e">Read selected pages in place</text>
+
+    <rect x="578" y="573" width="444" height="38" rx="19" fill="#f0fdfa"/>
+    <text x="800" y="599" class="callout" text-anchor="middle" fill="#0f766e">Build metadata; do not copy the KV cache</text>
+  </g>
+</svg>

@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax M3 shared-expert fusion before and after</title>
+  <desc id="desc">Before fusion, routed experts run through grouped GEMMs while the shared expert runs through a separate dense MLP, writes an intermediate output, and is added afterward. After fusion, the router appends a shared-expert slot selected by every token, and routed and shared experts run through the same grouped GEMMs. The mathematical work remains while separate launches and intermediate traffic are removed.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .stage { font-size: 17px; font-weight: 800; letter-spacing: .055em; fill: #64748b; }
+      .title { font-size: 28px; font-weight: 780; fill: #172033; }
+      .box-title { font-size: 21px; font-weight: 760; fill: #172033; }
+      .label { font-size: 17px; font-weight: 700; fill: #334155; }
+      .note { font-size: 16px; font-weight: 620; fill: #64748b; }
+      .small { font-size: 14px; font-weight: 720; fill: #475569; }
+      .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 17px; font-weight: 730; fill: #334155; }
+      .callout { font-size: 19px; font-weight: 780; }
+    </style>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.07"/>
+    </filter>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7.7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="blue-arrow" markerWidth="9" markerHeight="9" refX="7.7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="green-arrow" markerWidth="9" markerHeight="9" refX="7.7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#0f9b8e"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="650" fill="#ffffff"/>
+
+  <g class="sans">
+    <!-- Before -->
+    <g filter="url(#shadow)">
+      <rect x="55" y="48" width="710" height="515" rx="22" fill="#ffffff" stroke="#fecaca" stroke-width="2"/>
+    </g>
+    <rect x="55" y="48" width="710" height="8" rx="4" fill="#ef4444"/>
+    <text x="85" y="94" class="stage" fill="#b91c1c">BEFORE</text>
+    <text x="85" y="132" class="title">Two execution paths</text>
+
+    <!-- token/router -->
+    <rect x="85" y="178" width="120" height="64" rx="13" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.8"/>
+    <text x="145" y="205" class="box-title" text-anchor="middle">Tokens</text>
+    <text x="145" y="228" class="note" text-anchor="middle">hidden states</text>
+    <line x1="205" y1="210" x2="252" y2="210" stroke="#94a3b8" stroke-width="3.5" marker-end="url(#arrow)"/>
+    <rect x="265" y="168" width="170" height="84" rx="14" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.8"/>
+    <text x="350" y="201" class="box-title" text-anchor="middle">Router top-k</text>
+    <text x="350" y="230" class="mono" text-anchor="middle" fill="#6d28d9">[E2, E7]</text>
+
+    <!-- routed path -->
+    <path d="M435 195 H477" fill="none" stroke="#2563eb" stroke-width="3.5" marker-end="url(#blue-arrow)"/>
+    <rect x="490" y="158" width="215" height="105" rx="15" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <text x="597.5" y="190" class="box-title" text-anchor="middle">Grouped GEMMs</text>
+    <text x="597.5" y="218" class="note" text-anchor="middle">routed experts</text>
+    <text x="597.5" y="244" class="small" text-anchor="middle">gate/up → act → down</text>
+
+    <!-- shared path -->
+    <path d="M145 242 V347 H252" fill="none" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow)"/>
+    <rect x="265" y="300" width="215" height="105" rx="15" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+    <text x="372.5" y="333" class="box-title" text-anchor="middle">Shared expert MLP</text>
+    <text x="372.5" y="362" class="note" text-anchor="middle">separate dense path</text>
+    <text x="372.5" y="388" class="small" text-anchor="middle">gate/up → act → down</text>
+    <line x1="480" y1="352" x2="525" y2="352" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow)"/>
+    <rect x="538" y="315" width="167" height="75" rx="13" fill="#fff1f2" stroke="#fda4af" stroke-width="1.8" stroke-dasharray="7 5"/>
+    <text x="621.5" y="345" class="label" text-anchor="middle" fill="#be123c">Intermediate</text>
+    <text x="621.5" y="370" class="note" text-anchor="middle">write + read</text>
+
+    <!-- add -->
+    <path d="M705 210 H730 V401" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+    <path d="M622 390 V426 H705" fill="none" stroke="#f97316" stroke-width="3.5"/>
+    <circle cx="730" cy="426" r="25" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+    <text x="730" y="434" class="title" text-anchor="middle" fill="#475569">+</text>
+    <text x="730" y="470" class="small" text-anchor="middle">output</text>
+
+    <rect x="181" y="465" width="458" height="48" rx="24" fill="#fff1f2"/>
+    <text x="410" y="496" class="callout" text-anchor="middle" fill="#be123c">Extra launches and intermediate traffic</text>
+
+    <!-- After -->
+    <g filter="url(#shadow)">
+      <rect x="835" y="48" width="710" height="515" rx="22" fill="#ffffff" stroke="#99f6e4" stroke-width="2"/>
+    </g>
+    <rect x="835" y="48" width="710" height="8" rx="4" fill="#0f9b8e"/>
+    <text x="865" y="94" class="stage" fill="#0f766e">AFTER</text>
+    <text x="865" y="132" class="title">One grouped path</text>
+
+    <rect x="865" y="178" width="120" height="64" rx="13" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.8"/>
+    <text x="925" y="205" class="box-title" text-anchor="middle">Tokens</text>
+    <text x="925" y="228" class="note" text-anchor="middle">hidden states</text>
+    <line x1="985" y1="210" x2="1032" y2="210" stroke="#94a3b8" stroke-width="3.5" marker-end="url(#arrow)"/>
+
+    <rect x="1045" y="158" width="265" height="105" rx="15" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.8"/>
+    <text x="1177.5" y="190" class="box-title" text-anchor="middle">Router top-k</text>
+    <text x="1177.5" y="220" class="mono" text-anchor="middle">
+      <tspan fill="#6d28d9">[E2, E7,&#160;</tspan><tspan fill="#ea580c">S</tspan><tspan fill="#6d28d9">]</tspan>
+    </text>
+    <text x="1177.5" y="246" class="small" text-anchor="middle" fill="#c2410c">append S for every token</text>
+
+    <line x1="1310" y1="210" x2="1352" y2="210" stroke="#0f9b8e" stroke-width="3.5" marker-end="url(#green-arrow)"/>
+    <rect x="1365" y="158" width="150" height="105" rx="15" fill="#ecfdf5" stroke="#5eead4" stroke-width="2"/>
+    <text x="1440" y="190" class="box-title" text-anchor="middle">Grouped</text>
+    <text x="1440" y="216" class="box-title" text-anchor="middle">GEMMs</text>
+    <text x="1440" y="244" class="small" text-anchor="middle">routed + shared</text>
+
+    <!-- weights/expert rows -->
+    <rect x="935" y="310" width="500" height="100" rx="16" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.8"/>
+    <text x="965" y="344" class="label">Expert weight rows</text>
+    <g transform="translate(965,360)">
+      <rect x="0" y="0" width="65" height="34" rx="7" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+      <rect x="72" y="0" width="65" height="34" rx="7" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+      <rect x="144" y="0" width="65" height="34" rx="7" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+      <rect x="216" y="0" width="65" height="34" rx="7" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <rect x="288" y="0" width="98" height="34" rx="7" fill="#ffedd5" stroke="#fb923c" stroke-width="2"/>
+      <g class="mono" text-anchor="middle">
+        <text x="32.5" y="23">E0</text><text x="104.5" y="23">E1</text><text x="176.5" y="23">E2</text>
+        <text x="248.5" y="23">…</text><text x="337" y="23" fill="#c2410c">S</text>
+      </g>
+    </g>
+    <path d="M1392 326 C1418 310 1440 302 1440 263" fill="none" stroke="#0f9b8e" stroke-width="3" marker-end="url(#green-arrow)"/>
+
+    <rect x="943" y="465" width="494" height="48" rx="24" fill="#ecfdf5"/>
+    <text x="1190" y="496" class="callout" text-anchor="middle" fill="#0f766e">Same expert math; fewer execution paths</text>
+
+    <!-- Bottom takeaway -->
+    <rect x="486" y="590" width="628" height="44" rx="22" fill="#eff6ff"/>
+    <text x="800" y="619" class="callout" text-anchor="middle" fill="#1d4ed8">Fuse the path, not the model computation</text>
+  </g>
+</svg>

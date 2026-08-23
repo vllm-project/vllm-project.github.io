@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
+  <title id="title">From global model dimensions to local prefill and decode tile plans</title>
+  <desc id="desc">The upper half shows MiniMax M3 global query, KV, and index head counts becoming the dimensions seen by one TP8 rank. Query heads shard while smaller KV and index groups replicate. The lower half compares a tall large-M prefill output matrix using wide N tiles with a short small-M decode matrix using narrow N tiles and larger K steps.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .eyebrow { font-size: 17px; font-weight: 800; letter-spacing: .06em; fill: #64748b; }
+      .title { font-size: 27px; font-weight: 780; fill: #172033; }
+      .label { font-size: 19px; font-weight: 720; fill: #334155; }
+      .note { font-size: 17px; font-weight: 620; fill: #64748b; }
+      .value { font-size: 21px; font-weight: 780; fill: #172033; }
+      .callout { font-size: 18px; font-weight: 760; }
+      .axis { font-size: 16px; font-weight: 780; fill: #64748b; }
+    </style>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.07"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="700" fill="#ffffff"/>
+
+  <g class="sans">
+    <!-- Global model view -->
+    <g filter="url(#shadow)">
+      <rect x="65" y="45" width="555" height="220" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    </g>
+    <rect x="65" y="45" width="555" height="7" rx="3.5" fill="#2563eb"/>
+    <text x="95" y="88" class="eyebrow">MODEL VIEW</text>
+    <text x="95" y="121" class="title">Global head counts</text>
+
+    <text x="95" y="161" class="label">Query</text>
+    <g fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5">
+      <rect x="205" y="143" width="35" height="25" rx="5"/><rect x="246" y="143" width="35" height="25" rx="5"/>
+      <rect x="287" y="143" width="35" height="25" rx="5"/><rect x="328" y="143" width="35" height="25" rx="5"/>
+      <rect x="369" y="143" width="35" height="25" rx="5"/><rect x="410" y="143" width="35" height="25" rx="5"/>
+      <rect x="451" y="143" width="35" height="25" rx="5"/><rect x="492" y="143" width="35" height="25" rx="5"/>
+    </g>
+    <text x="550" y="162" class="value">64</text>
+
+    <text x="95" y="202" class="label">KV</text>
+    <g fill="#ccfbf1" stroke="#2dd4bf" stroke-width="1.5">
+      <rect x="205" y="184" width="35" height="25" rx="5"/><rect x="246" y="184" width="35" height="25" rx="5"/>
+      <rect x="287" y="184" width="35" height="25" rx="5"/><rect x="328" y="184" width="35" height="25" rx="5"/>
+    </g>
+    <text x="550" y="203" class="value">4</text>
+
+    <text x="95" y="243" class="label">Index</text>
+    <g fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5">
+      <rect x="205" y="225" width="35" height="25" rx="5"/><rect x="246" y="225" width="35" height="25" rx="5"/>
+      <rect x="287" y="225" width="35" height="25" rx="5"/><rect x="328" y="225" width="35" height="25" rx="5"/>
+    </g>
+    <text x="550" y="244" class="value">4</text>
+
+    <!-- TP transform -->
+    <line x1="660" y1="155" x2="895" y2="155" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+    <rect x="713" y="102" width="130" height="38" rx="19" fill="#eff6ff"/>
+    <text x="778" y="128" class="callout" text-anchor="middle" fill="#1d4ed8">TP8</text>
+    <text x="778" y="190" class="note" text-anchor="middle">shard large groups</text>
+    <text x="778" y="214" class="note" text-anchor="middle">replicate small groups</text>
+
+    <!-- Rank-local view -->
+    <g filter="url(#shadow)">
+      <rect x="930" y="45" width="605" height="220" rx="20" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+    </g>
+    <rect x="930" y="45" width="605" height="7" rx="3.5" fill="#0f9b8e"/>
+    <text x="960" y="88" class="eyebrow">KERNEL VIEW</text>
+    <text x="960" y="121" class="title">Shape seen by one rank</text>
+
+    <text x="960" y="161" class="label">Query</text>
+    <rect x="1070" y="143" width="180" height="25" rx="6" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.5"/>
+    <g stroke="#93c5fd" stroke-width="1">
+      <line x1="1092.5" y1="143" x2="1092.5" y2="168"/><line x1="1115" y1="143" x2="1115" y2="168"/>
+      <line x1="1137.5" y1="143" x2="1137.5" y2="168"/><line x1="1160" y1="143" x2="1160" y2="168"/>
+      <line x1="1182.5" y1="143" x2="1182.5" y2="168"/><line x1="1205" y1="143" x2="1205" y2="168"/>
+      <line x1="1227.5" y1="143" x2="1227.5" y2="168"/>
+    </g>
+    <text x="1270" y="162" class="value">8</text>
+
+    <text x="960" y="202" class="label">KV</text>
+    <rect x="1070" y="184" width="36" height="25" rx="5" fill="#ccfbf1" stroke="#2dd4bf" stroke-width="1.5"/>
+    <text x="1122" y="203" class="value">1</text>
+    <rect x="1162" y="181" width="112" height="31" rx="15.5" fill="#ecfdf5"/>
+    <text x="1218" y="202" class="note" text-anchor="middle" fill="#0f766e">replicated</text>
+
+    <text x="960" y="243" class="label">Index</text>
+    <rect x="1070" y="225" width="36" height="25" rx="5" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="1122" y="244" class="value">1</text>
+    <rect x="1162" y="222" width="112" height="31" rx="15.5" fill="#f5f3ff"/>
+    <text x="1218" y="243" class="note" text-anchor="middle" fill="#6d28d9">replicated</text>
+
+    <rect x="1320" y="139" width="180" height="104" rx="16" fill="#eff6ff"/>
+    <text x="1410" y="174" class="note" text-anchor="middle">Fused QKV</text>
+    <text x="1410" y="208" class="title" text-anchor="middle" fill="#1d4ed8">local N = 1536</text>
+    <text x="1410" y="232" class="note" text-anchor="middle">not global N ÷ 8</text>
+
+    <!-- Local GEMM reminder -->
+    <rect x="506" y="294" width="588" height="46" rx="23" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="800" y="324" class="callout" text-anchor="middle" fill="#475569">A [M tokens × K]  ×  W [K × N local]  →  output [M × N]</text>
+
+    <!-- Prefill tile plan -->
+    <g filter="url(#shadow)">
+      <rect x="65" y="370" width="710" height="275" rx="20" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+    </g>
+    <rect x="65" y="370" width="710" height="7" rx="3.5" fill="#2563eb"/>
+    <text x="95" y="417" class="title">Prefill: large M</text>
+    <text x="95" y="445" class="note">Many token rows already expose parallel work</text>
+
+    <text x="102" y="492" class="axis" text-anchor="middle">M</text>
+    <text x="285" y="624" class="axis" text-anchor="middle">N</text>
+    <g transform="translate(125,474)" fill="#dbeafe" stroke="#60a5fa" stroke-width="2">
+      <rect x="0" y="0" width="320" height="130" rx="6"/>
+      <line x1="80" y1="0" x2="80" y2="130"/><line x1="160" y1="0" x2="160" y2="130"/><line x1="240" y1="0" x2="240" y2="130"/>
+      <line x1="0" y1="32.5" x2="320" y2="32.5"/><line x1="0" y1="65" x2="320" y2="65"/><line x1="0" y1="97.5" x2="320" y2="97.5"/>
+    </g>
+    <line x1="466" y1="494" x2="520" y2="494" stroke="#94a3b8" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="553" y="500" class="value" fill="#1d4ed8">Wider N tiles</text>
+    <text x="553" y="530" class="note">Fewer columns per M row</text>
+    <rect x="545" y="559" width="185" height="39" rx="19.5" fill="#eff6ff"/>
+    <text x="637.5" y="585" class="callout" text-anchor="middle" fill="#1d4ed8">large-M plan</text>
+
+    <!-- Decode tile plan -->
+    <g filter="url(#shadow)">
+      <rect x="825" y="370" width="710" height="275" rx="20" fill="#ffffff" stroke="#ddd6fe" stroke-width="2"/>
+    </g>
+    <rect x="825" y="370" width="710" height="7" rx="3.5" fill="#7c3aed"/>
+    <text x="855" y="417" class="title">Decode: small M</text>
+    <text x="855" y="445" class="note">Only a few token rows reach each GEMM</text>
+
+    <text x="862" y="492" class="axis" text-anchor="middle">M</text>
+    <text x="1045" y="545" class="axis" text-anchor="middle">N</text>
+    <g transform="translate(885,474)" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2">
+      <rect x="0" y="0" width="320" height="50" rx="6"/>
+      <line x1="40" y1="0" x2="40" y2="50"/><line x1="80" y1="0" x2="80" y2="50"/>
+      <line x1="120" y1="0" x2="120" y2="50"/><line x1="160" y1="0" x2="160" y2="50"/>
+      <line x1="200" y1="0" x2="200" y2="50"/><line x1="240" y1="0" x2="240" y2="50"/>
+      <line x1="280" y1="0" x2="280" y2="50"/>
+    </g>
+    <line x1="1226" y1="494" x2="1252" y2="494" stroke="#94a3b8" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="1285" y="500" class="value" fill="#6d28d9">Narrower N tiles</text>
+    <text x="1285" y="530" class="note">More independent workgroups</text>
+
+    <text x="885" y="589" class="axis">K loop</text>
+    <g transform="translate(945,565)" fill="#ffedd5" stroke="#fb923c" stroke-width="2">
+      <rect x="0" y="0" width="260" height="35" rx="6"/>
+      <line x1="86.7" y1="0" x2="86.7" y2="35"/><line x1="173.3" y1="0" x2="173.3" y2="35"/>
+    </g>
+    <text x="1285" y="578" class="value" fill="#c2410c">Larger K step</text>
+    <text x="1285" y="608" class="note">Fewer loop iterations</text>
+  </g>
+</svg>

@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="780" viewBox="0 0 1600 780" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax M3 decode critical path and prefill-decode system boundary</title>
+  <desc id="desc">A white-background diagram follows one sparse MiniMax M3 decoder layer through QKV projection, sparse block selection, sparse attention, an attention tensor-parallel collective, mixture of experts, and a second tensor-parallel collective. Each stage carries one performance question. A second lane shows prompt queue, prefill workers, KV handoff, decode worker, and token loop.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .lane { font-size: 20px; font-weight: 800; letter-spacing: .06em; fill: #64748b; }
+      .box-title { font-size: 28px; font-weight: 780; fill: #172033; }
+      .box-title-compact { font-size: 24px; font-weight: 780; fill: #172033; }
+      .question { font-size: 21px; font-weight: 650; fill: #334155; }
+      .answer { font-size: 18px; font-weight: 720; }
+      .collective { font-size: 15px; font-weight: 820; fill: #dc2626; }
+      .collective-note { font-size: 18px; font-weight: 760; fill: #dc2626; }
+      .sys-title { font-size: 24px; font-weight: 760; fill: #172033; }
+      .sys-note { font-size: 18px; font-weight: 620; fill: #475569; }
+      .tiny { font-size: 16px; font-weight: 700; fill: #64748b; }
+    </style>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="loop-arrow" markerWidth="7" markerHeight="7" refX="6.3" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="780" fill="#ffffff"/>
+
+  <g class="sans">
+    <!-- One sparse decoder layer, in execution order -->
+    <rect x="55" y="58" width="175" height="34" rx="17" fill="#eff6ff"/>
+    <text x="142.5" y="81" class="lane" text-anchor="middle" fill="#2563eb">DECODE LOOP</text>
+    <text x="250" y="81" class="tiny">one sparse layer · repeats for every generated token</text>
+
+    <g fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)">
+      <line x1="365" y1="210" x2="435" y2="210"/>
+      <line x1="735" y1="210" x2="805" y2="210"/>
+      <line x1="1105" y1="210" x2="1175" y2="210"/>
+    </g>
+    <!-- MoE output enters the final all-reduce; the blue loop below carries it on. -->
+    <line x1="1475" y1="210" x2="1481" y2="210" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- QKV projection -->
+    <g filter="url(#shadow)">
+      <rect x="65" y="115" width="300" height="190" rx="20" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+    </g>
+    <rect x="65" y="115" width="300" height="8" rx="4" fill="#2563eb"/>
+    <g transform="translate(91,143)" stroke="#2563eb" stroke-width="3" fill="none" stroke-linecap="round">
+      <rect x="0" y="0" width="43" height="43" rx="8" fill="#eff6ff"/>
+      <path d="M9 31 L18 19 L26 26 L35 11"/>
+      <circle cx="18" cy="19" r="2.5" fill="#2563eb" stroke="none"/>
+      <circle cx="35" cy="11" r="2.5" fill="#2563eb" stroke="none"/>
+    </g>
+    <text x="151" y="170" class="box-title">QKV projection</text>
+    <text x="91" y="225" class="question">Local M / N / K?</text>
+    <rect x="91" y="253" width="220" height="30" rx="15" fill="#eff6ff"/>
+    <text x="201" y="274" class="answer" fill="#1d4ed8" text-anchor="middle">TILE THE SHARD</text>
+
+    <!-- Sparse block selection -->
+    <g filter="url(#shadow)">
+      <rect x="435" y="115" width="300" height="190" rx="20" fill="#ffffff" stroke="#ddd6fe" stroke-width="2"/>
+    </g>
+    <rect x="435" y="115" width="300" height="8" rx="4" fill="#7c3aed"/>
+    <g transform="translate(461,143)" stroke="#7c3aed" stroke-width="3" fill="none" stroke-linecap="round">
+      <circle cx="8" cy="8" r="5" fill="#f5f3ff"/>
+      <circle cx="8" cy="35" r="5" fill="#f5f3ff"/>
+      <line x1="20" y1="8" x2="43" y2="8"/>
+      <line x1="20" y1="35" x2="35" y2="35"/>
+      <path d="M37 30 L44 35 L37 40"/>
+    </g>
+    <text x="521" y="170" class="box-title">Block select</text>
+    <text x="461" y="225" class="question">Reuse a decision?</text>
+    <rect x="461" y="253" width="248" height="30" rx="15" fill="#f5f3ff"/>
+    <text x="585" y="274" class="answer" fill="#6d28d9" text-anchor="middle">REMOVE DEAD WORK</text>
+
+    <!-- Sparse attention -->
+    <g filter="url(#shadow)">
+      <rect x="805" y="115" width="300" height="190" rx="20" fill="#ffffff" stroke="#99f6e4" stroke-width="2"/>
+    </g>
+    <rect x="805" y="115" width="300" height="8" rx="4" fill="#0f8f87"/>
+    <g transform="translate(831,143)" fill="#ecfdf5" stroke="#0f8f87" stroke-width="2.5">
+      <rect x="0" y="0" width="18" height="18" rx="3"/><rect x="24" y="0" width="18" height="18" rx="3"/>
+      <rect x="0" y="24" width="18" height="18" rx="3"/><rect x="24" y="24" width="18" height="18" rx="3"/>
+      <path d="M50 21 H66" fill="none"/>
+      <path d="M61 16 L67 21 L61 26" fill="none"/>
+    </g>
+    <text x="907" y="170" class="box-title-compact">Sparse attention</text>
+    <text x="831" y="225" class="question">Move KV or metadata?</text>
+    <rect x="831" y="253" width="248" height="30" rx="15" fill="#ecfdf5"/>
+    <text x="955" y="274" class="answer" fill="#0f766e" text-anchor="middle">MAP PAGE IDS</text>
+
+    <!-- Mixture of experts -->
+    <g filter="url(#shadow)">
+      <rect x="1175" y="115" width="300" height="190" rx="20" fill="#ffffff" stroke="#fed7aa" stroke-width="2"/>
+    </g>
+    <rect x="1175" y="115" width="300" height="8" rx="4" fill="#f97316"/>
+    <g transform="translate(1201,143)" stroke="#f97316" stroke-width="3" fill="none" stroke-linejoin="round">
+      <path d="M2 3 H41 L27 20 V38 L16 32 V20 Z" fill="#fff7ed"/>
+      <path d="M8 9 H35"/>
+    </g>
+    <text x="1261" y="170" class="box-title">MoE</text>
+    <text x="1201" y="225" class="question">What repeats?</text>
+    <rect x="1201" y="253" width="248" height="30" rx="15" fill="#fff7ed"/>
+    <text x="1325" y="274" class="answer" fill="#c2410c" text-anchor="middle">FOLD + PRECOMPUTE</text>
+
+    <!-- The attention and MoE TP collectives -->
+    <circle cx="1140" cy="210" r="24" fill="#fff1f2" stroke="#ef3340" stroke-width="3"/>
+    <text x="1140" y="215" class="collective" text-anchor="middle">AR</text>
+    <circle cx="1505" cy="210" r="24" fill="#fff1f2" stroke="#ef3340" stroke-width="3"/>
+    <text x="1505" y="215" class="collective" text-anchor="middle">AR</text>
+    <path d="M1140 236 V330 M1505 236 V330" fill="none" stroke="#fca5a5" stroke-width="2.5" stroke-dasharray="7 7"/>
+    <rect x="985" y="314" width="520" height="39" rx="19.5" fill="#fff1f2"/>
+    <text x="1245" y="340" class="collective-note" text-anchor="middle">TP collectives: verify eligibility and execution</text>
+
+    <!-- Return to the next layer/token and profile again -->
+    <path d="M1505 369 C1505 416 1170 424 800 424 C430 424 200 416 200 312"
+          fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" marker-end="url(#loop-arrow)"/>
+    <rect x="635" y="401" width="330" height="34" rx="17" fill="#eff6ff"/>
+    <text x="800" y="424" class="tiny" text-anchor="middle" fill="#1d4ed8">PROFILE AGAIN: THE LIMIT MOVED</text>
+
+    <!-- P/D system lane -->
+    <line x1="65" y1="468" x2="1535" y2="468" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="65" y="494" width="148" height="34" rx="17" fill="#f1f5f9"/>
+    <text x="139" y="517" class="lane" text-anchor="middle">P/D SYSTEM</text>
+
+    <g fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)">
+      <line x1="293" y1="607" x2="413" y2="607"/>
+      <line x1="713" y1="607" x2="818" y2="607"/>
+      <line x1="1038" y1="607" x2="1143" y2="607"/>
+      <line x1="1403" y1="607" x2="1508" y2="607"/>
+    </g>
+
+    <!-- Prompt queue -->
+    <text x="173" y="570" class="sys-title" text-anchor="middle">Prompt queue</text>
+    <g fill="#dbeafe" stroke="#2563eb" stroke-width="2">
+      <rect x="85" y="592" width="58" height="31" rx="8"/>
+      <rect x="151" y="592" width="58" height="31" rx="8"/>
+      <rect x="217" y="592" width="58" height="31" rx="8"/>
+    </g>
+    <text x="173" y="662" class="sys-note" text-anchor="middle">TTFT exposes waiting</text>
+
+    <!-- Prefill workers -->
+    <rect x="413" y="557" width="300" height="100" rx="17" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <text x="563" y="592" class="sys-title" text-anchor="middle">Prefill workers</text>
+    <rect x="455" y="611" width="92" height="27" rx="7" fill="#ffffff" stroke="#60a5fa" stroke-width="1.8"/>
+    <rect x="579" y="611" width="92" height="27" rx="7" fill="#ffffff" stroke="#60a5fa" stroke-width="1.8"/>
+    <text x="501" y="630" class="tiny" text-anchor="middle">TP4</text>
+    <text x="625" y="630" class="tiny" text-anchor="middle">TP4</text>
+
+    <!-- KV handoff -->
+    <rect x="818" y="557" width="220" height="100" rx="17" fill="#ecfdf5" stroke="#5eead4" stroke-width="2"/>
+    <text x="928" y="592" class="sys-title" text-anchor="middle">KV handoff</text>
+    <text x="928" y="622" class="sys-note" text-anchor="middle">layout · owner</text>
+    <text x="928" y="645" class="sys-note" text-anchor="middle">completion</text>
+
+    <!-- Decode worker -->
+    <rect x="1143" y="557" width="260" height="100" rx="17" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/>
+    <text x="1273" y="592" class="sys-title" text-anchor="middle">Decode worker</text>
+    <rect x="1227" y="611" width="92" height="27" rx="7" fill="#ffffff" stroke="#a78bfa" stroke-width="1.8"/>
+    <text x="1273" y="630" class="tiny" text-anchor="middle">TP4</text>
+
+    <!-- Output token loop -->
+    <g transform="translate(1516,607)" fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round">
+      <path d="M0 -27 A27 27 0 1 1 -1 27"/>
+      <path d="M8 19 L-1 27 L8 35"/>
+    </g>
+    <text x="1515" y="662" class="sys-note" text-anchor="middle">TPOT</text>
+
+    <rect x="535" y="705" width="530" height="39" rx="19.5" fill="#fff7ed"/>
+    <text x="800" y="731" class="question" text-anchor="middle" fill="#9a3412">Add capacity where the queue grows</text>
+  </g>
+</svg>
