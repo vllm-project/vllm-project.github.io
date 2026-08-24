@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Sharded Weight Transfer with Ray Direct Transport (RDT) in vLLM"
+title: "Large-Scale Sharded Weight Transfer with Ray Direct Transport (RDT) in vLLM"
 author: "Aaron Hao, Sumanth Hegde, Gal Meirom, Istvan Haller, Kourosh Hakhamaneshi, Gavin Parnaby, Moein Khazraee, Omri Kahalon"
 reading_time: "15 min read"
 modern_tables: true
