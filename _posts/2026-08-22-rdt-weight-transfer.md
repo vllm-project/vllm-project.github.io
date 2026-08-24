@@ -63,7 +63,7 @@ When a new weight tensor in HuggingFace format arrives at a vLLM worker, it must
 6. Process: Weights are optionally quantized, with some kernel-specific operations like padding, striding, etc.  
 7. Copy: The final processed weights are copied into already allocated GPU memory
 
-Operations 1-5 happen in vLLM’s weight loader, via [layerwise reloading](https://docs.vllm.ai/en/latest/training/layerwise/). Layerwise reloading helps ensure that weight updates preserve CUDA graphs.
+Operations 1-5 happen in vLLM’s weight loader, via [layerwise reloading](https://docs.vllm.ai/en/latest/training/layerwise/). Layerwise reloading helps ensure that weight updates preserve CUDA graphs while keeping memory usage bounded.
 
 
 <p align="center">
@@ -102,7 +102,7 @@ Most popular RL frameworks like verl, SkyRL, Slime, NemoRL, etc use [Ray](https:
 1. **Trainer collects ownership metadata:** The trainer reports every parameter’s metadata \- name, dtype and full shape \- along with the trainer layout: which layers (pipeline parallelism) and which weight names (e.g., a subset of expert parameters under expert parallelism) are present per rank. Trainer ranks all-gather this ownership metadata.  
 2. **Rank 0 sends transfer metadata to the inference workers:** Rank 0 sends the parameter and ownership metadata, along with trainer Ray actor names needed for RDT transfer.  
 3. **Each vLLM worker records its sharding plan**: Each vLLM rank will perform the recording-tensor dry run above to create a sharding plan consisting of the operation chain for each parameter.   
-4. **Each vLLM worker builds a mapping of source trainer ranks:** Utilizing the transfer metadata, each vLLM worker builds a mapping of source trainer ranks (holding the parameters it needs) and the sharding plans to run. When multiple trainer ranks hold a given parameter, vLLM workers will choose one trainer rank in a load-balanced way.  
+4. **Each vLLM worker builds a mapping of source trainer ranks:** Utilizing the transfer metadata, each vLLM worker builds a mapping of source trainer ranks (holding the parameters it needs) and the sharding plans to run. When multiple trainer ranks hold a given parameter, vLLM workers will choose one trainer rank in a load-balanced way. vLLM workers will be spread across among available producers for a given parameter, and the same worker rank from different replicas pull from the same producer to reduce memory overhead and improve transfer times. 
 5. **Both sides allocate and register their RDT buffers.** The consumer's destination buffer and the producer's source buffer are allocated once and registered with NIXL up front.
 
 
