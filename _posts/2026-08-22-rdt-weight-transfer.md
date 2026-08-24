@@ -27,7 +27,7 @@ In this blog, we detail a sharded weight transfer implementation in vLLM leverag
 - **An optimized implementation that overlaps preprocessing with transport**, so that the gather, the transfer, and the post-processing overlap with each other.  
 - **A fault-tolerant rollout demonstration** that illustrates the fault tolerance properties of RDT with NIXL.
 
-We are able to achieve sharded weight transfer for the Kimi K2 model in BF16 in 7.53 seconds on 48 8xH100 nodes (32 nodes for the trainer, 16 for inference). The implementation is available in [vLLM](https://docs.vllm.ai/en/latest/training/weight_transfer/sharded_rdt/) with an end-to-end example in SkyRL.
+We are able to achieve sharded weight transfer for the Kimi K2 model in BF16 in 7.53 seconds on 48 8xH100 nodes (32 nodes for the trainer, 16 for inference). The implementation is available in [vLLM](https://docs.vllm.ai/en/latest/training/weight_transfer/sharded_rdt/) with an [end-to-end example in SkyRL](https://github.com/NovaSky-AI/SkyRL/tree/main/examples/train/megatron/sharded_rdt).
 
 
 <p align="center">
@@ -159,7 +159,7 @@ In this case, we address the two major downsides of V1 and change the iterator a
 
 These optimizations are especially important for larger models like Kimi K2, not just for saving transfer time but also memory: a full MoE layer for Kimi K2 in BF16 format is about \~ 30GB. Allocating such large buffers per GPU during weight sync can easily lead to OOMs.
 
-With the above optimizations, the end-to-end weight transfer time falls from 25.02s to 5.61s. Note that there are some additional optimizations like metadata caching that have a minor effect on the transfer time. More details on \<todo:add github link\>
+With the above optimizations, the end-to-end weight transfer time falls from 25.02s to 5.61s. Note that there are some additional optimizations like metadata caching that have a minor effect on the transfer time. More details [here](https://github.com/NovaSky-AI/SkyRL/tree/main/examples/train/megatron/sharded_rdt).
 
 ### V3 \- Pipelined execution
 
