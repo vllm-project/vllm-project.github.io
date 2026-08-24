@@ -204,7 +204,7 @@ We further estimate the best theoretical weight transfer times. The absolute spe
 Number of bytes to transfer \= 2TB  of weights   
 Aggregate bandwidth: 400\*4 GB/s \= 1600 GB/s (with InfiniBand)
 
-Thus, the absolute SoL is \~1.25s. However, currently we are limited to serialize transfer over trainer PP group due to the layerwise reloading logic in vLLM. Each layer is allocated a separate buffer on GPU memory, and parallel transfer from PP groups can easily cause OOMs. Thus, for a reasonable expected SoL for the transfer, we should switch instead to the send side. Focusing on the transfer time for a PP group, we get about 0.625s per PP group. With a trainer PP size of 8, the expected SoL in this setup would be 0.625\*8 \= 5s.
+Thus, the absolute SoL is \~1.25s. However, currently we are limited to serialize transfer over trainer PP group due to the layerwise reloading logic in vLLM. Each layer is allocated a separate buffer on GPU memory, and parallel transfer from PP groups can easily cause OOMs. Thus, for a reasonable expected SoL for the transfer, we should switch instead to the send side. Focusing on the transfer time for a PP group, we get about 0.625s per PP group. With a trainer PP size of 8, the expected SoL in this setup would be 0.625\*8 \= 5s. At 7.53s, the measured weight sync time is within ~1.5x of the expected SoL transfer time for this setup.
 
 ## Fault tolerance for rollouts
 
