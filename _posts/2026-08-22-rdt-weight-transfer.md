@@ -215,7 +215,7 @@ To highlight the benefits of RDT, we showcase a scenario of inference engine fai
 <p align="center">
 <img src="/assets/figures/2026-08-22-rdt-weight-transfer/rdt_fault_tolerance.png" width="100%">
 <br>
-<em>Qwen3-32B model training on a Text2SQL task on 4 8xH100 nodes with 4 inference replicas. We simulate failures by killing an inference engine at step 20 and step 40\. The inference engines are brought back online after a few steps. Training with RDT+NIXL continues as usual and convergence remains unaffected.</em></p>
+<em>Qwen3-32B model training on a Text2SQL task on 4 8xH100 nodes with 4 inference replicas. We simulate failures by killing an inference engine at step 20 and step 40. The inference engines are brought back online after a few steps. Training with RDT+NIXL continues as usual and convergence remains unaffected.</em></p>
 
 ## Integration with SkyRL
 
