@@ -4,7 +4,7 @@ title: "Large-Scale Sharded Weight Transfer with Ray Direct Transport (RDT) in v
 author: "Aaron Hao, Sumanth Hegde, Gal Meirom, Istvan Haller, Kourosh Hakhamaneshi, Gavin Parnaby, Moein Khazraee, Omri Kahalon"
 reading_time: "15 min read"
 modern_tables: true
-summary: "We implement a native sharded weight transfer engine in vLLM utilizing Ray Direct Transport (RDT), achieving weight transfer for Kimi-K2 model in BF16 on 48 8xH100 nodes in 7.53s"
+summary: "We implement a native sharded weight transfer engine in vLLM utilizing Ray Direct Transport (RDT), achieving weight transfer for the Kimi K2 model in BF16 on 48 8xH100 nodes in 7.53s"
 image: /assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_overview.png
 social_image: /assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_overview.png
 math: true
@@ -27,7 +27,7 @@ In this blog, we detail a sharded weight transfer implementation in vLLM leverag
 - **An optimized implementation that overlaps preprocessing with transport**, so that the gather, the transfer, and the post-processing overlap with each other.  
 - **A fault-tolerant rollout demonstration** that illustrates the fault tolerance properties of RDT with NIXL.
 
-We are able to achieve sharded weight transfer for the Kimi K2 model in BF16 in 7.53 seconds on 48 8xH100 nodes (32 nodes for the trainer, 16 for inference). The implementation is available in vLLM with an end-to-end example in SkyRL.
+We are able to achieve sharded weight transfer for the Kimi K2 model in BF16 in 7.53 seconds on 48 8xH100 nodes (32 nodes for the trainer, 16 for inference). The implementation is available in [vLLM](https://docs.vllm.ai/en/latest/training/weight_transfer/sharded_rdt/) with an end-to-end example in SkyRL.
 
 
 <p align="center">
@@ -57,11 +57,11 @@ When a new weight tensor in HuggingFace format arrives at a vLLM worker, it must
 
 1. Fuse: weight partitions are fused, for example Q, K and V tensors in the attention layer  
 2. Relayout: Weights can be transposed or reshaped depending on the format of the original weights  
-3. Split/select: The fused tensor can be chunked or a subset of parameters can be selected (eg. expert parallelism)  
+3. Split/select: The fused tensor can be chunked or a subset of parameters can be selected (e.g., expert parallelism)  
 4. Shard: The weight can be sliced for tensor parallelism  
 5. Copy Into Buffer: The weights are copied back into a buffer allocated per layer (“layerwise buffer”). These layerwise buffers are staging buffers allocated by vLLM during weight loading.  
 6. Process: Weights are optionally quantized, with some kernel-specific operations like padding, striding, etc.  
-7. Copy: The final processed weights are copied into already allocated gpu memory
+7. Copy: The final processed weights are copied into already allocated GPU memory
 
 Operations 1-5 happen in vLLM’s weight loader, via [layerwise reloading](https://docs.vllm.ai/en/latest/training/layerwise/). Layerwise reloading helps ensure that weight updates preserve CUDA graphs.
 
@@ -72,22 +72,22 @@ Operations 1-5 happen in vLLM’s weight loader, via [layerwise reloading](https
 <em>Overview of operations in layerwise reloading (<a href="https://docs.vllm.ai/en/latest/training/layerwise/">Source</a>)</em>
 </p>
 
-Ideally, during weight transfer, we transmit the final processed weights (after step 6.) from the trainer and write directly into the storage of the live weights. However, in order to support a wide range of post-processing operations in step 6, we focus on weight transfer of sharded but unprocessed weights in BF16 format (i.e after step 4.) and let the engine handle the rest. This allows us to also support different quantization schemes with vLLM.
+Ideally, during weight transfer, we transmit the final processed weights (after step 6.) from the trainer and write directly into the storage of the live weights. However, in order to support a wide range of post-processing operations in step 6, we focus on weight transfer of sharded but unprocessed weights in BF16 format (i.e., after step 4.) and let the engine handle the rest. This allows us to also support different quantization schemes with vLLM.
 
 ### Custom weight loading behaviors 
 
 Moving steps 1-4 to the trainer means the trainer has to know, for every worker and every weight, which bytes that worker will end up keeping.
 
-The obvious way to get that is to compute it: read the parallel configuration, work out which band of which tensor belongs to which rank, and send accordingly. However, the exact operations to be performed can vary depending on the layer as well the model. Two examples are:
+The obvious way to get that is to compute it: read the parallel configuration, work out which band of which tensor belongs to which rank, and send accordingly. However, the exact operations to be performed can vary depending on the layer as well as the model. Two examples are:
 
 1. **QKV fusion under grouped-query attention:** Three tensors (`q_proj`, `k_proj`, `v_proj`) are fused into one tensor. Under GQA, there can be fewer KV heads than TP ranks \- so two workers can pull different Q tensors but identical K and V tensors. This is different from standard MHA models where the TP sharding is consistent for Q, K and V tensors.  
-2. **Llama-4's fused expert:** In Llama-4,  the expert tensor in Huggingface format is transposed, split into `gate_proj` and `up_proj`, from which the vLLM worker’s experts are selected. 
+2. **Llama-4's fused expert:** In Llama-4, the expert tensor in HuggingFace format is transposed, split into `gate_proj` and `up_proj`, from which the vLLM worker’s experts are selected. 
 
 These two illustrate the diverse set of operations that a weight loader can have. With the various architectures that vLLM supports, implementing steps 1-4 on the trainer would involve bespoke operations per model and layer. The only way to avoid this is by recording the exact set of operations in steps 1-4 for the given configuration at runtime.
 
 ### Solution: a “recording tensor” dry run 
 
-To support custom weight loading behaviours as above, our solution is as follows: at engine initialization, we hand vLLM's loaders a “recording tensor” \- a tensor subclass that reports the correct shape and dtype but owns no data. Every transformation \- view, narrow, transpose, reshape, etc \- gets appended to a chain of operations. When the loader copies into a parameter, we record what it copied *from* and where it landed. We utilize this sequence of operations (a “sharding plan”) during weight sync to transform full tensors on the trainer to sharded tensor required by the vLLM worker.
+To support custom weight loading behaviors as above, our solution is as follows: at engine initialization, we hand vLLM's loaders a “recording tensor” \- a tensor subclass that reports the correct shape and dtype but owns no data. Every transformation \- view, narrow, transpose, reshape, etc \- gets appended to a chain of operations. When the loader copies into a parameter, we record what it copied *from* and where it landed. We utilize this sequence of operations (a “sharding plan”) during weight sync to transform full tensors on the trainer to sharded tensors required by the vLLM worker.
 
 Because the plan comes from vLLM's own loaders, it is correct by construction for whatever those loaders do across different layers and models.
 
@@ -95,11 +95,11 @@ Thus, we perform steps 1-4 on the trainer, and transfer sharded weights in BF16 
 
 ## A sharded weight-transfer engine with RDT
 
-Most popular RL frameworks like verl, SkyRL, Slime, NemoRL, etc use [Ray](https://www.ray.io/) for orchestrating training, with training and inference ranks typically managed as individual Ray actors. To develop our sharded weight transfer engine, we thus utilize [Ray Direct Transport](https://docs.ray.io/en/latest/ray-core/api/direct-transport.html) (RDT) , a Ray API that allows for direct GPU-GPU communication between Ray actors. RDT allows a Ray actor method to return GPU tensors without copying them off the GPU. The caller receives an [ObjectRef](https://docs.ray.io/en/latest/ray-core/objects.html), and the bytes move over a pluggable transport (NIXL, NCCL, Gloo) when the caller reads it. In our case, we chose the NIXL backend for flexible P2P communication, allowing for custom weights to be transferred to each consumer/ inference rank. NIXL also provides the fault-tolerant properties we need for long training runs. Since RDT implements pull-based transfer with NIXL, we implement a pull-based weight transfer engine where the inference ranks will pull sharded tensors they need from one or more mapped trainer ranks. The full flow is below:
+Most popular RL frameworks like verl, SkyRL, Slime, NemoRL, etc use [Ray](https://www.ray.io/) for orchestrating training, with training and inference ranks typically managed as individual Ray actors. To develop our sharded weight transfer engine, we thus utilize [Ray Direct Transport](https://docs.ray.io/en/latest/ray-core/api/direct-transport.html) (RDT), a Ray API that allows for direct GPU-GPU communication between Ray actors. RDT allows a Ray actor method to return GPU tensors without copying them off the GPU. The caller receives an [ObjectRef](https://docs.ray.io/en/latest/ray-core/objects.html), and the bytes move over a pluggable transport (NIXL, NCCL, Gloo) when the caller reads it. In our case, we chose the NIXL backend for flexible P2P communication, allowing for custom weights to be transferred to each consumer/inference rank. NIXL also provides the fault-tolerant properties we need for long training runs. Since RDT implements pull-based transfer with NIXL, we implement a pull-based weight transfer engine where the inference ranks will pull sharded tensors they need from one or more mapped trainer ranks. The full flow is below:
 
 ### At initialization 
 
-1. **Trainer collects ownership metadata:** The trainer reports every parameter’s metadata \- name, dtype and full shape and additionally the trainer layout \- which layers (pipeline parallelism) and which weight names (e.g., a subset of expert parameters under expert parallelism) are present per rank. Trainer ranks all-gather this ownership metadata.  
+1. **Trainer collects ownership metadata:** The trainer reports every parameter’s metadata \- name, dtype and full shape \- along with the trainer layout: which layers (pipeline parallelism) and which weight names (e.g., a subset of expert parameters under expert parallelism) are present per rank. Trainer ranks all-gather this ownership metadata.  
 2. **Rank 0 sends transfer metadata to the inference workers:** Rank 0 sends the parameter and ownership metadata, along with trainer Ray actor names needed for RDT transfer.  
 3. **Each vLLM worker records its sharding plan**: Each vLLM rank will perform the recording-tensor dry run above to create a sharding plan consisting of the operation chain for each parameter.   
 4. **Each vLLM worker builds a mapping of source trainer ranks:** Utilizing the transfer metadata, each vLLM worker builds a mapping of source trainer ranks (holding the parameters it needs) and the sharding plans to run. When multiple trainer ranks hold a given parameter, vLLM workers will choose one trainer rank in a load-balanced way.  
@@ -109,14 +109,14 @@ Most popular RL frameworks like verl, SkyRL, Slime, NemoRL, etc use [Ray](https:
 <p align="center">
 <img src="/assets/figures/2026-08-22-rdt-weight-transfer/rdt_blog_init_flow.png" width="100%">
 <br>
-<em><b>Initialization:</b> Trainer ranks all-gather ownership metadata. Rank-0 transmits ownership \+ transfer metadata to the inference ranks. Inference ranks run through the recording-tensor dry run to build a sharding plan. All ranks allocate and register their RDT buffers for weight transfer.</em>
+<em><b>Initialization:</b> Trainer ranks all-gather ownership metadata. Rank-0 transmits ownership + transfer metadata to the inference ranks. Inference ranks run through the recording-tensor dry run to build a sharding plan. All ranks allocate and register their RDT buffers for weight transfer.</em>
 </p>
 
 ### During weight sync 
 
 1. **Each trainer rank gathers one weight group at a time.** A weight group corresponds to one transformer block (attention \+ MoE layers). We all gather one layer at a time to minimize memory overhead. Optionally, we can choose to leverage weight locality and only gather specific tensors. In our integration we gather only across TP. We don’t gather across PP stages, and we also avoid gathering experts on the trainer ranks under EP. For distributed experts under EP, we simply map each inference rank to relevant training ranks with the desired experts in the initialization phase.  
-2. **Workers pull sharded weights.** Each inference worker walks its recorded plan and asks the corresponding trainer actor for the next batch of slices. The trainer actor replays the recorded operations against the gathered weights, packs the results contiguously into its registered RDT buffer. The worker then reads from this storage via RDMA into its own buffer.  
-3. **Workers run process \+ copy in the background.** A background thread copies each slice out of the worker side RDT buffer into the layerwise buffer; the vLLM engine runs process \+ copy in the background to get the final weights in kernel-ready format.  
+2. **Workers pull sharded weights.** Each inference worker walks its recorded plan and asks the corresponding trainer actor for the next batch of slices. The trainer actor replays the recorded operations against the gathered weights and packs the results contiguously into its registered RDT buffer. The worker then reads from this storage via RDMA into its own buffer.  
+3. **Workers run process \+ copy in the background.** A background thread copies each slice out of the worker-side RDT buffer into the layerwise buffer, and the vLLM engine then runs process \+ copy to get the final weights in kernel-ready format.  
 4. **Workers release the weight group.** After its last slice of a weight group, each vLLM worker signals the owning trainer ranks. Once every vLLM worker has signalled, the trainer drops that group's gathered tensor and is free to gather the next one.   
 5. **The trainer closes the sync** once nothing is in flight, and the workers finish layerwise reloading.
 
@@ -159,7 +159,7 @@ In this case, we address the two major downsides of V1 and change the iterator a
 
 These optimizations are especially important for larger models like Kimi K2, not just for saving transfer time but also memory: a full MoE layer for Kimi K2 in BF16 format is about \~ 30GB. Allocating such large buffers per GPU during weight sync can easily lead to OOMs.
 
-With the above optimizations, the end-to-end weight transfer time falls from  25.02s to 5.61s. Note that there are some additional optimizations like metadata caching that have a minor effect on the transfer time. More details on \<todo:add github link\>
+With the above optimizations, the end-to-end weight transfer time falls from 25.02s to 5.61s. Note that there are some additional optimizations like metadata caching that have a minor effect on the transfer time. More details on \<todo:add github link\>
 
 ### V3 \- Pipelined execution
 
@@ -184,12 +184,12 @@ With the additional pipelining, weight sync latencies drop from 5.61s to 3.49s.
 <em>End-to-end weight sync latencies for Qwen3-235B-A22B, using 4 nodes of 8xH100 (Megatron trainer TP4/PP2/EP8 to vLLM DP16EP16)</em>
 </p>
 
-### Final results: Kimi-K2 at 48 nodes
+### Final results: Kimi K2 at 48 nodes
 
-The NIXL team validated weight-sync with **Kimi-K2 across 48 nodes of 8×H100** 
+The NIXL team validated weight-sync with **Kimi K2 across 48 nodes of 8×H100**.
 
-Trainer settings: Megatron with TP8,PP8,EP32,ETP1  
-Inference settings: vLLM with TP32, EP32
+Trainer settings: Megatron with TP8/PP8/EP32/ETP1  
+Inference settings: vLLM with TP32/EP32
 
 | Metric | Value |
 | :---- | ----: |
@@ -202,9 +202,9 @@ Inference settings: vLLM with TP32, EP32
 We further estimate the best theoretical weight transfer times. The absolute speed of light (SoL) for the setup would be the transfer time to send the weights over the network. The trainer occupies 32 nodes and each inference replica occupies 4 nodes. With PP size of 8, each PP group of 4 nodes needs to send about 2TB/8 \= 0.25TB of weights to 4 replicas, so each group needs to send about 1 TB of weights from 4 nodes. Similarly, each inference replica of 4 nodes needs to receive 2TB of weights. We can thus estimate the speed of light by focusing on one inference replica.
 
 Number of bytes to transfer \= 2TB  of weights   
-Aggregate bandwidth: 400\*4 GBps \= 1600 GBps (with Infiniband)
+Aggregate bandwidth: 400\*4 GB/s \= 1600 GB/s (with InfiniBand)
 
-Thus, the absolute SoL is \~1.25s. However, currently we are limited to serialize transfer over trainer PP group due to the layerwise reloading logic in vLLM. Each layer is allocated a separate buffer on GPU memory, and parallel transfer from PP groups can easily cause OOMs. Focusing on the transfer time for a PP group, we get about 0.625s per PP group. With a trainer PP size of 8, the expected SoL in this setup would be 0.625\*8 \= 5s.
+Thus, the absolute SoL is \~1.25s. However, currently we are limited to serialize transfer over trainer PP group due to the layerwise reloading logic in vLLM. Each layer is allocated a separate buffer on GPU memory, and parallel transfer from PP groups can easily cause OOMs. Thus, for a reasonable expected SoL for the transfer, we should switch instead to the send side. Focusing on the transfer time for a PP group, we get about 0.625s per PP group. With a trainer PP size of 8, the expected SoL in this setup would be 0.625\*8 \= 5s.
 
 ## Fault tolerance for rollouts
 
@@ -234,7 +234,7 @@ class WeightSource(ABC):
     def __iter__(self): ...                           # yield (name, materialized tensor)
 
     # Optional, for sharded trainers — declare what THIS rank holds:
-    def held_names(self) -> "Collection[str] | None": ... # which params do are yielded?
+    def held_names(self) -> "Collection[str] | None": ... # which params are yielded?
 ```
 
 The optional method `held_names` allows trainers to define exactly which parameters a specific rank holds, enabling the optimizations in V2.
