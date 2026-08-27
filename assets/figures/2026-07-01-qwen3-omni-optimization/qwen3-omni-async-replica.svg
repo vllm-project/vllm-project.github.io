@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">Qwen3-Omni async chunk and stage replicas</title>
+  <desc id="desc">One Thinker feeding two Talker replicas and two Code2Wav replicas.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 22px system-ui, -apple-system, Segoe UI, sans-serif; fill: #111827; }
+      .subtitle { font: 500 13px system-ui, -apple-system, Segoe UI, sans-serif; fill: #6b7280; }
+      .node-text { font: 700 15px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .node-sub { font: 500 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #475569; }
+      .arrow { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 6 6; }
+      .panel { fill: #fbf6ef; stroke: #eee1d2; }
+      .blue { fill: #e8eef7; stroke: #b8c7dc; }
+      .green { fill: #bbf7d0; stroke: #4ade80; }
+      .orange { fill: #fed7aa; stroke: #fdba74; }
+      .yellow { fill: #fef3c7; stroke: #fbbf24; }
+    </style>
+  </defs>
+
+  <rect x="20" y="15" width="1240" height="390" rx="20" class="panel"/>
+  <text x="50" y="52" class="title">Async chunk + stage replicas</text>
+  <text x="50" y="74" class="subtitle">Parallel Talker / Code2Wav replicas under one Thinker</text>
+
+  <!-- Thinker -->
+  <rect x="96" y="168" width="178" height="80" rx="10" class="blue"/>
+  <text x="185" y="204" text-anchor="middle" class="node-text">Thinker</text>
+  <text x="185" y="226" text-anchor="middle" class="node-sub">text + hidden states</text>
+
+  <!-- Talker replicas -->
+  <rect x="392" y="112" width="178" height="74" rx="10" class="orange"/>
+  <text x="481" y="148" text-anchor="middle" class="node-text">Talker R0</text>
+  <text x="481" y="170" text-anchor="middle" class="node-sub">codec generation</text>
+
+  <rect x="392" y="270" width="178" height="74" rx="10" class="orange"/>
+  <text x="481" y="306" text-anchor="middle" class="node-text">Talker R1</text>
+  <text x="481" y="328" text-anchor="middle" class="node-sub">codec generation</text>
+
+  <!-- Code2Wav replicas -->
+  <rect x="718" y="112" width="188" height="74" rx="10" class="green"/>
+  <text x="812" y="148" text-anchor="middle" class="node-text">Code2Wav R0</text>
+  <text x="812" y="170" text-anchor="middle" class="node-sub">waveform chunks</text>
+
+  <rect x="718" y="270" width="188" height="74" rx="10" class="green"/>
+  <text x="812" y="306" text-anchor="middle" class="node-text">Code2Wav R1</text>
+  <text x="812" y="328" text-anchor="middle" class="node-sub">waveform chunks</text>
+
+  <!-- Output -->
+  <rect x="1040" y="168" width="158" height="80" rx="10" class="yellow"/>
+  <text x="1119" y="204" text-anchor="middle" class="node-text">Output</text>
+  <text x="1119" y="226" text-anchor="middle" class="node-sub">text + audio</text>
+
+  <!-- Thinker → Talker -->
+  <path class="arrow" d="M 274 200 C 328 156 360 149 382 149"/>
+  <path class="arrow" d="M 274 216 C 328 296 360 307 382 307"/>
+
+  <!-- Talker → Code2Wav -->
+  <path class="arrow" d="M 570 149 L 706 149"/>
+  <path class="arrow" d="M 570 307 L 706 307"/>
+
+  <!-- Code2Wav → Output -->
+  <path class="arrow" d="M 906 149 C 962 164 1000 186 1038 200"/>
+  <path class="arrow" d="M 906 307 C 962 292 1000 244 1038 216"/>
+
+  <!-- Async chunk handoff -->
+  <path class="arrow dash" d="M 304 208 L 1028 208"/>
+</svg>

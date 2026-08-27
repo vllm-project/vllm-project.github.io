@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img">
+<title>Mean audio TTFP (ms) across optimization configs</title>
+<defs><style>
+.title{font:700 24px system-ui,-apple-system,Segoe UI,sans-serif;fill:#111827}
+.panel{fill:#fbf6ef;stroke:#eee1d2}
+.axis{stroke:#c9c1b6;stroke-width:1.4}
+.grid{stroke:#e7ded2;stroke-width:1}
+.tick{font:500 11px system-ui,-apple-system,Segoe UI,sans-serif;fill:#64748b}
+.xtick{font:500 11px system-ui,-apple-system,Segoe UI,sans-serif;fill:#475569}
+.legend{font:600 11px system-ui,-apple-system,Segoe UI,sans-serif;fill:#334155}
+.val{font:600 9px system-ui,-apple-system,Segoe UI,sans-serif;fill:#334155}
+.val-halo{font:600 9px system-ui,-apple-system,Segoe UI,sans-serif;fill:#fbf6ef;stroke:#fbf6ef;stroke-width:3;stroke-linejoin:round}
+.val-c1{fill:#b45309}
+.val-c8{fill:#1d4ed8}
+.val-c16{fill:#6d28d9}
+.val-c32{fill:#15803d}
+.val-c64{fill:#b91c1c}
+.val-c128{fill:#0e7490}
+.leader{fill:none;stroke-width:1.1;opacity:.55}
+.line{fill:none;stroke-width:3}
+</style></defs>
+<clipPath id="plot"><rect x="105.0" y="110.0" width="1075.0" height="285.0"/></clipPath>
+<rect x="20" y="15" width="1240" height="450" rx="20" class="panel"/>
+<text x="50" y="58" class="title">Mean audio TTFP (ms) across optimization configs</text>
+<line x1="680" y1="78" x2="704" y2="78" class="line" stroke="#e39a4a"/>
+<text x="710" y="82" class="legend">c=1</text>
+<line x1="797" y1="78" x2="821" y2="78" class="line" stroke="#7c3aed"/>
+<text x="827" y="82" class="legend">c=16</text>
+<line x1="914" y1="78" x2="938" y2="78" class="line" stroke="#56b879"/>
+<text x="944" y="82" class="legend">c=32</text>
+<line x1="1031" y1="78" x2="1055" y2="78" class="line" stroke="#dc2626"/>
+<text x="1061" y="82" class="legend">c=64</text>
+<line x1="105.0" y1="395.0" x2="1180" y2="395.0" class="axis"/>
+<line x1="105.0" y1="110.0" x2="105.0" y2="395.0" class="axis"/>
+<g clip-path="url(#plot)">
+<line x1="105.0" y1="395.0" x2="1180" y2="395.0" class="grid"/>
+<line x1="105.0" y1="295.4" x2="1180" y2="295.4" class="grid"/>
+<line x1="105.0" y1="209.6" x2="1180" y2="209.6" class="grid"/>
+<line x1="105.0" y1="110.0" x2="1180" y2="110.0" class="grid"/>
+</g>
+<text x="98.0" y="399.0" text-anchor="end" class="tick">100 ms</text>
+<text x="98.0" y="299.4" text-anchor="end" class="tick">500 ms</text>
+<text x="98.0" y="213.6" text-anchor="end" class="tick">2000 ms</text>
+<text x="98.0" y="114.0" text-anchor="end" class="tick">10000 ms</text>
+<g clip-path="url(#plot)">
+<polyline class="line" stroke="#e39a4a" points="105.0,175.8 373.8,270.7 642.5,379.0 911.2,383.0 1180.0,379.4"/>
+<polyline class="line" stroke="#7c3aed" points="105.0,137.8 373.8,222.5 642.5,324.0 911.2,331.4 1180.0,331.4"/>
+<polyline class="line" stroke="#56b879" points="105.0,143.5 373.8,211.7 642.5,305.5 911.2,304.3 1180.0,307.9"/>
+<polyline class="line" stroke="#dc2626" points="105.0,142.8 373.8,189.0 642.5,278.7 911.2,281.0 1180.0,280.9"/>
+</g>
+<circle cx="105.0" cy="175.8" r="4.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="115.0" y="178.95370761943346" text-anchor="start" class="val-halo">3456 ms</text>
+<text x="115.0" y="178.95370761943346" text-anchor="start" class="val">3456 ms</text>
+<circle cx="373.8" cy="270.7" r="4.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="383.75" y="273.94715433973903" text-anchor="start" class="val-halo">745 ms</text>
+<text x="383.75" y="273.94715433973903" text-anchor="start" class="val">745 ms</text>
+<circle cx="642.5" cy="379.0" r="4.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="652.5" y="382.24151381853824" text-anchor="start" class="val-halo">129 ms</text>
+<text x="652.5" y="382.24151381853824" text-anchor="start" class="val">129 ms</text>
+<circle cx="911.2" cy="383.0" r="4.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="921.25" y="386.2015546872214" text-anchor="start" class="val-halo">121 ms</text>
+<text x="921.25" y="386.2015546872214" text-anchor="start" class="val">121 ms</text>
+<circle cx="1180.0" cy="379.4" r="4.5" fill="#f6c28b" stroke="#e39a4a" stroke-width="2"/>
+<text x="1170.0" y="382.568839557562" text-anchor="end" class="val-halo">129 ms</text>
+<text x="1170.0" y="382.568839557562" text-anchor="end" class="val">129 ms</text>
+<circle cx="105.0" cy="137.8" r="4.5" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+<text x="115.0" y="141.04335617353917" text-anchor="start" class="val-halo">6377 ms</text>
+<text x="115.0" y="141.04335617353917" text-anchor="start" class="val">6377 ms</text>
+<circle cx="373.8" cy="222.5" r="4.5" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+<text x="383.75" y="226.94488291796577" text-anchor="start" class="val-halo">1624 ms</text>
+<text x="383.75" y="226.94488291796577" text-anchor="start" class="val">1624 ms</text>
+<circle cx="642.5" cy="324.0" r="4.5" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+<text x="652.5" y="327.1657590330154" text-anchor="start" class="val-halo">315 ms</text>
+<text x="652.5" y="327.1657590330154" text-anchor="start" class="val">315 ms</text>
+<circle cx="911.2" cy="331.4" r="4.5" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+<text x="921.25" y="334.59196725148144" text-anchor="start" class="val-halo">279 ms</text>
+<text x="921.25" y="334.59196725148144" text-anchor="start" class="val">279 ms</text>
+<circle cx="1180.0" cy="331.4" r="4.5" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+<text x="1170.0" y="334.56500613168663" text-anchor="end" class="val-halo">280 ms</text>
+<text x="1170.0" y="334.56500613168663" text-anchor="end" class="val">280 ms</text>
+<line x1="110.0" y1="143.5" x2="113.0" y2="163.0" class="leader" stroke="#56b879"/>
+<circle cx="105.0" cy="143.5" r="4.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="115.0" y="165.04335617353917" text-anchor="start" class="val-halo">5824 ms</text>
+<text x="115.0" y="165.04335617353917" text-anchor="start" class="val">5824 ms</text>
+<circle cx="373.8" cy="211.7" r="4.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="383.75" y="214.94488291796577" text-anchor="start" class="val-halo">1932 ms</text>
+<text x="383.75" y="214.94488291796577" text-anchor="start" class="val">1932 ms</text>
+<circle cx="642.5" cy="305.5" r="4.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="652.5" y="308.68603873359467" text-anchor="start" class="val-halo">425 ms</text>
+<text x="652.5" y="308.68603873359467" text-anchor="start" class="val">425 ms</text>
+<circle cx="911.2" cy="304.3" r="4.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="921.25" y="307.48266036479447" text-anchor="start" class="val-halo">433 ms</text>
+<text x="921.25" y="307.48266036479447" text-anchor="start" class="val">433 ms</text>
+<circle cx="1180.0" cy="307.9" r="4.5" fill="#bfe7c7" stroke="#56b879" stroke-width="2"/>
+<text x="1170.0" y="311.0677400419117" text-anchor="end" class="val-halo">409 ms</text>
+<text x="1170.0" y="311.0677400419117" text-anchor="end" class="val">409 ms</text>
+<line x1="110.0" y1="142.8" x2="113.0" y2="151.0" class="leader" stroke="#dc2626"/>
+<circle cx="105.0" cy="142.8" r="4.5" fill="#fca5a5" stroke="#dc2626" stroke-width="2"/>
+<text x="115.0" y="153.04335617353917" text-anchor="start" class="val-halo">5884 ms</text>
+<text x="115.0" y="153.04335617353917" text-anchor="start" class="val">5884 ms</text>
+<circle cx="373.8" cy="189.0" r="4.5" fill="#fca5a5" stroke="#dc2626" stroke-width="2"/>
+<text x="383.75" y="192.20420808122515" text-anchor="start" class="val-halo">2790 ms</text>
+<text x="383.75" y="192.20420808122515" text-anchor="start" class="val">2790 ms</text>
+<circle cx="642.5" cy="278.7" r="4.5" fill="#fca5a5" stroke="#dc2626" stroke-width="2"/>
+<text x="652.5" y="281.87122597446324" text-anchor="start" class="val-halo">655 ms</text>
+<text x="652.5" y="281.87122597446324" text-anchor="start" class="val">655 ms</text>
+<circle cx="911.2" cy="281.0" r="4.5" fill="#fca5a5" stroke="#dc2626" stroke-width="2"/>
+<text x="921.25" y="284.2063481039462" text-anchor="start" class="val-halo">631 ms</text>
+<text x="921.25" y="284.2063481039462" text-anchor="start" class="val">631 ms</text>
+<circle cx="1180.0" cy="280.9" r="4.5" fill="#fca5a5" stroke="#dc2626" stroke-width="2"/>
+<text x="1170.0" y="284.0855610160249" text-anchor="end" class="val-halo">632 ms</text>
+<text x="1170.0" y="284.0855610160249" text-anchor="end" class="val">632 ms</text>
+<text x="105.0" y="418" text-anchor="middle" class="xtick">Batch</text>
+<text x="373.8" y="418" text-anchor="middle" class="xtick">CUDA</text>
+<text x="373.8" y="432" text-anchor="middle" class="xtick">Graph</text>
+<text x="642.5" y="418" text-anchor="middle" class="xtick">Async</text>
+<text x="642.5" y="432" text-anchor="middle" class="xtick">chunk</text>
+<text x="911.2" y="418" text-anchor="middle" class="xtick">Async</text>
+<text x="911.2" y="432" text-anchor="middle" class="xtick">output</text>
+<text x="1180.0" y="418" text-anchor="middle" class="xtick">Replicas</text>
+</svg>

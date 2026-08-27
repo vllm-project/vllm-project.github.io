@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="title desc">
+  <title id="title">Per-stage CUDA Graph capture in Qwen3-Omni</title>
+  <desc id="desc">Thinker uses vLLM's outer decode graph; Talker adds a torch.compile inner code predictor under its outer graph; Code2Wav uses an inner CUDAGraphDecoderWrapper.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 24px system-ui, -apple-system, Segoe UI, sans-serif; fill: #111827; }
+      .stage-tag { font: 700 18px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .stage-name { font: 700 26px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .stage-sub { font: 500 15px system-ui, -apple-system, Segoe UI, sans-serif; fill: #475569; }
+      .comp-text { font: 700 15px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .comp-sub { font: 500 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #475569; }
+      .glabel-outer { font: 700 13px system-ui, -apple-system, Segoe UI, sans-serif; fill: #2563eb; }
+      .glabel-inner { font: 700 13px system-ui, -apple-system, Segoe UI, sans-serif; fill: #7c3aed; }
+      .glabel-sub { font: 500 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #6b7280; }
+      .legend { font: 500 13px system-ui, -apple-system, Segoe UI, sans-serif; fill: #334155; }
+      .arrow { stroke: #475569; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .panel { fill: #fbf6ef; stroke: #eee1d2; }
+      .thinker { fill: #bfe7c7; stroke: #56b879; }
+      .talker { fill: #f6c28b; stroke: #e39a4a; }
+      .code2wav { fill: #bfe7c7; stroke: #56b879; }
+      .wrap-outer { fill: #ffffff; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 6 5; }
+      .wrap-inner { fill: #ffffff; stroke: #7c3aed; stroke-width: 2; stroke-dasharray: 6 5; }
+      .comp { fill: #eef2f7; stroke: #c3cee0; }
+      .compiled { fill: #f8e7a5; stroke: #d9b441; }
+    </style>
+  </defs>
+
+  <rect x="20" y="15" width="1240" height="450" rx="20" class="panel"/>
+  <text x="50" y="58" class="title">Per-stage CUDA Graph capture</text>
+
+  <!-- Stage 0: Thinker -->
+  <rect x="70" y="95" width="350" height="325" rx="16" class="thinker"/>
+  <text x="245" y="135" text-anchor="middle" class="stage-tag">Stage 0</text>
+  <text x="245" y="172" text-anchor="middle" class="stage-name">Thinker</text>
+  <text x="245" y="197" text-anchor="middle" class="stage-sub">multimodal AR text</text>
+
+  <rect x="95" y="222" width="300" height="178" rx="12" class="wrap-outer"/>
+  <text x="245" y="247" text-anchor="middle" class="glabel-outer">CUDA Graph &#183; outer (vLLM)</text>
+  <rect x="120" y="285" width="250" height="95" rx="10" class="comp"/>
+  <text x="245" y="328" text-anchor="middle" class="comp-text">AR decode step</text>
+  <text x="245" y="350" text-anchor="middle" class="comp-sub">vLLM CUDAGraphWrapper</text>
+
+  <!-- Stage 1: Talker -->
+  <rect x="465" y="95" width="350" height="325" rx="16" class="talker"/>
+  <text x="640" y="135" text-anchor="middle" class="stage-tag">Stage 1</text>
+  <text x="640" y="172" text-anchor="middle" class="stage-name">Talker</text>
+  <text x="640" y="197" text-anchor="middle" class="stage-sub">codec-predictor AR</text>
+
+  <rect x="490" y="222" width="300" height="178" rx="12" class="wrap-outer"/>
+  <text x="640" y="247" text-anchor="middle" class="glabel-outer">CUDA Graph &#183; outer (vLLM)</text>
+  <rect x="515" y="265" width="250" height="55" rx="10" class="comp"/>
+  <text x="640" y="290" text-anchor="middle" class="comp-text">AR decode step</text>
+  <text x="640" y="308" text-anchor="middle" class="comp-sub">outer stage loop</text>
+  <rect x="515" y="330" width="250" height="60" rx="10" class="compiled"/>
+  <text x="640" y="356" text-anchor="middle" class="comp-text">Code predictor</text>
+  <text x="640" y="375" text-anchor="middle" class="comp-sub">torch.compile &#183; inner forward</text>
+
+  <!-- Stage 2: Code2Wav -->
+  <rect x="860" y="95" width="350" height="325" rx="16" class="code2wav"/>
+  <text x="1035" y="135" text-anchor="middle" class="stage-tag">Stage 2</text>
+  <text x="1035" y="172" text-anchor="middle" class="stage-name">Code2Wav</text>
+  <text x="1035" y="197" text-anchor="middle" class="stage-sub">parallel vocoder</text>
+
+  <rect x="885" y="222" width="300" height="178" rx="12" class="wrap-inner"/>
+  <text x="1035" y="246" text-anchor="middle" class="glabel-inner">CUDA Graph &#183; inner</text>
+  <text x="1035" y="264" text-anchor="middle" class="glabel-sub">CUDAGraphDecoderWrapper</text>
+  <rect x="910" y="285" width="250" height="95" rx="10" class="comp"/>
+  <text x="1035" y="328" text-anchor="middle" class="comp-text">Vocoder decode</text>
+  <text x="1035" y="350" text-anchor="middle" class="comp-sub">shape-bucketed chunks</text>
+
+  <!-- Pipeline arrows -->
+  <path class="arrow" d="M 424 257 L 461 257"/>
+  <path class="arrow" d="M 819 257 L 856 257"/>
+
+  <!-- Legend -->
+  <path d="M 80 440 L 120 440" stroke="#2563eb" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="130" y="445" class="legend">Dashed = CUDA Graph capture region (outer = vLLM, inner = custom wrapper)</text>
+  <rect x="700" y="432" width="24" height="16" rx="4" class="compiled"/>
+  <text x="734" y="445" class="legend">Yellow = torch.compile (no second graph layer)</text>
+</svg>
