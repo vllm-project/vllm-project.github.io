@@ -296,7 +296,36 @@ Cartesian product of every optimization on every accelerator.
      request arrival model, measurement commands, quality thresholds, and
      artifact URLs here. -->
 
-### 4.2 Hardware scope
+### 4.2 Required per-stage record
+
+Every result must report both **time** and **placement/parallelism** for each
+stage. A single end-to-end number is insufficient because two configurations
+can reach the same latency through very different bottlenecks.
+
+| Stage | Required timing | Required placement and configuration |
+|---|---|---|
+| Encoder | Preparation and encoder wall time; for disaggregated serving, Stage 0 compute and connector wait separately | Device IDs, TP, DP/replicas, offload state, prefix-cache state, attention backend |
+| DiT denoise | Total denoise wall time, requested sigma points, actual DiT forwards, and `denoise wall / actual forwards` | Device IDs and group membership; TP, Ulysses, Ring, DP, CFG, PP/HSDP; DLO mode and resident layers; attention backend; eager/compile mode |
+| Video VAE | Video decode wall time and multi-rank critical path | Device IDs, VAE patch-parallel size, parallel mode, tiling, and process group |
+| Audio VAE | Audio decode wall time, reported separately when instrumentation permits | Device IDs and whether execution is rank-local, replicated, or sharded |
+| Output transport | Device-to-host, worker-to-engine, and inter-stage handoff wall times where applicable | Source/destination ranks, shared-memory/IPC path, payload dtype and size |
+| CPU MP4 | MP4 encode/mux wall time, process CPU time, and peak RSS | CPU model, socket/NUMA affinity, thread count, PyAV/FFmpeg versions and codec settings |
+| Client E2E | Request submission through complete response body | Request concurrency, endpoint, client host, and network boundary |
+
+Here, **denoise per-step time always divides by the actual number of DiT
+forwards**, not the requested `num_inference_steps`. For a few-step adapter, the
+adapter schedule and actual forward count are part of the result. If only an
+aggregate VAE timer is available, label it as aggregate rather than silently
+assigning it to the video VAE. Likewise, CPU MP4 time excludes D2H and IPC unless
+the measurement boundary explicitly includes them.
+
+Each contributor should also provide one compact stage-parallelism manifest:
+
+| Profile | Encoder stage | DiT stage | Video/audio VAE | Output stage |
+|---|---|---|---|---|
+| TBD | Devices + TP/replicas/cache | Devices + TP/USP/Ring/DP/CFG/PP + offload/backend | Devices + VAE PP/mode/tiling + audio placement | CPU affinity/threads + transport/mux path |
+
+### 4.3 Hardware scope
 
 | Platform | Planned production profiles | Validation status |
 |---|---|---|
@@ -335,6 +364,26 @@ linked reproducibility artifacts.
 | 8× H200 — selected production profile | TBD | TBD | TBD | TBD | TBD | TBD |
 | 8× RTX PRO 5000 — common/production profile | TBD | TBD | TBD | TBD | TBD | Validated path |
 
+The article will include a concise stage breakdown beside that summary:
+
+| Platform / profile | Encoder | Denoise total / forwards / per-forward | Video VAE | Audio VAE | Transport | CPU MP4 wall / process CPU | E2E residual |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 8× B300 — common baseline | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
+| 8× B300 — selected production profile | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
+| 8× H200 — common baseline | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
+| 8× H200 — selected production profile | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
+| 8× RTX PRO 5000 — common/production profile | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
+
+Parallelism is reported explicitly rather than inferred from GPU count:
+
+| Platform / profile | Encoder parallelism | DiT parallelism | VAE parallelism | Output placement |
+|---|---|---|---|---|
+| 8× B300 — common baseline | TBD | TBD | TBD | TBD |
+| 8× B300 — selected production profile | TBD | TBD | TBD | TBD |
+| 8× H200 — common baseline | TBD | TBD | TBD | TBD |
+| 8× H200 — selected production profile | TBD | TBD | TBD | TBD |
+| 8× RTX PRO 5000 — common/production profile | TBD | TBD | TBD | TBD |
+
 The non-comparable preview and vendor tracks remain separate:
 
 | Separate track | Task | E2E P50 / P95 | Outputs/hour | Peak HBM | Quality | Status |
@@ -344,7 +393,9 @@ The non-comparable preview and vendor tracks remain separate:
 
 <!-- BENCHMARK TODO: Replace every TBD with artifact-backed data. Do not mix
      different prompts, shapes, step counts, precisions, or timing boundaries
-     in one comparative row. Add uncertainty or raw samples for each claim. -->
+     in one comparative row. Add uncertainty or raw samples for each claim,
+     and verify that stage totals reconcile with client E2E or explain the
+     residual. -->
 
 The final recommendations use only the canonical T2VA table and answer four
 questions:
