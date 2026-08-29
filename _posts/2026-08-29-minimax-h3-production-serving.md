@@ -188,19 +188,28 @@ moves that encoder into an independent vLLM stage:
 
 - Stage 0 runs the Qwen3-VL encoder with its own tensor-parallel topology,
   scheduler, kernels, and prefix cache.
-- A typed conditioning bridge carries the layer-50 hidden states and token-role
-  tags while preserving the original media references.
-- Stage 1 runs H3 diffusion without loading a second local encoder.
+- The orchestrator receives Stage 0 output, and `text_encoder2diffusion` merges
+  layer-50 hidden states and token-role tags with the original prompt/media.
+- Stage 1 runs H3 diffusion inline without loading a second local encoder.
 
 <p align="center">
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-encoder-disaggregation.svg" alt="MiniMax H3 request flow through an independently scaled vLLM-native encoder and diffusion stage" width="100%">
 </p>
 
-*Figure 3: The encoder owns its processor, TP/replicas, and prefix cache; a
-typed bridge carries hidden states and role tags to a separately parallelized
-DiT/VAE stage while original media references remain available. Adapted from
-vLLM-Omni [#5885](https://github.com/vllm-project/vllm-omni/pull/5885) and
-[RFC #5707](https://github.com/vllm-project/vllm-omni/issues/5707).*
+*Figure 3: Every data-flow arrow now runs left to right. The encoder owns its
+processor, TP/replicas, and prefix cache; the orchestrator combines its typed
+conditioning with the original request before dispatching the separately
+parallelized DiT/VAE stage. Adapted from vLLM-Omni
+[#5885](https://github.com/vllm-project/vllm-omni/pull/5885), the
+[disaggregated recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md),
+and [RFC #5707](https://github.com/vllm-project/vllm-omni/issues/5707).*
+
+The merged single-node deployment does **not** configure OmniConnector: Stage 0
+output returns to the orchestrator, the adapter builds the enriched diffusion
+prompt there, and `InlineStageDiffusionClient` owns the Stage 1 DiffusionEngine
+in the orchestrator process. RFC #5707 sketches OmniConnector with SHM/RDMA as
+a future or cross-node transport option, but that path is outside the current
+recipe.
 
 This boundary is primarily a production-architecture feature. It lets encoder
 and diffusion capacity scale independently, enables prefix reuse for repeated
