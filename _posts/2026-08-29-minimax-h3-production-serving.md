@@ -312,6 +312,53 @@ This is a CPU response-encoding optimization, not a DiT speedup. The benchmark
 therefore separates accelerator execution, worker-to-server transport, and MP4
 construction.
 
+### 3.5 Supported features and cross-feature compatibility
+
+The following matrices are a deployment snapshot for the article's primary
+NVIDIA lane. **Supported** means a merged implementation or maintained recipe,
+not that every hardware and workload combination has met a production SLO.
+**Preview** is not yet a released path; **not qualified** means that we found no
+cited end-to-end evidence for that combination; and **rejected** means that the
+current integration explicitly refuses it. **Limited** is a merged but narrow
+correctness scope, **conditional** depends on a runtime contract, and **not
+offered** falls outside that path's task contract. Hardware qualification
+remains a separate gate in Section 4.
+
+| Capability | T2VA | FL2VA | Ref2VA | Current boundary |
+|---|---|---|---|---|
+| Base H3 | Supported | Supported | Supported | Released serving path |
+| [Turbo LoRA](https://github.com/vllm-project/vllm-omni/pull/6476) | Supported | Supported | Rejected | Merged; dynamic v1.0 four-forward adapter only, one active LoRA, no prefusion or LoRA composition |
+| [FastH3 Dense/Data-Free](https://github.com/vllm-project/vllm-omni/pull/6714) | Preview | Not offered | Not offered | Open T2VA-only preview; load-time fusion before sharding |
+| [SuperPipeline 4+3](https://github.com/vllm-project/vllm-omni/pull/6540) | Not offered | Preview | Not offered | Dedicated two-stage FL2VA preview, not a base-H3 server flag |
+| [DLO](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md) | Supported | Supported | Supported | Choose AllGather or rank-local transfer and qualify host memory, interconnect, and resident-layer count |
+| [Disaggregated encoder](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md) | Supported | Supported | Supported | Merged single-node inline Stage 1; current recipe does not configure OmniConnector |
+| [Online FP8](https://github.com/vllm-project/vllm-omni/pull/5910) | Supported | Supported | Supported | Eligible DiT/text-decoder linears only; VAEs and precision-sensitive layers retain checkpoint precision |
+| [SVDQuant W4A4](https://github.com/vllm-project/vllm-omni/pull/6162) | Not qualified | Limited | Not qualified | Merged FL2VA correctness baseline on SM103; fused performance path remains follow-up work |
+| VAE tile patch parallelism + [exact eager kernels](https://github.com/vllm-project/vllm-omni/pull/6607) | Supported | Supported | Supported | VAE PP is 1 or the full DiT group; eager-kernel acceleration is registered on SM90/SM100/SM103 and otherwise falls back |
+| [Direct planar CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6288) | Conditional | Conditional | Conditional | Used for compatible output layouts; unsupported layouts fall back to the legacy encoder |
+
+Feature composition is deliberately stricter than the individual support
+surface:
+
+| Feature combination | Status | Evidence and deployment boundary |
+|---|---|---|
+| Turbo + DLO | Supported | [PR #6550](https://github.com/vllm-project/vllm-omni/pull/6550) validates rank-local and AllGather topologies; LoRA A/B buffers remain resident in HBM while DLO streams base blocks |
+| Turbo + disaggregated encoder | Supported configuration | Use the dedicated [Turbo deployment](https://github.com/vllm-project/vllm-omni/blob/main/vllm_omni/deploy/minimax_h3_disaggregated_turbo.yaml); task support remains T2VA/FL2VA only |
+| Turbo + online FP8 or SVDQuant | Not qualified | No cited combined end-to-end evidence; do not infer compatibility from the individual features |
+| FastH3 + DLO or VSA | Rejected | [The preview](https://github.com/vllm-project/vllm-omni/pull/6714) refuses offload because fusion occurs in `load_weights()` and refuses sparse VSA variants because the backend is absent |
+| FastH3 + disaggregation or quantization | Not qualified | The current preview validates only the dense T2VA load-time-fusion path |
+| DLO + online FP8 | Route-qualified | Rank-local DLO has MiniMax-H3 end-to-end evidence; [AllGather support](https://github.com/vllm-project/vllm-omni/pull/6279) is merged for per-tensor FP8 but currently has loader/two-rank NCCL smoke rather than a full H3 run |
+| Disaggregated encoder + DLO or online FP8 | Supported configuration | Apply both to Stage 1 only; online FP8 covers the DiT while Stage 0 stays BF16, and the video/audio VAEs remain at checkpoint precision |
+| VAE patch parallelism + DLO, online FP8, or disaggregation | Supported configuration | The [disaggregated recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md) keeps VAE placement independent of Stage 1 offload and quantization |
+| SVDQuant + DLO, disaggregation, or an adapter | Not qualified | The merged loader establishes offline checkpoint and tensor-parallel correctness only |
+| SuperPipeline + general DLO, disaggregation, online weight FP8, or SVDQuant | Not qualified | Treat 4+3 as a dedicated preview topology; its FP8 SAGE option quantizes one attention path and is not the global online-FP8 weight mode |
+| Direct planar CPU MP4 + a standard non-streaming frame-return path | Conditional | Orthogonal to model execution when the returned frame layout is compatible; otherwise the encoder safely falls back. Do not assume it applies when a pipeline, such as SuperPipeline, returns already-encoded MP4 bytes |
+
+These tables are the compatibility contract for the post. A contributor may
+upgrade a **preview**, **limited**, **route-qualified**, or **not qualified**
+cell only with a linked implementation/recipe, a frozen revision, and the
+stage-level validation record defined below.
+
 ## 4. Target hardware and validation methodology
 
 ### 4.1 Common benchmark contract
@@ -486,19 +533,13 @@ for the training architecture, data preparation, rewards, and launch commands.
 
 ## 7. Production readiness
 
-### Feature maturity
+### Promotion gate
 
-| Capability | Status for this post |
-|---|---|
-| Base H3 T2VA/FL2VA/Ref2VA serving | Released path |
-| Turbo LoRA | Merged |
-| FastH3 dense adapter | Preview |
-| SuperPipeline 4+3 | Preview |
-| DLO | Merged; topology-specific qualification required |
-| Disaggregated H3 encoder | Merged |
-| Online FP8 | Merged |
-| SVDQuant W4A4 loader | Merged correctness baseline; performance follow-up |
-| Ascend NPU deployment | Vendor validation pending |
+The matrices in Section 3.5 describe software and recipe compatibility; they
+do not replace platform qualification. Promote a profile only after its frozen
+workload passes the stage-level timing, memory, quality, media-validation, and
+operational checks in Sections 4 and 5. Ascend NPU remains intentionally
+unclassified until the vendor-aligned scope and evidence are available.
 
 ### Operational and security considerations
 
