@@ -368,14 +368,25 @@ platform-specific tuning:
 
 | Control | Canonical value |
 |---|---|
-| Task | T2VA; no reference media |
-| Output | 1344×768, 124 frames, 24 FPS, approximately 5.17 seconds |
+| Task | T2VA through the FL2VA partition; no reference media |
+| Output | 10.0 seconds requested; 1344×768, 243 aligned frames at 24 FPS, 10.125 seconds encoded |
 | Base schedule | 50 requested sigma points; record the actual DiT forward count |
-| Prompt | TBD: one fictional commercial scene with visible motion, ambient audio, and one short spoken sentence |
-| Seed | TBD; fixed across every comparable run |
-| Revisions | Frozen vLLM, vLLM-Omni, model, adapter, and kernel-package SHAs |
-| Repetitions | One feasibility request, one excluded warmup, then two measured repetitions per claimed A/B |
-| Output checks | Full H.264/AAC decode, 32 kHz stereo audio, finite outputs, and predeclared quality gates |
+| Prompt | The official MiniMax H3 model-card `case-T2VA` H3-Context-IR output, frozen at model revision `42ed227e`; SHA-256 `98f36b879692095e099ae824c18d9e93e7006a490e082fd474a5f531769dcf06` |
+| Seed | `0`, matching the official H3-Base script |
+| Revisions | [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54); [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a); [MiniMax H3 `42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe); base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14`; full package manifest retained with the artifacts; no adapter for the base row |
+| Repetitions | One full-shape feasibility request, also recorded as the excluded compile warmup, then two measured repetitions per claimed A/B |
+| Output checks | HTTP 200; full H.264/AAC decode; 1344×768, exactly 243 frames at 24 FPS; 32 kHz stereo audio; nonzero frame variance and audio RMS; prompt-adherence review |
+| Artifact root | `vllm-omni-cookbook/blog/assets/figures/minimax-h3-production-serving/evidence/2026-08-29-<platform>/` |
+
+The canonical prompt is the 380-word structured output shown in the official
+[MiniMax H3 `case-T2VA`](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md#case-t2va):
+a ten-second, two-shot space-opera sequence with a fleet jump, a captain's
+physical reaction, synchronized bridge impacts and room tone, and an
+orchestral rise-and-cut. Contributors must retrieve that expanded prompt once,
+verify the SHA-256 above, and pass it directly to H3-Base. The hosted
+H3-Context-IR call is **not** part of the benchmark timing and must not be
+rerun independently for each platform; doing so could change both the encoder
+workload and the generated scene.
 
 Few-step paths keep the same output contract but use their published schedules;
 the adapter, sigma points, and actual DiT forward count are always reported.
