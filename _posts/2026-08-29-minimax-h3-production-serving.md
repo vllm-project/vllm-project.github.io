@@ -1,0 +1,392 @@
+---
+layout: post
+title: "Production Serving MiniMax H3 with vLLM-Omni"
+author: "vLLM-Omni Team"
+summary: "How vLLM-Omni combines few-step adapters, distributed offload, disaggregated encoding, quantization, kernel optimization, and staged refinement to serve MiniMax H3 in production."
+description: "An evidence-driven guide to the architecture and optimization stack for production MiniMax H3 serving with vLLM-Omni."
+image: /assets/logos/vllm-logo-text-light.png
+tags:
+  - performance
+  - large-scale-serving
+  - multimodal
+  - vllm-omni
+published: false
+---
+
+> [!NOTE]
+> This is an unpublished draft. The architecture and feature descriptions are
+> linked to their implementation sources, while the cross-hardware benchmark,
+> quality, and deployment-recommendation tables intentionally remain `TBD` until
+> the collaborating teams provide final, reproducible validation data.
+
+MiniMax H3 is a joint video-and-audio diffusion model: one request can combine
+text, images, videos, and audio references, then return an MP4 containing H.264
+video and synchronized stereo audio. That capability also makes production
+serving unusually demanding. A deployment must coordinate a large Qwen3-VL
+encoder, a long-sequence audio-video DiT, separate video and audio VAEs, and a
+CPU media path without letting any one stage dominate latency or memory.
+
+This post explains how [vLLM-Omni](https://github.com/vllm-project/vllm-omni)
+turns that pipeline into a production serving system. The stack combines
+few-step adapters, distributed layerwise offload, disaggregated encoding,
+quantization, model-specific kernels, VAE parallelism, and lower-overhead MP4
+construction. We then evaluate the resulting deployment profiles on 8× NVIDIA
+B300, 8× NVIDIA H200, and 8× NVIDIA RTX PRO 5000 Blackwell systems. An Ascend
+NPU section is reserved for results developed with the relevant hardware
+vendors.
+
+## TL;DR
+
+- **One serving contract, three H3 tasks.** vLLM-Omni serves text-to-video-and-audio
+  (T2VA), first/last-frame-to-video-and-audio (FL2VA), and mixed-reference
+  video-and-audio generation (Ref2VA) through `/v1/videos`.
+- **Production acceleration starts by reducing work.** Turbo LoRA and the
+  FastH3 preview reduce the number of DiT evaluations, while the preview
+  SuperPipeline composes four-step H3 generation with three-step LTX-2.5
+  refinement.
+- **System architecture matters as much as kernels.** Distributed layerwise
+  offload changes the memory/throughput frontier; disaggregated encoding makes
+  the Qwen3-VL stage independently schedulable and cacheable.
+- **Every remaining stage is optimized.** Online FP8 and SVDQuant target model
+  memory and GEMMs; fused attention, normalization, RoPE, modulation, and
+  activation paths reduce denoising cost; VAE parallelism and exact eager
+  kernels accelerate decode; direct planar encoding reduces CPU MP4 overhead.
+- **The final deployment comparison is evidence-gated.** Hardware results and
+  recommendations will be added only after all configurations use frozen
+  revisions, controlled workloads, repeatable runs, and validated audio/video
+  outputs.
+
+## 1. Commercial workloads and serving goals
+
+MiniMax H3 has two checkpoint partitions. `FL2VA` serves both text-only and
+first/last-frame-conditioned generation; `Ref2VA` handles mixed image, video,
+and audio references. Shared components include the tokenizer and processor,
+the Qwen3-VL encoder, and the video and audio VAEs. The full task and input
+contract is documented in the
+[MiniMax H3 recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md).
+
+| Task | Commercial examples | Primary serving pressure |
+|---|---|---|
+| T2VA | Creative generation, advertising drafts, synthetic media pipelines | DiT latency and output throughput |
+| FL2VA | Branded content, controlled transitions, image animation | Image encoding plus denoising latency |
+| Ref2VA | Character consistency, video editing, audio-conditioned generation | Long multimodal encoder and packed-attention sequences |
+
+For production users, the relevant question is not simply whether one request
+completes. A useful deployment has to balance five objectives:
+
+1. client-visible end-to-end latency;
+2. sustained node throughput and tail latency under an explicit arrival model;
+3. device HBM, host RAM, and checkpoint-storage requirements;
+4. video, audio, and reference-conditioning quality; and
+5. operational behavior, including startup, warmup, failure recovery, and
+   output transport.
+
+## 2. Production architecture and acceleration
+
+### 2.1 Few-step inference: Turbo and FastH3
+
+The largest denoising win comes from reducing the number of expensive DiT
+forwards. vLLM-Omni currently has two distinct integration models; they should
+not be treated as interchangeable LoRAs.
+
+| Path | Integration model | Current scope | Deployment status |
+|---|---|---|---|
+| [Turbo LoRA](https://github.com/vllm-project/vllm-omni/pull/6476) | Dynamically activated request adapter | FL2VA/T2VA, published four-forward schedule | Merged; [DLO support](https://github.com/vllm-project/vllm-omni/pull/6550) merged |
+| [FastH3](https://github.com/vllm-project/vllm-omni/pull/6714) | Adapter fused into the checkpoint stream at load time | Dense/Data-Free T2VA preview | Preview; current integration rejects offload and VSA variants |
+
+Turbo is the flexible serving option: a server can keep the base model and
+activate the supported adapter per request. FastH3 is a specialized server
+profile. Its artifact contains low-rank factors plus full-rank deltas that an
+ordinary request-switchable LoRA layer cannot express, so the preview fuses it
+before sharding. The sparse FastH3 VSA variants additionally depend on a
+backend not yet implemented by this vLLM-Omni integration.
+
+Any performance table must identify the adapter, number of requested sigma
+points, actual DiT forward count, task, attention backend, and quality
+comparison. A few-step result is not directly comparable to a 50-step baseline
+unless those differences are explicit.
+
+### 2.2 SuperPipeline 4+3
+
+The [MiniMax H3 Super Acceleration pipeline](https://github.com/vllm-project/vllm-omni/pull/6540)
+is a preview two-stage deployment that changes the generation strategy rather
+than optimizing one monolithic model:
+
+1. H3 Turbo performs four DiT forwards at 896×512.
+2. TAEH3 decodes an intermediate video while preserving the original H3 audio.
+3. An LTX-2.5 refiner encodes and upscales the video, then performs three
+   refinement updates at the target resolution.
+4. TAEHV decodes the final video and the worker muxes it with the H3 audio into
+   the returned 1344×768 MP4.
+
+The inter-stage payload is BF16 video plus FP32 PCM in shared memory; the
+pipeline does not pay for a lossy intermediate MP4. This split also creates a
+natural commercial topology: one two-GPU pair per request stream. On an 8×B300
+node, the validation plan measures both one pair for latency and four
+independent pairs for node throughput.
+
+Because the integration remains a draft, this post labels it **preview** and
+does not combine its measurements with released-path claims.
+
+### 2.3 Distributed Layerwise Offload
+
+[Distributed Layerwise Offload (DLO)](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
+keeps a bounded window of DiT layers in device memory and streams the remaining
+weights from the host. It supports two materially different execution modes:
+
+- **AllGather:** ranks retain weight shards and reconstruct each active layer
+  collectively. This reduces aggregate host residency and can pair data
+  parallel replicas with sequence parallelism.
+- **Rank-local:** each rank streams the tensors produced by its ordinary model
+  loader without reconstructing complete weights. It avoids AllGather but has
+  a different host-memory and topology trade-off.
+
+DLO is not a universal speed flag. Its value depends on the service objective,
+interconnect, DP/SP topology, resident-layer count, request concurrency, and
+host bandwidth. The benchmark therefore reports a latency-oriented route, a
+balanced route, and a throughput-oriented route rather than declaring one DLO
+configuration globally best.
+
+### 2.4 Disaggregated encoding
+
+MiniMax H3 retains approximately 51.5 GB of Qwen3-VL encoder weights in BF16.
+The [disaggregated encoder path](https://github.com/vllm-project/vllm-omni/pull/5885)
+moves that encoder into an independent vLLM stage:
+
+- Stage 0 runs the Qwen3-VL encoder with its own tensor-parallel topology,
+  scheduler, kernels, and prefix cache.
+- A typed conditioning bridge carries the layer-50 hidden states and token-role
+  tags while preserving the original media references.
+- Stage 1 runs H3 diffusion without loading a second local encoder.
+
+This boundary is primarily a production-architecture feature. It lets encoder
+and diffusion capacity scale independently, enables prefix reuse for repeated
+presentations, and avoids serializing a decoded raw-video payload across a
+process boundary when the diffusion stage is kept inline.
+
+## 3. End-to-end optimization stack
+
+The pipeline latency can be read as:
+
+`T_E2E = T_encode + NFE × T_DiT_step + T_VAE + T_transport + T_MP4`
+
+Few-step adapters reduce `NFE`. The remaining optimizations target the cost and
+memory of each term.
+
+### 3.1 Memory and quantization
+
+- **Online FP8.** The merged
+  [global FP8 path](https://github.com/vllm-project/vllm-omni/pull/5910)
+  quantizes eligible DiT and Qwen3-VL text-decoder linears at load time while
+  retaining precision-sensitive embeddings, norms, RoPE, VAEs, and FP32
+  projections. It works with resident serving and supported DLO paths without
+  requiring a pre-quantized checkpoint.
+- **SVDQuant NVFP4 W4A4.** The merged
+  [offline loader](https://github.com/vllm-project/vllm-omni/pull/6162)
+  combines an NVFP4 W4A4 base GEMM with a BF16 low-rank correction. The current
+  implementation is a correctness and checkpoint-compatibility baseline;
+  native fused residual-GEMM performance remains follow-up work.
+- **DLO.** Offload is kept separate from quantization in the results. Moving
+  weights to the host and changing their numerical format solve related but
+  different capacity problems.
+
+### 3.2 Denoising kernels
+
+H3's denoising path combines long packed audio/video attention with repeated
+normalization, position encoding, modulation, MLP, and residual operations.
+The production stack includes:
+
+- TRTLLM, FlashAttention, and cuDNN attention backends selected by validated
+  hardware and execution mode;
+- packed variable-length attention that preserves document boundaries;
+- fused RMSNorm and RoPE;
+- model-specific modulation with FP32 accumulation and fused SwiGLU; and
+- strict Ulysses boundaries that keep intermediate sequence shards local and
+  gather only the compact final outputs.
+
+These optimizations reduce `T_DiT_step`; they do not change the number of
+denoising evaluations. The benchmark isolates them from Turbo, FastH3, and the
+SuperPipeline so readers can distinguish algorithmic and kernel gains.
+
+### 3.3 VAE parallelism and kernels
+
+When denoising drops to four forwards, VAE decode becomes a much larger share
+of end-to-end latency. H3 distributes the model's native tiled video decode
+across the DiT group through VAE patch parallelism. The merged
+[exact eager operator path](https://github.com/vllm-project/vllm-omni/pull/6607)
+also accelerates repeated decoder operations, including Q/K normalization plus
+RoPE, SwiGLU, and scaled residuals, while falling back on unsupported tensor or
+hardware contracts.
+
+The results report VAE time separately. This prevents a large isolated decoder
+speedup from being presented as an equally large end-to-end gain.
+
+### 3.4 CPU MP4 encoding and output transport
+
+After the accelerator finishes, non-streaming responses still have to move
+frames to the host and construct an MP4. The
+[direct planar encoder](https://github.com/vllm-project/vllm-omni/pull/6288)
+writes compatible channel-contiguous frames directly into PyAV planes instead
+of first materializing a complete interleaved RGB video. Unsupported layouts
+use the legacy path, while codec settings and output semantics remain
+unchanged.
+
+This is a CPU response-encoding optimization, not a DiT speedup. The benchmark
+therefore separates accelerator execution, worker-to-server transport, and MP4
+construction.
+
+## 4. Target hardware and validation methodology
+
+### 4.1 Common benchmark contract
+
+The three eight-GPU NVIDIA systems use a shared controlled workload before any
+platform-specific tuning:
+
+- frozen vLLM, vLLM-Omni, model, adapter, and kernel-package revisions;
+- identical task, prompt, seed, resolution, frame count, FPS, and sigma points;
+- fixed process placement, NUMA affinity, readiness checks, and cache state;
+- one feasibility request, one excluded warmup, and two measured repetitions
+  for each claimed A/B result;
+- client E2E, stage timings, throughput, P50/P95 latency, HBM, host RAM, and
+  power collected from preserved raw artifacts; and
+- H.264/AAC validation plus video, audio, and reference-conditioning quality
+  checks.
+
+The common baseline answers a hardware-comparison question. Separately, each
+platform receives a best-known production profile; that second table compares
+deployments, not isolated hardware.
+
+<!-- BENCHMARK TODO: Collaborators should add the exact canonical workload,
+     repository SHAs, model revision, software versions, readiness definition,
+     request arrival model, measurement commands, and artifact URLs here. -->
+
+### 4.2 Hardware scope
+
+| Platform | Planned production profiles | Validation status |
+|---|---|---|
+| 8× NVIDIA B300 | Base H3; DLO topology frontier; FastH3; SVDQuant; one and four SuperPipeline pairs | Benchmark data pending |
+| 8× NVIDIA H200 | Base H3; Turbo; denoising/VAE kernels; latency and throughput topologies | Benchmark data pending |
+| 8× RTX PRO 5000 Blackwell | PCIe-only resident serving; TP4 × Ulysses2; text-encoder TP8; VAE PP8 | Benchmark data pending |
+| Ascend NPU | Hardware, topology, software stack, and workload to be agreed with hardware vendors | Vendor validation pending |
+
+The Ascend section intentionally makes no model, topology, performance, or
+quantization claim until the vendor-aligned plan and results are available.
+
+For other hardware, use the maintained deployment recipes rather than treating
+them as part of this article's controlled comparison:
+
+- [RTX 4090](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-4090.md)
+- [RTX 5090](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-5090.md)
+- [DGX Spark GB10](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Spark-GB10.md)
+- [Full MiniMax H3 recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
+
+## 5. Results and deployment recommendations
+
+The final article will keep the decision section deliberately compact. Detailed
+stage traces, per-request samples, environment manifests, and generated media
+belong in linked reproducibility artifacts.
+
+| Platform / profile | Workload | E2E P50 / P95 | Outputs/hour | Peak HBM | Host RAM | Quality | Maturity |
+|---|---|---:|---:|---:|---:|---|---|
+| 8× B300 — base | TBD | TBD | TBD | TBD | TBD | TBD | Validated path |
+| 8× B300 — optimized | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| B300 — SuperPipeline 4+3 | TBD | TBD | TBD | TBD | TBD | TBD | Preview |
+| 8× H200 | TBD | TBD | TBD | TBD | TBD | TBD | Validated path |
+| 8× RTX PRO 5000 | TBD | TBD | TBD | TBD | TBD | TBD | Validated path |
+| Ascend NPU | TBD | TBD | TBD | TBD | TBD | TBD | Vendor validation pending |
+
+<!-- BENCHMARK TODO: Replace every TBD with artifact-backed data. Do not mix
+     different prompts, shapes, step counts, precisions, or timing boundaries
+     in one comparative row. Add uncertainty or raw samples for each claim. -->
+
+The final recommendations will answer only four questions:
+
+- **Lowest request latency:** TBD after validation.
+- **Highest eight-GPU node throughput:** TBD after validation.
+- **Best PCIe-only commercial profile:** TBD after validation.
+- **Best memory-oriented profile:** TBD after validation.
+
+No recommendation will be inferred from nominal FLOPS, HBM capacity, or a
+single cold request.
+
+## 6. RL integration with VeRL-Omni
+
+vLLM-Omni also serves as the rollout engine for MiniMax H3 post-training in
+[VeRL-Omni](https://github.com/verl-project/verl-omni). Current integrations
+cover H3 DiffusionNFT and FlowGRPO paths, preserve joint video/audio rollouts,
+and feed CLAP and ImageBind rewards before synchronizing full-weight or LoRA
+updates back to the optimized rollout model. The resulting policy can return
+to the same production serving stack described above.
+
+This post treats RL as an ecosystem integration, not a serving benchmark. See
+the [MiniMax H3 VeRL-Omni recipe](https://github.com/verl-project/verl-omni/blob/main/examples/diffusionnft_trainer/minimax_h3/README.md)
+for the training architecture, data preparation, rewards, and launch commands.
+
+## 7. Production readiness
+
+### Feature maturity
+
+| Capability | Status for this post |
+|---|---|
+| Base H3 T2VA/FL2VA/Ref2VA serving | Released path |
+| Turbo LoRA | Merged |
+| FastH3 dense adapter | Preview |
+| SuperPipeline 4+3 | Preview |
+| DLO | Merged; topology-specific qualification required |
+| Disaggregated H3 encoder | Merged |
+| Online FP8 | Merged |
+| SVDQuant W4A4 loader | Merged correctness baseline; performance follow-up |
+| Ascend NPU deployment | Vendor validation pending |
+
+### Operational and security considerations
+
+- Report model download, weight preparation, compilation, and readiness
+  separately from warmed request latency.
+- Treat HBM, host RAM, checkpoint storage, and output-transport memory as
+  independent capacity budgets.
+- Preload or allowlist production LoRA adapters. Do not expose arbitrary
+  request-supplied adapter paths to an untrusted endpoint.
+- Validate T2VA, FL2VA, and Ref2VA separately; a result for one partition or
+  input modality is not evidence for another.
+- Keep generated-media safety controls and abuse-reporting mechanisms outside
+  the model server's performance-critical path, but inside the production
+  service boundary.
+
+### Licensing
+
+MiniMax H3 is distributed under the
+[MiniMax H3 Community License Agreement](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE),
+not an unconditional permissive model license. Commercial and hosted-service
+operators should review the current territorial, attribution, revenue,
+acceptable-use, and safeguard requirements with their own counsel before
+deployment.
+
+## Roadmap
+
+- qualify FastH3 and SuperPipeline 4+3 against released baselines;
+- complete native SVDQuant performance kernels and validation;
+- refresh the B300, H200, and RTX PRO 5000 production matrix on frozen
+  revisions;
+- add vendor-reviewed Ascend NPU results; and
+- continue hardening disaggregated serving, output transport, and RL rollout
+  integration.
+
+## Acknowledgments
+
+<!-- AUTHOR TODO: Add named benchmark collaborators, hardware vendors,
+     MiniMax/FastH3/SuperPipeline contributors, PR authors, and reviewers after
+     the final evidence and author list are agreed. -->
+
+This work builds on contributions across vLLM, vLLM-Omni, VeRL-Omni, MiniMax
+H3, FastH3, and the H3 Super Acceleration pipeline. We thank the contributors
+who implemented and validated the model, serving, quantization, offload,
+kernel, VAE, media, hardware, and training paths referenced throughout this
+post.
+
+## References
+
+- [vLLM-Omni repository](https://github.com/vllm-project/vllm-omni)
+- [MiniMax H3 model](https://huggingface.co/MiniMaxAI/MiniMax-H3)
+- [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
+- [Distributed Layerwise Offload](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
+- [VeRL-Omni repository](https://github.com/verl-project/verl-omni)
