@@ -109,6 +109,17 @@ ordinary request-switchable LoRA layer cannot express, so the preview fuses it
 before sharding. The sparse FastH3 VSA variants additionally depend on a
 backend not yet implemented by this vLLM-Omni integration.
 
+<p align="center">
+  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-few-step-adapters.svg" alt="Comparison of request-switchable Turbo LoRA and load-time-fused FastH3 weights" width="100%">
+</p>
+
+*Figure 1: Turbo keeps the base weights unchanged and adds request-selected A/B
+sidecars, while the FastH3 preview fuses low-rank and full-rank deltas into a
+specialized student before sharding. Source contracts: vLLM-Omni
+[#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
+[#6550](https://github.com/vllm-project/vllm-omni/pull/6550), and
+[#6714](https://github.com/vllm-project/vllm-omni/pull/6714).*
+
 Any performance table must identify the adapter, number of requested sigma
 points, actual DiT forward count, task, attention backend, and quality
 comparison. A few-step result is not directly comparable to a 50-step baseline
@@ -155,6 +166,14 @@ weights from the host. It supports two materially different execution modes:
   loader without reconstructing complete weights. It avoids AllGather but has
   a different host-memory and topology trade-off.
 
+<p align="center">
+  <img src="/assets/figures/2026-07-30-distributed-layerwise-offload/dlo_pipeline_last_frame.png" alt="DLO double-buffer pipeline overlapping compute, host-to-device copies, and AllGather" width="100%">
+</p>
+
+*Figure 2: DLO prepares layer N+1 with H2D and optional AllGather while layer N
+computes, alternating between two bounded device slots. Reused from the
+[official DLO post](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload).*
+
 DLO is not a universal speed flag. Its value depends on the service objective,
 interconnect, DP/SP topology, resident-layer count, request concurrency, and
 host bandwidth. The benchmark therefore reports a latency-oriented route, a
@@ -172,6 +191,16 @@ moves that encoder into an independent vLLM stage:
 - A typed conditioning bridge carries the layer-50 hidden states and token-role
   tags while preserving the original media references.
 - Stage 1 runs H3 diffusion without loading a second local encoder.
+
+<p align="center">
+  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-encoder-disaggregation.svg" alt="MiniMax H3 request flow through an independently scaled vLLM-native encoder and diffusion stage" width="100%">
+</p>
+
+*Figure 3: The encoder owns its processor, TP/replicas, and prefix cache; a
+typed bridge carries hidden states and role tags to a separately parallelized
+DiT/VAE stage while original media references remain available. Adapted from
+vLLM-Omni [#5885](https://github.com/vllm-project/vllm-omni/pull/5885) and
+[RFC #5707](https://github.com/vllm-project/vllm-omni/issues/5707).*
 
 This boundary is primarily a production-architecture feature. It lets encoder
 and diffusion capacity scale independently, enables prefix reuse for repeated
@@ -203,6 +232,18 @@ memory of each term.
 - **DLO.** Offload is kept separate from quantization in the results. Moving
   weights to the host and changing their numerical format solve related but
   different capacity problems.
+
+<p align="center">
+  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-quantization-paths.svg" alt="Comparison of online FP8 and offline SVDQuant W4A4 execution paths for MiniMax H3" width="100%">
+</p>
+
+*Figure 4: Online FP8 starts from the ordinary BF16 checkpoint, retains FP8
+weights and frozen weight scales, and dynamically quantizes activations. The
+offline SVDQuant path combines an NVFP4 W4A4 residual GEMM with a BF16 low-rank
+correction. Adapted from the vLLM-Omni cookbook
+[online FP8](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
+and [SVDQuant](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
+explainers.*
 
 ### 3.2 Denoising kernels
 
@@ -488,4 +529,6 @@ post.
 - [MiniMax H3 model](https://huggingface.co/MiniMaxAI/MiniMax-H3)
 - [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
 - [Distributed Layerwise Offload](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
+- [Online FP8 explainer and editable figure sources](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
+- [MiniMax H3 SVDQuant explainer](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
 - [VeRL-Omni repository](https://github.com/verl-project/verl-omni)
