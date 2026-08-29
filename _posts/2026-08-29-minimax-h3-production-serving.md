@@ -51,10 +51,10 @@ vendors.
   memory and GEMMs; fused attention, normalization, RoPE, modulation, and
   activation paths reduce denoising cost; VAE parallelism and exact eager
   kernels accelerate decode; direct planar encoding reduces CPU MP4 overhead.
-- **The final deployment comparison is evidence-gated.** Hardware results and
-  recommendations will be added only after all configurations use frozen
-  revisions, controlled workloads, repeatable runs, and validated audio/video
-  outputs.
+- **One canonical benchmark keeps the comparison tractable.** The main hardware
+  and optimization matrix uses one fixed 1344×768, approximately five-second
+  T2VA workload. SuperPipeline 4+3 remains a separately labeled FL2VA preview;
+  Ref2VA stays outside the benchmark matrix.
 
 ## 1. Commercial workloads and serving goals
 
@@ -70,6 +70,14 @@ contract is documented in the
 | T2VA | Creative generation, advertising drafts, synthetic media pipelines | DiT latency and output throughput |
 | FL2VA | Branded content, controlled transitions, image animation | Image encoding plus denoising latency |
 | Ref2VA | Character consistency, video editing, audio-conditioned generation | Long multimodal encoder and packed-attention sequences |
+
+This post uses **T2VA as its only canonical benchmark**. It is supported across
+the three NVIDIA systems and the base, Turbo, FastH3, DLO, quantization, and
+kernel paths without introducing reference-media preprocessing as another
+variable. FL2VA and Ref2VA remain important capabilities, but benchmarking all
+three would turn the article into a task-by-hardware matrix rather than a clear
+deployment comparison. The only exception is SuperPipeline 4+3, whose current
+preview contract requires FL2VA and is reported separately.
 
 For production users, the relevant question is not simply whether one request
 completes. A useful deployment has to balance five objectives:
@@ -106,6 +114,9 @@ points, actual DiT forward count, task, attention backend, and quality
 comparison. A few-step result is not directly comparable to a 50-step baseline
 unless those differences are explicit.
 
+The canonical T2VA matrix can therefore compare base H3, Turbo, and FastH3
+under one output contract. It does not mix in the FL2VA-only SuperPipeline.
+
 ### 2.2 SuperPipeline 4+3
 
 The [MiniMax H3 Super Acceleration pipeline](https://github.com/vllm-project/vllm-omni/pull/6540)
@@ -126,7 +137,10 @@ node, the validation plan measures both one pair for latency and four
 independent pairs for node throughput.
 
 Because the integration remains a draft, this post labels it **preview** and
-does not combine its measurements with released-path claims.
+does not combine its measurements with released-path claims. It is also the
+only FL2VA benchmark in the post: one two-GPU B300 pair measures latency, while
+four independent pairs measure node throughput. Its results appear in a
+separate preview table and do not determine the cross-hardware recommendation.
 
 ### 2.3 Distributed Layerwise Offload
 
@@ -239,38 +253,64 @@ construction.
 
 ### 4.1 Common benchmark contract
 
-The three eight-GPU NVIDIA systems use a shared controlled workload before any
+The three eight-GPU NVIDIA systems use one controlled T2VA workload before any
 platform-specific tuning:
 
-- frozen vLLM, vLLM-Omni, model, adapter, and kernel-package revisions;
-- identical task, prompt, seed, resolution, frame count, FPS, and sigma points;
-- fixed process placement, NUMA affinity, readiness checks, and cache state;
-- one feasibility request, one excluded warmup, and two measured repetitions
-  for each claimed A/B result;
-- client E2E, stage timings, throughput, P50/P95 latency, HBM, host RAM, and
-  power collected from preserved raw artifacts; and
-- H.264/AAC validation plus video, audio, and reference-conditioning quality
-  checks.
+| Control | Canonical value |
+|---|---|
+| Task | T2VA; no reference media |
+| Output | 1344×768, 124 frames, 24 FPS, approximately 5.17 seconds |
+| Base schedule | 50 requested sigma points; record the actual DiT forward count |
+| Prompt | TBD: one fictional commercial scene with visible motion, ambient audio, and one short spoken sentence |
+| Seed | TBD; fixed across every comparable run |
+| Revisions | Frozen vLLM, vLLM-Omni, model, adapter, and kernel-package SHAs |
+| Repetitions | One feasibility request, one excluded warmup, then two measured repetitions per claimed A/B |
+| Output checks | Full H.264/AAC decode, 32 kHz stereo audio, finite outputs, and predeclared quality gates |
+
+Few-step paths keep the same output contract but use their published schedules;
+the adapter, sigma points, and actual DiT forward count are always reported.
+Process placement, NUMA affinity, readiness checks, and cache state stay fixed
+within an A/B. Preparation and process-to-ready are reported separately from
+warmed request latency.
+
+The experiment has two isolated questions:
+
+1. **Common baseline:** change the eight-GPU NVIDIA platform while holding the
+   semantic workload and comparable serving configuration fixed.
+2. **Optimization A/B:** change one optimization on one platform while holding
+   its hardware, topology, workload, and server lifecycle fixed.
+
+The first feasibility request is the stop condition: an OOM, accelerator error,
+invalid MP4, missing audio stream, or failed quality gate stops that profile
+before repeated measurement. Tail latency comes from a separately specified
+multi-request serving run with enough samples; it is not inferred from the two
+single-request A/B repetitions.
 
 The common baseline answers a hardware-comparison question. Separately, each
-platform receives a best-known production profile; that second table compares
-deployments, not isolated hardware.
+platform receives one best-known production profile; that second table compares
+deployments, not isolated hardware. We intentionally avoid running the full
+Cartesian product of every optimization on every accelerator.
 
-<!-- BENCHMARK TODO: Collaborators should add the exact canonical workload,
+<!-- BENCHMARK TODO: Collaborators should finalize the prompt and seed, then add
      repository SHAs, model revision, software versions, readiness definition,
-     request arrival model, measurement commands, and artifact URLs here. -->
+     request arrival model, measurement commands, quality thresholds, and
+     artifact URLs here. -->
 
 ### 4.2 Hardware scope
 
 | Platform | Planned production profiles | Validation status |
 |---|---|---|
-| 8× NVIDIA B300 | Base H3; DLO topology frontier; FastH3; SVDQuant; one and four SuperPipeline pairs | Benchmark data pending |
-| 8× NVIDIA H200 | Base H3; Turbo; denoising/VAE kernels; latency and throughput topologies | Benchmark data pending |
-| 8× RTX PRO 5000 Blackwell | PCIe-only resident serving; TP4 × Ulysses2; text-encoder TP8; VAE PP8 | Benchmark data pending |
+| 8× NVIDIA B300 | Canonical T2VA baseline plus one selected optimized profile; feature A/Bs for DLO, FastH3, and SVDQuant | Benchmark data pending |
+| 8× NVIDIA H200 | Canonical T2VA baseline plus one selected optimized profile; Turbo and denoising/VAE kernel evidence | Benchmark data pending |
+| 8× RTX PRO 5000 Blackwell | Canonical T2VA on the PCIe-only TP4 × Ulysses2, text-encoder TP8, VAE PP8 resident profile | Benchmark data pending |
 | Ascend NPU | Hardware, topology, software stack, and workload to be agreed with hardware vendors | Vendor validation pending |
 
 The Ascend section intentionally makes no model, topology, performance, or
 quantization claim until the vendor-aligned plan and results are available.
+
+FL2VA and Ref2VA are otherwise represented through capability descriptions and
+maintained recipes, not additional hardware benchmark rows. SuperPipeline 4+3
+is the single explicit FL2VA exception and stays in its own preview result.
 
 For other hardware, use the maintained deployment recipes rather than treating
 them as part of this article's controlled comparison:
@@ -282,24 +322,32 @@ them as part of this article's controlled comparison:
 
 ## 5. Results and deployment recommendations
 
-The final article will keep the decision section deliberately compact. Detailed
-stage traces, per-request samples, environment manifests, and generated media
-belong in linked reproducibility artifacts.
+The final article will keep the decision section deliberately compact. The
+primary table contains only the canonical T2VA workload; detailed stage traces,
+per-request samples, environment manifests, and generated media belong in
+linked reproducibility artifacts.
 
-| Platform / profile | Workload | E2E P50 / P95 | Outputs/hour | Peak HBM | Host RAM | Quality | Maturity |
-|---|---|---:|---:|---:|---:|---|---|
-| 8× B300 — base | TBD | TBD | TBD | TBD | TBD | TBD | Validated path |
-| 8× B300 — optimized | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| B300 — SuperPipeline 4+3 | TBD | TBD | TBD | TBD | TBD | TBD | Preview |
-| 8× H200 | TBD | TBD | TBD | TBD | TBD | TBD | Validated path |
-| 8× RTX PRO 5000 | TBD | TBD | TBD | TBD | TBD | TBD | Validated path |
-| Ascend NPU | TBD | TBD | TBD | TBD | TBD | TBD | Vendor validation pending |
+| Canonical T2VA platform / profile | E2E P50 / P95 | Outputs/hour | Peak HBM | Host RAM | Quality | Maturity |
+|---|---:|---:|---:|---:|---|---|
+| 8× B300 — common baseline | TBD | TBD | TBD | TBD | TBD | Validated path |
+| 8× B300 — selected production profile | TBD | TBD | TBD | TBD | TBD | TBD |
+| 8× H200 — common baseline | TBD | TBD | TBD | TBD | TBD | Validated path |
+| 8× H200 — selected production profile | TBD | TBD | TBD | TBD | TBD | TBD |
+| 8× RTX PRO 5000 — common/production profile | TBD | TBD | TBD | TBD | TBD | Validated path |
+
+The non-comparable preview and vendor tracks remain separate:
+
+| Separate track | Task | E2E P50 / P95 | Outputs/hour | Peak HBM | Quality | Status |
+|---|---|---:|---:|---:|---|---|
+| B300 SuperPipeline 4+3 | FL2VA | TBD | TBD | TBD | TBD | Preview |
+| Ascend NPU | Vendor-defined | TBD | TBD | TBD | TBD | Vendor validation pending |
 
 <!-- BENCHMARK TODO: Replace every TBD with artifact-backed data. Do not mix
      different prompts, shapes, step counts, precisions, or timing boundaries
      in one comparative row. Add uncertainty or raw samples for each claim. -->
 
-The final recommendations will answer only four questions:
+The final recommendations use only the canonical T2VA table and answer four
+questions:
 
 - **Lowest request latency:** TBD after validation.
 - **Highest eight-GPU node throughput:** TBD after validation.
@@ -346,8 +394,8 @@ for the training architecture, data preparation, rewards, and launch commands.
   independent capacity budgets.
 - Preload or allowlist production LoRA adapters. Do not expose arbitrary
   request-supplied adapter paths to an untrusted endpoint.
-- Validate T2VA, FL2VA, and Ref2VA separately; a result for one partition or
-  input modality is not evidence for another.
+- Treat the canonical results as T2VA evidence only. FL2VA and Ref2VA require
+  separate validation before their recipes are promoted to production SLOs.
 - Keep generated-media safety controls and abuse-reporting mechanisms outside
   the model server's performance-critical path, but inside the production
   service boundary.
