@@ -26,6 +26,19 @@ serving unusually demanding. A deployment must coordinate a large Qwen3-VL
 encoder, a long-sequence audio-video DiT, separate video and audio VAEs, and a
 CPU media path without letting any one stage dominate latency or memory.
 
+<p align="center">
+  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-model-pipeline.svg" alt="MiniMax H3 model pipeline from multimodal inputs through shared encoders, a packed sequence, task-specific joint audio-video diffusion, separate VAE decoders, and MP4 muxing" width="100%">
+</p>
+
+*Figure 1: Text is encoded by the H3/Qwen3-VL encoder; visual conditions use
+both that encoder and the Visual VAE; audio references use the Audio VAE. Their
+representations join noisy target video/audio latents in one packed sequence.
+The selected FL2VA or Ref2VA DiT jointly predicts both output latents before
+separate VAE decode and CPU mux. Sources: the official
+[MiniMax H3 model card](https://huggingface.co/MiniMaxAI/MiniMax-H3), the
+[vLLM-Omni recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md),
+and the [Diffusers pipeline description](https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3).*
+
 This post explains how [vLLM-Omni](https://github.com/vllm-project/vllm-omni)
 turns that pipeline into a production serving system. The stack combines
 few-step adapters, distributed layerwise offload, disaggregated encoding,
@@ -113,7 +126,7 @@ backend not yet implemented by this vLLM-Omni integration.
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-few-step-adapters.svg" alt="Comparison of request-switchable Turbo LoRA and load-time-fused FastH3 weights" width="100%">
 </p>
 
-*Figure 1: Turbo keeps the base weights unchanged and adds request-selected A/B
+*Figure 2: Turbo keeps the base weights unchanged and adds request-selected A/B
 sidecars, while the FastH3 preview fuses low-rank and full-rank deltas into a
 specialized student before sharding. Source contracts: vLLM-Omni
 [#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
@@ -170,7 +183,7 @@ weights from the host. It supports two materially different execution modes:
   <img src="/assets/figures/2026-07-30-distributed-layerwise-offload/dlo_pipeline_last_frame.png" alt="DLO double-buffer pipeline overlapping compute, host-to-device copies, and AllGather" width="100%">
 </p>
 
-*Figure 2: DLO prepares layer N+1 with H2D and optional AllGather while layer N
+*Figure 3: DLO prepares layer N+1 with H2D and optional AllGather while layer N
 computes, alternating between two bounded device slots. Reused from the
 [official DLO post](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload).*
 
@@ -196,7 +209,7 @@ moves that encoder into an independent vLLM stage:
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-encoder-disaggregation.svg" alt="MiniMax H3 request flow through an independently scaled vLLM-native encoder and diffusion stage" width="100%">
 </p>
 
-*Figure 3: Every data-flow arrow now runs left to right. The encoder owns its
+*Figure 4: Every data-flow arrow now runs left to right. The encoder owns its
 processor, TP/replicas, and prefix cache; the orchestrator combines its typed
 conditioning with the original request before dispatching the separately
 parallelized DiT/VAE stage. Adapted from vLLM-Omni
@@ -246,7 +259,7 @@ memory of each term.
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-quantization-paths.svg" alt="Comparison of online FP8 and offline SVDQuant W4A4 execution paths for MiniMax H3" width="100%">
 </p>
 
-*Figure 4: Online FP8 starts from the ordinary BF16 checkpoint, retains FP8
+*Figure 5: Online FP8 starts from the ordinary BF16 checkpoint, retains FP8
 weights and frozen weight scales, and dynamically quantizes activations. The
 offline SVDQuant path combines an NVFP4 W4A4 residual GEMM with a BF16 low-rank
 correction. Adapted from the vLLM-Omni cookbook
