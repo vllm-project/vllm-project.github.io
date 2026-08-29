@@ -2,7 +2,7 @@
 layout: post
 title: "Production Serving MiniMax H3 with vLLM-Omni"
 author: "vLLM-Omni Team"
-summary: "How vLLM-Omni combines few-step adapters, distributed offload, disaggregated encoding, quantization, kernel optimization, and staged refinement to serve MiniMax H3 in production."
+summary: "How vLLM-Omni combines dense lossless kernels, four-step adapters, quantization, distributed offload, and encoder disaggregation to serve MiniMax H3 in production."
 description: "An evidence-driven guide to the architecture and optimization stack for production MiniMax H3 serving with vLLM-Omni."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
@@ -40,34 +40,32 @@ separate VAE decode and CPU mux. Sources: the official
 and the [Diffusers pipeline description](https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3).*
 
 This post explains how [vLLM-Omni](https://github.com/vllm-project/vllm-omni)
-turns that pipeline into a production serving system. The stack combines
-few-step adapters, distributed layerwise offload, disaggregated encoding,
-quantization, model-specific kernels, VAE parallelism, and lower-overhead MP4
-construction. We then evaluate the resulting deployment profiles on 8× NVIDIA
-B300, 8× NVIDIA H200, and 8× NVIDIA RTX PRO 5000 Blackwell systems. An Ascend
-NPU section is reserved for results developed with the relevant hardware
-vendors.
+turns that pipeline into a production serving system. We separate the stack
+into three decision lanes: dense reference-quality runtime optimization,
+quality- or precision-changing acceleration, and production deployment
+features. We then evaluate the resulting profiles on NVIDIA B300, H200, and
+RTX PRO 5000 Blackwell systems. An Ascend NPU section is reserved for results
+developed with the relevant hardware vendors.
 
 ## TL;DR
 
 - **One serving contract, three H3 tasks.** vLLM-Omni serves text-to-video-and-audio
   (T2VA), first/last-frame-to-video-and-audio (FL2VA), and mixed-reference
   video-and-audio generation (Ref2VA) through `/v1/videos`.
-- **Production acceleration starts by reducing work.** Turbo LoRA and the
-  FastH3 preview reduce the number of DiT evaluations, while the preview
-  SuperPipeline composes four-step H3 generation with three-step LTX-2.5
-  refinement.
-- **System architecture matters as much as kernels.** Distributed layerwise
-  offload changes the memory/throughput frontier; disaggregated encoding makes
-  the Qwen3-VL stage independently schedulable and cacheable.
-- **Every remaining stage is optimized.** Online FP8 and SVDQuant target model
-  memory and GEMMs; fused attention, normalization, RoPE, modulation, and
-  activation paths reduce denoising cost; VAE parallelism and exact eager
-  kernels accelerate decode; direct planar encoding reduces CPU MP4 overhead.
-- **One canonical benchmark keeps the comparison tractable.** The main hardware
-  and optimization matrix uses one fixed 1344×768, approximately five-second
-  T2VA workload. SuperPipeline 4+3 remains a separately labeled FL2VA preview;
-  Ref2VA stays outside the benchmark matrix.
+- **Optimize the lossless lane first.** Dense attention, packed-sequence and
+  Ulysses boundaries, fused DiT operators, VAE parallelism/kernels, and CPU MP4
+  construction are compared end to end against Diffusers on each platform.
+- **Treat acceleration knobs as separate quality decisions.** Turbo and
+  FastH3 reduce the denoiser to four forwards; online FP8, SVDQuant, SAGE,
+  Skip-Softmax, Sol-Attn, and Cache-DiT change precision, coverage, weights, or
+  executed work and therefore require their own quality evidence.
+- **System architecture determines the production frontier.** Distributed
+  layerwise offload changes the latency/throughput/memory trade-off;
+  disaggregated encoding makes the Qwen3-VL stage independently schedulable
+  and cacheable; step execution adds admission and abort boundaries.
+- **One canonical benchmark keeps the comparison tractable.** Every comparable
+  row uses the official 10-second, 1344×768 T2VA case. FL2VA and Ref2VA remain
+  capability and recipe coverage rather than a second hardware matrix.
 
 ## 1. Commercial workloads and serving goals
 
@@ -89,8 +87,7 @@ the three NVIDIA systems and the base, Turbo, FastH3, DLO, quantization, and
 kernel paths without introducing reference-media preprocessing as another
 variable. FL2VA and Ref2VA remain important capabilities, but benchmarking all
 three would turn the article into a task-by-hardware matrix rather than a clear
-deployment comparison. The only exception is SuperPipeline 4+3, whose current
-preview contract requires FL2VA and is reported separately.
+deployment comparison.
 
 For production users, the relevant question is not simply whether one request
 completes. A useful deployment has to balance five objectives:
@@ -102,9 +99,216 @@ completes. A useful deployment has to balance five objectives:
 5. operational behavior, including startup, warmup, failure recovery, and
    output transport.
 
-## 2. Production architecture and acceleration
+## 2. Benchmark contract and evidence rules
 
-### 2.1 Few-step inference: Turbo and FastH3
+### 2.1 Frozen canonical workload
+
+Every comparable row uses one official T2VA workload before platform-specific
+tuning:
+
+| Control | Canonical value |
+|---|---|
+| Task | T2VA through the FL2VA partition; no reference media |
+| Output | 10.0 seconds requested; 1344×768, 243 aligned frames at 24 FPS, 10.125 seconds encoded |
+| Base schedule | 50 requested sigma points and 49 expected DiT forwards; record both |
+| Prompt | The official MiniMax H3 model-card `case-T2VA` H3-Context-IR output, frozen at model revision `42ed227e`; SHA-256 `98f36b879692095e099ae824c18d9e93e7006a490e082fd474a5f531769dcf06` |
+| Seed | `0`, matching the official H3-Base script |
+| vLLM-Omni lane | [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54), [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a), base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` |
+| Diffusers lane | [Diffusers `v0.40.0` / `d035dcd7`](https://github.com/huggingface/diffusers/commit/d035dcd7cc7c88e0a154609b62887d50bba9fdc2); record Transformers, PyTorch, attention-kernel, and media-package versions |
+| Model | [MiniMax H3 `42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe) |
+| Repetitions | One full-shape feasibility request, also recorded as the excluded compile/kernel warmup, then two measured repetitions per claimed A/B |
+| Output checks | HTTP/process success; full H.264/AAC decode; 1344×768, exactly 243 frames at 24 FPS; 32 kHz stereo audio; nonzero frame variance and audio RMS; prompt-adherence review |
+| Artifact root | `vllm-omni-cookbook/blog/assets/figures/minimax-h3-production-serving/evidence/2026-08-29-<platform>/` |
+
+The canonical prompt is the 380-word structured output shown in the official
+[MiniMax H3 `case-T2VA`](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md#case-t2va):
+a two-shot space-opera sequence with a fleet jump, a captain's physical
+reaction, synchronized bridge impacts and room tone, and an orchestral
+rise-and-cut. Contributors retrieve that expanded prompt once, verify its
+SHA-256, and pass it directly to H3-Base. The hosted H3-Context-IR call is not
+part of readiness or request latency and must not be rerun independently per
+platform.
+
+The article keeps three comparison lanes separate:
+
+1. **Lossless runtime A/B:** 50 sigma points, BF16 checkpoint weights, dense
+   full attention, and no adapter, cache, sparsity, or quantization. Declare
+   any capacity-required component staging; keep vLLM-Omni DLO in Section 5.
+2. **Accelerated-path A/B:** change one adapter, numerical format, cache, or
+   sparse-attention policy and attach same-seed quality evidence.
+3. **Production-topology study:** change placement or parallelism to measure a
+   latency/throughput/memory frontier rather than a kernel speedup.
+
+The first feasibility request is the stop condition. OOM, accelerator error,
+invalid media, missing audio, failed quality gates, or an unexpected backend
+fallback stops the profile before repeated measurement. Tail latency requires
+a separately declared arrival process and enough samples; it is never inferred
+from the two single-request repetitions.
+
+### 2.2 Required stage accounting and parallelism
+
+Use one end-to-end identity for every runtime:
+
+`T_client = T_queue + T_encoder + T_denoise + T_video_VAE + T_audio_VAE + T_transport + T_MP4 + T_residual`
+
+Diffusers timing begins immediately before the frozen prompt enters the local
+pipeline and ends after the complete MP4 is written. vLLM-Omni timing begins at
+request submission and ends after the complete response body is received.
+Model download, checkpoint conversion, compilation, and warmup stay outside
+both warmed request intervals and are reported separately.
+
+| Stage | Required timing | Required placement and configuration |
+|---|---|---|
+| Encoder | Preparation and encoder wall time; for disaggregation, Stage 0 compute and handoff wait separately | Device IDs, TP, replicas, offload, prefix-cache state, attention backend |
+| DiT denoise | Total wall time, sigma points, actual forwards, and wall time per actual forward | Device IDs and group membership; TP, Ulysses, Ring, DP, CFG, PP/HSDP; DLO mode/resident layers; dense or approximate attention; eager/compile |
+| Video VAE | Decode wall time and multi-rank critical path | Devices, VAE patch-parallel size, mode, tiling, process group, kernel path |
+| Audio VAE | Separate wall time when instrumentation permits | Devices and rank-local, replicated, or sharded placement |
+| Transport | D2H, worker-to-engine, and inter-stage handoff where applicable | Source/destination ranks, SHM/IPC path, payload dtype and size |
+| CPU MP4 | Encode/mux wall time, process CPU time, and peak RSS | CPU model, NUMA affinity, threads, conversion path, PyAV/FFmpeg and codec settings |
+| Client E2E | Prompt submission through complete MP4 | Endpoint/call boundary, client host, concurrency, and network boundary |
+| Residual | `client E2E - directly measured stages` | Explain any material signed residual rather than hiding it in another stage |
+
+For denoising, divide by the **actual DiT forward count**, not the requested
+sigma-point count. If only aggregate VAE timing exists, label it aggregate.
+Likewise, CPU MP4 excludes D2H and IPC unless the instrumentation boundary
+explicitly includes them.
+
+Each result also carries this compact manifest:
+
+| Profile | Encoder | DiT | Video/audio VAE | Output |
+|---|---|---|---|---|
+| TBD | Devices + TP/replicas/cache | Devices + TP/USP/Ring/DP/CFG/PP + offload/backend | Devices + VAE PP/mode/tiling + audio placement | Transport + CPU affinity/threads + mux path |
+
+### 2.3 Hardware scope
+
+| Platform | Primary evidence requested | Status |
+|---|---|---|
+| NVIDIA B300 | Diffusers versus vLLM-Omni lossless A/B; dense-backend selection; four-step and quantization/attention feature A/Bs | Pending collaborator data |
+| NVIDIA H200 | Diffusers versus vLLM-Omni lossless A/B; dense attention, fused-DiT, VAE, CPU MP4, and Turbo evidence | Pending collaborator data |
+| 8× RTX PRO 5000 Blackwell | Diffusers versus vLLM-Omni lossless A/B; resident TP4×USP2 profile; DLO DP×USP Pareto study; sparse-attention preview kept separate | Pending collaborator data |
+| Ascend NPU | Scope, topology, software stack, and workload to be agreed with hardware vendors | Vendor validation pending |
+
+The Ascend lane intentionally makes no model, topology, performance, or
+quantization claim until the vendor-aligned plan and results are available.
+For other hardware, use the maintained recipes rather than extending this
+controlled matrix:
+
+- [RTX 4090](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-4090.md)
+- [RTX 5090](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-5090.md)
+- [DGX Spark GB10](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Spark-GB10.md)
+- [Full MiniMax H3 recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
+
+## 3. Lossless runtime optimization
+
+Here, **lossless** means that the comparison keeps the released BF16 model,
+the 50-point schedule, and dense full-attention coverage. It does not promise
+bitwise identity: changing reduction order, attention kernels, or FP32
+accumulation can perturb a diffusion trajectory. Every row still needs the
+same media and quality gates.
+
+### 3.1 Dense attention, packed sequences, and Ulysses boundaries
+
+H3 denoises one long packed text/audio/video sequence. vLLM-Omni preserves
+document boundaries with variable-length attention metadata and can select a
+platform-qualified dense backend without changing attention coverage. The
+[TRTLLM refinement](https://github.com/vllm-project/vllm-omni/pull/5779)
+trims structural padding before the kernel; the
+[strict-Ulysses optimization](https://github.com/vllm-project/vllm-omni/pull/6173)
+constructs rank-local input rows and gathers compact projected outputs instead
+of full hidden states.
+
+Dense backend selection is deliberately platform-specific:
+
+| Platform | Diffusers starting point | vLLM-Omni dense candidates | Qualification rule |
+|---|---|---|---|
+| B300, SM103 | Native dense backend selected by the pinned Diffusers stack | Dense `TRTLLM_ATTN`, cuDNN, or FA4 | Benchmark eligible dense choices under the same topology; record the resolved kernel |
+| H200, SM90 | Documented `_flash_3_hub`/FlashAttention-3 starting point | `CUDNN_ATTN` or `FLASH_ATTN` | `TRTLLM_ATTN` is not an H200 backend; compare the validated dense choices |
+| RTX PRO 5000, SM120 | Native/cuDNN dense path with the declared component placement | `CUDNN_ATTN` | Keep Sol-Attn and every sparse path in Section 4 |
+
+An attention-backend win is reported separately from the complete
+Diffusers-versus-vLLM comparison. Selecting different dense kernels is allowed,
+but the table must name them; otherwise a runtime speedup would silently mix an
+engine change with a kernel change.
+
+### 3.2 Fused DiT operators
+
+The dense DiT path removes repeated launch and memory traffic without changing
+its model or step count:
+
+- [fused RMSNorm and RoPE](https://github.com/vllm-project/vllm-omni/pull/5801)
+  replace model-local compositions with platform-dispatched diffusion ops;
+- [FP32 fused modulation](https://github.com/vllm-project/vllm-omni/pull/6281)
+  combines gather, modulation, normalization, and residual work while retaining
+  FP32 accumulation;
+- [fused SwiGLU](https://github.com/vllm-project/vllm-omni/pull/6283) replaces
+  separate SiLU and multiply launches; and
+- strict Ulysses keeps the pre/post-transformer boundaries local while leaving
+  the Q/K/V all-to-all and attention math unchanged.
+
+These changes are not summed from their individual PR benchmarks. The article
+measures the merged stack once, then uses isolated A/Bs only when the hardware,
+topology, workload, and base revision are identical.
+
+### 3.3 VAE parallelism and exact eager kernels
+
+At short denoising schedules, decode becomes a much larger fraction of request
+latency. H3 distributes native tiled video decode through VAE patch
+parallelism. The merged [exact eager operator path](https://github.com/vllm-project/vllm-omni/pull/6607)
+also accelerates Q/K normalization plus RoPE, SwiGLU, and scaled residuals on
+SM90, SM100, and SM103 while retaining guarded fallbacks. Report the video VAE
+critical path and audio VAE separately; an isolated decoder speedup is not an
+equal-sized end-to-end claim.
+
+### 3.4 CPU MP4 construction
+
+The [direct planar encoder](https://github.com/vllm-project/vllm-omni/pull/6288)
+avoids materializing a full interleaved RGB video for compatible frame layouts.
+The follow-up [persistent eight-worker conversion pool](https://github.com/vllm-project/vllm-omni/pull/6499)
+parallelizes ordered per-frame conversion. Both preserve H.264/AAC settings and
+fall back safely when the frame contract is unsupported.
+
+For Diffusers, the equivalent end boundary includes its caller-side
+`encode_video()`/mux step. For vLLM-Omni, it includes the complete non-streaming
+HTTP response. Report MP4 wall time, process CPU time, peak RSS, chosen route,
+and CPU/NUMA placement rather than attributing CPU gains to the GPU engine.
+
+### 3.5 Diffusers versus vLLM-Omni A/B
+
+This is a **complete lossless deployment comparison**, not automatically a
+pure software microbenchmark. Use the same reserved GPU budget and timing
+boundary whenever both runtimes support it. If component placement or GPU count
+must differ, label the row a deployment comparison and do not publish an
+unqualified “engine speedup.”
+
+Before using pixelwise or waveform metrics across runtimes, verify that both
+implementations consume the same generator state, draw order, latent shapes,
+and scheduler grid. If that contract differs, report matched-prompt perceptual
+and semantic quality instead of presenting SSIM/PSNR as numerical parity.
+
+| Platform | Diffusers devices / placement / dense attention | vLLM-Omni devices / parallelism / dense attention | Diffusers E2E | vLLM-Omni E2E | Relative E2E | Quality | Artifacts |
+|---|---|---|---:|---:|---:|---|---|
+| B300 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| H200 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| RTX PRO 5000 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+
+The A/B also exposes where the difference comes from:
+
+| Platform / runtime | Ready time | Encoder | Denoise total / 49 / per-forward | Video VAE | Audio VAE | CPU MP4 | Complete MP4 E2E | Peak HBM / host RAM |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| B300 / Diffusers | TBD | TBD | TBD / 49 / TBD | TBD | TBD | TBD | TBD | TBD / TBD |
+| B300 / vLLM-Omni | TBD | TBD | TBD / 49 / TBD | TBD | TBD | TBD | TBD | TBD / TBD |
+| H200 / Diffusers | TBD | TBD | TBD / 49 / TBD | TBD | TBD | TBD | TBD | TBD / TBD |
+| H200 / vLLM-Omni | TBD | TBD | TBD / 49 / TBD | TBD | TBD | TBD | TBD | TBD / TBD |
+| RTX PRO 5000 / Diffusers | TBD | TBD | TBD / 49 / TBD | TBD | TBD | TBD | TBD | TBD / TBD |
+| RTX PRO 5000 / vLLM-Omni | TBD | TBD | TBD / 49 / TBD | TBD | TBD | TBD | TBD | TBD / TBD |
+
+Every populated row must link the exact commands, package manifest, resolved
+attention backend, raw samples, profiler source, generated-media hashes, and
+same-seed quality report.
+
+## 4. Acceleration paths with explicit quality or precision trade-offs
+
+### 4.1 Four-step adapters: Turbo and FastH3
 
 The largest denoising win comes from reducing the number of expensive DiT
 forwards. vLLM-Omni currently has two distinct integration models; they should
@@ -138,35 +342,79 @@ points, actual DiT forward count, task, attention backend, and quality
 comparison. A few-step result is not directly comparable to a 50-step baseline
 unless those differences are explicit.
 
-The canonical T2VA matrix can therefore compare base H3, Turbo, and FastH3
-under one output contract. It does not mix in the FL2VA-only SuperPipeline.
+The canonical T2VA matrix compares base H3, Turbo, and FastH3 under one output
+contract. Section 6 turns the merged Turbo path into concrete production
+profiles; FastH3 remains a specialized preview until its integration and
+quality evidence are released.
 
-### 2.2 SuperPipeline 4+3
+### 4.2 Weight and activation quantization
 
-The [MiniMax H3 Super Acceleration pipeline](https://github.com/vllm-project/vllm-omni/pull/6540)
-is a preview two-stage deployment that changes the generation strategy rather
-than optimizing one monolithic model:
+- **Online FP8.** The merged
+  [global FP8 path](https://github.com/vllm-project/vllm-omni/pull/5910)
+  starts from the released BF16 checkpoint and quantizes eligible DiT and
+  Qwen3-VL text-decoder linears at load time. Embeddings, norms, RoPE, the
+  vision tower, both VAEs, and the model's FP32 projections retain their
+  declared precision. Resident serving and supported DLO paths are distinct
+  profiles and must be reported separately.
+- **SVDQuant NVFP4 W4A4.** The merged
+  [offline loader](https://github.com/vllm-project/vllm-omni/pull/6162)
+  combines an NVFP4 W4A4 base GEMM with a BF16 low-rank correction. The current
+  SM103 FL2VA evidence establishes checkpoint and correctness compatibility;
+  native fused residual-GEMM performance remains follow-up work.
 
-1. H3 Turbo performs four DiT forwards at 896×512.
-2. TAEH3 decodes an intermediate video while preserving the original H3 audio.
-3. An LTX-2.5 refiner encodes and upscales the video, then performs three
-   refinement updates at the target resolution.
-4. TAEHV decodes the final video and the worker muxes it with the H3 audio into
-   the returned 1344×768 MP4.
+<p align="center">
+  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-quantization-paths.svg" alt="Comparison of online FP8 and offline SVDQuant W4A4 execution paths for MiniMax H3" width="100%">
+</p>
 
-The inter-stage payload is BF16 video plus FP32 PCM in shared memory; the
-pipeline does not pay for a lossy intermediate MP4. This split also creates a
-natural commercial topology: one two-GPU pair per request stream. On an 8×B300
-node, the validation plan measures both one pair for latency and four
-independent pairs for node throughput.
+*Figure 3: Online FP8 keeps runtime-created FP8 weights plus frozen weight
+scales and dynamically quantizes activations. Offline SVDQuant adds a BF16
+low-rank correction to an NVFP4 W4A4 base branch. Adapted from the vLLM-Omni
+cookbook [online FP8](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
+and [SVDQuant](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
+explainers.*
 
-Because the integration remains a draft, this post labels it **preview** and
-does not combine its measurements with released-path claims. It is also the
-only FL2VA benchmark in the post: one two-GPU B300 pair measures latency, while
-four independent pairs measure node throughput. Its results appear in a
-separate preview table and do not determine the cross-hardware recommendation.
+Quantization claims include peak HBM, host RAM during startup, checkpoint
+storage, latency, and same-seed video/audio metrics. A capacity win is not
+automatically a speed win, and a loader correctness result is not a fused
+kernel result.
 
-### 2.3 Distributed Layerwise Offload
+### 4.3 Sparse, skipped, and cached computation
+
+These paths reduce or approximate attention/denoising work and therefore stay
+outside Section 3's lossless comparison:
+
+| Path | Current status | Boundary to report |
+|---|---|---|
+| [TRTLLM Skip-Softmax](https://github.com/vllm-project/vllm-omni/pull/5283) | Merged backend capability | Datacenter Blackwell only; threshold/sparsity, timestep gate, role overrides, dense baseline, and quality curve |
+| [TRTLLM SAGE](https://github.com/vllm-project/vllm-omni/pull/5509) | Merged backend capability | Q/K type and block sizes, V precision, dense token-refiner override, hardware/kernel version, and audio/video quality |
+| [Sol-Attn for H3](https://github.com/vllm-project/vllm-omni/pull/5851) | Preview | Current H3 evidence is a four-GPU RTX PRO 5000 sweep; report dense guards, `tau`, sink tokens, KV splits, and quality gates |
+| [Dynamic Cache-DiT quality](https://github.com/vllm-project/vllm-omni/pull/5853) | Merged | `quality=lossless` removes the cache policy; `quality=high` installs the H3 profile and needs deployment-specific hit-rate/quality evidence |
+| FastH3 VSA variants | Rejected by the current FastH3 preview | Sparse student artifacts require a VSA backend not implemented by that integration |
+
+SAGE and Skip-Softmax may be composed because they alter different parts of the
+same attention kernel, but their end-to-end gains must be measured together,
+not multiplied. Sol-Attn remains a separately labeled preview. Cache-DiT is a
+request policy, not a dense-kernel backend, and is incompatible with step
+execution.
+
+### 4.4 Acceleration A/B summary
+
+Each row starts from the Section 3 lossless vLLM-Omni result on the same
+platform and changes one declared acceleration policy:
+
+| Platform / path | Weights / precision | Sigma points / actual forwards | Attention or cache policy | E2E / speedup | Peak HBM | Video/audio quality | Maturity / artifacts |
+|---|---|---|---|---:|---:|---|---|
+| B300 / Turbo | BF16 + dynamic LoRA | 5 / 4 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
+| B300 / FastH3 | Fused preview artifact | 5 / 4 | Dense only | TBD | TBD | TBD | Preview / TBD |
+| B300 / online FP8 | Runtime FP8 | 50 / 49 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
+| B300 / SVDQuant | Offline W4A4 + BF16 correction | 50 / 49 | Dense TBD | TBD | TBD | TBD | Correctness baseline / TBD |
+| B300 / SAGE or Skip-Softmax | BF16 weights | 50 / 49 | Exact policy TBD | TBD | TBD | TBD | Backend merged / TBD |
+| H200 / Turbo | BF16 + dynamic LoRA | 5 / 4 | Dense cuDNN/Flash TBD | TBD | TBD | TBD | Merged / TBD |
+| RTX PRO 5000 / sparse preview | BF16 | 50 / 49 | Sol-Attn preset TBD | TBD | TBD | TBD | Preview / TBD |
+
+## 5. Production deployment features
+
+### 5.1 Distributed Layerwise Offload
 
 [Distributed Layerwise Offload (DLO)](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
 keeps a bounded window of DiT layers in device memory and streams the remaining
@@ -183,7 +431,7 @@ weights from the host. It supports two materially different execution modes:
   <img src="/assets/figures/2026-07-30-distributed-layerwise-offload/dlo_pipeline_last_frame.png" alt="DLO double-buffer pipeline overlapping compute, host-to-device copies, and AllGather" width="100%">
 </p>
 
-*Figure 3: DLO prepares layer N+1 with H2D and optional AllGather while layer N
+*Figure 4: DLO prepares layer N+1 with H2D and optional AllGather while layer N
 computes, alternating between two bounded device slots. Reused from the
 [official DLO post](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload).*
 
@@ -193,7 +441,49 @@ host bandwidth. The benchmark therefore reports a latency-oriented route, a
 balanced route, and a throughput-oriented route rather than declaring one DLO
 configuration globally best.
 
-### 2.4 Disaggregated encoding
+### 5.2 RTX PRO 5000 DLO DP×USP Pareto frontier
+
+The eight-card PCIe system is the clearest place to show why DLO is a
+deployment primitive rather than a single on/off optimization. The controlled
+study holds TP1, BF16, dense cuDNN attention, Ring1, zero resident layers, the
+10-second workload, and DLO AllGather fixed while factoring the eight ranks
+between data-parallel request replicas and Ulysses sequence parallelism:
+
+| Frontier point | DP × USP | Encoder TP / replica | VAE PP / replica | DLO weight group | Requests per synchronized wave | E2E P50 / P95 | Outputs/hour | Peak HBM | Host RAM | Status |
+|---|---:|---:|---:|---|---:|---:|---:|---:|---:|---|
+| Latency-oriented | 1 × 8 | 8 | 8 | USP group | 1 | TBD | TBD | TBD | TBD | Planned |
+| Balanced | 2 × 4 | 4 | 4 | DP group | 2 | TBD | TBD | TBD | TBD | Planned |
+| Throughput-oriented | 4 × 2 | 2 | 2 | DP group | 4 | TBD | TBD | TBD | TBD | Planned |
+| Maximum-replica feasibility | 8 × 1 | 1 | 1 | DP group | 8 | TBD | TBD | TBD | TBD | Stop on OOM/timeout/quality failure |
+
+When DP is greater than one, DLO shards host weights across the existing DP
+group while each USP group processes one request's sequence. Every DP rank must
+enter the same weight collective, so a DP-N point is measured with exactly N
+compatible concurrent requests and an identical explicit step count. A
+single-request timing from a partially filled DP wave is invalid.
+
+The feasibility request plus two controlled repetitions establish functional
+and single-wave evidence only. P95 remains `TBD` until a separate sustained
+arrival-rate run supplies enough completed waves.
+
+AllGather rejects resident leading layers, so `dlo_resident_layers=0` is part
+of this matrix. TP1 retains the primary direct-mmap path. Start every point in
+eager mode; enable regional compilation only if all surviving points support
+the same compile contract, then rerun the complete matrix. GPU order and NUMA
+placement must preserve the closest PCIe/CPU relationships from the
+[RTX PRO 5000 recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-RTX-PRO-5000.md).
+
+Plot per-request P50 latency on the x-axis and node outputs/hour on the y-axis,
+with peak HBM and host RAM attached to every point. The deployment
+recommendation may select only a nondominated point; an unmeasured or failed
+DP8×USP1 point is reported as such rather than extrapolated.
+
+<!-- FIGURE TODO: After validation, render the four RTX PRO 5000 points as a
+     latency-versus-outputs/hour scatter plot. Label DP×USP beside every point,
+     encode peak HBM by color, and attach host RAM in the point annotation.
+     Draw the Pareto envelope only through measured, passing points. -->
+
+### 5.3 Disaggregated encoding
 
 MiniMax H3 retains approximately 51.5 GB of Qwen3-VL encoder weights in BF16.
 The [disaggregated encoder path](https://github.com/vllm-project/vllm-omni/pull/5885)
@@ -209,7 +499,7 @@ moves that encoder into an independent vLLM stage:
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-encoder-disaggregation.svg" alt="MiniMax H3 request flow through an independently scaled vLLM-native encoder and diffusion stage" width="100%">
 </p>
 
-*Figure 4: Every data-flow arrow now runs left to right. The encoder owns its
+*Figure 5: Every data-flow arrow now runs left to right. The encoder owns its
 processor, TP/replicas, and prefix cache; the orchestrator combines its typed
 conditioning with the original request before dispatching the separately
 parallelized DiT/VAE stage. Adapted from vLLM-Omni
@@ -229,90 +519,22 @@ and diffusion capacity scale independently, enables prefix reuse for repeated
 presentations, and avoids serializing a decoded raw-video payload across a
 process boundary when the diffusion stage is kept inline.
 
-## 3. End-to-end optimization stack
+### 5.4 Step execution, continuous batching, and abort boundaries
 
-The pipeline latency can be read as:
+The merged [MiniMax H3 step-execution path](https://github.com/vllm-project/vllm-omni/pull/5810)
+lets the scheduler admit, retire, and abort requests between denoise steps.
+`--step-execution --max-num-seqs 1` is the conservative production use when
+operators need a bounded cancellation/admission interval without co-batching.
 
-`T_E2E = T_encode + NFE × T_DiT_step + T_VAE + T_transport + T_MP4`
+With `max_num_seqs > 1`, compatible requests are packed as separate attention
+documents and require `FLASH_ATTN` to share one transformer forward. Existing
+H3 evidence shows that large dense requests scale close to linearly in FLOPs,
+so co-batching does not automatically improve throughput and can worsen mean
+latency. Treat it as an arrival-pattern study, not a default optimization.
+Cache backends are unsupported in step mode, and H3 step execution currently
+rejects DLO. Keep request mode for the DLO Pareto matrix.
 
-Few-step adapters reduce `NFE`. The remaining optimizations target the cost and
-memory of each term.
-
-### 3.1 Memory and quantization
-
-- **Online FP8.** The merged
-  [global FP8 path](https://github.com/vllm-project/vllm-omni/pull/5910)
-  quantizes eligible DiT and Qwen3-VL text-decoder linears at load time while
-  retaining precision-sensitive embeddings, norms, RoPE, VAEs, and FP32
-  projections. It works with resident serving and supported DLO paths without
-  requiring a pre-quantized checkpoint.
-- **SVDQuant NVFP4 W4A4.** The merged
-  [offline loader](https://github.com/vllm-project/vllm-omni/pull/6162)
-  combines an NVFP4 W4A4 base GEMM with a BF16 low-rank correction. The current
-  implementation is a correctness and checkpoint-compatibility baseline;
-  native fused residual-GEMM performance remains follow-up work.
-- **DLO.** Offload is kept separate from quantization in the results. Moving
-  weights to the host and changing their numerical format solve related but
-  different capacity problems.
-
-<p align="center">
-  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-quantization-paths.svg" alt="Comparison of online FP8 and offline SVDQuant W4A4 execution paths for MiniMax H3" width="100%">
-</p>
-
-*Figure 5: Online FP8 starts from the ordinary BF16 checkpoint, retains FP8
-weights and frozen weight scales, and dynamically quantizes activations. The
-offline SVDQuant path combines an NVFP4 W4A4 residual GEMM with a BF16 low-rank
-correction. Adapted from the vLLM-Omni cookbook
-[online FP8](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
-and [SVDQuant](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
-explainers.*
-
-### 3.2 Denoising kernels
-
-H3's denoising path combines long packed audio/video attention with repeated
-normalization, position encoding, modulation, MLP, and residual operations.
-The production stack includes:
-
-- TRTLLM, FlashAttention, and cuDNN attention backends selected by validated
-  hardware and execution mode;
-- packed variable-length attention that preserves document boundaries;
-- fused RMSNorm and RoPE;
-- model-specific modulation with FP32 accumulation and fused SwiGLU; and
-- strict Ulysses boundaries that keep intermediate sequence shards local and
-  gather only the compact final outputs.
-
-These optimizations reduce `T_DiT_step`; they do not change the number of
-denoising evaluations. The benchmark isolates them from Turbo, FastH3, and the
-SuperPipeline so readers can distinguish algorithmic and kernel gains.
-
-### 3.3 VAE parallelism and kernels
-
-When denoising drops to four forwards, VAE decode becomes a much larger share
-of end-to-end latency. H3 distributes the model's native tiled video decode
-across the DiT group through VAE patch parallelism. The merged
-[exact eager operator path](https://github.com/vllm-project/vllm-omni/pull/6607)
-also accelerates repeated decoder operations, including Q/K normalization plus
-RoPE, SwiGLU, and scaled residuals, while falling back on unsupported tensor or
-hardware contracts.
-
-The results report VAE time separately. This prevents a large isolated decoder
-speedup from being presented as an equally large end-to-end gain.
-
-### 3.4 CPU MP4 encoding and output transport
-
-After the accelerator finishes, non-streaming responses still have to move
-frames to the host and construct an MP4. The
-[direct planar encoder](https://github.com/vllm-project/vllm-omni/pull/6288)
-writes compatible channel-contiguous frames directly into PyAV planes instead
-of first materializing a complete interleaved RGB video. Unsupported layouts
-use the legacy path, while codec settings and output semantics remain
-unchanged.
-
-This is a CPU response-encoding optimization, not a DiT speedup. The benchmark
-therefore separates accelerator execution, worker-to-server transport, and MP4
-construction.
-
-### 3.5 Supported features and cross-feature compatibility
+### 5.5 Supported features and cross-feature compatibility
 
 The following matrices are a deployment snapshot for the article's primary
 NVIDIA lane. **Supported** means a merged implementation or maintained recipe,
@@ -322,20 +544,21 @@ cited end-to-end evidence for that combination; and **rejected** means that the
 current integration explicitly refuses it. **Limited** is a merged but narrow
 correctness scope, **conditional** depends on a runtime contract, and **not
 offered** falls outside that path's task contract. Hardware qualification
-remains a separate gate in Section 4.
+remains a separate gate in Sections 2 and 7.
 
 | Capability | T2VA | FL2VA | Ref2VA | Current boundary |
 |---|---|---|---|---|
 | Base H3 | Supported | Supported | Supported | Released serving path |
 | [Turbo LoRA](https://github.com/vllm-project/vllm-omni/pull/6476) | Supported | Supported | Rejected | Merged; dynamic v1.0 four-forward adapter only, one active LoRA, no prefusion or LoRA composition |
 | [FastH3 Dense/Data-Free](https://github.com/vllm-project/vllm-omni/pull/6714) | Preview | Not offered | Not offered | Open T2VA-only preview; load-time fusion before sharding |
-| [SuperPipeline 4+3](https://github.com/vllm-project/vllm-omni/pull/6540) | Not offered | Preview | Not offered | Dedicated two-stage FL2VA preview, not a base-H3 server flag |
 | [DLO](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md) | Supported | Supported | Supported | Choose AllGather or rank-local transfer and qualify host memory, interconnect, and resident-layer count |
 | [Disaggregated encoder](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md) | Supported | Supported | Supported | Merged single-node inline Stage 1; current recipe does not configure OmniConnector |
+| [Step execution](https://github.com/vllm-project/vllm-omni/pull/5810) | Supported | Supported | Supported | Scheduler admission/abort boundary; H3 co-batching needs FlashAttention and is not a default throughput optimization |
 | [Online FP8](https://github.com/vllm-project/vllm-omni/pull/5910) | Supported | Supported | Supported | Eligible DiT/text-decoder linears only; VAEs and precision-sensitive layers retain checkpoint precision |
 | [SVDQuant W4A4](https://github.com/vllm-project/vllm-omni/pull/6162) | Not qualified | Limited | Not qualified | Merged FL2VA correctness baseline on SM103; fused performance path remains follow-up work |
+| SAGE / Skip-Softmax / Sol-Attn | Hardware-specific | Hardware-specific | Not qualified | TRTLLM paths target datacenter Blackwell; H3 Sol-Attn is an RTX PRO 5000 preview |
 | VAE tile patch parallelism + [exact eager kernels](https://github.com/vllm-project/vllm-omni/pull/6607) | Supported | Supported | Supported | VAE PP is 1 or the full DiT group; eager-kernel acceleration is registered on SM90/SM100/SM103 and otherwise falls back |
-| [Direct planar CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6288) | Conditional | Conditional | Conditional | Used for compatible output layouts; unsupported layouts fall back to the legacy encoder |
+| Direct planar + [parallel CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6499) | Conditional | Conditional | Conditional | Used for compatible non-streaming output layouts; unsupported layouts fall back |
 
 Feature composition is deliberately stricter than the individual support
 surface:
@@ -344,192 +567,129 @@ surface:
 |---|---|---|
 | Turbo + DLO | Supported | [PR #6550](https://github.com/vllm-project/vllm-omni/pull/6550) validates rank-local and AllGather topologies; LoRA A/B buffers remain resident in HBM while DLO streams base blocks |
 | Turbo + disaggregated encoder | Supported configuration | Use the dedicated [Turbo deployment](https://github.com/vllm-project/vllm-omni/blob/main/vllm_omni/deploy/minimax_h3_disaggregated_turbo.yaml); task support remains T2VA/FL2VA only |
-| Turbo + online FP8 or SVDQuant | Not qualified | No cited combined end-to-end evidence; do not infer compatibility from the individual features |
+| Turbo + online FP8, SVDQuant, cache, or sparse attention | Not qualified | No cited combined end-to-end evidence; do not infer compatibility from the individual features |
 | FastH3 + DLO or VSA | Rejected | [The preview](https://github.com/vllm-project/vllm-omni/pull/6714) refuses offload because fusion occurs in `load_weights()` and refuses sparse VSA variants because the backend is absent |
 | FastH3 + disaggregation or quantization | Not qualified | The current preview validates only the dense T2VA load-time-fusion path |
+| DLO + DP/USP | Supported topology, qualification pending | DLO uses DP as its AllGather group when DP>1 and USP when DP=1; every DP wave needs identical explicit step counts |
 | DLO + online FP8 | Route-qualified | Rank-local DLO has MiniMax-H3 end-to-end evidence; [AllGather support](https://github.com/vllm-project/vllm-omni/pull/6279) is merged for per-tensor FP8 but currently has loader/two-rank NCCL smoke rather than a full H3 run |
 | Disaggregated encoder + DLO or online FP8 | Supported configuration | Apply both to Stage 1 only; online FP8 covers the DiT while Stage 0 stays BF16, and the video/audio VAEs remain at checkpoint precision |
+| Step execution + DLO or cache backend | Rejected | H3 step mode rejects DLO; all diffusion cache backends are unsupported in step mode |
 | VAE patch parallelism + DLO, online FP8, or disaggregation | Supported configuration | The [disaggregated recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md) keeps VAE placement independent of Stage 1 offload and quantization |
 | SVDQuant + DLO, disaggregation, or an adapter | Not qualified | The merged loader establishes offline checkpoint and tensor-parallel correctness only |
-| SuperPipeline + general DLO, disaggregation, online weight FP8, or SVDQuant | Not qualified | Treat 4+3 as a dedicated preview topology; its FP8 SAGE option quantizes one attention path and is not the global online-FP8 weight mode |
-| Direct planar CPU MP4 + a standard non-streaming frame-return path | Conditional | Orthogonal to model execution when the returned frame layout is compatible; otherwise the encoder safely falls back. Do not assume it applies when a pipeline, such as SuperPipeline, returns already-encoded MP4 bytes |
+| Direct planar/parallel CPU MP4 + standard frame-return paths | Conditional | Orthogonal to model execution when the returned frame layout is compatible; otherwise the encoder safely falls back |
 
 These tables are the compatibility contract for the post. A contributor may
 upgrade a **preview**, **limited**, **route-qualified**, or **not qualified**
 cell only with a linked implementation/recipe, a frozen revision, and the
-stage-level validation record defined below.
+stage-level validation record defined in Section 2.
 
-## 4. Target hardware and validation methodology
+## 6. Four-step LoRA deployment recommendations
 
-### 4.1 Common benchmark contract
+This section recommends the merged, request-switchable Turbo path for
+production planning. FastH3 also executes four transformer forwards, but its
+current vLLM-Omni integration is a T2VA-only load-time-fusion preview and is
+not used for the production profile recommendation.
 
-The three eight-GPU NVIDIA systems use one controlled T2VA workload before any
-platform-specific tuning:
+Preload and allowlist the Turbo artifact, keep one adapter active per request,
+and use its published five sigma points, four DiT forwards, video flow shift 6,
+and audio flow shift 3. Start with dense attention; add quantization, caching,
+or sparse attention only as a separately qualified composition.
 
-| Control | Canonical value |
-|---|---|
-| Task | T2VA through the FL2VA partition; no reference media |
-| Output | 10.0 seconds requested; 1344×768, 243 aligned frames at 24 FPS, 10.125 seconds encoded |
-| Base schedule | 50 requested sigma points; record the actual DiT forward count |
-| Prompt | The official MiniMax H3 model-card `case-T2VA` H3-Context-IR output, frozen at model revision `42ed227e`; SHA-256 `98f36b879692095e099ae824c18d9e93e7006a490e082fd474a5f531769dcf06` |
-| Seed | `0`, matching the official H3-Base script |
-| Revisions | [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54); [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a); [MiniMax H3 `42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe); base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14`; full package manifest retained with the artifacts; no adapter for the base row |
-| Repetitions | One full-shape feasibility request, also recorded as the excluded compile warmup, then two measured repetitions per claimed A/B |
-| Output checks | HTTP 200; full H.264/AAC decode; 1344×768, exactly 243 frames at 24 FPS; 32 kHz stereo audio; nonzero frame variance and audio RMS; prompt-adherence review |
-| Artifact root | `vllm-omni-cookbook/blog/assets/figures/minimax-h3-production-serving/evidence/2026-08-29-<platform>/` |
+### 6.1 Candidate eight-GPU profiles
 
-The canonical prompt is the 380-word structured output shown in the official
-[MiniMax H3 `case-T2VA`](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/README.md#case-t2va):
-a ten-second, two-shot space-opera sequence with a fleet jump, a captain's
-physical reaction, synchronized bridge impacts and room tone, and an
-orchestral rise-and-cut. Contributors must retrieve that expanded prompt once,
-verify the SHA-256 above, and pass it directly to H3-Base. The hosted
-H3-Context-IR call is **not** part of the benchmark timing and must not be
-rerun independently for each platform; doing so could change both the encoder
-workload and the generated scene.
+The profiles below are benchmark candidates, not results. DP and USP describe
+the complete eight-GPU factorization; encoder TP and VAE PP are per replica
+unless the row uses model TP across the full node.
 
-Few-step paths keep the same output contract but use their published schedules;
-the adapter, sigma points, and actual DiT forward count are always reported.
-Process placement, NUMA affinity, readiness checks, and cache state stay fixed
-within an A/B. Preparation and process-to-ready are reported separately from
-warmed request latency.
+| Platform / objective | Encoder | DiT parallelism | Video VAE | Weights / attention | Recommendation status |
+|---|---|---|---|---|---|
+| B300 / lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; dense TRTLLM/cuDNN/FA4 winner from Section 3 | Candidate |
+| B300 / node throughput | TP2 per replica | DP4 × TP1 × USP2, Ring1 | PP2 per replica | Four resident Turbo replicas; dense backend fixed across replicas | Candidate; compare with latency row |
+| H200 / lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; dense cuDNN/Flash winner | Candidate |
+| H200 / balanced throughput | TP4 per replica | DP2 × TP1 × USP4, Ring1 | PP4 per replica | Two resident Turbo replicas; dense backend fixed | Candidate |
+| RTX PRO 5000 / resident | TP8 | DP1 × TP4 × USP2, Ring1 | PP8 tile | Resident BF16 + Turbo, `CUDNN_ATTN` | Recipe-derived capacity profile; Turbo validation pending |
+| RTX PRO 5000 / DLO throughput | Match selected USP | Select nondominated DP×USP point from Section 5, TP1 | Match selected USP | DLO AllGather + resident Turbo A/B buffers, dense cuDNN | Choose only after Pareto study |
 
-The experiment has two isolated questions:
+Wider USP usually favors one-request latency; more DP replicas favor node
+throughput. Neither direction is free: USP adds activation collectives, while
+DP duplicates request-local state and requires enough concurrent arrivals.
+The RTX PRO 5000 resident TP4×USP2 row is a capacity topology, whereas its DLO
+row is a service-level frontier; do not compare them without reporting host RAM
+and synchronized-wave behavior.
 
-1. **Common baseline:** change the eight-GPU NVIDIA platform while holding the
-   semantic workload and comparable serving configuration fixed.
-2. **Optimization A/B:** change one optimization on one platform while holding
-   its hardware, topology, workload, and server lifecycle fixed.
+### 6.2 Four-step stage decomposition
 
-The first feasibility request is the stop condition: an OOM, accelerator error,
-invalid MP4, missing audio stream, or failed quality gate stops that profile
-before repeated measurement. Tail latency comes from a separately specified
-multi-request serving run with enough samples; it is not inferred from the two
-single-request A/B repetitions.
+For Turbo, the client-visible pipeline is:
 
-The common baseline answers a hardware-comparison question. Separately, each
-platform receives one best-known production profile; that second table compares
-deployments, not isolated hardware. We intentionally avoid running the full
-Cartesian product of every optimization on every accelerator.
+`T_client = T_queue + T_encoder + 4 × T_DiT_forward + T_video_VAE + T_audio_VAE + T_transport + T_MP4 + T_residual`
 
-<!-- BENCHMARK TODO: Collaborators should finalize the prompt and seed, then add
-     repository SHAs, model revision, software versions, readiness definition,
-     request arrival model, measurement commands, quality thresholds, and
-     artifact URLs here. -->
+Reducing 49 denoiser evaluations to four changes the bottleneck. Encoder,
+VAE, transport, and CPU muxing no longer disappear in the noise, so a four-step
+headline without stage decomposition is incomplete.
 
-### 4.2 Required per-stage record
+| Platform / profile | Encoder | DiT total / 4 / per-forward | Video VAE | Audio VAE | Transport | CPU MP4 wall / process CPU | Client E2E / residual | Outputs/hour |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| B300 / latency | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+| B300 / throughput wave | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+| H200 / latency | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+| H200 / balanced | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+| RTX PRO 5000 / resident | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+| RTX PRO 5000 / selected DLO point | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
 
-Every result must report both **time** and **placement/parallelism** for each
-stage. A single end-to-end number is insufficient because two configurations
-can reach the same latency through very different bottlenecks.
+<!-- FIGURE TODO: Render one stacked critical-path bar per selected four-step
+     profile using encoder, four DiT forwards, video/audio VAE, transport, CPU
+     MP4, and residual. Keep queue time separate from the single-request bar. -->
 
-| Stage | Required timing | Required placement and configuration |
-|---|---|---|
-| Encoder | Preparation and encoder wall time; for disaggregated serving, Stage 0 compute and connector wait separately | Device IDs, TP, DP/replicas, offload state, prefix-cache state, attention backend |
-| DiT denoise | Total denoise wall time, requested sigma points, actual DiT forwards, and `denoise wall / actual forwards` | Device IDs and group membership; TP, Ulysses, Ring, DP, CFG, PP/HSDP; DLO mode and resident layers; attention backend; eager/compile mode |
-| Video VAE | Video decode wall time and multi-rank critical path | Device IDs, VAE patch-parallel size, parallel mode, tiling, and process group |
-| Audio VAE | Audio decode wall time, reported separately when instrumentation permits | Device IDs and whether execution is rank-local, replicated, or sharded |
-| Output transport | Device-to-host, worker-to-engine, and inter-stage handoff wall times where applicable | Source/destination ranks, shared-memory/IPC path, payload dtype and size |
-| CPU MP4 | MP4 encode/mux wall time, process CPU time, and peak RSS | CPU model, socket/NUMA affinity, thread count, PyAV/FFmpeg versions and codec settings |
-| Client E2E | Request submission through complete response body | Request concurrency, endpoint, client host, and network boundary |
+For a DP wave, report both critical-path request latency and per-node
+throughput; do not divide aggregate wall time by DP and call it latency. For
+disaggregated serving, split encoder compute from handoff wait and state whether
+the prompt hit the prefix cache. For every row, retain the adapter SHA, scale,
+resident LoRA HBM, sigma points, actual forwards, and same-seed quality result.
 
-Here, **denoise per-step time always divides by the actual number of DiT
-forwards**, not the requested `num_inference_steps`. For a few-step adapter, the
-adapter schedule and actual forward count are part of the result. If only an
-aggregate VAE timer is available, label it as aggregate rather than silently
-assigning it to the video VAE. Likewise, CPU MP4 time excludes D2H and IPC unless
-the measurement boundary explicitly includes them.
+### 6.3 Deployment decision rule
 
-Each contributor should also provide one compact stage-parallelism manifest:
+- Choose the one-replica wide-USP profile for the lowest validated request
+  latency.
+- Choose a DP profile only when the arrival process can keep its replicas busy;
+  report P95 from the declared multi-request run.
+- On RTX PRO 5000, choose between resident TP4×USP2 and the nondominated DLO
+  point using latency, outputs/hour, HBM, and host RAM together.
+- Use encoder disaggregation when independent scaling or prompt-prefix reuse
+  offsets its orchestration cost.
+- Re-profile VAE and CPU MP4 after every denoise acceleration; at four forwards
+  they can determine the complete response latency.
 
-| Profile | Encoder stage | DiT stage | Video/audio VAE | Output stage |
-|---|---|---|---|---|
-| TBD | Devices + TP/replicas/cache | Devices + TP/USP/Ring/DP/CFG/PP + offload/backend | Devices + VAE PP/mode/tiling + audio placement | CPU affinity/threads + transport/mux path |
+## 7. Results and deployment recommendations
 
-### 4.3 Hardware scope
+The decision table stays deliberately compact. Detailed lossless A/Bs remain
+in Section 3, the PRO 5000 DLO frontier in Section 5, and four-step stage
+decomposition in Section 6.
 
-| Platform | Planned production profiles | Validation status |
-|---|---|---|
-| 8× NVIDIA B300 | Canonical T2VA baseline plus one selected optimized profile; feature A/Bs for DLO, FastH3, and SVDQuant | Benchmark data pending |
-| 8× NVIDIA H200 | Canonical T2VA baseline plus one selected optimized profile; Turbo and denoising/VAE kernel evidence | Benchmark data pending |
-| 8× RTX PRO 5000 Blackwell | Canonical T2VA on the PCIe-only TP4 × Ulysses2, text-encoder TP8, VAE PP8 resident profile | Benchmark data pending |
-| Ascend NPU | Hardware, topology, software stack, and workload to be agreed with hardware vendors | Vendor validation pending |
-
-The Ascend section intentionally makes no model, topology, performance, or
-quantization claim until the vendor-aligned plan and results are available.
-
-FL2VA and Ref2VA are otherwise represented through capability descriptions and
-maintained recipes, not additional hardware benchmark rows. SuperPipeline 4+3
-is the single explicit FL2VA exception and stays in its own preview result.
-
-For other hardware, use the maintained deployment recipes rather than treating
-them as part of this article's controlled comparison:
-
-- [RTX 4090](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-4090.md)
-- [RTX 5090](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-5090.md)
-- [DGX Spark GB10](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Spark-GB10.md)
-- [Full MiniMax H3 recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
-
-## 5. Results and deployment recommendations
-
-The final article will keep the decision section deliberately compact. The
-primary table contains only the canonical T2VA workload; detailed stage traces,
-per-request samples, environment manifests, and generated media belong in
-linked reproducibility artifacts.
-
-| Canonical T2VA platform / profile | E2E P50 / P95 | Outputs/hour | Peak HBM | Host RAM | Quality | Maturity |
-|---|---:|---:|---:|---:|---|---|
-| 8× B300 — common baseline | TBD | TBD | TBD | TBD | TBD | Validated path |
-| 8× B300 — selected production profile | TBD | TBD | TBD | TBD | TBD | TBD |
-| 8× H200 — common baseline | TBD | TBD | TBD | TBD | TBD | Validated path |
-| 8× H200 — selected production profile | TBD | TBD | TBD | TBD | TBD | TBD |
-| 8× RTX PRO 5000 — common/production profile | TBD | TBD | TBD | TBD | TBD | Validated path |
-
-The article will include a concise stage breakdown beside that summary:
-
-| Platform / profile | Encoder | Denoise total / forwards / per-forward | Video VAE | Audio VAE | Transport | CPU MP4 wall / process CPU | E2E residual |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 8× B300 — common baseline | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
-| 8× B300 — selected production profile | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
-| 8× H200 — common baseline | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
-| 8× H200 — selected production profile | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
-| 8× RTX PRO 5000 — common/production profile | TBD | TBD / TBD / TBD | TBD | TBD | TBD | TBD / TBD | TBD |
-
-Parallelism is reported explicitly rather than inferred from GPU count:
-
-| Platform / profile | Encoder parallelism | DiT parallelism | VAE parallelism | Output placement |
-|---|---|---|---|---|
-| 8× B300 — common baseline | TBD | TBD | TBD | TBD |
-| 8× B300 — selected production profile | TBD | TBD | TBD | TBD |
-| 8× H200 — common baseline | TBD | TBD | TBD | TBD |
-| 8× H200 — selected production profile | TBD | TBD | TBD | TBD |
-| 8× RTX PRO 5000 — common/production profile | TBD | TBD | TBD | TBD |
-
-The non-comparable preview and vendor tracks remain separate:
-
-| Separate track | Task | E2E P50 / P95 | Outputs/hour | Peak HBM | Quality | Status |
-|---|---|---:|---:|---:|---|---|
-| B300 SuperPipeline 4+3 | FL2VA | TBD | TBD | TBD | TBD | Preview |
-| Ascend NPU | Vendor-defined | TBD | TBD | TBD | TBD | Vendor validation pending |
+| Platform | Lossless vLLM-Omni vs Diffusers | Selected four-step profile | Production topology recommendation | E2E P50 / P95 | Outputs/hour | Peak HBM / host RAM | Quality / maturity | Evidence |
+|---|---|---|---|---:|---:|---:|---|---|
+| B300 | TBD | TBD | TBD | TBD | TBD | TBD / TBD | TBD | TBD |
+| H200 | TBD | TBD | TBD | TBD | TBD | TBD / TBD | TBD | TBD |
+| RTX PRO 5000 | TBD | TBD | Resident TP4×USP2 versus nondominated DLO point: TBD | TBD | TBD | TBD / TBD | TBD | TBD |
+| Ascend NPU | Not yet scoped | Not yet scoped | Vendor alignment pending | TBD | TBD | TBD / TBD | Vendor validation pending | TBD |
 
 <!-- BENCHMARK TODO: Replace every TBD with artifact-backed data. Do not mix
-     different prompts, shapes, step counts, precisions, or timing boundaries
-     in one comparative row. Add uncertainty or raw samples for each claim,
-     and verify that stage totals reconcile with client E2E or explain the
-     residual. -->
+     different prompts, output shapes, step counts, precision/attention modes,
+     GPU budgets, or timing boundaries in one comparative claim. Link raw
+     samples and explain signed stage residuals. -->
 
-The final recommendations use only the canonical T2VA table and answer four
-questions:
+The final recommendations answer four questions using only qualified evidence:
 
-- **Lowest request latency:** TBD after validation.
-- **Highest eight-GPU node throughput:** TBD after validation.
-- **Best PCIe-only commercial profile:** TBD after validation.
-- **Best memory-oriented profile:** TBD after validation.
+- **Best lossless runtime on each platform:** TBD after the Diffusers A/B.
+- **Lowest four-step request latency:** TBD after the Section 6 profiles.
+- **Highest sustainable node throughput:** TBD after the declared arrival-rate
+  runs, not the two single-request repetitions.
+- **Best PCIe-only memory/throughput point:** TBD from the RTX PRO 5000
+  resident-versus-DLO Pareto comparison.
 
-No recommendation will be inferred from nominal FLOPS, HBM capacity, or a
-single cold request.
+No recommendation is inferred from nominal FLOPS, multiplied microbenchmark
+gains, or a single cold request.
 
-## 6. RL integration with VeRL-Omni
+## 8. RL integration with VeRL-Omni
 
 vLLM-Omni also serves as the rollout engine for MiniMax H3 post-training in
 [VeRL-Omni](https://github.com/verl-project/verl-omni). Current integrations
@@ -542,14 +702,14 @@ This post treats RL as an ecosystem integration, not a serving benchmark. See
 the [MiniMax H3 VeRL-Omni recipe](https://github.com/verl-project/verl-omni/blob/main/examples/diffusionnft_trainer/minimax_h3/README.md)
 for the training architecture, data preparation, rewards, and launch commands.
 
-## 7. Production readiness
+## 9. Production readiness
 
 ### Promotion gate
 
-The matrices in Section 3.5 describe software and recipe compatibility; they
+The matrices in Section 5.5 describe software and recipe compatibility; they
 do not replace platform qualification. Promote a profile only after its frozen
 workload passes the stage-level timing, memory, quality, media-validation, and
-operational checks in Sections 4 and 5. Ascend NPU remains intentionally
+operational checks in Sections 2, 3, 5, 6, and 7. Ascend NPU remains intentionally
 unclassified until the vendor-aligned scope and evidence are available.
 
 ### Operational and security considerations
@@ -577,32 +737,36 @@ deployment.
 
 ## Roadmap
 
-- qualify FastH3 and SuperPipeline 4+3 against released baselines;
+- complete the lossless Diffusers-versus-vLLM-Omni A/B on B300, H200, and RTX
+  PRO 5000 with reconciled timing boundaries;
+- qualify FastH3, SAGE/Skip-Softmax, and Sol-Attn against released dense
+  baselines and multi-seed audio/video gates;
 - complete native SVDQuant performance kernels and validation;
-- refresh the B300, H200, and RTX PRO 5000 production matrix on frozen
-  revisions;
+- measure the RTX PRO 5000 DLO DP×USP Pareto frontier and select only a
+  nondominated deployment point;
 - add vendor-reviewed Ascend NPU results; and
-- continue hardening disaggregated serving, output transport, and RL rollout
-  integration.
+- continue hardening disaggregated serving, output transport, step-level
+  control, and RL rollout integration.
 
 ## Acknowledgments
 
 <!-- AUTHOR TODO: Add named benchmark collaborators, hardware vendors,
-     MiniMax/FastH3/SuperPipeline contributors, PR authors, and reviewers after
+     MiniMax/FastH3 contributors, PR authors, and reviewers after
      the final evidence and author list are agreed. -->
 
 This work builds on contributions across vLLM, vLLM-Omni, VeRL-Omni, MiniMax
-H3, FastH3, and the H3 Super Acceleration pipeline. We thank the contributors
-who implemented and validated the model, serving, quantization, offload,
-kernel, VAE, media, hardware, and training paths referenced throughout this
-post.
+H3, FastH3, and Diffusers. We thank the contributors who implemented and
+validated the model, serving, quantization, offload, kernel, VAE, media,
+hardware, and training paths referenced throughout this post.
 
 ## References
 
 - [vLLM-Omni repository](https://github.com/vllm-project/vllm-omni)
 - [MiniMax H3 model](https://huggingface.co/MiniMaxAI/MiniMax-H3)
+- [Diffusers MiniMax H3 pipeline](https://huggingface.co/docs/diffusers/v0.40.0/api/pipelines/minimax_h3)
 - [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
 - [Distributed Layerwise Offload](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
+- [Diffusion execution modes](https://github.com/vllm-project/vllm-omni/blob/main/docs/user_guide/diffusion/execution_modes.md)
 - [Online FP8 explainer and editable figure sources](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
 - [MiniMax H3 SVDQuant explainer](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
 - [VeRL-Omni repository](https://github.com/verl-project/verl-omni)
