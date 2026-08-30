@@ -603,7 +603,7 @@ incompatibility, and ❔ when the combination has no cited end-to-end evidence.
 | FastH3 | ❔ | 🟠 |  |  |  |  |  |  |  |
 | DLO | ✅ | ❌ | ✅ |  |  |  |  |  |  |
 | Disagg. | 🟠 | ❔ | ✅ | ✅ |  |  |  |  |  |
-| Online FP8 | ❔ | ❔ | 🟠 | ✅ | ✅ |  |  |  |  |
+| Online FP8 | ❔ | ❔ | ✅ | ✅ | ✅ |  |  |  |  |
 | SVDQuant | ❔ | ❔ | ❔ | ❔ | ❌ | 🟠 |  |  |  |
 | Step exec. | ❔ | ❔ | ❌ | ❔ | ❔ | ❔ | ✅ |  |  |
 | Cache-DiT | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ✅ |  |
@@ -616,9 +616,12 @@ Key boundaries behind the matrix:
   disaggregation has a dedicated maintained deployment config but no result in
   this post yet.
 - FastH3 refuses DLO, and its VSA artifacts are rejected by the current preview.
-- DLO + online FP8 is route-qualified: rank-local DLO has H3 end-to-end
-  evidence, while [AllGather support](https://github.com/vllm-project/vllm-omni/pull/6279)
-  has per-tensor FP8 loader/two-rank smoke rather than a complete H3 run.
+- DLO + online FP8 is supported for both transfer paths. Rank-local H3 has
+  end-to-end evidence, and [PR #6279](https://github.com/vllm-project/vllm-omni/pull/6279)
+  removed the AllGather compatibility gate for per-tensor FP8; the maintained
+  H3 recipe documents both. The AllGather route still needs a complete H3
+  performance/quality row for this post and has a transient startup host-memory
+  cost, but that evidence gap does not make the feature pair incompatible.
 - DLO and online FP8 can be applied to Stage 1 of the disaggregated recipe;
   Stage 0 stays BF16 and the VAEs retain checkpoint precision.
 - Step execution rejects DLO and every diffusion cache backend. Co-batched H3
