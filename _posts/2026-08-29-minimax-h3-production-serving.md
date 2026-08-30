@@ -113,7 +113,7 @@ tuning:
 | Base schedule | 50 requested sigma points and 49 expected DiT forwards; record both |
 | Prompt | The official MiniMax H3 model-card `case-T2VA` H3-Context-IR output, frozen at model revision `42ed227e`; SHA-256 `98f36b879692095e099ae824c18d9e93e7006a490e082fd474a5f531769dcf06` |
 | Seed | `0`, matching the official H3-Base script |
-| vLLM-Omni lane | [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54), [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a), base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` |
+| vLLM-Omni lane | Initial freeze [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54) is blocked for the canonical row after the MP4 fallback stop; re-freeze on the merge commit of [#6764](https://github.com/vllm-project/vllm-omni/pull/6764). Keep [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a) and base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` unless the re-freeze explicitly changes them |
 | Diffusers lane | [Diffusers `v0.40.0` / `d035dcd7`](https://github.com/huggingface/diffusers/commit/d035dcd7cc7c88e0a154609b62887d50bba9fdc2); record Transformers, PyTorch, attention-kernel, and media-package versions |
 | Model | [MiniMax H3 `42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe) |
 | Repetitions | One full-shape feasibility request, also recorded as the excluded compile/kernel warmup, then two measured repetitions per claimed A/B |
@@ -272,6 +272,25 @@ For Diffusers, the equivalent end boundary includes its caller-side
 HTTP response. Report MP4 wall time, process CPU time, peak RSS, chosen route,
 and CPU/NUMA placement rather than attributing CPU gains to the GPU engine.
 
+The frozen `55a226dc` H200 run exposed a topology-dependent routing issue and
+was stopped after its excluded warmup, as required: the default single-stage
+service selected `StageDiffusionProc`, transport materialized interleaved
+frames, and the frontend selected `legacy_fallback`. Two open fixes cover
+different deployment contracts and remain validation evidence rather than the
+canonical result:
+
+| Evidence | Diffusion placement | MP4 route | Measured complete-response evidence | Status |
+|---|---|---|---|---|
+| Frozen `55a226dc` row | Default single-stage subprocess | `legacy_fallback` | Warmup only; no result reported | Stopped; canonical row pending re-freeze |
+| [PR #6764](https://github.com/vllm-project/vllm-omni/pull/6764) candidate | Single stage, one replica, inline | `direct_planar`, eight workers | 128.339 s and 128.435 s client totals | Open-PR validation; not a merged baseline |
+| [PR #6776](https://github.com/vllm-project/vllm-omni/pull/6776) candidate | Intentional subprocess path | `direct_planar` for transported interleaved frames | 140.165 s and 140.250 s client totals; 1.137 s and 1.151 s CPU encode/mux | Open-PR validation; not a main-versus-candidate E2E A/B |
+
+After #6764 lands, the canonical single-stage row must be re-frozen on its
+merge commit and rerun. The two candidate rows above cannot be compared as an
+inline-versus-subprocess speedup because their placement differs. The complete
+validation provenance is in the
+[contributor report](https://github.com/vllm-project/vllm-project.github.io/pull/315#issuecomment-5463306163).
+
 ### 3.5 Diffusers versus vLLM-Omni A/B
 
 This is a **complete lossless deployment comparison**, not automatically a
@@ -336,6 +355,17 @@ specialized student before sharding. Source contracts: vLLM-Omni
 [#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
 [#6550](https://github.com/vllm-project/vllm-omni/pull/6550), and
 [#6714](https://github.com/vllm-project/vllm-omni/pull/6714).*
+
+The source PRs already provide useful, but non-canonical, evidence:
+
+| Path | Source workload | Base | Four-step path | Reported improvement | Boundary |
+|---|---|---:|---:|---:|---|
+| Turbo, [PR #6476](https://github.com/vllm-project/vllm-omni/pull/6476) | 4× H200, FL2VA, 768×1344, 107 frames, regional compile | 68.388 s Stage 0 at 49 forwards | 9.688 s Stage 0 at 4 forwards | 7.06× Stage 0 | Merged dynamic adapter; different task/duration/topology from this post |
+| FastH3, [PR #6714](https://github.com/vllm-project/vllm-omni/pull/6714) | 8× B300, T2VA, 1344×768, 345 frames / 14.3 s | 121.001 s framework E2E; 95.464 s diffusion | 36.622 s framework E2E; 11.399 s diffusion | 3.30× E2E; 8.37× diffusion | Open preview; approximately 3.12× request-to-MP4 in that PR |
+
+These values establish why the paths matter; they are not copied into the
+official 10-second comparison. The canonical Section 4.4 rows remain `TBD`
+until the frozen workload and current revisions are measured.
 
 Any performance table must identify the adapter, number of requested sigma
 points, actual DiT forward count, task, attention backend, and quality
@@ -558,25 +588,57 @@ remains a separate gate in Sections 2 and 7.
 | [SVDQuant W4A4](https://github.com/vllm-project/vllm-omni/pull/6162) | Not qualified | Limited | Not qualified | Merged FL2VA correctness baseline on SM103; fused performance path remains follow-up work |
 | SAGE / Skip-Softmax / Sol-Attn | Hardware-specific | Hardware-specific | Not qualified | TRTLLM paths target datacenter Blackwell; H3 Sol-Attn is an RTX PRO 5000 preview |
 | VAE tile patch parallelism + [exact eager kernels](https://github.com/vllm-project/vllm-omni/pull/6607) | Supported | Supported | Supported | VAE PP is 1 or the full DiT group; eager-kernel acceleration is registered on SM90/SM100/SM103 and otherwise falls back |
-| Direct planar + [parallel CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6499) | Conditional | Conditional | Conditional | Used for compatible non-streaming output layouts; unsupported layouts fall back |
+| [Direct planar](https://github.com/vllm-project/vllm-omni/pull/6288) + [parallel CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6499) | Conditional | Conditional | Conditional | Used for compatible non-streaming output layouts; unsupported layouts fall back |
 
 Feature composition is deliberately stricter than the individual support
-surface:
+surface. Following the vLLM
+[feature-matrix convention](https://docs.vllm.ai/en/latest/features/#feature-x-feature),
+the lower triangle below uses ✅ for a supported path, 🟠 for a preview,
+route-specific, or documented-but-not-fully-qualified path, ❌ for an explicit
+incompatibility, and ❔ when the combination has no cited end-to-end evidence.
 
-| Feature combination | Status | Evidence and deployment boundary |
-|---|---|---|
-| Turbo + DLO | Supported | [PR #6550](https://github.com/vllm-project/vllm-omni/pull/6550) validates rank-local and AllGather topologies; LoRA A/B buffers remain resident in HBM while DLO streams base blocks |
-| Turbo + disaggregated encoder | Supported configuration | Use the dedicated [Turbo deployment](https://github.com/vllm-project/vllm-omni/blob/main/vllm_omni/deploy/minimax_h3_disaggregated_turbo.yaml); task support remains T2VA/FL2VA only |
-| Turbo + online FP8, SVDQuant, cache, or sparse attention | Not qualified | No cited combined end-to-end evidence; do not infer compatibility from the individual features |
-| FastH3 + DLO or VSA | Rejected | [The preview](https://github.com/vllm-project/vllm-omni/pull/6714) refuses offload because fusion occurs in `load_weights()` and refuses sparse VSA variants because the backend is absent |
-| FastH3 + disaggregation or quantization | Not qualified | The current preview validates only the dense T2VA load-time-fusion path |
-| DLO + DP/USP | Supported topology, qualification pending | DLO uses DP as its AllGather group when DP>1 and USP when DP=1; every DP wave needs identical explicit step counts |
-| DLO + online FP8 | Route-qualified | Rank-local DLO has MiniMax-H3 end-to-end evidence; [AllGather support](https://github.com/vllm-project/vllm-omni/pull/6279) is merged for per-tensor FP8 but currently has loader/two-rank NCCL smoke rather than a full H3 run |
-| Disaggregated encoder + DLO or online FP8 | Supported configuration | Apply both to Stage 1 only; online FP8 covers the DiT while Stage 0 stays BF16, and the video/audio VAEs remain at checkpoint precision |
-| Step execution + DLO or cache backend | Rejected | H3 step mode rejects DLO; all diffusion cache backends are unsupported in step mode |
-| VAE patch parallelism + DLO, online FP8, or disaggregation | Supported configuration | The [disaggregated recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md) keeps VAE placement independent of Stage 1 offload and quantization |
-| SVDQuant + DLO, disaggregation, or an adapter | Not qualified | The merged loader establishes offline checkpoint and tensor-parallel correctness only |
-| Direct planar/parallel CPU MP4 + standard frame-return paths | Conditional | Orthogonal to model execution when the returned frame layout is compatible; otherwise the encoder safely falls back |
+| Feature | Turbo | FastH3 | DLO | Disagg. | Online FP8 | SVDQuant | Step exec. | Cache-DiT | Sparse attn. |
+|---|---|---|---|---|---|---|---|---|---|
+| Turbo | ✅ |  |  |  |  |  |  |  |  |
+| FastH3 | ❔ | 🟠 |  |  |  |  |  |  |  |
+| DLO | ✅ | ❌ | ✅ |  |  |  |  |  |  |
+| Disagg. | 🟠 | ❔ | ✅ | ✅ |  |  |  |  |  |
+| Online FP8 | ❔ | ❔ | 🟠 | ✅ | ✅ |  |  |  |  |
+| SVDQuant | ❔ | ❔ | ❔ | ❔ | ❌ | 🟠 |  |  |  |
+| Step exec. | ❔ | ❔ | ❌ | ❔ | ❔ | ❔ | ✅ |  |  |
+| Cache-DiT | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ✅ |  |
+| Sparse attn. | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | 🟠 | ❔ | 🟠 |
+
+Key boundaries behind the matrix:
+
+- Turbo + DLO is merged and validated in
+  [PR #6550](https://github.com/vllm-project/vllm-omni/pull/6550); Turbo +
+  disaggregation has a dedicated maintained deployment config but no result in
+  this post yet.
+- FastH3 refuses DLO, and its VSA artifacts are rejected by the current preview.
+- DLO + online FP8 is route-qualified: rank-local DLO has H3 end-to-end
+  evidence, while [AllGather support](https://github.com/vllm-project/vllm-omni/pull/6279)
+  has per-tensor FP8 loader/two-rank smoke rather than a complete H3 run.
+- DLO and online FP8 can be applied to Stage 1 of the disaggregated recipe;
+  Stage 0 stays BF16 and the VAEs retain checkpoint precision.
+- Step execution rejects DLO and every diffusion cache backend. Co-batched H3
+  step execution requires FlashAttention, so sparse-attention composition is
+  partial and backend-specific.
+- Online FP8 and SVDQuant are alternative linear-weight formats, not a combined
+  quantization mode. Every ❔ remains unsupported for production claims until
+  linked evidence is added.
+
+The non-streaming MP4 route has an additional topology and frame-layout
+boundary:
+
+| Diffusion deployment | Stage client | Frame-layout boundary | Non-streaming MP4 path |
+|---|---|---|---|
+| Single stage, one replica, default | `StageDiffusionProc` at frozen `55a226dc`; [PR #6764](https://github.com/vllm-project/vllm-omni/pull/6764) proposes inline selection | Current transport materializes interleaved frames; the candidate avoids the process boundary | Current frozen row falls back; #6764 candidate selects `direct_planar` with the server-owned parallel converter |
+| Multiple stages with explicit `inline_diffusion` | Inline, unchanged by #6764 | Producer layout stays in process | `direct_planar` when the existing shape/dtype/plane-layout gate passes; otherwise legacy fallback |
+| Multiple stages, default | `StageDiffusionProc` | Transport may materialize C-interleaved BTHWC/FHWC frames | Current path falls back; [PR #6776](https://github.com/vllm-project/vllm-omni/pull/6776) accepts strided RGB planes only with a parallel converter |
+| Any multi-replica diffusion stage | Subprocess, even when `inline_diffusion` is requested | Same transport boundary as the default multi-stage path | Same #6776 candidate condition; otherwise legacy fallback |
+| Standalone caller without a converter, or with one worker | Caller-specific | Strided RGB planes remain outside the direct-planar contract | Legacy fallback by design |
+| Streaming fMP4 | Streaming path | The non-streaming layout gate does not apply | Unchanged |
 
 These tables are the compatibility contract for the post. A contributor may
 upgrade a **preview**, **limited**, **route-qualified**, or **not qualified**
