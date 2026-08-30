@@ -62,7 +62,9 @@ developed with the relevant hardware vendors.
 - **System architecture determines the production frontier.** Distributed
   layerwise offload changes the latency/throughput/memory trade-off;
   disaggregated encoding makes the Qwen3-VL stage independently schedulable
-  and cacheable; step execution adds admission and abort boundaries.
+  and cacheable. Step execution implements admission and abort boundaries, but
+  current H3 measurements show no latency or throughput benefit; its useful
+  production case remains to be demonstrated.
 - **One canonical benchmark keeps the comparison tractable.** Every comparable
   row uses the official 10-second, 1344×768 T2VA case. FL2VA and Ref2VA remain
   capability and recipe coverage rather than a second hardware matrix.
@@ -553,16 +555,35 @@ process boundary when the diffusion stage is kept inline.
 
 The merged [MiniMax H3 step-execution path](https://github.com/vllm-project/vllm-omni/pull/5810)
 lets the scheduler admit, retire, and abort requests between denoise steps.
-`--step-execution --max-num-seqs 1` is the conservative production use when
-operators need a bounded cancellation/admission interval without co-batching.
+For H3, this is currently a functional scheduling capability—not a production
+optimization or recommendation.
 
-With `max_num_seqs > 1`, compatible requests are packed as separate attention
-documents and require `FLASH_ATTN` to share one transformer forward. Existing
-H3 evidence shows that large dense requests scale close to linearly in FLOPs,
-so co-batching does not automatically improve throughput and can worsen mean
-latency. Treat it as an arrival-pattern study, not a default optimization.
-Cache backends are unsupported in step mode, and H3 step execution currently
-rejects DLO. Keep request mode for the DLO Pareto matrix.
+Existing measurements are negative:
+
+| Experiment | Request mode | Step mode | Observed result |
+|---|---:|---:|---|
+| Four simultaneous requests, BF16, TP2, 672×384, 209 frames, 30 steps | 174.8 s wall; 111.5 s mean latency | `max_num_seqs=1`: 179.0 s / 113.8 s; `max_num_seqs=4`: 182.1 s / 175.7 s | No throughput benefit; co-batching substantially worsened mean latency |
+| Ten requests arriving every five seconds, 4× H100, 672×384, 20 steps | 60.8 s wall; 9.88 req/min; 11.7 s mean latency | `max_num_seqs=4`: 67.9 s; 8.84 req/min; 23.6 s mean latency | Throughput fell 10.5% and mean latency roughly doubled |
+
+One H3 request already presents a long, compute-bound packed sequence, so
+co-batching makes a forward almost linearly more expensive. Any future claim
+must therefore test a different hypothesis rather than repeating the known
+simultaneous-request case:
+
+1. **Cancellation and resource reclamation:** cancel a long request mid-denoise
+   and measure cancel-to-GPU-idle time, avoided forwards, and reclaimed HBM.
+2. **Sparse staggered arrivals:** compare request mode with `max_num_seqs=1`
+   under a low-rate arrival process, measuring admission delay, mean/P95
+   latency, throughput, and fairness.
+3. **Small under-utilized workloads:** test shorter/lower-resolution requests
+   whose single-request kernels do not saturate the device, then determine
+   whether co-batching amortizes launch overhead.
+
+Every experiment needs a request-mode control and a predeclared success
+criterion. Until one shows a material operational or SLO benefit, keep request
+mode as the H3 recommendation and leave Step execution orange in the matrix.
+Co-batched H3 additionally requires `FLASH_ATTN`; cache backends are unsupported
+in step mode, and H3 step execution rejects DLO.
 
 ### 5.5 Supported features and cross-feature compatibility
 
@@ -583,7 +604,7 @@ remains a separate gate in Sections 2 and 7.
 | [FastH3 Dense/Data-Free](https://github.com/vllm-project/vllm-omni/pull/6714) | Preview | Not offered | Not offered | Open T2VA-only preview; load-time fusion before sharding |
 | [DLO](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md) | Supported | Supported | Supported | Choose AllGather or rank-local transfer and qualify host memory, interconnect, and resident-layer count |
 | [Disaggregated encoder](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Disaggregated.md) | Supported | Supported | Supported | Merged single-node inline Stage 1; current recipe does not configure OmniConnector |
-| [Step execution](https://github.com/vllm-project/vllm-omni/pull/5810) | Supported | Supported | Supported | Scheduler admission/abort boundary; H3 co-batching needs FlashAttention and is not a default throughput optimization |
+| [Step execution](https://github.com/vllm-project/vllm-omni/pull/5810) | Functional | Functional | Functional | Merged scheduling path, but no demonstrated H3 latency/throughput benefit; useful production case pending |
 | [Online FP8](https://github.com/vllm-project/vllm-omni/pull/5910) | Supported | Supported | Supported | Eligible DiT/text-decoder linears only; VAEs and precision-sensitive layers retain checkpoint precision |
 | [SVDQuant W4A4](https://github.com/vllm-project/vllm-omni/pull/6162) | Not qualified | Limited | Not qualified | Merged FL2VA correctness baseline on SM103; fused performance path remains follow-up work |
 | SAGE / Skip-Softmax / Sol-Attn | Hardware-specific | Hardware-specific | Not qualified | TRTLLM paths target datacenter Blackwell; H3 Sol-Attn is an RTX PRO 5000 preview |
@@ -605,7 +626,7 @@ incompatibility, and ❔ when the combination has no cited end-to-end evidence.
 | Disagg. | 🟠 | ❔ | ✅ | ✅ |  |  |  |  |  |
 | Online FP8 | ❔ | ❔ | ✅ | ✅ | ✅ |  |  |  |  |
 | SVDQuant | ❔ | ❔ | ❔ | ❔ | ❌ | 🟠 |  |  |  |
-| Step exec. | ❔ | ❔ | ❌ | ❔ | ❔ | ❔ | ✅ |  |  |
+| Step exec. | ❔ | ❔ | ❌ | ❔ | ❔ | ❔ | 🟠 |  |  |
 | Cache-DiT | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ✅ |  |
 | Sparse attn. | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | 🟠 | ❔ | 🟠 |
 
@@ -625,8 +646,8 @@ Key boundaries behind the matrix:
 - DLO and online FP8 can be applied to Stage 1 of the disaggregated recipe;
   Stage 0 stays BF16 and the VAEs retain checkpoint precision.
 - Step execution rejects DLO and every diffusion cache backend. Co-batched H3
-  step execution requires FlashAttention, so sparse-attention composition is
-  partial and backend-specific.
+  step execution requires FlashAttention, and current H3 measurements show no
+  benefit; the diagonal stays orange until a useful workload is demonstrated.
 - Online FP8 and SVDQuant are alternative linear-weight formats, not a combined
   quantization mode. Every ❔ remains unsupported for production claims until
   linked evidence is added.
@@ -809,6 +830,9 @@ deployment.
 - complete native SVDQuant performance kernels and validation;
 - measure the RTX PRO 5000 DLO DP×USP Pareto frontier and select only a
   nondominated deployment point;
+- identify and validate a useful H3 step-execution case—cancellation,
+  staggered-arrival admission, or small-workload co-batching—or retain the
+  explicit no-production-benefit conclusion;
 - add vendor-reviewed Ascend NPU results; and
 - continue hardening disaggregated serving, output transport, step-level
   control, and RL rollout integration.
