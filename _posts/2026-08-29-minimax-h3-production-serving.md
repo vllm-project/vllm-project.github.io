@@ -585,16 +585,14 @@ mode as the H3 recommendation and leave Step execution orange in the matrix.
 Co-batched H3 additionally requires `FLASH_ATTN`; cache backends are unsupported
 in step mode, and H3 step execution rejects DLO.
 
-### 5.5 Supported features and cross-feature compatibility
+### 5.5 Supported task surface and output-path compatibility
 
-The following matrices are a deployment snapshot for the article's primary
-NVIDIA lane. **Supported** means a merged implementation or maintained recipe,
-not that every hardware and workload combination has met a production SLO.
+The article keeps the relatively stable task surface and output-path topology
+below. **Supported** means a merged implementation or maintained recipe, not
+that every hardware and workload combination has met a production SLO.
 **Preview** is not yet a released path; **not qualified** means that we found no
-cited end-to-end evidence for that combination; and **rejected** means that the
-current integration explicitly refuses it. **Limited** is a merged but narrow
-correctness scope, **conditional** depends on a runtime contract, and **not
-offered** falls outside that path's task contract. Hardware qualification
+cited end-to-end evidence; **conditional** depends on a runtime contract; and
+**not offered** falls outside that path's task contract. Hardware qualification
 remains a separate gate in Sections 2 and 7.
 
 | Capability | T2VA | FL2VA | Ref2VA | Current boundary |
@@ -611,46 +609,12 @@ remains a separate gate in Sections 2 and 7.
 | VAE tile patch parallelism + [exact eager kernels](https://github.com/vllm-project/vllm-omni/pull/6607) | Supported | Supported | Supported | VAE PP is 1 or the full DiT group; eager-kernel acceleration is registered on SM90/SM100/SM103 and otherwise falls back |
 | [Direct planar](https://github.com/vllm-project/vllm-omni/pull/6288) + [parallel CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6499) | Conditional | Conditional | Conditional | Used for compatible non-streaming output layouts; unsupported layouts fall back |
 
-Feature composition is deliberately stricter than the individual support
-surface. Following the vLLM
-[feature-matrix convention](https://docs.vllm.ai/en/latest/features/#feature-x-feature),
-the lower triangle below uses ✅ for a supported path, 🟠 for a preview,
-route-specific, or documented-but-not-fully-qualified path, ❌ for an explicit
-incompatibility, and ❔ when the combination has no cited end-to-end evidence.
-
-| Feature | Turbo | FastH3 | DLO | Disagg. | Online FP8 | SVDQuant | Step exec. | Cache-DiT | Sparse attn. |
-|---|---|---|---|---|---|---|---|---|---|
-| Turbo | ✅ |  |  |  |  |  |  |  |  |
-| FastH3 | ❔ | 🟠 |  |  |  |  |  |  |  |
-| DLO | ✅ | ❌ | ✅ |  |  |  |  |  |  |
-| Disagg. | 🟠 | ❔ | ✅ | ✅ |  |  |  |  |  |
-| Online FP8 | ❔ | ❔ | ✅ | ✅ | ✅ |  |  |  |  |
-| SVDQuant | ❔ | ❔ | ❔ | ❔ | ❌ | 🟠 |  |  |  |
-| Step exec. | ❔ | ❔ | ❌ | ❔ | ❔ | ❔ | 🟠 |  |  |
-| Cache-DiT | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | ❌ | ✅ |  |
-| Sparse attn. | ❔ | ❔ | ❔ | ❔ | ❔ | ❔ | 🟠 | ❔ | 🟠 |
-
-Key boundaries behind the matrix:
-
-- Turbo + DLO is merged and validated in
-  [PR #6550](https://github.com/vllm-project/vllm-omni/pull/6550); Turbo +
-  disaggregation has a dedicated maintained deployment config but no result in
-  this post yet.
-- FastH3 refuses DLO, and its VSA artifacts are rejected by the current preview.
-- DLO + online FP8 is supported for both transfer paths. Rank-local H3 has
-  end-to-end evidence, and [PR #6279](https://github.com/vllm-project/vllm-omni/pull/6279)
-  removed the AllGather compatibility gate for per-tensor FP8; the maintained
-  H3 recipe documents both. The AllGather route still needs a complete H3
-  performance/quality row for this post and has a transient startup host-memory
-  cost, but that evidence gap does not make the feature pair incompatible.
-- DLO and online FP8 can be applied to Stage 1 of the disaggregated recipe;
-  Stage 0 stays BF16 and the VAEs retain checkpoint precision.
-- Step execution rejects DLO and every diffusion cache backend. Co-batched H3
-  step execution requires FlashAttention, and current H3 measurements show no
-  benefit; the diagonal stays orange until a useful workload is demonstrated.
-- Online FP8 and SVDQuant are alternative linear-weight formats, not a combined
-  quantization mode. Every ❔ remains unsupported for production claims until
-  linked evidence is added.
+Cross-feature composition changes faster than a release-oriented blog should.
+The living, lower-triangular
+[MiniMax H3 feature×feature matrix in roadmap issue #5700](https://github.com/vllm-project/vllm-omni/issues/5700)
+tracks supported, partial, incompatible, and unverified combinations together
+with their PRs and community validation TODOs. Treat that issue—not a copied
+snapshot in this post—as the authoritative compatibility source.
 
 The non-streaming MP4 route has an additional topology and frame-layout
 boundary:
@@ -664,10 +628,9 @@ boundary:
 | Standalone caller without a converter, or with one worker | Caller-specific | Strided RGB planes remain outside the direct-planar contract | Legacy fallback by design |
 | Streaming fMP4 | Streaming path | The non-streaming layout gate does not apply | Unchanged |
 
-These tables are the compatibility contract for the post. A contributor may
-upgrade a **preview**, **limited**, **route-qualified**, or **not qualified**
-cell only with a linked implementation/recipe, a frozen revision, and the
-stage-level validation record defined in Section 2.
+Updates to cross-feature status should land in issue #5700 first. This post
+changes only when new evidence affects its deployment narrative or benchmark
+recommendations.
 
 ## 6. Four-step LoRA deployment recommendations
 
@@ -792,11 +755,13 @@ for the training architecture, data preparation, rewards, and launch commands.
 
 ### Promotion gate
 
-The matrices in Section 5.5 describe software and recipe compatibility; they
-do not replace platform qualification. Promote a profile only after its frozen
-workload passes the stage-level timing, memory, quality, media-validation, and
-operational checks in Sections 2, 3, 5, 6, and 7. Ascend NPU remains intentionally
-unclassified until the vendor-aligned scope and evidence are available.
+The task/output tables in Section 5.5 and the living
+[feature×feature matrix in issue #5700](https://github.com/vllm-project/vllm-omni/issues/5700)
+describe software compatibility; they do not replace platform qualification.
+Promote a profile only after its frozen workload passes the stage-level timing,
+memory, quality, media-validation, and operational checks in Sections 2, 3, 5,
+6, and 7. Ascend NPU remains intentionally unclassified until the
+vendor-aligned scope and evidence are available.
 
 ### Operational and security considerations
 
