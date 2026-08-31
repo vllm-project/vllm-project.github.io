@@ -44,9 +44,10 @@ turns that pipeline into a production serving system. We separate the stack
 into three decision lanes: dense reference-quality runtime optimization,
 quality- or precision-changing acceleration, and production deployment
 features. To keep the evidence compact and comparable, the article benchmarks
-one eight-GPU NVIDIA B300 node. H200, RTX PRO 5000, consumer GPUs, ROCm, and NPU
-deployments remain covered by maintained recipes rather than additional result
-matrices.
+one eight-GPU NVIDIA B300 node: the 10-second request remains the canonical A/B,
+and one selected four-step profile adds a 5/10/15-second generation-speed
+reference. H200, RTX PRO 5000, consumer GPUs, ROCm, and NPU deployments remain
+covered by maintained recipes rather than additional result matrices.
 
 ## TL;DR
 
@@ -67,9 +68,10 @@ matrices.
   and cacheable. Step execution implements admission and abort boundaries, but
   current H3 measurements show no latency or throughput benefit; its useful
   production case remains to be demonstrated.
-- **One canonical benchmark keeps the comparison tractable.** Every comparable
-  row uses the official 10-second, 1344×768 T2VA case. FL2VA and Ref2VA remain
-  capability and recipe coverage rather than a second hardware matrix.
+- **One canonical benchmark keeps the comparison tractable.** Every feature A/B
+  uses the official 10-second, 1344×768 T2VA case. The selected four-step B300
+  profile also runs at 5 and 15 seconds to report complete-MP4 real-time factor;
+  FL2VA and Ref2VA remain capability and recipe coverage.
 
 ## 1. Commercial workloads and serving goals
 
@@ -186,7 +188,8 @@ Each result also carries this compact manifest:
 
 The benchmark covers **8× B300 only**: one lossless Diffusers/vLLM-Omni A/B,
 isolated lossless kernel/transport checks, and selected four-step or
-precision-changing profiles. Other platforms are deployment guidance, not
+precision-changing profiles. Only the selected four-step profile receives the
+5/10/15-second duration sweep. Other platforms are deployment guidance, not
 cross-hardware comparisons:
 
 | Deployment | Maintained guidance |
@@ -600,7 +603,48 @@ disaggregated serving, split encoder compute from handoff wait and state whether
 the prompt hit the prefix cache. For every row, retain the adapter SHA, scale,
 resident LoRA HBM, sigma points, actual forwards, and same-seed quality result.
 
-### 6.3 Deployment decision rule
+### 6.3 Five-, ten-, and fifteen-second generation-speed reference
+
+After Section 4.4 selects a publishable four-step path, run exactly one duration
+sweep with its lowest-latency B300 topology. Turbo is the default production
+candidate; if FastH3 is selected instead, name the fused artifact and use that
+same path for all three rows. Do not sweep every acceleration combination.
+The hypothesis is that fixed encoder and serving overheads are amortized as the
+clip grows, so the selected profile's real-time factor stays flat or improves.
+
+At 24 FPS, the frozen H3 implementation rounds requested seconds to frames and
+then aligns upward to the model's `17n+5` boundary:
+
+| Requested | Requested frames | Aligned frames | Nominal video duration |
+|---:|---:|---:|---:|
+| 5.0 s | 120 | 124 | 5.167 s |
+| 10.0 s | 240 | 243 | 10.125 s |
+| 15.0 s | 360 | 362 | 15.083 s |
+
+Hold the prompt, seed, resolution, FPS, adapter and schedule, attention backend,
+TP/USP/DP/Ring groups, VAE PP, compile policy, output path, and CPU affinity
+fixed; duration is the only independent variable. Record one excluded
+feasibility/compile request per shape, prewarm the 15-second maximum before any
+CUDA-graph capture, then collect two runs in the fixed interleaved order
+5→10→15→5→10→15 seconds. The 10-second row may reuse the canonical
+measurement only when every control and timing boundary matches.
+Stop a duration before repeated measurement on the Section 2 feasibility
+conditions and retain the failed row. A real-time claim requires valid media
+and `RTF_client ≤ 1.0` in both measured repetitions.
+
+| Requested / aligned / nominal video | Encoder | DiT total / 4 / per-forward | Video/audio VAE | Transport + CPU MP4 | Client E2E run 1 / run 2 | Validated MP4 duration | Client RTF / × real time | Peak HBM | Evidence |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 5.0 s / 124 / 5.167 s | TBD | TBD / 4 / TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD |
+| 10.0 s / 243 / 10.125 s | TBD | TBD / 4 / TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD |
+| 15.0 s / 362 / 15.083 s | TBD | TBD / 4 / TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD |
+
+Let `T_media` be the validated MP4 playback duration from `ffprobe`, retaining
+the video and audio stream durations beside it. Report
+`RTF_client = T_client / T_media` and `×_real_time = T_media / T_client`.
+`RTF_client ≤ 1.0` means the complete MP4 was produced faster than playback;
+it is **not** a live-streaming claim or a time-to-first-frame measurement.
+
+### 6.4 Deployment decision rule
 
 - Choose the one-replica wide-USP profile for the lowest validated request
   latency.
@@ -616,11 +660,12 @@ resident LoRA HBM, sigma points, actual forwards, and same-seed quality result.
 
 ## 7. Results and deployment recommendations
 
-The final B300 recommendation will draw from three tables only: the lossless
-Diffusers/vLLM-Omni A/B in Section 3.5, isolated acceleration results in
-Section 4.4, and the four-step critical path in Section 6.2. It will name the
-lowest complete-MP4 latency profile and the highest measured node-throughput
-profile, with peak HBM/host RAM and quality gates beside each claim.
+The final B300 recommendation will draw from the lossless Diffusers/vLLM-Omni
+A/B in Section 3.5, isolated acceleration results in Section 4.4, the four-step
+critical path in Section 6.2, and the duration-scaling reference in Section 6.3.
+It will name the lowest complete-MP4 latency profile and the highest measured
+node-throughput profile, with peak HBM/host RAM and quality gates beside each
+claim.
 
 Do not infer a recommendation from nominal FLOPS, multiply gains from unrelated
 microbenchmarks, or treat a cold request as steady state. H200, RTX PRO 5000,
@@ -677,8 +722,9 @@ deployment.
 
 ## Roadmap
 
-- complete the lossless Diffusers-versus-vLLM-Omni A/B and four-step profiles
-  on 8× B300 with reconciled timing boundaries;
+- complete the lossless Diffusers-versus-vLLM-Omni A/B, four-step profiles, and
+  5/10/15-second generation-speed reference on 8× B300 with reconciled timing
+  boundaries;
 - qualify FastH3, SAGE/Skip-Softmax, and Sol-Attn against released dense
   baselines and multi-seed audio/video gates;
 - complete native SVDQuant performance kernels and validation;
