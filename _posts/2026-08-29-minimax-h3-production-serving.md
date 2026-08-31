@@ -163,7 +163,7 @@ both warmed request intervals and are reported separately.
 | Stage | Required timing | Required placement and configuration |
 |---|---|---|
 | Encoder | Preparation and encoder wall time; for disaggregation, Stage 0 compute and handoff wait separately | Device IDs, TP, replicas, offload, prefix-cache state, attention backend |
-| DiT denoise | Total wall time, sigma points, actual forwards, and wall time per actual forward | Device IDs and group membership; TP, Ulysses, Ring, DP, CFG, PP/HSDP; DLO mode/resident layers; dense or approximate attention; eager/compile |
+| DiT denoise | Total wall time, sigma points, actual forwards, and wall time per actual forward | Device IDs and group membership; TP, Ulysses, Ring, DP, CFG, PP/HSDP; regular or SymmMem Ulysses transport; DLO mode/resident layers; dense or approximate attention; eager/compile |
 | Video VAE | Decode wall time and multi-rank critical path | Devices, VAE patch-parallel size, mode, tiling, process group, kernel path |
 | Audio VAE | Separate wall time when instrumentation permits | Devices and rank-local, replicated, or sharded placement |
 | Transport | D2H, worker-to-engine, and inter-stage handoff where applicable; record payload bytes before and after preparation | Source/destination ranks, SHM/IPC path, payload dtype, shape, layout, and size |
@@ -186,8 +186,8 @@ Each result also carries this compact manifest:
 
 | Platform | Primary evidence requested | Status |
 |---|---|---|
-| NVIDIA B300 | Diffusers versus vLLM-Omni lossless A/B; dense-backend selection; four-step and quantization/attention feature A/Bs | Pending collaborator data |
-| NVIDIA H200 | Diffusers versus vLLM-Omni lossless A/B; dense attention, fused-DiT, VAE, CPU MP4, and Turbo evidence | Pending collaborator data |
+| NVIDIA B300 | Diffusers versus vLLM-Omni lossless A/B; dense-backend and regular-versus-Fast-Ulysses selection; four-step and quantization/attention feature A/Bs | Pending collaborator data |
+| NVIDIA H200 | Diffusers versus vLLM-Omni lossless A/B; dense attention/Ulysses transport, fused-DiT, VAE, CPU MP4, and Turbo evidence | Pending collaborator data |
 | 8× RTX PRO 5000 Blackwell | Diffusers versus vLLM-Omni lossless A/B; resident TP4×USP2 profile; DLO DP×USP Pareto study; sparse-attention preview kept separate | Pending collaborator data |
 | Ascend NPU | Scope, topology, software stack, and workload to be agreed with hardware vendors | Vendor validation pending |
 
@@ -232,6 +232,33 @@ An attention-backend win is reported separately from the complete
 Diffusers-versus-vLLM comparison. Selecting different dense kernels is allowed,
 but the table must name them; otherwise a runtime speedup would silently mix an
 engine change with a kernel change.
+
+[PR #6340](https://github.com/vllm-project/vllm-omni/pull/6340) adds an
+orthogonal, opt-in Fast Ulysses transport through
+`--ulysses-a2a-permute`. For the strict scatter-heads/gather-sequence layout,
+it replaces regular Ulysses all-to-all plus explicit relayout with functional
+CUDA custom ops backed by NCCL SymmetricMemory. The attention math, packed
+documents, and selected dense backend remain unchanged.
+
+The merged implementation JIT-builds the extension during worker/model
+initialization, retains one grow-only workspace per device/process group,
+requires that workspace to stay on one CUDA stream, and releases it before the
+distributed environment is destroyed. A CUDA-graph deployment must warm its
+maximum request shape before capture because the workspace cannot grow during
+capture. Unsupported/non-strict layouts retain regular Ulysses.
+
+The available H3 A/Bs show that the gain is workload-sensitive:
+
+| Evidence | Workload | Regular Ulysses | Fast Ulysses | Result and boundary |
+|---|---|---:|---:|---|
+| [Contributor long-video A/B](https://github.com/vllm-project/vllm-omni/pull/6340#issuecomment-5464584782) | 4 GPUs, H3, 281 frames, Ulysses4, one warmup + three runs | 152.930 s steady E2E | 150.849 s | −1.36%; the reported warmup was 18.738 s slower and attributed to one-time initialization/JIT |
+| [Reviewer four-step A/B](https://github.com/vllm-project/vllm-omni/pull/6340#issuecomment-5466589923) | 4× L20X, 1344×768, 124 frames, four steps, Ulysses4, cuDNN | 18.201 ± 1.461 s client; 5.467 ± 0.170 s diffusion | 13.620 ± 0.547 s client; 4.989 ± 0.126 s diffusion | −25.2% client and −8.8% diffusion; peak HBM −0.28%; PSNR 35.3–39.4 dB and SSIM 0.977–0.988 |
+
+Use the isolated diffusion-stage delta to attribute the transport improvement;
+the larger client delta also contains run-level variation. Do not add this gain
+to strict-Ulysses boundary or attention-backend gains measured on another base.
+The final platform profile must A/B regular versus Fast Ulysses after its dense
+backend and topology are frozen.
 
 ### 3.2 Fused DiT operators
 
@@ -673,10 +700,10 @@ unless the row uses model TP across the full node.
 
 | Platform / objective | Encoder | DiT parallelism | Video VAE | Weights / attention | Recommendation status |
 |---|---|---|---|---|---|
-| B300 / lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; dense TRTLLM/cuDNN/FA4 winner from Section 3 | Candidate |
-| B300 / node throughput | TP2 per replica | DP4 × TP1 × USP2, Ring1 | PP2 per replica | Four resident Turbo replicas; dense backend fixed across replicas | Candidate; compare with latency row |
-| H200 / lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; dense cuDNN/Flash winner | Candidate |
-| H200 / balanced throughput | TP4 per replica | DP2 × TP1 × USP4, Ring1 | PP4 per replica | Two resident Turbo replicas; dense backend fixed | Candidate |
+| B300 / lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; dense TRTLLM/cuDNN/FA4 and regular/Fast-Ulysses winners from Section 3 | Candidate |
+| B300 / node throughput | TP2 per replica | DP4 × TP1 × USP2, Ring1 | PP2 per replica | Four resident Turbo replicas; dense backend and Ulysses transport fixed across replicas | Candidate; compare with latency row |
+| H200 / lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; dense cuDNN/Flash and regular/Fast-Ulysses winners | Candidate |
+| H200 / balanced throughput | TP4 per replica | DP2 × TP1 × USP4, Ring1 | PP4 per replica | Two resident Turbo replicas; dense backend and Ulysses transport fixed | Candidate |
 | RTX PRO 5000 / resident | TP8 | DP1 × TP4 × USP2, Ring1 | PP8 tile | Resident BF16 + Turbo, `CUDNN_ATTN` | Recipe-derived capacity profile; Turbo validation pending |
 | RTX PRO 5000 / DLO throughput | Match selected USP | Select nondominated DP×USP point from Section 5, TP1 | Match selected USP | DLO AllGather + resident Turbo A/B buffers, dense cuDNN | Choose only after Pareto study |
 
@@ -728,6 +755,9 @@ resident LoRA HBM, sigma points, actual forwards, and same-seed quality result.
   offsets its orchestration cost.
 - Re-profile VAE and CPU MP4 after every denoise acceleration; at four forwards
   they can determine the complete response latency.
+- Treat Fast Ulysses as an opt-in transport A/B, not a universal default:
+  include JIT/readiness time separately and warm the maximum serving shape
+  before any compile or CUDA-graph capture.
 
 ## 7. Results and deployment recommendations
 
@@ -842,6 +872,7 @@ hardware, and training paths referenced throughout this post.
 - [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
 - [Distributed Layerwise Offload](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
 - [Diffusion execution modes](https://github.com/vllm-project/vllm-omni/blob/main/docs/user_guide/diffusion/execution_modes.md)
+- [Native SymmMem Fast Ulysses transport](https://github.com/vllm-project/vllm-omni/pull/6340)
 - [MiniMax H3 GPU video-output transfer optimization](https://github.com/vllm-project/vllm-omni/pull/6824)
 - [Parallel MP4 encoding for interleaved transported frames](https://github.com/vllm-project/vllm-omni/pull/6776)
 - [Online FP8 explainer and editable figure sources](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
