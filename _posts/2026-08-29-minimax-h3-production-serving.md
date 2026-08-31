@@ -490,7 +490,6 @@ platform and changes one declared acceleration policy:
 
 | Platform / path | Weights / precision | Sigma points / actual forwards | Attention or cache policy | E2E / speedup | Peak HBM | Video/audio quality | Maturity / artifacts |
 |---|---|---|---|---:|---:|---|---|
-| B300 / Turbo | BF16 + dynamic LoRA | 5 / 4 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
 | B300 / FastH3 | Fused artifact | 5 / 4 | Dense only | 8.678 / 8.710 s on the frozen 10-second request; speedup TBD until the Section 3 lossless row lands | 94.1 GiB per GPU, allocator-reserved | Same-seed repetitions are byte-identical; no cross-path quality A/B run | Merged ([#6714](https://github.com/vllm-project/vllm-omni/pull/6714), `86b85c07`) / Section 6.2 sweep |
 | B300 / online FP8 | Runtime FP8 | 50 / 49 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
 | B300 / SVDQuant | Offline W4A4 + BF16 correction | 50 / 49 | Dense TBD | TBD | TBD | TBD | Correctness baseline / TBD |
@@ -727,27 +726,21 @@ operators should review the current territorial, attribution, revenue,
 acceptable-use, and safeguard requirements with their own counsel before
 deployment.
 
-## Roadmap
+## Future work
 
-- complete the lossless Diffusers-versus-vLLM-Omni A/B, four-step profiles, and
-  5/10/15-second generation-speed reference on 8× B300 with reconciled timing
-  boundaries;
 - integrate and qualify FastH3 VSA variants with a supported sparse-attention
   backend and multi-seed video/audio gates;
-- qualify SAGE/Skip-Softmax and Sol-Attn against released dense baselines;
+- qualify Sol-Attn against the released dense baseline;
 - complete native fused NVFP4 W4A4/SVDQuant kernels, then validate memory,
   latency, and quality end to end;
-- develop a GPU-accelerated MP4 response path covering output transport, H.264
-  encoding, audio muxing, and a portable CPU fallback;
+- implement the
+  [chunkwise VAE-to-transport-to-MP4 pipeline](https://github.com/vllm-project/vllm-omni/issues/6872)
+  and qualify a GPU-accelerated encoder with a portable CPU fallback;
 - disaggregate video and audio VAE decode into independently scalable stages
   with explicit placement, handoff, and failure-recovery contracts;
 - identify and validate a useful H3 step-execution case—cancellation,
   staggered-arrival admission, or small-workload co-batching—or retain the
-  explicit no-production-benefit conclusion;
-- keep H200, RTX PRO 5000, consumer GPU, ROCm, and NPU guidance in maintained
-  recipes rather than extending this benchmark matrix; and
-- continue hardening disaggregated serving, output transport, step-level
-  control, and RL rollout integration.
+  explicit no-production-benefit conclusion.
 
 ## Acknowledgments
 
