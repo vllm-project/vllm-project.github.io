@@ -53,8 +53,9 @@ developed with the relevant hardware vendors.
   (T2VA), first/last-frame-to-video-and-audio (FL2VA), and mixed-reference
   video-and-audio generation (Ref2VA) through `/v1/videos`.
 - **Optimize the lossless lane first.** Dense attention, packed-sequence and
-  Ulysses boundaries, fused DiT operators, VAE parallelism/kernels, and CPU MP4
-  construction are compared end to end against Diffusers on each platform.
+  Ulysses boundaries, fused DiT operators, VAE parallelism/kernels, GPU output
+  packing/transport, and CPU MP4 construction are compared end to end against
+  Diffusers on each platform.
 - **Treat acceleration knobs as separate quality decisions.** Turbo and
   FastH3 reduce the denoiser to four forwards; online FP8, SVDQuant, SAGE,
   Skip-Softmax, Sol-Attn, and Cache-DiT change precision, coverage, weights, or
@@ -115,7 +116,7 @@ tuning:
 | Base schedule | 50 requested sigma points and 49 expected DiT forwards; record both |
 | Prompt | The official MiniMax H3 model-card `case-T2VA` H3-Context-IR output, frozen at model revision `42ed227e`; SHA-256 `98f36b879692095e099ae824c18d9e93e7006a490e082fd474a5f531769dcf06` |
 | Seed | `0`, matching the official H3-Base script |
-| vLLM-Omni lane | Initial freeze [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54) is blocked for the canonical row after the MP4 fallback stop; re-freeze on the merge commit of [#6764](https://github.com/vllm-project/vllm-omni/pull/6764). Keep [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a) and base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` unless the re-freeze explicitly changes them |
+| vLLM-Omni lane | Initial freeze [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54) was stopped after the MP4 fallback. [#6776](https://github.com/vllm-project/vllm-omni/pull/6776) and [#6824](https://github.com/vllm-project/vllm-omni/pull/6824) are now merged together at [`759aa4ff`](https://github.com/vllm-project/vllm-omni/commit/759aa4ffebefa4b293eed6068115da823fa4fb7a); re-freeze on that commit or a declared later main SHA. Keep [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a) and base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` unless the re-freeze explicitly changes them |
 | Diffusers lane | [Diffusers `v0.40.0` / `d035dcd7`](https://github.com/huggingface/diffusers/commit/d035dcd7cc7c88e0a154609b62887d50bba9fdc2); record Transformers, PyTorch, attention-kernel, and media-package versions |
 | Model | [MiniMax H3 `42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe) |
 | Repetitions | One full-shape feasibility request, also recorded as the excluded compile/kernel warmup, then two measured repetitions per claimed A/B |
@@ -165,7 +166,7 @@ both warmed request intervals and are reported separately.
 | DiT denoise | Total wall time, sigma points, actual forwards, and wall time per actual forward | Device IDs and group membership; TP, Ulysses, Ring, DP, CFG, PP/HSDP; DLO mode/resident layers; dense or approximate attention; eager/compile |
 | Video VAE | Decode wall time and multi-rank critical path | Devices, VAE patch-parallel size, mode, tiling, process group, kernel path |
 | Audio VAE | Separate wall time when instrumentation permits | Devices and rank-local, replicated, or sharded placement |
-| Transport | D2H, worker-to-engine, and inter-stage handoff where applicable | Source/destination ranks, SHM/IPC path, payload dtype and size |
+| Transport | D2H, worker-to-engine, and inter-stage handoff where applicable; record payload bytes before and after preparation | Source/destination ranks, SHM/IPC path, payload dtype, shape, layout, and size |
 | CPU MP4 | Encode/mux wall time, process CPU time, and peak RSS | CPU model, NUMA affinity, threads, conversion path, PyAV/FFmpeg and codec settings |
 | Client E2E | Prompt submission through complete MP4 | Endpoint/call boundary, client host, concurrency, and network boundary |
 | Residual | `client E2E - directly measured stages` | Explain any material signed residual rather than hiding it in another stage |
@@ -261,37 +262,56 @@ SM90, SM100, and SM103 while retaining guarded fallbacks. Report the video VAE
 critical path and audio VAE separately; an isolated decoder speedup is not an
 equal-sized end-to-end claim.
 
-### 3.4 CPU MP4 construction
+### 3.4 Video output transport and CPU MP4 construction
 
-The [direct planar encoder](https://github.com/vllm-project/vllm-omni/pull/6288)
-avoids materializing a full interleaved RGB video for compatible frame layouts.
-The follow-up [persistent eight-worker conversion pool](https://github.com/vllm-project/vllm-omni/pull/6499)
-parallelizes ordered per-frame conversion. Both preserve H.264/AAC settings and
-fall back safely when the frame contract is unsupported.
+The merged lossless output path now reduces data before it optimizes CPU muxing:
+
+1. [PR #6824](https://github.com/vllm-project/vllm-omni/pull/6824)
+   clamps, scales, and rounds decoded FP32 BCTHW frames on the GPU, combines
+   dtype plus BCTHW→BTHWC conversion into one contiguous uint8 allocation, and
+   avoids a redundant `torch.cat` for the common single-output case.
+2. The existing pinned D2H and worker-to-engine path transports the four-times
+   smaller uint8 payload. A subprocess boundary may still materialize a
+   C-interleaved array whose individual RGB planes are strided.
+3. [PR #6776](https://github.com/vllm-project/vllm-omni/pull/6776)
+   lets the server-owned parallel converter accept those strided RGB planes,
+   keeping transported output on the direct-planar route.
+4. The [direct planar encoder](https://github.com/vllm-project/vllm-omni/pull/6288)
+   plus [persistent eight-worker pool](https://github.com/vllm-project/vllm-omni/pull/6499)
+   converts frames in order and writes H.264/AAC without a second full
+   interleaved RGB buffer.
+
+The resulting chain is:
+
+`FP32 BCTHW on GPU → uint8 BTHWC → pinned D2H/IPC → parallel direct-planar frames → H.264/AAC MP4`
+
+Source-PR and reviewer evidence is encouraging but uses shorter workloads than
+the frozen ten-second comparison:
+
+| Evidence | Workload | Main/baseline | Candidate | Result and boundary |
+|---|---|---:|---:|---|
+| [#6824 submitted A/B](https://github.com/vllm-project/vllm-omni/pull/6824) | 8× B300, 5 s / 124 frames, 50 points, SP8 | 22.578 s steady inference; 1,535,901,696-byte worker payload | 21.683 s; 383,975,424-byte payload | −3.96% steady inference and −75% payload; peak HBM unchanged; byte-identical MP4. SGLang reference: 18.830 s |
+| [#6824 reviewer A/B](https://github.com/vllm-project/vllm-omni/pull/6824#issuecomment-5470473899) | 4 GPUs, 5 s / 124 frames, four denoise steps | 9.738 ± 0.204 s E2E; 8.601 s Stage 0 | 8.878 ± 0.064 s; 6.832 s Stage 0 | −8.84% E2E and −20.56% Stage 0; unchanged peak memory and byte-identical MP4. The PR branch lacked #6776 and therefore used `legacy_fallback` |
+| [#6776 paired CPU A/B](https://github.com/vllm-project/vllm-omni/pull/6776) | 243×768×1344 interleaved frames, eight workers, ten paired rounds | 2.430 s median wall; 5.635 s process CPU | 1.422 s wall; 6.143 s process CPU | −40.94% wall latency for +9.02% process CPU; every MP4 byte-identical |
+| [#6776 H200 serving validation](https://github.com/vllm-project/vllm-omni/pull/6776) | 8× H200, frozen 10 s / 243-frame request, subprocess path | No matched main run | 140.207 s median client; 1.144 s CPU encode/mux | Functional validation only; direct-planar route, valid byte-identical media, zero fallback events |
+
+#6776 merged first and #6824 merged directly on top of it, so current main
+contains both halves of the intended path. [PR #6764](https://github.com/vllm-project/vllm-omni/pull/6764)
+closed unmerged; default single-stage serving remains subprocess-based and no
+longer needs inline placement to reach direct-planar encoding. A fresh combined
+A/B on the frozen ten-second workload is still required before the blog fills
+its canonical vLLM-Omni result row.
+
+The online H.264/AAC response remains byte-identical in the submitted tests.
+The raw offline contract does change: callers that consume
+`OmniRequestOutput.images[0]` directly now receive contiguous uint8 `[0,255]`
+frames rather than float32 `[0,1]` frames and must branch on dtype.
 
 For Diffusers, the equivalent end boundary includes its caller-side
 `encode_video()`/mux step. For vLLM-Omni, it includes the complete non-streaming
-HTTP response. Report MP4 wall time, process CPU time, peak RSS, chosen route,
-and CPU/NUMA placement rather than attributing CPU gains to the GPU engine.
-
-The frozen `55a226dc` H200 run exposed a topology-dependent routing issue and
-was stopped after its excluded warmup, as required: the default single-stage
-service selected `StageDiffusionProc`, transport materialized interleaved
-frames, and the frontend selected `legacy_fallback`. Two open fixes cover
-different deployment contracts and remain validation evidence rather than the
-canonical result:
-
-| Evidence | Diffusion placement | MP4 route | Measured complete-response evidence | Status |
-|---|---|---|---|---|
-| Frozen `55a226dc` row | Default single-stage subprocess | `legacy_fallback` | Warmup only; no result reported | Stopped; canonical row pending re-freeze |
-| [PR #6764](https://github.com/vllm-project/vllm-omni/pull/6764) candidate | Single stage, one replica, inline | `direct_planar`, eight workers | 128.339 s and 128.435 s client totals | Open-PR validation; not a merged baseline |
-| [PR #6776](https://github.com/vllm-project/vllm-omni/pull/6776) candidate | Intentional subprocess path | `direct_planar` for transported interleaved frames | 140.165 s and 140.250 s client totals; 1.137 s and 1.151 s CPU encode/mux | Open-PR validation; not a main-versus-candidate E2E A/B |
-
-After #6764 lands, the canonical single-stage row must be re-frozen on its
-merge commit and rerun. The two candidate rows above cannot be compared as an
-inline-versus-subprocess speedup because their placement differs. The complete
-validation provenance is in the
-[contributor report](https://github.com/vllm-project/vllm-project.github.io/pull/315#issuecomment-5463306163).
+HTTP response. Report output-preparation time, payload bytes, transport wall
+time, MP4 wall/process CPU, peak RSS, chosen route, and CPU/NUMA placement
+rather than attributing transport or CPU gains to the DiT.
 
 ### 3.5 Diffusers versus vLLM-Omni A/B
 
@@ -607,7 +627,8 @@ remains a separate gate in Sections 2 and 7.
 | [SVDQuant W4A4](https://github.com/vllm-project/vllm-omni/pull/6162) | Not qualified | Limited | Not qualified | Merged FL2VA correctness baseline on SM103; fused performance path remains follow-up work |
 | SAGE / Skip-Softmax / Sol-Attn | Hardware-specific | Hardware-specific | Not qualified | TRTLLM paths target datacenter Blackwell; H3 Sol-Attn is an RTX PRO 5000 preview |
 | VAE tile patch parallelism + [exact eager kernels](https://github.com/vllm-project/vllm-omni/pull/6607) | Supported | Supported | Supported | VAE PP is 1 or the full DiT group; eager-kernel acceleration is registered on SM90/SM100/SM103 and otherwise falls back |
-| [Direct planar](https://github.com/vllm-project/vllm-omni/pull/6288) + [parallel CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6499) | Conditional | Conditional | Conditional | Used for compatible non-streaming output layouts; unsupported layouts fall back |
+| [GPU uint8 video-output preparation](https://github.com/vllm-project/vllm-omni/pull/6824) | Supported | Supported | Supported | Merged common H3 output path; HTTP media semantics stay unchanged, while direct offline frame consumers must accept uint8 |
+| [Direct planar](https://github.com/vllm-project/vllm-omni/pull/6288) + [parallel CPU MP4](https://github.com/vllm-project/vllm-omni/pull/6499) | Conditional | Conditional | Conditional | Standard server paths support merged H3 uint8/interleaved layouts through #6776; standalone/one-worker callers and unsupported shapes retain fallback |
 
 Cross-feature composition changes faster than a release-oriented blog should.
 The living, lower-triangular
@@ -621,12 +642,12 @@ boundary:
 
 | Diffusion deployment | Stage client | Frame-layout boundary | Non-streaming MP4 path |
 |---|---|---|---|
-| Single stage, one replica, default | `StageDiffusionProc` at frozen `55a226dc`; [PR #6764](https://github.com/vllm-project/vllm-omni/pull/6764) proposes inline selection | Current transport materializes interleaved frames; the candidate avoids the process boundary | Current frozen row falls back; #6764 candidate selects `direct_planar` with the server-owned parallel converter |
-| Multiple stages with explicit `inline_diffusion` | Inline, unchanged by #6764 | Producer layout stays in process | `direct_planar` when the existing shape/dtype/plane-layout gate passes; otherwise legacy fallback |
-| Multiple stages, default | `StageDiffusionProc` | Transport may materialize C-interleaved BTHWC/FHWC frames | Current path falls back; [PR #6776](https://github.com/vllm-project/vllm-omni/pull/6776) accepts strided RGB planes only with a parallel converter |
-| Any multi-replica diffusion stage | Subprocess, even when `inline_diffusion` is requested | Same transport boundary as the default multi-stage path | Same #6776 candidate condition; otherwise legacy fallback |
+| Single stage, one replica, default | `StageDiffusionProc`; #6764 closed unmerged | #6824 prepares contiguous uint8 BTHWC on GPU; subprocess transport preserves an interleaved layout with strided RGB planes | Merged #6776 selects `direct_planar` with the server-owned parallel converter |
+| Multiple stages with explicit `inline_diffusion` | Inline | #6824's uint8 BTHWC stays in process | Merged #6776 selects `direct_planar` when the server-owned parallel converter and shape/dtype gates are available |
+| Multiple stages, default | `StageDiffusionProc` | #6824 uint8 output crosses transport as C-interleaved BTHWC/FHWC frames | Merged #6776 accepts the strided RGB planes with the parallel converter |
+| Any multi-replica diffusion stage | Subprocess, even when `inline_diffusion` is requested | Same uint8/interleaved transport boundary as the default multi-stage path | Same merged #6776 route; unsupported shapes or missing parallel converter fall back |
 | Standalone caller without a converter, or with one worker | Caller-specific | Strided RGB planes remain outside the direct-planar contract | Legacy fallback by design |
-| Streaming fMP4 | Streaming path | The non-streaming layout gate does not apply | Unchanged |
+| Streaming fMP4 | Streaming path | #6824's contiguous uint8 FHWC output uses the existing ready-to-encode fast path | Streaming semantics unchanged |
 
 Updates to cross-feature status should land in issue #5700 first. This post
 changes only when new evidence affects its deployment narrative or benchmark
@@ -821,6 +842,8 @@ hardware, and training paths referenced throughout this post.
 - [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
 - [Distributed Layerwise Offload](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
 - [Diffusion execution modes](https://github.com/vllm-project/vllm-omni/blob/main/docs/user_guide/diffusion/execution_modes.md)
+- [MiniMax H3 GPU video-output transfer optimization](https://github.com/vllm-project/vllm-omni/pull/6824)
+- [Parallel MP4 encoding for interleaved transported frames](https://github.com/vllm-project/vllm-omni/pull/6776)
 - [Online FP8 explainer and editable figure sources](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
 - [MiniMax H3 SVDQuant explainer](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
 - [VeRL-Omni repository](https://github.com/verl-project/verl-omni)
