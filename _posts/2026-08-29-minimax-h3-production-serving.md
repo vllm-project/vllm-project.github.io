@@ -390,9 +390,9 @@ comparison. A few-step result is not directly comparable to a 50-step baseline
 unless those differences are explicit.
 
 The canonical T2VA matrix compares base H3, Turbo, and FastH3 under one output
-contract. Section 6 turns the merged Turbo path into concrete production
-profiles; FastH3 remains a specialized, T2VA-only server profile whose
-canonical quality and performance row is still pending.
+contract. Section 6 turns the merged FastH3 path into a measured low-latency
+deployment strategy. Turbo remains the request-switchable alternative when one
+service must cover both T2VA and FL2VA.
 
 ### 4.2 Weight and activation quantization
 
@@ -452,7 +452,7 @@ platform and changes one declared acceleration policy:
 | Platform / path | Weights / precision | Sigma points / actual forwards | Attention or cache policy | E2E / speedup | Peak HBM | Video/audio quality | Maturity / artifacts |
 |---|---|---|---|---:|---:|---|---|
 | B300 / Turbo | BF16 + dynamic LoRA | 5 / 4 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
-| B300 / FastH3 | Fused artifact | 5 / 4 | Dense only | 8.678 / 8.710 s on the frozen 10-second request; speedup TBD until the Section 3 lossless row lands | 94.1 GiB per GPU, allocator-reserved | Same-seed repetitions are byte-identical; no cross-path quality A/B run | Merged ([#6714](https://github.com/vllm-project/vllm-omni/pull/6714), `86b85c07`) / Section 6.3 sweep |
+| B300 / FastH3 | Fused artifact | 5 / 4 | Dense only | 8.678 / 8.710 s on the frozen 10-second request; speedup TBD until the Section 3 lossless row lands | 94.1 GiB per GPU, allocator-reserved | Same-seed repetitions are byte-identical; no cross-path quality A/B run | Merged ([#6714](https://github.com/vllm-project/vllm-omni/pull/6714), `86b85c07`) / Section 6.2 sweep |
 | B300 / online FP8 | Runtime FP8 | 50 / 49 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
 | B300 / SVDQuant | Offline W4A4 + BF16 correction | 50 / 49 | Dense TBD | TBD | TBD | TBD | Correctness baseline / TBD |
 | B300 / SAGE or Skip-Softmax | BF16 weights | 50 / 49 | Exact policy TBD | TBD | TBD | TBD | Backend merged / TBD |
@@ -550,122 +550,91 @@ unverified combinations. The task and hardware commands remain in the
 [maintained H3 recipes](https://github.com/vllm-project/vllm-omni/tree/main/recipes/MiniMaxAI),
 while Section 3.4 records the merged output-layout and MP4 boundaries.
 
-## 6. Four-step LoRA deployment recommendations
+## 6. FastH3 low-latency and real-time deployment
 
-This section recommends the merged, request-switchable Turbo path for
-production planning. FastH3 also executes four transformer forwards, but its
-merged vLLM-Omni integration is a T2VA-only load-time-fusion path rather than a
-request-switchable adapter, so it is not used for the general production
-profile recommendation.
+The merged [FastH3 path](https://github.com/vllm-project/vllm-omni/pull/6714)
+fuses the Dense/Data-Free four-step artifact before sharding, making it a good
+fit for a dedicated T2VA service where complete-response latency is the primary
+objective. Turbo remains the request-switchable choice when one service must
+switch adapters or cover FL2VA, but the measured strategy below uses FastH3.
 
-Preload and allowlist the Turbo artifact, keep one adapter active per request,
-and use its published five sigma points, four DiT forwards, video flow shift 6,
-and audio flow shift 3. Start with dense attention; add quantization, caching,
-or sparse attention only as a separately qualified composition.
+### 6.1 Recommended B300 profile
 
-### 6.1 Candidate eight-GPU profiles
+Use one resident FastH3 replica across eight B300 GPUs: DiT DP1 × TP1 × USP8
+with Ring1, VAE patch-parallel 8 in tile mode, and dense `TRTLLM_ATTN`. On the
+frozen `86b85c07` revision, the profiled 10-second request decomposes as:
 
-The profiles below are benchmark candidates, not results. DP and USP describe
-the complete eight-GPU factorization; encoder TP and VAE PP are per replica
-unless the row uses model TP across the full node.
+| Encoder | DiT total / 4 / per-forward | Video + audio VAE | Derived transport | CPU MP4 | Profiled E2E | Clean E2E | Peak HBM |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0.052 s | 5.532 s / 4 / 1.383 s | 1.247 s combined | 0.881 s | 0.868 s | 8.629 s | 8.678 / 8.710 s | 94.1 GiB/GPU reserved |
 
-| B300 objective | Encoder | DiT parallelism | Video VAE | Weights / attention | Status |
-|---|---|---|---|---|---|
-| Lowest latency | TP8 | DP1 × TP1 × USP8, Ring1 | PP8 tile | Resident BF16 + Turbo; selected dense backend and Ulysses transport from Section 3 | Candidate |
-| Node throughput | TP2 per replica | DP4 × TP1 × USP2, Ring1 | PP2 per replica | Four resident Turbo replicas; identical backend and transport across replicas | Candidate; compare with latency row |
+The profiler timers are collected in a separate instrumented pass; the clean
+E2E values carry the latency claim. Same-seed repetitions are byte-identical,
+but production promotion still requires a cross-path, multi-seed quality A/B.
 
-Wider USP usually favors one-request latency; more DP replicas favor node
-throughput. USP adds activation collectives, while DP duplicates request-local
-state and requires enough concurrent arrivals.
+### 6.2 Complete-MP4 real-time reference
 
-### 6.2 Four-step stage decomposition
+The duration sweep keeps the prompt, seed, 1344×768 resolution, 24 FPS,
+artifact, four-forward schedule, topology, attention, VAE, output path, and CPU
+affinity fixed. H3 aligns the 5/10/15-second requests to 124/243/362 frames; one
+feasibility request per shape is excluded before two interleaved measurements.
 
-For Turbo, the client-visible pipeline is:
+| Requested / aligned / playback | DiT total / per-forward | Combined VAE | Transport + MP4 | Clean E2E | Client RTF | × real time |
+|---|---:|---:|---:|---:|---:|---:|
+| 5 s / 124 / 5.175 s | 2.806 s / 0.702 s | 0.637 s | 0.929 s | 4.602 / 4.396 s | 0.891 / 0.851 | 1.123 / 1.175 |
+| 10 s / 243 / 10.125 s | 5.532 s / 1.383 s | 1.247 s | 1.749 s | 8.678 / 8.710 s | 0.857 / 0.860 | 1.167 / 1.163 |
+| 15 s / 362 / 15.083 s | 9.517 s / 2.379 s | 1.861 s | 2.484 s | 14.177 / 14.059 s | 0.940 / 0.932 | 1.064 / 1.073 |
 
-`T_client = T_queue + T_encoder + 4 × T_DiT_forward + T_video_VAE + T_audio_VAE + T_transport + T_MP4 + T_residual`
+All six measured requests satisfy `RTF_client ≤ 1.0`, meaning the complete MP4
+is ready faster than its playback duration. This is a real-time
+**complete-response generation** result, not a live-streaming or
+time-to-first-frame claim.
 
-Reducing 49 denoiser evaluations to four changes the bottleneck. Encoder,
-VAE, transport, and CPU muxing no longer disappear in the noise, so a four-step
-headline without stage decomposition is incomplete.
+The representative FastH3 outputs below use the same 5/10/15-second duration
+classes at 1280×736. They are visual examples, not the 1344×768 timing artifacts
+used for the table above.
 
-| Platform / profile | Encoder | DiT total / 4 / per-forward | Video VAE | Audio VAE | Transport | CPU MP4 wall / process CPU | Client E2E / residual | Outputs/hour |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| B300 / latency (FastH3, one replica, USP8) | 0.052 s | 5.532 s / 4 / 1.383 s | 1.247 s combined with audio VAE | not separable from video VAE | 0.881 s derived | 0.868 s / TBD | 8.629 s / 0.049 s | 417 |
-| B300 / throughput wave | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin:1rem 0 1.5rem;">
+  <figure style="margin:0;">
+    <video controls preload="metadata" playsinline style="width:100%;background:#000;border-radius:6px;">
+      <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}" type="video/mp4">
+    </video>
+    <figcaption><strong>5-second request</strong><br>124 frames · 5.184-second MP4</figcaption>
+  </figure>
+  <figure style="margin:0;">
+    <video controls preload="metadata" playsinline style="width:100%;background:#000;border-radius:6px;">
+      <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}" type="video/mp4">
+    </video>
+    <figcaption><strong>10-second request</strong><br>243 frames · 10.144-second MP4</figcaption>
+  </figure>
+  <figure style="margin:0;">
+    <video controls preload="metadata" playsinline style="width:100%;background:#000;border-radius:6px;">
+      <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}" type="video/mp4">
+    </video>
+    <figcaption><strong>15-second request</strong><br>362 frames · 15.104-second MP4</figcaption>
+  </figure>
+</div>
 
-<!-- FIGURE TODO: Render one stacked critical-path bar per selected four-step
-     profile using encoder, four DiT forwards, video/audio VAE, transport, CPU
-     MP4, and residual. Keep queue time separate from the single-request bar. -->
+### 6.3 Production recommendation
 
-For a DP wave, report both critical-path request latency and per-node
-throughput; do not divide aggregate wall time by DP and call it latency. For
-disaggregated serving, split encoder compute from handoff wait and state whether
-the prompt hit the prefix cache. For every row, retain the adapter SHA, scale,
-resident LoRA HBM, sigma points, actual forwards, and same-seed quality result.
-
-### 6.3 Five-, ten-, and fifteen-second generation-speed reference
-
-After Section 4.4 selects a publishable four-step path, run exactly one duration
-sweep with its lowest-latency B300 topology. Turbo is the default production
-candidate; if FastH3 is selected instead, name the fused artifact and use that
-same path for all three rows. Do not sweep every acceleration combination.
-The hypothesis is that fixed encoder and serving overheads are amortized as the
-clip grows, so the selected profile's real-time factor stays flat or improves.
-
-At 24 FPS, the frozen H3 implementation rounds requested seconds to frames and
-then aligns upward to the model's `17n+5` boundary:
-
-| Requested | Requested frames | Aligned frames | Nominal video duration |
-|---:|---:|---:|---:|
-| 5.0 s | 120 | 124 | 5.167 s |
-| 10.0 s | 240 | 243 | 10.125 s |
-| 15.0 s | 360 | 362 | 15.083 s |
-
-Hold the prompt, seed, resolution, FPS, adapter and schedule, attention backend,
-TP/USP/DP/Ring groups, VAE PP, compile policy, output path, and CPU affinity
-fixed; duration is the only independent variable. Record one excluded
-feasibility/compile request per shape, prewarm the 15-second maximum before any
-CUDA-graph capture, then collect two runs in the fixed interleaved order
-5→10→15→5→10→15 seconds. The 10-second row may reuse the canonical
-measurement only when every control and timing boundary matches.
-Stop a duration before repeated measurement on the Section 2 feasibility
-conditions and retain the failed row. A real-time claim requires valid media
-and `RTF_client ≤ 1.0` in both measured repetitions.
-
-| Requested / aligned / nominal video | Encoder | DiT total / 4 / per-forward | Video/audio VAE | Transport + CPU MP4 | Client E2E run 1 / run 2 | Validated MP4 duration | Client RTF / × real time | Peak HBM | Evidence |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 5.0 s / 124 / 5.167 s | 0.054 s | 2.806 s / 4 / 0.702 s | 0.637 s combined | 0.929 s | 4.602 s / 4.396 s | 5.167 s video, 5.175 s audio | 0.891, 0.851 / 1.123, 1.175 | 94.1 GiB per GPU | FastH3 Dense/Data-Free on `86b85c07` |
-| 10.0 s / 243 / 10.125 s | 0.052 s | 5.532 s / 4 / 1.383 s | 1.247 s combined | 1.749 s | 8.678 s / 8.710 s | 10.125 s video, 10.125 s audio | 0.857, 0.860 / 1.167, 1.163 | 94.1 GiB per GPU | FastH3 Dense/Data-Free on `86b85c07` |
-| 15.0 s / 362 / 15.083 s | 0.053 s | 9.517 s / 4 / 2.379 s | 1.861 s combined | 2.484 s | 14.177 s / 14.059 s | 15.083 s video, 15.083 s audio | 0.940, 0.932 / 1.064, 1.073 | 94.1 GiB per GPU | FastH3 Dense/Data-Free on `86b85c07` |
-
-Let `T_media` be the validated MP4 playback duration from `ffprobe`, retaining
-the video and audio stream durations beside it. Report
-`RTF_client = T_client / T_media` and `×_real_time = T_media / T_client`.
-`RTF_client ≤ 1.0` means the complete MP4 was produced faster than playback;
-it is **not** a live-streaming claim or a time-to-first-frame measurement.
-
-### 6.4 Deployment decision rule
-
-- Choose the one-replica wide-USP profile for the lowest validated request
-  latency.
-- Choose a DP profile only when the arrival process can keep its replicas busy;
-  report P95 from the declared multi-request run.
-- Use encoder disaggregation when independent scaling or prompt-prefix reuse
-  offsets its orchestration cost.
-- Re-profile VAE and CPU MP4 after every denoise acceleration; at four forwards
-  they can determine the complete response latency.
-- Treat Fast Ulysses as an opt-in transport A/B, not a universal default:
-  include JIT/readiness time separately and warm the maximum serving shape
-  before any compile or CUDA-graph capture.
+- Use a dedicated FastH3 T2VA service for the lowest validated complete-MP4
+  latency; fuse the artifact at startup and pin its checksum with `86b85c07`.
+- Prewarm the maximum serving shape before measurement or CUDA-graph capture,
+  and keep dense `TRTLLM_ATTN`, USP8, VAE PP8, and the output path fixed.
+- Keep quantization, cache, sparse attention, VSA, and alternative Ulysses
+  transports disabled until each composition passes the same quality gates.
+- Re-profile VAE, transport, and MP4 encoding after every denoising change;
+  these stages are already material at four forwards.
+- Use a separate Turbo service when request-time adapter switching or FL2VA
+  coverage matters more than the dedicated FastH3 latency profile.
 
 ## 7. Results and deployment recommendations
 
 The final B300 recommendation will draw from the lossless Diffusers/vLLM-Omni
 A/B in Section 3.5, isolated acceleration results in Section 4.4, the four-step
-critical path in Section 6.2, and the duration-scaling reference in Section 6.3.
-It will name the lowest complete-MP4 latency profile and the highest measured
-node-throughput profile, with peak HBM/host RAM and quality gates beside each
-claim.
+critical path in Section 6.1, and the real-time reference in Section 6.2. It
+will name the lowest complete-MP4 latency profile and report its playback RTF,
+peak HBM/host RAM, and quality gates beside the claim.
 
 Do not infer a recommendation from nominal FLOPS, multiply gains from unrelated
 microbenchmarks, or treat a cold request as steady state. H200, RTX PRO 5000,
