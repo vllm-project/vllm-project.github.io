@@ -697,7 +697,10 @@ deployment.
      the final evidence and author list are agreed. -->
 
 This work builds on contributions across vLLM, vLLM-Omni, VeRL-Omni, MiniMax
-H3, FastH3, and Diffusers. We thank the contributors who implemented and
+H3, FastH3, and Diffusers. We especially thank the
+[FastH3 team](https://haoailab.com/blogs/fasth3-preview/) for open-sourcing its
+four-step adapter and collaborating with the vLLM-Omni community on the merged
+serving integration. We also thank the contributors who implemented and
 validated the model, serving, quantization, offload, kernel, VAE, media,
 hardware, and training paths referenced throughout this post.
 
