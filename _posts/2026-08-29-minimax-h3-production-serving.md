@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "FastVideo's FastH3 on vLLM-Omni: Low-Latency MiniMax H3 Serving"
+title: "FastVideo's FastH3 on vLLM-Omni: Low-Latency, Scalable MiniMax H3 Serving"
 author: "vLLM-Omni Team"
-summary: "How FastVideo's four-step FastH3 student and vLLM-Omni's kernels, VAE parallelism, and media path enable low-latency MiniMax H3 serving."
-description: "An evidence-driven guide to serving FastVideo's FastH3 and MiniMax H3 with the vLLM-Omni production stack."
+summary: "How FastVideo's FastH3 delivers low latency while vLLM-Omni's kernels, DLO, disaggregated encoding, VAE parallelism, and media path scale MiniMax H3 serving."
+description: "An evidence-driven guide to low-latency FastH3 and scalable MiniMax H3 deployment with vLLM-Omni, DLO, and disaggregated encoding."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - performance
@@ -39,13 +39,14 @@ This post explains how [vLLM-Omni](https://github.com/vllm-project/vllm-omni)
 turns that pipeline into a production serving system. For the low-latency path,
 it integrates [FastVideo](https://github.com/hao-ai-lab/FastVideo)'s
 [FastH3](https://haoailab.com/blogs/fasth3-preview/) four-step student and
-combines it with optimized attention, VAE, transport, and MP4 execution. We
-separate the stack into dense reference-quality optimization, acceleration,
-and production deployment. To keep the evidence compact and comparable, the
-article benchmarks one eight-GPU NVIDIA B300 node: the 10-second request remains
-the canonical A/B, and FastH3 adds a 5/10/15-second generation-speed reference.
-Other hardware remains covered by maintained recipes rather than additional
-result matrices.
+combines it with optimized attention, VAE, transport, and MP4 execution. For
+scalable serving, Distributed Layerwise Offload (DLO) expands the feasible
+memory/topology envelope, while disaggregated encoding gives the Qwen3-VL and
+diffusion stages independent placement, queues, replicas, and caching. To keep
+the evidence compact and comparable, the article benchmarks one eight-GPU
+NVIDIA B300 node: the 10-second request remains the canonical A/B, and FastH3
+adds a 5/10/15-second generation-speed reference. Other hardware remains
+covered by maintained recipes rather than additional result matrices.
 
 ## TL;DR
 
@@ -60,11 +61,10 @@ result matrices.
   student produces complete 5/10/15-second MP4s faster than playback on the
   qualified B300 profile. Other precision, sparsity, and cache optimizations
   remain separate quality decisions.
-- **System architecture determines the production frontier.** Distributed
-  layerwise offload changes the latency/throughput/memory trade-off;
-  disaggregated encoding makes the Qwen3-VL stage independently schedulable
-  and cacheable. Step execution implements admission and abort boundaries, but
-  current H3 measurements show no latency or throughput benefit; its useful
+- **DLO and disaggregation scale production serving.** DLO changes the
+  latency/memory/topology trade-off, while disaggregated encoding makes the
+  Qwen3-VL stage independently placeable, replicable, schedulable, and cacheable.
+  Step execution adds admission and abort boundaries, but its useful H3
   production case remains to be demonstrated.
 - **One canonical benchmark keeps the comparison tractable.** Every feature A/B
   uses the official 10-second, 1344×768 T2VA case. The selected four-step B300
