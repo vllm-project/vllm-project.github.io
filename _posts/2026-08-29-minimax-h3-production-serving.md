@@ -452,7 +452,7 @@ platform and changes one declared acceleration policy:
 | Platform / path | Weights / precision | Sigma points / actual forwards | Attention or cache policy | E2E / speedup | Peak HBM | Video/audio quality | Maturity / artifacts |
 |---|---|---|---|---:|---:|---|---|
 | B300 / Turbo | BF16 + dynamic LoRA | 5 / 4 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
-| B300 / FastH3 | Fused artifact | 5 / 4 | Dense only | TBD | TBD | TBD | Merged / TBD |
+| B300 / FastH3 | Fused artifact | 5 / 4 | Dense only | 8.678 / 8.710 s on the frozen 10-second request; speedup TBD until the Section 3 lossless row lands | 94.1 GiB per GPU, allocator-reserved | Same-seed repetitions are byte-identical; no cross-path quality A/B run | Merged ([#6714](https://github.com/vllm-project/vllm-omni/pull/6714), `86b85c07`) / Section 6.3 sweep |
 | B300 / online FP8 | Runtime FP8 | 50 / 49 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
 | B300 / SVDQuant | Offline W4A4 + BF16 correction | 50 / 49 | Dense TBD | TBD | TBD | TBD | Correctness baseline / TBD |
 | B300 / SAGE or Skip-Softmax | BF16 weights | 50 / 49 | Exact policy TBD | TBD | TBD | TBD | Backend merged / TBD |
@@ -590,7 +590,7 @@ headline without stage decomposition is incomplete.
 
 | Platform / profile | Encoder | DiT total / 4 / per-forward | Video VAE | Audio VAE | Transport | CPU MP4 wall / process CPU | Client E2E / residual | Outputs/hour |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| B300 / latency | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
+| B300 / latency (FastH3, one replica, USP8) | 0.052 s | 5.532 s / 4 / 1.383 s | 1.247 s combined with audio VAE | not separable from video VAE | 0.881 s derived | 0.868 s / TBD | 8.629 s / 0.049 s | 417 |
 | B300 / throughput wave | TBD | TBD / 4 / TBD | TBD | TBD | TBD | TBD / TBD | TBD / TBD | TBD |
 
 <!-- FIGURE TODO: Render one stacked critical-path bar per selected four-step
@@ -634,9 +634,9 @@ and `RTF_client ≤ 1.0` in both measured repetitions.
 
 | Requested / aligned / nominal video | Encoder | DiT total / 4 / per-forward | Video/audio VAE | Transport + CPU MP4 | Client E2E run 1 / run 2 | Validated MP4 duration | Client RTF / × real time | Peak HBM | Evidence |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 5.0 s / 124 / 5.167 s | TBD | TBD / 4 / TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD |
-| 10.0 s / 243 / 10.125 s | TBD | TBD / 4 / TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD |
-| 15.0 s / 362 / 15.083 s | TBD | TBD / 4 / TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD / TBD | TBD | TBD |
+| 5.0 s / 124 / 5.167 s | 0.054 s | 2.806 s / 4 / 0.702 s | 0.637 s combined | 0.929 s | 4.602 s / 4.396 s | 5.167 s video, 5.175 s audio | 0.891, 0.851 / 1.123, 1.175 | 94.1 GiB per GPU | FastH3 Dense/Data-Free on `86b85c07` |
+| 10.0 s / 243 / 10.125 s | 0.052 s | 5.532 s / 4 / 1.383 s | 1.247 s combined | 1.749 s | 8.678 s / 8.710 s | 10.125 s video, 10.125 s audio | 0.857, 0.860 / 1.167, 1.163 | 94.1 GiB per GPU | FastH3 Dense/Data-Free on `86b85c07` |
+| 15.0 s / 362 / 15.083 s | 0.053 s | 9.517 s / 4 / 2.379 s | 1.861 s combined | 2.484 s | 14.177 s / 14.059 s | 15.083 s video, 15.083 s audio | 0.940, 0.932 / 1.064, 1.073 | 94.1 GiB per GPU | FastH3 Dense/Data-Free on `86b85c07` |
 
 Let `T_media` be the validated MP4 playback duration from `ffprobe`, retaining
 the video and audio stream durations beside it. Report
