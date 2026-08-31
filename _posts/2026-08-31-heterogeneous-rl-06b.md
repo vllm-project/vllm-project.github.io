@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Reinforcement Learning: Optimizing 0.6B Dense Models on Heterogeneous Hardware via vLLM"
-author: "Meta ASA and Ranking AI Research"
+author: "Loki Chen, Yang Song, Hongye Xie, Ming Lei, Greg Rehm, Dre Olgiati, Hamed Firooz, Bob Kamma, Tej Choudhary, Hang Cui, Imed Zitouni (Meta ASA); Mingfu Liang, Kavosh Asadi, Yufei Li, Frank Shyu, Parish Aggarwal, Senthil Manickavelu, Xi Liu, Luke Simon (Meta Ranking AI Research)"
 summary: "How Meta co-designed the full RL stack — vLLM/tpu-inference, kernels, mesh, and cache lifecycle — to speed up Qwen3-0.6B GRPO ~24x across NVIDIA GB200, AMD MI350X, and Google TPU v7x while holding one workload contract constant."
 image: /assets/figures/2026-08-31-heterogeneous-rl-06b/figure-07-24x-program-journey.png
 social_image: /assets/figures/2026-08-31-heterogeneous-rl-06b/figure-07-24x-program-journey.png
@@ -272,11 +272,7 @@ The objective is not to declare one accelerator universally best. It is to build
 
 ## Acknowledgements
 
-This work was a collaboration between Meta's ASA and Ranking AI Research teams.
-
-**ASA:** Loki Chen, Yang Song, Hongye Xie, Ming Lei, Greg Rehm, Dre Olgiati, Hamed Firooz, Bob Kamma, Tej Choudhary, Hang Cui, Imed Zitouni.
-
-**Ranking AI Research:** Mingfu Liang, Kavosh Asadi, Yufei Li, Frank Shyu, Parish Aggarwal, Senthil Manickavelu, Xi Liu, Luke Simon.
+This work was a collaboration between Meta's ASA and Ranking AI Research teams. We are grateful to the leadership and contributors across both teams who helped shape, review, and polish this work — listed in the byline above.
 
 We also thank the maintainers and communities behind vLLM, tpu-inference, MaxText, Tunix, Pathways, and Pallas, whose open-source work made this optimization campaign possible.
 
