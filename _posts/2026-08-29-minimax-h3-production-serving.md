@@ -116,7 +116,7 @@ tuning:
 | Base schedule | 50 requested sigma points and 49 expected DiT forwards; record both |
 | Prompt | The official MiniMax H3 model-card `case-T2VA` H3-Context-IR output, frozen at model revision `42ed227e`; SHA-256 `98f36b879692095e099ae824c18d9e93e7006a490e082fd474a5f531769dcf06` |
 | Seed | `0`, matching the official H3-Base script |
-| vLLM-Omni lane | Initial freeze [vLLM-Omni `55a226dc`](https://github.com/vllm-project/vllm-omni/commit/55a226dcf1699cc99b068bf0939ab34f4f120d54) was stopped after the MP4 fallback. [#6776](https://github.com/vllm-project/vllm-omni/pull/6776) and [#6824](https://github.com/vllm-project/vllm-omni/pull/6824) are now merged together at [`759aa4ff`](https://github.com/vllm-project/vllm-omni/commit/759aa4ffebefa4b293eed6068115da823fa4fb7a); re-freeze on that commit or a declared later main SHA. Keep [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a) and base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` unless the re-freeze explicitly changes them |
+| vLLM-Omni | Pin every B300 test to [`86b85c07`](https://github.com/vllm-project/vllm-omni/commit/86b85c078bc041e04aee4c4d9167fb10fb1994c7), the merged commit for FastH3 [#6714](https://github.com/vllm-project/vllm-omni/pull/6714). It descends from [`759aa4ff`](https://github.com/vllm-project/vllm-omni/commit/759aa4ffebefa4b293eed6068115da823fa4fb7a), so it includes the merged [#6776](https://github.com/vllm-project/vllm-omni/pull/6776) and [#6824](https://github.com/vllm-project/vllm-omni/pull/6824) output path. Keep [vLLM `v0.28.0` / `2cf0a691`](https://github.com/vllm-project/vllm/commit/2cf0a6915ce544dc493a0990f2ea38d81601128a) and base image `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14` fixed |
 | Diffusers lane | [Diffusers `v0.40.0` / `d035dcd7`](https://github.com/huggingface/diffusers/commit/d035dcd7cc7c88e0a154609b62887d50bba9fdc2); record Transformers, PyTorch, attention-kernel, and media-package versions |
 | Model | [MiniMax H3 `42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe) |
 | Repetitions | One full-shape feasibility request, also recorded as the excluded compile/kernel warmup, then two measured repetitions per claimed A/B |
@@ -355,12 +355,12 @@ not be treated as interchangeable LoRAs.
 | Path | Integration model | Current scope | Deployment status |
 |---|---|---|---|
 | [Turbo LoRA](https://github.com/vllm-project/vllm-omni/pull/6476) | Dynamically activated request adapter | FL2VA/T2VA, published four-forward schedule | Merged; [DLO support](https://github.com/vllm-project/vllm-omni/pull/6550) merged |
-| [FastH3](https://github.com/vllm-project/vllm-omni/pull/6714) | Adapter fused into the checkpoint stream at load time | Dense/Data-Free T2VA preview | Preview; current integration rejects offload and VSA variants |
+| [FastH3](https://github.com/vllm-project/vllm-omni/pull/6714) | Adapter fused into the checkpoint stream at load time | Dense/Data-Free T2VA | Merged; current integration rejects offload and VSA variants |
 
 Turbo is the flexible serving option: a server can keep the base model and
 activate the supported adapter per request. FastH3 is a specialized server
 profile. Its artifact contains low-rank factors plus full-rank deltas that an
-ordinary request-switchable LoRA layer cannot express, so the preview fuses it
+ordinary request-switchable LoRA layer cannot express, so the loader fuses it
 before sharding. The sparse FastH3 VSA variants additionally depend on a
 backend not yet implemented by this vLLM-Omni integration.
 
@@ -369,14 +369,14 @@ backend not yet implemented by this vLLM-Omni integration.
 </p>
 
 *Figure 2: Turbo keeps the base weights unchanged and adds request-selected A/B
-sidecars, while the FastH3 preview fuses low-rank and full-rank deltas into a
+sidecars, while FastH3 fuses low-rank and full-rank deltas into a
 specialized student before sharding. Source contracts: vLLM-Omni
 [#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
 [#6550](https://github.com/vllm-project/vllm-omni/pull/6550), and
 [#6714](https://github.com/vllm-project/vllm-omni/pull/6714).*
 
 The source PRs establish the mechanisms, but their workloads are not mixed
-into the canonical comparison. For example, the FastH3 preview reports a
+into the canonical comparison. For example, the merged FastH3 PR reports a
 3.30× framework E2E and 8.37× diffusion-stage improvement on a different
 B300 workload. Section 4.4 remains `TBD` until both paths are measured with the
 frozen 10-second request and current revisions.
@@ -388,8 +388,8 @@ unless those differences are explicit.
 
 The canonical T2VA matrix compares base H3, Turbo, and FastH3 under one output
 contract. Section 6 turns the merged Turbo path into concrete production
-profiles; FastH3 remains a specialized preview until its integration and
-quality evidence are released.
+profiles; FastH3 remains a specialized, T2VA-only server profile whose
+canonical quality and performance row is still pending.
 
 ### 4.2 Weight and activation quantization
 
@@ -433,7 +433,7 @@ outside Section 3's lossless comparison:
 | [TRTLLM SAGE](https://github.com/vllm-project/vllm-omni/pull/5509) | Merged backend capability | Q/K type and block sizes, V precision, dense token-refiner override, hardware/kernel version, and audio/video quality |
 | [Sol-Attn for H3](https://github.com/vllm-project/vllm-omni/pull/5851) | Preview | Report dense guards, `tau`, sink tokens, KV splits, and quality gates; use the hardware recipe for platform-specific setup |
 | [Dynamic Cache-DiT quality](https://github.com/vllm-project/vllm-omni/pull/5853) | Merged | `quality=lossless` removes the cache policy; `quality=high` installs the H3 profile and needs deployment-specific hit-rate/quality evidence |
-| FastH3 VSA variants | Rejected by the current FastH3 preview | Sparse student artifacts require a VSA backend not implemented by that integration |
+| FastH3 VSA variants | Rejected by the current FastH3 path | Sparse student artifacts require a VSA backend not implemented by that integration |
 
 SAGE and Skip-Softmax may be composed because they alter different parts of the
 same attention kernel, but their end-to-end gains must be measured together,
@@ -449,7 +449,7 @@ platform and changes one declared acceleration policy:
 | Platform / path | Weights / precision | Sigma points / actual forwards | Attention or cache policy | E2E / speedup | Peak HBM | Video/audio quality | Maturity / artifacts |
 |---|---|---|---|---:|---:|---|---|
 | B300 / Turbo | BF16 + dynamic LoRA | 5 / 4 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
-| B300 / FastH3 | Fused preview artifact | 5 / 4 | Dense only | TBD | TBD | TBD | Preview / TBD |
+| B300 / FastH3 | Fused artifact | 5 / 4 | Dense only | TBD | TBD | TBD | Merged / TBD |
 | B300 / online FP8 | Runtime FP8 | 50 / 49 | Dense TBD | TBD | TBD | TBD | Merged / TBD |
 | B300 / SVDQuant | Offline W4A4 + BF16 correction | 50 / 49 | Dense TBD | TBD | TBD | TBD | Correctness baseline / TBD |
 | B300 / SAGE or Skip-Softmax | BF16 weights | 50 / 49 | Exact policy TBD | TBD | TBD | TBD | Backend merged / TBD |
@@ -539,7 +539,7 @@ is incompatible with H3 DLO.
 ### 5.4 Compatibility stays living
 
 Base H3 serves T2VA, FL2VA, and Ref2VA; Turbo serves T2VA/FL2VA; the current
-FastH3 preview is T2VA-only. Cross-feature composition changes too quickly for
+FastH3 path is T2VA-only. Cross-feature composition changes too quickly for
 a release-oriented blog snapshot, so the living
 [MiniMax H3 feature×feature matrix in issue #5700](https://github.com/vllm-project/vllm-omni/issues/5700)
 is the authoritative source for supported, partial, incompatible, and
@@ -551,8 +551,9 @@ while Section 3.4 records the merged output-layout and MP4 boundaries.
 
 This section recommends the merged, request-switchable Turbo path for
 production planning. FastH3 also executes four transformer forwards, but its
-current vLLM-Omni integration is a T2VA-only load-time-fusion preview and is
-not used for the production profile recommendation.
+merged vLLM-Omni integration is a T2VA-only load-time-fusion path rather than a
+request-switchable adapter, so it is not used for the general production
+profile recommendation.
 
 Preload and allowlist the Turbo artifact, keep one adapter active per request,
 and use its published five sigma points, four DiT forwards, video flow shift 6,
