@@ -725,9 +725,15 @@ deployment.
 - complete the lossless Diffusers-versus-vLLM-Omni A/B, four-step profiles, and
   5/10/15-second generation-speed reference on 8× B300 with reconciled timing
   boundaries;
-- qualify FastH3, SAGE/Skip-Softmax, and Sol-Attn against released dense
-  baselines and multi-seed audio/video gates;
-- complete native SVDQuant performance kernels and validation;
+- integrate and qualify FastH3 VSA variants with a supported sparse-attention
+  backend and multi-seed video/audio gates;
+- qualify SAGE/Skip-Softmax and Sol-Attn against released dense baselines;
+- complete native fused NVFP4 W4A4/SVDQuant kernels, then validate memory,
+  latency, and quality end to end;
+- develop a GPU-accelerated MP4 response path covering output transport, H.264
+  encoding, audio muxing, and a portable CPU fallback;
+- disaggregate video and audio VAE decode into independently scalable stages
+  with explicit placement, handoff, and failure-recovery contracts;
 - identify and validate a useful H3 step-execution case—cancellation,
   staggered-arrival admission, or small-workload co-batching—or retain the
   explicit no-production-benefit conclusion;
