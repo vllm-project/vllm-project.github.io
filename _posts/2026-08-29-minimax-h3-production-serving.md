@@ -1,15 +1,17 @@
 ---
 layout: post
-title: "Production Serving MiniMax H3 with vLLM-Omni"
+title: "FastVideo's FastH3 on vLLM-Omni: Low-Latency MiniMax H3 Serving"
 author: "vLLM-Omni Team"
-summary: "How vLLM-Omni combines dense lossless kernels, four-step adapters, quantization, distributed offload, and encoder disaggregation to serve MiniMax H3 in production."
-description: "An evidence-driven guide to the architecture and optimization stack for production MiniMax H3 serving with vLLM-Omni."
+summary: "How FastVideo's four-step FastH3 student and vLLM-Omni's kernels, VAE parallelism, and media path enable low-latency MiniMax H3 serving."
+description: "An evidence-driven guide to serving FastVideo's FastH3 and MiniMax H3 with the vLLM-Omni production stack."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - performance
   - large-scale-serving
   - multimodal
   - vllm-omni
+  - fastvideo
+  - fasth3
 published: false
 ---
 
@@ -34,14 +36,16 @@ separate VAE decode and CPU mux. Sources: the official
 and the [Diffusers pipeline description](https://huggingface.co/docs/diffusers/main/en/api/pipelines/minimax_h3).*
 
 This post explains how [vLLM-Omni](https://github.com/vllm-project/vllm-omni)
-turns that pipeline into a production serving system. We separate the stack
-into three decision lanes: dense reference-quality runtime optimization,
-quality- or precision-changing acceleration, and production deployment
-features. To keep the evidence compact and comparable, the article benchmarks
-one eight-GPU NVIDIA B300 node: the 10-second request remains the canonical A/B,
-and one selected four-step profile adds a 5/10/15-second generation-speed
-reference. H200, RTX PRO 5000, consumer GPUs, ROCm, and NPU deployments remain
-covered by maintained recipes rather than additional result matrices.
+turns that pipeline into a production serving system. For the low-latency path,
+it integrates [FastVideo](https://github.com/hao-ai-lab/FastVideo)'s
+[FastH3](https://haoailab.com/blogs/fasth3-preview/) four-step student and
+combines it with optimized attention, VAE, transport, and MP4 execution. We
+separate the stack into dense reference-quality optimization, acceleration,
+and production deployment. To keep the evidence compact and comparable, the
+article benchmarks one eight-GPU NVIDIA B300 node: the 10-second request remains
+the canonical A/B, and FastH3 adds a 5/10/15-second generation-speed reference.
+Other hardware remains covered by maintained recipes rather than additional
+result matrices.
 
 ## TL;DR
 
@@ -52,10 +56,10 @@ covered by maintained recipes rather than additional result matrices.
   Ulysses boundaries, fused DiT operators, VAE parallelism/kernels, GPU output
   packing/transport, and CPU MP4 construction are compared end to end against
   Diffusers on B300.
-- **Treat acceleration knobs as separate quality decisions.** Turbo and
-  FastH3 reduce the denoiser to four forwards; online FP8, SVDQuant, SAGE,
-  Skip-Softmax, Sol-Attn, and Cache-DiT change precision, coverage, weights, or
-  executed work and therefore require their own quality evidence.
+- **FastVideo's FastH3 is the measured low-latency path.** Its fused four-step
+  student produces complete 5/10/15-second MP4s faster than playback on the
+  qualified B300 profile. Other precision, sparsity, and cache optimizations
+  remain separate quality decisions.
 - **System architecture determines the production frontier.** Distributed
   layerwise offload changes the latency/throughput/memory trade-off;
   disaggregated encoding makes the Qwen3-VL stage independently schedulable
@@ -83,7 +87,7 @@ contract is documented in the
 | Ref2VA | Character consistency, video editing, audio-conditioned generation | Long multimodal encoder and packed-attention sequences |
 
 This post uses **T2VA on 8× B300 as its only canonical benchmark**. It covers
-the base, Turbo, FastH3, quantization, and kernel paths without introducing
+the base, FastVideo's FastH3, quantization, and kernel paths without introducing
 reference-media preprocessing or another hardware matrix. FL2VA, Ref2VA, and
 other accelerators remain important capabilities documented by their recipes
 and implementation sources.
@@ -378,50 +382,52 @@ established, so the comparison makes no pixelwise claim.
 
 ## 4. Acceleration paths with explicit quality or precision trade-offs
 
-### 4.1 Four-step adapters: Turbo and FastH3
+### 4.1 Four-step adapters: Turbo and FastH3 from FastVideo
 
 The largest denoising win comes from reducing the number of expensive DiT
-forwards. vLLM-Omni currently has two distinct integration models; they should
-not be treated as interchangeable LoRAs.
+forwards. [FastH3](https://haoailab.com/blogs/fasth3-preview/) is
+[FastVideo](https://github.com/hao-ai-lab/FastVideo)'s four-step DMD2 student
+of MiniMax H3. vLLM-Omni currently has two distinct integration models; they
+should not be treated as interchangeable LoRAs.
 
 | Path | Integration model | Current scope | Deployment status |
 |---|---|---|---|
 | [Turbo LoRA](https://github.com/vllm-project/vllm-omni/pull/6476) | Dynamically activated request adapter | FL2VA/T2VA, published four-forward schedule | Merged; [DLO support](https://github.com/vllm-project/vllm-omni/pull/6550) merged |
-| [FastH3](https://github.com/vllm-project/vllm-omni/pull/6714) | Adapter fused into the checkpoint stream at load time | Dense/Data-Free T2VA | Merged; current integration rejects offload and VSA variants |
+| [FastVideo FastH3](https://haoailab.com/blogs/fasth3-preview/) | Adapter fused into the checkpoint stream at load time | Dense/Data-Free T2VA | Merged in vLLM-Omni [#6714](https://github.com/vllm-project/vllm-omni/pull/6714); current integration rejects offload and VSA variants |
 
 Turbo is the flexible serving option: a server can keep the base model and
-activate the supported adapter per request. FastH3 is a specialized server
-profile. Its artifact contains low-rank factors plus full-rank deltas that an
-ordinary request-switchable LoRA layer cannot express, so the loader fuses it
-before sharding. The sparse FastH3 VSA variants additionally depend on a
-backend not yet implemented by this vLLM-Omni integration.
+activate the supported adapter per request. FastVideo's FastH3 is a specialized
+server profile. Its artifact contains low-rank factors plus full-rank deltas
+that an ordinary request-switchable LoRA layer cannot express, so the loader
+fuses it before sharding. The sparse FastH3 VSA variants additionally depend on
+a backend not yet implemented by this vLLM-Omni integration.
 
 <p align="center">
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-few-step-adapters.svg" alt="Comparison of request-switchable Turbo LoRA and load-time-fused FastH3 weights" width="100%">
 </p>
 
 *Figure 2: Turbo keeps the base weights unchanged and adds request-selected A/B
-sidecars, while FastH3 fuses low-rank and full-rank deltas into a
+sidecars, while FastVideo's FastH3 fuses low-rank and full-rank deltas into a
 specialized student before sharding. Source contracts: vLLM-Omni
 [#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
 [#6550](https://github.com/vllm-project/vllm-omni/pull/6550), and
 [#6714](https://github.com/vllm-project/vllm-omni/pull/6714).*
 
 The source PRs establish the mechanisms, but their workloads are not mixed
-into the canonical comparison. For example, the merged FastH3 PR reports a
-3.30× framework E2E and 8.37× diffusion-stage improvement on a different
-B300 workload. Section 4.4 remains `TBD` until both paths are measured with the
-frozen 10-second request and current revisions.
+into the canonical comparison. For example, the merged vLLM-Omni FastH3
+integration reports a 3.30× framework E2E and 8.37× diffusion-stage
+improvement on a different B300 workload. Sections 4.4 and 6 report the frozen
+FastH3 result; Turbo remains outside the current benchmark scope.
 
 Any performance table must identify the adapter, number of requested sigma
 points, actual DiT forward count, task, attention backend, and quality
 comparison. A few-step result is not directly comparable to a 50-step baseline
 unless those differences are explicit.
 
-The canonical T2VA matrix compares base H3, Turbo, and FastH3 under one output
-contract. Section 6 turns the merged FastH3 path into a measured low-latency
-deployment strategy. Turbo remains the request-switchable alternative when one
-service must cover both T2VA and FL2VA.
+The canonical T2VA matrix compares base H3 and FastH3 under one output contract.
+Section 6 turns the merged FastH3 path into a measured low-latency deployment
+strategy. Turbo remains the request-switchable alternative when one service
+must cover both T2VA and FL2VA, but it is not benchmarked here.
 
 ### 4.2 Weight and activation quantization
 
@@ -587,13 +593,14 @@ unverified combinations. The task and hardware commands remain in the
 [maintained H3 recipes](https://github.com/vllm-project/vllm-omni/tree/main/recipes/MiniMaxAI),
 while Section 3.4 records the merged output-layout and MP4 boundaries.
 
-## 6. FastH3 low-latency and real-time deployment
+## 6. FastVideo FastH3 low-latency and real-time deployment
 
-The merged [FastH3 path](https://github.com/vllm-project/vllm-omni/pull/6714)
-fuses the Dense/Data-Free four-step artifact before sharding, making it a good
-fit for a dedicated T2VA service where complete-response latency is the primary
-objective. Turbo remains the request-switchable choice when one service must
-switch adapters or cover FL2VA, but the measured strategy below uses FastH3.
+The merged [vLLM-Omni FastH3 integration](https://github.com/vllm-project/vllm-omni/pull/6714)
+serves [FastVideo's Dense/Data-Free four-step artifact](https://huggingface.co/FastVideo/FastVideo-FastH3-4-step-Preview-v1-LoRA),
+fusing it before sharding. This is a good fit for a dedicated T2VA service where
+complete-response latency is the primary objective. Turbo remains the
+request-switchable choice when one service must switch adapters or cover FL2VA,
+but the measured strategy below uses FastH3.
 
 ### 6.1 Recommended B300 profile
 
@@ -749,16 +756,20 @@ deployment.
      the final evidence and author list are agreed. -->
 
 This work builds on contributions across vLLM, vLLM-Omni, VeRL-Omni, MiniMax
-H3, FastH3, Diffusers, and NVIDIA. We especially thank the
-[FastH3 team](https://haoailab.com/blogs/fasth3-preview/) for open-sourcing its
-four-step adapter and collaborating with the vLLM-Omni community on the merged
-serving integration. We also thank the contributors who implemented and
-validated the model, serving, quantization, offload, kernel, VAE, media,
-hardware, and training paths referenced throughout this post.
+H3, [FastVideo](https://github.com/hao-ai-lab/FastVideo), FastH3, Diffusers, and
+NVIDIA. We especially thank the FastVideo team for
+[open-sourcing FastH3](https://huggingface.co/FastVideo/FastVideo-FastH3-4-step-Preview-v1-LoRA)
+and collaborating with the vLLM-Omni community on the merged serving
+integration. We also thank the contributors who implemented and validated the
+model, serving, quantization, offload, kernel, VAE, media, hardware, and
+training paths referenced throughout this post.
 
 ## References
 
 - [vLLM-Omni repository](https://github.com/vllm-project/vllm-omni)
+- [FastVideo repository](https://github.com/hao-ai-lab/FastVideo)
+- [FastH3 technical overview](https://haoailab.com/blogs/fasth3-preview/)
+- [FastH3 four-step adapter](https://huggingface.co/FastVideo/FastVideo-FastH3-4-step-Preview-v1-LoRA)
 - [MiniMax H3 model](https://huggingface.co/MiniMaxAI/MiniMax-H3)
 - [Diffusers MiniMax H3 pipeline](https://huggingface.co/docs/diffusers/v0.40.0/api/pipelines/minimax_h3)
 - [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
