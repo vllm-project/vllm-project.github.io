@@ -544,16 +544,6 @@ new correctness, quality, memory, and latency qualification. The living
 records cross-feature work, but it can lag merged implementation. Verify the
 linked PRs and maintained recipes before selecting a production combination.
 
-Before promotion:
-
-- pin model, adapter, source, container, and codec-package revisions;
-- preserve one excluded full-shape warmup and raw measured samples;
-- publish the stable raw benchmark bundle required beside the Section 6 tables;
-- validate every MP4 and retain representative outputs plus hashes;
-- complete the matched multi-seed FastH3 quality comparison;
-- monitor HBM, host RAM, CPU affinity, failures, and fallback counters; and
-- re-profile VAE, transport, and MP4 after every denoising change.
-
 MiniMax H3 uses the
 [MiniMax H3 Community License Agreement](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE).
 Commercial and hosted-service operators should review its current territorial,
@@ -577,22 +567,39 @@ The remaining work follows directly from that progression:
   multi-seed workloads;
 - complete a matched base/FastH3 multi-seed quality evaluation;
 - implement the [chunkwise VAE-to-transport-to-MP4 pipeline](https://github.com/vllm-project/vllm-omni/issues/6872)
-  and qualify a GPU encoder; and
+  and qualify a GPU encoder;
+- enhance [VeRL-Omni](https://github.com/verl-project/verl-omni) post-training
+  support for MiniMax H3 with scalable rollout serving, explicit resource
+  placement, and end-to-end training validation; and
 - qualify FastH3 composition with encoder disaggregation or other scaling
   features rather than inferring compatibility.
 
 ## Acknowledgments
-
-<!-- AUTHOR TODO: Add final named benchmark collaborators and reviewers after
-     the evidence and author list are agreed. -->
 
 This work builds on contributions across vLLM, vLLM-Omni, VeRL-Omni, MiniMax
 H3, [FastVideo](https://github.com/hao-ai-lab/FastVideo), FastH3, Diffusers, and
 NVIDIA. We especially thank the FastVideo team for
 [open-sourcing FastH3](https://huggingface.co/FastVideo/FastVideo-FastH3-4-step-Preview-v1-LoRA)
 and collaborating with the vLLM-Omni community on the merged serving
-integration. We also thank the contributors who implemented and validated the
-model, serving, attention, kernels, VAE, transport, media, and training paths.
+integration.
+
+We thank [@Isotr0py](https://github.com/Isotr0py) for base H3 support;
+[@lishunyang12](https://github.com/lishunyang12),
+[@evanchueng](https://github.com/evanchueng),
+[@Gaohan123](https://github.com/Gaohan123), and
+[@david6666666](https://github.com/david6666666) for DLO, base integration, and
+online-FP8 work; [@gcanlin](https://github.com/gcanlin) and
+[@yuanwu2017](https://github.com/yuanwu2017) for encoder disaggregation;
+[@bobboli](https://github.com/bobboli),
+[@fan2956](https://github.com/fan2956),
+[@mo-ke-ke](https://github.com/mo-ke-ke),
+[@mglyn](https://github.com/mglyn),
+[@MosCloud](https://github.com/MosCloud), and
+[@ultism](https://github.com/ultism) for attention, fused kernels,
+quantization, VAE, transport, and media paths;
+[@princepride](https://github.com/princepride) for FastH3 integration and B300
+validation; and [@NancyFyong](https://github.com/NancyFyong) and
+[@mengchengTang](https://github.com/mengchengTang) for VeRL-Omni integration.
 
 ## Appendix A. Reproducibility
 
