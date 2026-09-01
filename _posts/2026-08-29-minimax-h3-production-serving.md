@@ -451,44 +451,18 @@ is faster than playback for every tested duration.
 
 ### 6.5 Representative outputs and quality boundary
 
-The following FastH3 outputs demonstrate the same duration classes at
-1280x736. They are representative visual examples, not the 1344x768 timing
-artifacts above. The ten-second output anchors the gallery, followed by the
-five- and fifteen-second endpoints.
+These supplied FastH3 outputs cover the same 5/10/15-second duration classes.
+They are 1280x736 representative examples, not the 1344x768 timing artifacts
+used in Section 6.4.
 
-#### 6.5.1 Ten-second showcase
+| Request | Frames | MP4 duration | Resolution / FPS | Video |
+|---:|---:|---:|---:|---|
+| 5 s | 124 | 5.184 s | 1280x736 / 24 FPS | [Open MP4](/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4) |
+| 10 s | 243 | 10.144 s | 1280x736 / 24 FPS | [Open MP4](/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4) |
+| 15 s | 362 | 15.104 s | 1280x736 / 24 FPS | [Open MP4](/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4) |
 
-The primary example matches the canonical 10-second request class used by the
-latency decomposition.
-
-<figure style="margin:1rem 0 1.5rem;">
-  <video controls preload="metadata" playsinline width="1280" height="736" style="display:block;width:100%;height:auto;aspect-ratio:80 / 46;object-fit:contain;background:#000;border-radius:6px;">
-    <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}" type="video/mp4">
-    <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}">Download the 10-second FastH3 example.</a>
-  </video>
-  <figcaption><strong>10-second request:</strong> 243 frames, 10.144-second MP4 · <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}">Open MP4</a></figcaption>
-</figure>
-
-#### 6.5.2 Five- and fifteen-second endpoints
-
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;margin:1rem 0 1.5rem;">
-  <figure style="margin:0;min-width:0;">
-    <video controls preload="metadata" playsinline width="1280" height="736" style="display:block;width:100%;height:auto;aspect-ratio:80 / 46;object-fit:contain;background:#000;border-radius:6px;">
-      <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}" type="video/mp4">
-      <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}">Download the 5-second FastH3 example.</a>
-    </video>
-    <figcaption><strong>5-second request:</strong> 124 frames, 5.184-second MP4 · <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}">Open MP4</a></figcaption>
-  </figure>
-  <figure style="margin:0;min-width:0;">
-    <video controls preload="metadata" playsinline width="1280" height="736" style="display:block;width:100%;height:auto;aspect-ratio:80 / 46;object-fit:contain;background:#000;border-radius:6px;">
-      <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}" type="video/mp4">
-      <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}">Download the 15-second FastH3 example.</a>
-    </video>
-    <figcaption><strong>15-second request:</strong> 362 frames, 15.104-second MP4 · <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}">Open MP4</a></figcaption>
-  </figure>
-</div>
-
-#### 6.5.3 Evidence boundary
+The links above are presentation examples. The publication-grade timing and
+media evidence remains subject to the raw-bundle gate in Section 6.3.
 
 | Quality gate | Status |
 |---|---|
