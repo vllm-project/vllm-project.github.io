@@ -97,7 +97,7 @@ available.
 | Model | MiniMax H3 [`42ed227e`](https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe) | Same base model plus pinned FastH3 artifact |
 | Prompt / seed | Official `case-T2VA` expanded prompt, SHA-256 `98f36b...f06`; seed 0 | Fixed FastH3 prompt; seed 1101 |
 | Schedule | 50 sigma points / 49 DiT forwards | 5 sigma points / 4 DiT forwards |
-| Topology | Encoder TP8; DiT USP8, Ring1; VAE PP8 tile | One replica; encoder TP1; DiT USP8, Ring1; VAE PP8 tile |
+| Topology | Encoder TP8; DiT USP8, Ring1; VAE PP8 tile | One replica; encoder TP8; DiT USP8, Ring1; VAE PP8 tile |
 | Attention | Dense BF16 `TRTLLM_ATTN`, Fast Ulysses | Dense `TRTLLM_ATTN`, Fast Ulysses |
 | Repetitions | One excluded full-shape warmup, then measured requests | One excluded feasibility request per shape, then two interleaved runs per duration |
 
@@ -398,7 +398,7 @@ vllm serve "$H3_MODEL" --omni \
   --host 127.0.0.1 --port 8095 --trust-remote-code \
   --task-type fl2va --served-model-name MiniMaxAI/MiniMax-H3 \
   --num-gpus 8 --usp 8 --ring 1 --ulysses-a2a-permute \
-  --text-encoder-tp-size 1 \
+  --text-encoder-tp-size 8 \
   --vae-patch-parallel-size 8 --vae-parallel-mode tile --vae-use-tiling \
   --diffusion-attention-backend TRTLLM_ATTN \
   --lora-path "$FASTH3_DIR/dense-datafree/adapter_model.safetensors"
@@ -413,7 +413,7 @@ curl -sS -X POST http://127.0.0.1:8095/v1/videos/sync \
   -o fasth3_10s.mp4
 ```
 
-The service uses one FastH3 replica, encoder TP1, DiT DP1 x TP1 x USP8 with
+The service uses one FastH3 replica, encoder TP8, DiT DP1 x TP1 x USP8 with
 Ring1 and Fast Ulysses, VAE PP8 tile decode, dense `TRTLLM_ATTN`, and the
 standard compact output/MP4 path.
 
