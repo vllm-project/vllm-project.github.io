@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "FastVideo's FastH3 on vLLM-Omni: Low-Latency, Scalable MiniMax H3 Serving"
+title: "FastVideo's FastH3 Meets vLLM-Omni: Scaling MiniMax H3 Serving to Real Time"
 author: "vLLM-Omni Team"
-summary: "How vLLM-Omni first optimizes the complete MiniMax H3 serving stack, then integrates FastVideo's four-step FastH3 for generation faster than playback."
-description: "An evidence-driven journey from system-wide MiniMax H3 optimization to low-latency FastH3 and scalable production deployment."
+summary: "How vLLM-Omni scales and accelerates the complete MiniMax H3 stack, then integrates FastVideo's four-step FastH3 for generation faster than playback."
+description: "An evidence-driven journey from scalable MiniMax H3 serving to real-time FastH3 deployment with vLLM-Omni and FastVideo."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - performance
@@ -203,9 +203,11 @@ pixelwise-parity claim.
 
 ## 4. Scaling the general H3 serving architecture
 
-DLO and disaggregated encoding are a separate deployment lane for the general
-H3 service. They explain how to fit and scale the broader architecture; they
-did **not** produce the FastH3 numbers in Section 6.
+The general H3 lane combines two different kinds of production controls. DLO
+and disaggregated encoding change capacity and placement; optional quantized
+weights and approximate attention trade numerical fidelity for memory or
+latency. These paths explain how to fit, scale, and accelerate the broader
+architecture. They did **not** produce the FastH3 numbers in Section 6.
 
 ### 4.1 Distributed Layerwise Offload
 
@@ -242,11 +244,73 @@ single-node recipe returns conditioning through the orchestrator and keeps the
 diffusion stage inline; it does not configure OmniConnector. SHM/RDMA remains a
 future cross-node option in [RFC #5707](https://github.com/vllm-project/vllm-omni/issues/5707).*
 
-### 4.3 Compatibility boundaries
+### 4.3 Optional quantization and attention acceleration
+
+Section 3 deliberately uses dense BF16 attention and released checkpoint
+precision. General H3 deployments can select the following additional paths,
+but each is a separate quality-performance profile rather than a lossless
+runtime gain.
+
+#### Weight and activation quantization
+
+- **Online FP8.** The merged
+  [global FP8 path](https://github.com/vllm-project/vllm-omni/pull/5910)
+  starts from the BF16 checkpoint and quantizes eligible DiT and Qwen3-VL
+  text-decoder linears at load time. Embeddings, norms, RoPE, the vision tower,
+  both VAEs, and precision-sensitive projections keep their declared precision.
+- **SVDQuant NVFP4 W4A4.** The merged
+  [offline loader](https://github.com/vllm-project/vllm-omni/pull/6162)
+  combines an NVFP4 W4A4 base GEMM with a BF16 low-rank correction. Current
+  evidence establishes checkpoint and correctness compatibility; a native
+  fused residual-GEMM performance path remains future work.
+
+<p align="center">
+  <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-quantization-paths.svg" alt="Comparison of online FP8 and offline SVDQuant W4A4 execution paths for MiniMax H3" width="100%">
+</p>
+
+*Figure 4: Online FP8 creates FP8 weights and scales at load time, then
+quantizes eligible activations online. Offline SVDQuant combines an NVFP4 W4A4
+base branch with a BF16 low-rank correction. Sources: vLLM-Omni
+[#5910](https://github.com/vllm-project/vllm-omni/pull/5910) and
+[#6162](https://github.com/vllm-project/vllm-omni/pull/6162), plus the cookbook
+[online FP8](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-18-online-quantization-fp8.md)
+and [SVDQuant](https://github.com/hsliuustc0106/vllm-omni-cookbook/blob/main/blog/_posts/2026-08-16-understanding-pr-6162-svdquant-w4a4-blackwell.md)
+explainers.*
+
+A quantized profile must report peak HBM, startup host RAM, checkpoint storage,
+latency, and same-seed video/audio quality. A capacity win is not automatically
+a latency win, and loader correctness is not evidence of a fused-kernel gain.
+
+#### Approximate attention and cache policies
+
+On the canonical B300 base-H3 workload, `TRTLLM_ATTN` provides optional SAGE
+FP8 and Skip-Softmax paths. SAGE quantizes QK and PV attention work; Skip-Softmax
+uses the QK result to omit selected Softmax and PV computation. The measurements
+below change the attention policy while retaining the same model-execution
+boundary:
+
+| Attention policy | SAGE configuration | Skip-Softmax configuration | Model execution | Speedup | LPIPS vs. dense | Sample |
+|---|---|---|---:|---:|---:|---|
+| Dense TRTLLM | Off | Off | 54.246 s | 1.000x | 0 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4) |
+| SAGE FP8 | `dtype_qk=fp8_e4m3`, blocks 1/4 | Off | 46.592 s | **1.164x** | 0.4093 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8.mp4) |
+| Skip-Softmax | Off | threshold 0.05; disabled until 0.97 | 50.029 s | **1.084x** | 0.0917 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/skip_softmax_005_gate097.mp4) |
+| SAGE + Skip-Softmax | `dtype_qk=fp8_e4m3`, blocks 1/4 | threshold 0.05; disabled until 0.97 | 46.073 s | **1.177x** | 0.4103 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8_skip_005_gate097.mp4) |
+
+SAGE supplies the larger speedup but changes this prompt's composition
+substantially; the conservative Skip-Softmax profile stays closer to dense.
+These are explicit quality-performance trade-offs. The
+[TRTLLM attention guide](https://github.com/vllm-project/vllm-omni/blob/main/docs/user_guide/diffusion/attention_backends/trtllm.md)
+documents the controls. [Sol-Attn](https://github.com/vllm-project/vllm-omni/pull/5851)
+and [Cache-DiT](https://github.com/vllm-project/vllm-omni/pull/5853) are
+additional sparse/cache policies that require their own hit-rate, dense-guard,
+and quality evidence.
+
+### 4.4 Compatibility boundaries
 
 | Combination | Status for this article |
 |---|---|
 | Base H3 + DLO | Supported through the maintained H3 recipes; qualify the selected topology locally |
+| Base H3 + DLO + online FP8 | Supported, including the AllGather path through [#6279](https://github.com/vllm-project/vllm-omni/pull/6279); performance and quality still require local qualification |
 | Base H3 + disaggregated encoder | Merged single-node path |
 | FastH3 + DLO | **Unsupported**: FastH3 fusion occurs in `load_weights()`, while offload installs a different host-weight path |
 | FastH3 + disaggregated encoder | **Not yet qualified**; it was not used for the reported FastH3 result |
@@ -281,7 +345,7 @@ sharding rather than activating it per request.
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/h3-few-step-adapters.svg" alt="Comparison of request-switchable Turbo LoRA and load-time-fused FastVideo FastH3" width="100%">
 </p>
 
-*Figure 4: Turbo leaves base weights unchanged and applies request-selected A/B
+*Figure 5: Turbo leaves base weights unchanged and applies request-selected A/B
 sidecars. FastH3 fuses low-rank and full-rank changes into a dedicated student
 before sharding. Sources: Turbo [#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
 DLO support [#6550](https://github.com/vllm-project/vllm-omni/pull/6550), and
@@ -380,28 +444,43 @@ is faster than playback for every tested duration.
 ### 6.5 Representative outputs and quality boundary
 
 The following FastH3 outputs demonstrate the same duration classes at
-1280x736. They are visual examples, not the 1344x768 timing artifacts above.
+1280x736. They are representative visual examples, not the 1344x768 timing
+artifacts above. The ten-second output anchors the gallery, followed by the
+five- and fifteen-second endpoints.
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin:1rem 0 1.5rem;">
-  <figure style="margin:0;">
-    <video controls preload="metadata" playsinline style="width:100%;background:#000;border-radius:6px;">
+#### 6.5.1 Ten-second showcase
+
+The primary example matches the canonical 10-second request class used by the
+latency decomposition.
+
+<figure style="margin:1rem 0 1.5rem;">
+  <video controls preload="metadata" playsinline width="1280" height="736" style="display:block;width:100%;height:auto;aspect-ratio:80 / 46;object-fit:contain;background:#000;border-radius:6px;">
+    <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}" type="video/mp4">
+    <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}">Download the 10-second FastH3 example.</a>
+  </video>
+  <figcaption><strong>10-second request:</strong> 243 frames, 10.144-second MP4 · <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}">Open MP4</a></figcaption>
+</figure>
+
+#### 6.5.2 Five- and fifteen-second endpoints
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;margin:1rem 0 1.5rem;">
+  <figure style="margin:0;min-width:0;">
+    <video controls preload="metadata" playsinline width="1280" height="736" style="display:block;width:100%;height:auto;aspect-ratio:80 / 46;object-fit:contain;background:#000;border-radius:6px;">
       <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}" type="video/mp4">
+      <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}">Download the 5-second FastH3 example.</a>
     </video>
-    <figcaption><strong>5-second request</strong><br>124 frames, 5.184-second MP4</figcaption>
+    <figcaption><strong>5-second request:</strong> 124 frames, 5.184-second MP4 · <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4' | relative_url }}">Open MP4</a></figcaption>
   </figure>
-  <figure style="margin:0;">
-    <video controls preload="metadata" playsinline style="width:100%;background:#000;border-radius:6px;">
-      <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4' | relative_url }}" type="video/mp4">
-    </video>
-    <figcaption><strong>10-second request</strong><br>243 frames, 10.144-second MP4</figcaption>
-  </figure>
-  <figure style="margin:0;">
-    <video controls preload="metadata" playsinline style="width:100%;background:#000;border-radius:6px;">
+  <figure style="margin:0;min-width:0;">
+    <video controls preload="metadata" playsinline width="1280" height="736" style="display:block;width:100%;height:auto;aspect-ratio:80 / 46;object-fit:contain;background:#000;border-radius:6px;">
       <source src="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}" type="video/mp4">
+      <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}">Download the 15-second FastH3 example.</a>
     </video>
-    <figcaption><strong>15-second request</strong><br>362 frames, 15.104-second MP4</figcaption>
+    <figcaption><strong>15-second request:</strong> 362 frames, 15.104-second MP4 · <a href="{{ '/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4' | relative_url }}">Open MP4</a></figcaption>
   </figure>
 </div>
+
+#### 6.5.3 Evidence boundary
 
 | Quality gate | Status |
 |---|---|
@@ -478,7 +557,7 @@ and collaborating with the vLLM-Omni community on the merged serving
 integration. We also thank the contributors who implemented and validated the
 model, serving, attention, kernels, VAE, transport, media, and training paths.
 
-## Appendix A. Reproducibility and secondary acceleration paths
+## Appendix A. Reproducibility
 
 ### A.1 Timing hierarchy
 
@@ -514,31 +593,6 @@ vllm serve "$H3_MODEL" --omni \
 
 The canonical request uses the prompt and seed in Section 2, 50 requested
 sigma points, flow shift 12, audio flow shift 3, and a 10-second target.
-
-### A.3 Quantization and approximate attention
-
-These paths are useful but are not part of the main FastH3 result:
-
-| Path | Mechanism | Current boundary |
-|---|---|---|
-| [Online FP8](https://github.com/vllm-project/vllm-omni/pull/5910) | Quantize eligible DiT and text-decoder linears at load time | VAEs and precision-sensitive layers retain checkpoint precision |
-| [SVDQuant NVFP4 W4A4](https://github.com/vllm-project/vllm-omni/pull/6162) | NVFP4 base GEMM plus BF16 low-rank correction | Correctness baseline; native fused performance remains follow-up work |
-| [Sol-Attn](https://github.com/vllm-project/vllm-omni/pull/5851) | Sparse H3 attention preview | Requires hardware-specific dense guards and quality gates |
-| [Cache-DiT](https://github.com/vllm-project/vllm-omni/pull/5853) | Request quality policy that skips cached work | Needs deployment-specific hit-rate and quality evidence |
-
-On the canonical B300 base-H3 workload, optional `TRTLLM_ATTN` approximations
-produce the following model-execution results:
-
-| Attention policy | Configuration | Model execution | Speedup | LPIPS vs. dense | Sample |
-|---|---|---:|---:|---:|---|
-| Dense TRTLLM | BF16 | 54.246 s | 1.000x | 0 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4) |
-| SAGE FP8 | Q/K FP8, block sizes 1/4 | 46.592 s | **1.164x** | 0.4093 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8.mp4) |
-| Skip-Softmax | Threshold 0.05, disabled until 0.97 | 50.029 s | **1.084x** | 0.0917 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/skip_softmax_005_gate097.mp4) |
-| SAGE + Skip-Softmax | Q/K FP8 plus the same skip policy | 46.073 s | **1.177x** | 0.4103 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8_skip_005_gate097.mp4) |
-
-SAGE provides the larger speedup but changes the composition substantially on
-this prompt; the conservative Skip-Softmax configuration stays closer to the
-dense output. These are quality/performance trade-offs, not lossless gains.
 
 ## References
 
