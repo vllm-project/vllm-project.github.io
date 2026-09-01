@@ -595,6 +595,9 @@ NVIDIA. We especially thank the FastVideo team for
 and collaborating with the vLLM-Omni community on the merged serving
 integration.
 
+Special thanks to Hongsheng Liu and Roger Wang for general support and blog
+preparation.
+
 We thank [@Isotr0py](https://github.com/Isotr0py) for base H3 support;
 [@lishunyang12](https://github.com/lishunyang12),
 [@evanchueng](https://github.com/evanchueng),
