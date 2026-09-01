@@ -528,7 +528,13 @@ Reducing denoising exposes the new tail: on the 10-second profile, combined
 VAE, derived transport, and CPU MP4 account for roughly three seconds in the
 instrumented path. [RFC #6872](https://github.com/vllm-project/vllm-omni/issues/6872)
 proposes overlapping VAE chunks, D2H/IPC, and encoding rather than optimizing
-these stages in isolation.
+these stages in isolation. For this B300 profile, its optimistic ceilings are
+approximately 0.87 seconds (about 10% E2E) when overlapping transport with
+encoding and 1.75 seconds (about 20% E2E) when also overlapping incremental VAE
+decode; the corresponding go/no-go targets are at least 5% and 10% E2E.
+Related draft [PR #6885](https://github.com/vllm-project/vllm-omni/pull/6885)
+reports a 0.8847-second (26.57%) VAE-to-complete-MP4 reduction on a four-L20X
+feasibility run with exact media parity, not a B300 production-serving result.
 
 ## 7. Production guidance and limitations
 
