@@ -185,6 +185,8 @@ Additionally, with *chunked prefill*, each completed prefill-chunk becomes immed
 Transfer KV chunks from an overloaded vLLM instance to one with available capacity.
 Any node can pull chunks from any peer.
 
+For more on P2P KV cache sharing with llm-d, see [this blog post](https://llm-d.ai/blog/p2p-kv-cache-sharing-llm-d).
+
 ---
 
 ## Hybrid Model Support
