@@ -320,10 +320,11 @@ successful generation, not pixelwise equivalence to BF16.
 
 #### Quantized and Sparse Attention
 
-On the canonical B300 base-H3 workload, `TRTLLM_ATTN` provides optional SAGE
-FP8 and Skip-Softmax paths. SAGE quantizes QK and PV attention work; Skip-Softmax
-uses the QK result to omit selected Softmax and PV computation. The following
-table compares them with dense TRTLLM attention on the same B300 workload:
+`TRTLLM_ATTN` provides two optional lossy acceleration modes:
+
+- **SAGE quantization** quantizes both the QK and PV paths to FP8.
+- **Skip-Softmax** uses the QK result to dynamically skip unimportant Softmax
+  and P×V computation.
 
 <p align="center">
   <img src="/assets/figures/2026-08-29-minimax-h3-production-serving/trtllm-sage-skip-softmax.jpg" alt="SAGE FP8 QK and PV paths around the BLASST Skip-Softmax main loop" width="100%">
@@ -333,6 +334,9 @@ table compares them with dense TRTLLM attention on the same B300 workload:
 Skip-Softmax uses the [BLASST](https://arxiv.org/abs/2512.12087) tile-level
 decision to bypass selected Softmax and P×V tiles.*
 
+The following table compares video quality and speedup against the dense,
+unquantized attention baseline:
+
 | Attention policy | SAGE configuration | Skip-Softmax configuration | Model execution | Speedup | LPIPS vs. dense | Sample |
 |---|---|---|---:|---:|---:|---|
 | Dense TRTLLM | Off | Off | 54.246 s | 1.000x | 0 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4) |
@@ -340,8 +344,8 @@ decision to bypass selected Softmax and P×V tiles.*
 | Skip-Softmax | Off | threshold 0.05; disabled until 0.97 | 50.029 s | **1.084x** | 0.0917 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/skip_softmax_005_gate097.mp4) |
 | SAGE + Skip-Softmax | `dtype_qk=fp8_e4m3`, `q_block_size=1`, `k_block_size=16` | threshold 0.05; disabled until 0.97 | 43.867 s | **1.237x** | 0.3750 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8_skip_005_gate097.mp4) |
 
-SAGE supplies the larger speedup but changes this prompt's composition
-substantially; the **conservative** Skip-Softmax profile stays closer to dense.
+The measured Skip-Softmax configuration is **conservative** for preserving
+video quality.
 Users can choose a higher threshold or enable Skip-Softmax for more denoising
 steps to trade quality for additional speed. The
 [TRTLLM attention guide](https://github.com/vllm-project/vllm-omni/blob/main/docs/user_guide/diffusion/attention_backends/trtllm.md)
