@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "FastVideo's FastH3 Meets vLLM-Omni: Scaling MiniMax H3 Serving to Real Time"
+title: "MiniMax H3 on vLLM-Omni: From System-Wide Optimization to Real-Time Serving with FastVideo’s FastH3"
 author: "vLLM-Omni Team"
-summary: "How vLLM-Omni scales and accelerates the complete MiniMax H3 stack, then integrates FastVideo's four-step FastH3 for generation faster than playback."
-description: "An evidence-driven journey from scalable MiniMax H3 serving to real-time FastH3 deployment with vLLM-Omni and FastVideo."
+summary: "How vLLM-Omni optimizes and scales the complete MiniMax H3 stack, then integrates FastVideo’s four-step FastH3 for generation faster than playback."
+description: "An evidence-driven journey from system-wide MiniMax H3 optimization to real-time serving with FastVideo’s FastH3 on vLLM-Omni."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - performance
@@ -107,7 +107,8 @@ outside that interval. Every accepted output must decode as H.264 video plus
 stereo 32 kHz AAC, contain the expected frame count and FPS, have nonzero video
 variance and audio RMS, and pass prompt-adherence review.
 
-For FastH3, let `T_media` be the validated MP4 playback duration:
+For FastH3, retain the validated video and audio stream durations and define
+`T_media = max(T_video, T_audio)`, the effective complete-MP4 playback duration:
 
 `RTF_client = T_client / T_media`
 
@@ -422,6 +423,13 @@ standard compact output/MP4 path.
 Profiler timers come from a separate instrumented pass; clean E2E carries the
 latency claim.
 
+> **Raw benchmark bundle — pending publication gate.** The stable bundle has
+> not yet been published. Before publication, this
+> [evidence-handoff requirement](https://github.com/vllm-project/vllm-project.github.io/pull/315#issuecomment-5459581336)
+> must be replaced by a bundle URL containing raw clean/profiler samples, logs,
+> the environment manifest, media metadata and hashes, and topology evidence
+> for both the critical-path row and duration sweep.
+
 | Encoder | DiT total / 4 / per-forward | Video + audio VAE | Derived transport | CPU MP4 | Profiled E2E | Clean E2E | Peak HBM |
 |---:|---:|---:|---:|---:|---:|---:|---:|
 | 0.052 s | 5.532 s / 4 / 1.383 s | 1.247 s combined | 0.881 s | 0.868 s | 8.629 s | **8.678 / 8.710 s** | 94.1 GiB/GPU reserved |
@@ -432,11 +440,11 @@ The sweep holds prompt, seed, resolution, artifact, schedule, topology,
 attention, VAE, output path, and CPU affinity fixed. H3 aligns the requested
 durations to 124, 243, and 362 frames.
 
-| Requested / aligned / playback | DiT total / per-forward | Combined VAE | Transport + MP4 | Clean E2E | Client RTF | x real time |
-|---|---:|---:|---:|---:|---:|---:|
-| 5 s / 124 / 5.175 s | 2.806 s / 0.702 s | 0.637 s | 0.929 s | 4.602 / 4.396 s | 0.891 / 0.851 | 1.123 / 1.175 |
-| 10 s / 243 / 10.125 s | 5.532 s / 1.383 s | 1.247 s | 1.749 s | 8.678 / 8.710 s | 0.857 / 0.860 | 1.167 / 1.163 |
-| 15 s / 362 / 15.083 s | 9.517 s / 2.379 s | 1.861 s | 2.484 s | 14.177 / 14.059 s | 0.940 / 0.932 | 1.064 / 1.073 |
+| Requested / aligned | Video / audio duration | DiT total / per-forward | Combined VAE | Transport + MP4 | Clean E2E | Client RTF | x real time |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 5 s / 124 | 5.167 / 5.175 s | 2.806 s / 0.702 s | 0.637 s | 0.929 s | 4.602 / 4.396 s | **0.889 / 0.849** | **1.125 / 1.177** |
+| 10 s / 243 | 10.125 / 10.125 s | 5.532 s / 1.383 s | 1.247 s | 1.749 s | 8.678 / 8.710 s | 0.857 / 0.860 | 1.167 / 1.163 |
+| 15 s / 362 | 15.083 / 15.083 s | 9.517 s / 2.379 s | 1.861 s | 2.484 s | 14.177 / 14.059 s | 0.940 / 0.932 | 1.064 / 1.073 |
 
 All six measured requests satisfy `RTF_client <= 1.0`: complete-MP4 generation
 is faster than playback for every tested duration.
@@ -509,12 +517,14 @@ Do not combine the reported FastH3 profile with DLO, VSA, quantization, cache
 policies, alternative Ulysses transports, or encoder disaggregation without a
 new correctness, quality, memory, and latency qualification. The living
 [feature compatibility tracker](https://github.com/vllm-project/vllm-omni/issues/5700)
-is authoritative for cross-feature status.
+records cross-feature work, but it can lag merged implementation. Verify the
+linked PRs and maintained recipes before selecting a production combination.
 
 Before promotion:
 
 - pin model, adapter, source, container, and codec-package revisions;
 - preserve one excluded full-shape warmup and raw measured samples;
+- publish the stable raw benchmark bundle required beside the Section 6 tables;
 - validate every MP4 and retain representative outputs plus hashes;
 - complete the matched multi-seed FastH3 quality comparison;
 - monitor HBM, host RAM, CPU affinity, failures, and fallback counters; and
