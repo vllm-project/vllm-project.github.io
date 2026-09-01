@@ -578,9 +578,11 @@ The remaining work follows directly from that progression:
 - complete a matched base/FastH3 multi-seed quality evaluation;
 - implement the [chunkwise VAE-to-transport-to-MP4 pipeline](https://github.com/vllm-project/vllm-omni/issues/6872)
   and qualify a GPU encoder;
-- enhance [VeRL-Omni](https://github.com/verl-project/verl-omni) post-training
-  support for MiniMax H3 with scalable rollout serving, explicit resource
-  placement, and end-to-end training validation; and
+- enhance MiniMax H3 post-training integration across
+  [VeRL-Omni](https://github.com/verl-project/verl-omni),
+  [UniRL](https://github.com/Tencent-Hunyuan/UniRL), and
+  [RLinf](https://github.com/RLinf/RLinf), with scalable rollout serving,
+  explicit resource placement, and end-to-end training validation; and
 - qualify FastH3 composition with encoder disaggregation or other scaling
   features rather than inferring compatibility.
 
@@ -661,3 +663,5 @@ sigma points, flow shift 12, audio flow shift 3, and a 10-second target.
 - [Feature compatibility tracker](https://github.com/vllm-project/vllm-omni/issues/5700)
 - [Chunkwise output pipeline RFC](https://github.com/vllm-project/vllm-omni/issues/6872)
 - [VeRL-Omni repository](https://github.com/verl-project/verl-omni)
+- [UniRL repository](https://github.com/Tencent-Hunyuan/UniRL)
+- [RLinf repository](https://github.com/RLinf/RLinf)
