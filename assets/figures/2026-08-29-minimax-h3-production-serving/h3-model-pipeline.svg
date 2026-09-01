@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="650" viewBox="0 0 1280 650" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax H3 model pipeline in vLLM-Omni</title>
+  <desc id="desc">Text, visual conditions, and audio references are encoded into one packed multimodal sequence. A task-selected FL2VA or Ref2VA joint audio-video diffusion transformer predicts video and audio latents, which separate VAEs decode before CPU MP4 muxing.</desc>
+  <defs>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .title { font-size: 27px; font-weight: 750; fill: #0f172a; }
+      .subtitle { font-size: 15px; font-weight: 500; fill: #64748b; }
+      .group-title { font-size: 18px; font-weight: 750; fill: #0f172a; }
+      .group-sub { font-size: 12px; font-weight: 650; fill: #64748b; }
+      .node-title { font-size: 14px; font-weight: 720; fill: #0f172a; }
+      .node-sub { font-size: 11.5px; font-weight: 500; fill: #475569; }
+      .pill { font-size: 11px; font-weight: 700; fill: #334155; }
+      .arrow-label { font-size: 10.5px; font-weight: 700; fill: #64748b; }
+      .foot { font-size: 11.5px; font-weight: 550; fill: #64748b; }
+      .blue { stroke: #2563eb; stroke-width: 2.3; fill: none; marker-end: url(#arrowBlue); }
+      .teal { stroke: #0d9488; stroke-width: 2.3; fill: none; marker-end: url(#arrowTeal); }
+      .green { stroke: #16a34a; stroke-width: 2.3; fill: none; marker-end: url(#arrowGreen); }
+      .purple { stroke: #7c3aed; stroke-width: 2.5; fill: none; marker-end: url(#arrowPurple); }
+      .gray { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrowGray); }
+    </style>
+  </defs>
+
+  <rect width="1280" height="650" fill="#ffffff"/>
+  <text x="40" y="48" class="title">MiniMax H3: one packed sequence, joint video and audio generation</text>
+  <text x="40" y="75" class="subtitle">Task-specific DiT partitions share the processor, H3 encoder, Visual VAE, and Audio VAE in the combined vLLM-Omni service.</text>
+
+  <!-- Inputs -->
+  <rect x="35" y="125" width="180" height="425" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="57" y="157" class="group-title">Inputs + task</text>
+  <text x="57" y="179" class="group-sub">text · image · video · audio</text>
+
+  <rect x="58" y="205" width="134" height="62" rx="11" fill="#dbeafe" stroke="#60a5fa" stroke-width="1.3"/>
+  <text x="125" y="231" text-anchor="middle" class="node-title">Text prompt</text>
+  <text x="125" y="252" text-anchor="middle" class="node-sub">all tasks</text>
+
+  <rect x="58" y="294" width="134" height="76" rx="11" fill="#ecfeff" stroke="#0d9488" stroke-width="1.3"/>
+  <text x="125" y="320" text-anchor="middle" class="node-title">Visual context</text>
+  <text x="125" y="341" text-anchor="middle" class="node-sub">first/last frames</text>
+  <text x="125" y="359" text-anchor="middle" class="node-sub">image/video refs</text>
+
+  <rect x="58" y="397" width="134" height="62" rx="11" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.3"/>
+  <text x="125" y="423" text-anchor="middle" class="node-title">Audio references</text>
+  <text x="125" y="444" text-anchor="middle" class="node-sub">Ref2VA</text>
+
+  <rect x="52" y="493" width="146" height="28" rx="14" fill="#ede9fe"/>
+  <text x="125" y="512" text-anchor="middle" class="pill">T2VA / FL2VA / Ref2VA</text>
+
+  <!-- Shared encoding components -->
+  <rect x="245" y="125" width="240" height="425" rx="18" fill="#eff6ff" stroke="#60a5fa" stroke-width="1.5"/>
+  <text x="267" y="157" class="group-title">Shared encoding</text>
+  <text x="267" y="179" class="group-sub">shared once · combined service</text>
+
+  <rect x="270" y="196" width="190" height="80" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="365" y="224" text-anchor="middle" class="node-title">H3 Encoder · Qwen3-VL</text>
+  <text x="365" y="247" text-anchor="middle" class="node-sub">text + visual presentation</text>
+  <text x="365" y="266" text-anchor="middle" class="node-sub">layer-50 hidden states</text>
+
+  <rect x="270" y="300" width="190" height="70" rx="12" fill="#ecfeff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="365" y="328" text-anchor="middle" class="node-title">H3 Visual VAE encoder</text>
+  <text x="365" y="351" text-anchor="middle" class="node-sub">visual conditioning latents</text>
+
+  <rect x="270" y="402" width="190" height="70" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="365" y="430" text-anchor="middle" class="node-title">H3 Audio VAE encoder</text>
+  <text x="365" y="453" text-anchor="middle" class="node-sub">stereo reference latents</text>
+
+  <!-- Input to encoder routes -->
+  <path class="blue" d="M 192 226 L 266 215"/>
+  <path class="teal" d="M 192 332 L 266 332"/>
+  <path class="blue" d="M 192 314 C 225 314, 230 266, 266 258"/>
+  <text x="224" y="291" text-anchor="middle" class="arrow-label">vision tokens</text>
+  <path class="green" d="M 192 428 L 266 428"/>
+
+  <!-- Packed sequence -->
+  <rect x="525" y="145" width="180" height="365" rx="18" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+  <text x="615" y="178" text-anchor="middle" class="group-title">Unified packed</text>
+  <text x="615" y="200" text-anchor="middle" class="group-title">sequence</text>
+  <text x="615" y="220" text-anchor="middle" class="group-sub">multimodal tokens</text>
+
+  <rect x="550" y="238" width="130" height="31" rx="15" fill="#dbeafe"/>
+  <text x="615" y="259" text-anchor="middle" class="pill">text conditioning</text>
+  <rect x="550" y="280" width="130" height="31" rx="15" fill="#cffafe"/>
+  <text x="615" y="301" text-anchor="middle" class="pill">visual conditioning</text>
+  <rect x="550" y="322" width="130" height="31" rx="15" fill="#d1fae5"/>
+  <text x="615" y="343" text-anchor="middle" class="pill">audio references</text>
+  <rect x="550" y="364" width="130" height="31" rx="15" fill="#ede9fe"/>
+  <text x="615" y="385" text-anchor="middle" class="pill">noisy video target</text>
+  <rect x="550" y="406" width="130" height="31" rx="15" fill="#f3e8ff"/>
+  <text x="615" y="427" text-anchor="middle" class="pill">noisy audio target</text>
+  <text x="615" y="472" text-anchor="middle" class="node-sub">token roles + MM-RoPE</text>
+
+  <!-- Encoders to packed-sequence ports -->
+  <path class="blue" d="M 460 236 L 521 236"/>
+  <path class="teal" d="M 460 335 L 521 335"/>
+  <path class="green" d="M 460 437 L 521 437"/>
+
+  <!-- Task-specific transformer partition -->
+  <rect x="745" y="145" width="205" height="365" rx="18" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.7"/>
+  <text x="847" y="178" text-anchor="middle" class="group-title">H3 joint A/V DiT</text>
+  <text x="847" y="200" text-anchor="middle" class="group-sub">one packed sequence</text>
+
+  <rect x="770" y="239" width="155" height="82" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.4"/>
+  <text x="847" y="268" text-anchor="middle" class="node-title">FL2VA partition</text>
+  <text x="847" y="292" text-anchor="middle" class="node-sub">T2VA or FL2VA</text>
+  <text x="847" y="312" text-anchor="middle" class="node-sub">selected by task</text>
+
+  <rect x="770" y="345" width="155" height="82" rx="12" fill="#faf5ff" stroke="#9333ea" stroke-width="1.4"/>
+  <text x="847" y="374" text-anchor="middle" class="node-title">Ref2VA partition</text>
+  <text x="847" y="398" text-anchor="middle" class="node-sub">mixed references</text>
+  <text x="847" y="418" text-anchor="middle" class="node-sub">selected by task</text>
+
+  <text x="847" y="468" text-anchor="middle" class="node-sub">joint video + audio denoising</text>
+  <text x="847" y="489" text-anchor="middle" class="node-sub">dual sigma schedules</text>
+  <path class="purple" d="M 705 327 L 741 327"/>
+
+  <!-- Separate output decoders -->
+  <rect x="985" y="186" width="130" height="105" rx="13" fill="#ecfeff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="1050" y="217" text-anchor="middle" class="node-title">Video latent</text>
+  <text x="1050" y="242" text-anchor="middle" class="node-sub">Visual VAE decoder</text>
+  <text x="1050" y="269" text-anchor="middle" class="node-title">video frames</text>
+
+  <rect x="985" y="365" width="130" height="105" rx="13" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1050" y="396" text-anchor="middle" class="node-title">Audio latent</text>
+  <text x="1050" y="421" text-anchor="middle" class="node-sub">Audio VAE decoder</text>
+  <text x="1050" y="448" text-anchor="middle" class="node-title">32 kHz stereo</text>
+
+  <path class="teal" d="M 950 239 L 981 239"/>
+  <path class="green" d="M 950 417 L 981 417"/>
+
+  <!-- CPU mux -->
+  <rect x="1150" y="277" width="100" height="112" rx="13" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+  <text x="1200" y="307" text-anchor="middle" class="node-title">CPU mux</text>
+  <text x="1200" y="334" text-anchor="middle" class="node-sub">H.264 video</text>
+  <text x="1200" y="355" text-anchor="middle" class="node-sub">+ AAC audio</text>
+  <text x="1200" y="378" text-anchor="middle" class="node-title">MP4</text>
+
+  <path class="gray" d="M 1115 239 C 1135 239, 1128 305, 1146 312"/>
+  <path class="gray" d="M 1115 417 C 1135 417, 1128 361, 1146 354"/>
+
+  <!-- Shared-component note -->
+  <rect x="245" y="562" width="870" height="58" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="680" y="586" text-anchor="middle" class="foot">Combined serving can load both task-specific DiTs while sharing one tokenizer, processor,</text>
+  <text x="680" y="605" text-anchor="middle" class="foot">H3 encoder, Visual VAE, and Audio VAE.</text>
+  <text x="40" y="635" class="foot">Sources: MiniMax H3 model card, vLLM-Omni MiniMax-H3 recipe, and the packed-sequence implementation.</text>
+</svg>

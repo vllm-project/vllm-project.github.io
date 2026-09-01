@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax H3 disaggregated encoder flow from left to right</title>
+  <desc id="desc">A request flows left to right through the Qwen3-VL processor, H3 text encoder, orchestrator conditioning merge, H3 diffusion, video and audio VAEs, and CPU response path. The current single-node inline topology does not configure OmniConnector.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f97316"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .title { font-size: 27px; font-weight: 750; fill: #0f172a; }
+      .subtitle { font-size: 15px; font-weight: 500; fill: #64748b; }
+      .stage-title { font-size: 18px; font-weight: 750; fill: #0f172a; }
+      .stage-sub { font-size: 12px; font-weight: 650; fill: #64748b; }
+      .node-title { font-size: 14px; font-weight: 720; fill: #0f172a; }
+      .node-sub { font-size: 11.5px; font-weight: 500; fill: #475569; }
+      .badge { font-size: 11px; font-weight: 700; fill: #1e3a8a; }
+      .arrow-label { font-size: 11px; font-weight: 700; fill: #64748b; }
+      .note-title { font-size: 13px; font-weight: 750; fill: #334155; }
+      .note-sub { font-size: 11.5px; font-weight: 550; fill: #475569; }
+      .foot { font-size: 11.5px; font-weight: 550; fill: #64748b; }
+      .arrow { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .arrow-blue { stroke: #2563eb; stroke-width: 2.4; fill: none; marker-end: url(#arrowBlue); }
+      .arrow-orange { stroke: #f97316; stroke-width: 2.2; fill: none; marker-end: url(#arrowOrange); }
+      .dash { stroke-dasharray: 7 6; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="620" fill="#ffffff"/>
+  <text x="42" y="48" class="title">Disaggregated H3 encoding: one left-to-right serving path</text>
+  <text x="42" y="75" class="subtitle">The orchestrator combines Stage 0 conditioning with the original request before dispatching the inline diffusion stage.</text>
+
+  <!-- Request with two explicit outputs -->
+  <rect x="35" y="185" width="160" height="225" rx="15" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="115" y="220" text-anchor="middle" class="stage-title">Request</text>
+  <text x="115" y="248" text-anchor="middle" class="node-sub">prompt</text>
+  <text x="115" y="270" text-anchor="middle" class="node-sub">optional image / video</text>
+  <text x="115" y="292" text-anchor="middle" class="node-sub">optional audio</text>
+  <rect x="52" y="364" width="126" height="28" rx="14" fill="#ffedd5"/>
+  <text x="115" y="383" text-anchor="middle" class="node-sub">original request state</text>
+
+  <!-- Stage 0 container -->
+  <rect x="225" y="120" width="395" height="220" rx="18" fill="#eff6ff" stroke="#60a5fa" stroke-width="1.6"/>
+  <text x="247" y="151" class="stage-title">Stage 0 · vLLM encoder</text>
+  <text x="247" y="174" class="stage-sub">independent devices · TP · replicas · prefix cache</text>
+
+  <rect x="245" y="207" width="105" height="92" rx="11" fill="#ffffff" stroke="#93c5fd" stroke-width="1.3"/>
+  <text x="297" y="239" text-anchor="middle" class="node-title">Qwen3-VL</text>
+  <text x="297" y="263" text-anchor="middle" class="node-sub">processor</text>
+
+  <rect x="375" y="207" width="105" height="92" rx="11" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="427" y="239" text-anchor="middle" class="node-title">H3 encoder</text>
+  <text x="427" y="263" text-anchor="middle" class="node-sub">vLLM runner · TP</text>
+
+  <rect x="505" y="207" width="95" height="92" rx="11" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="552" y="236" text-anchor="middle" class="node-title">Layer 50</text>
+  <text x="552" y="259" text-anchor="middle" class="node-sub">hidden [S,5120]</text>
+  <text x="552" y="280" text-anchor="middle" class="node-sub">+ role tags</text>
+
+  <!-- Orchestrator merge: current shipped handoff -->
+  <rect x="650" y="185" width="155" height="225" rx="15" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.6"/>
+  <text x="727" y="215" text-anchor="middle" class="stage-title">Orchestrator</text>
+  <text x="727" y="238" text-anchor="middle" class="node-title">payload merge</text>
+  <text x="727" y="270" text-anchor="middle" class="node-sub">conditioning:</text>
+  <text x="727" y="290" text-anchor="middle" class="node-title">hidden + tags</text>
+  <text x="727" y="320" text-anchor="middle" class="node-sub">request state:</text>
+  <text x="727" y="340" text-anchor="middle" class="node-title">prompt + media</text>
+  <rect x="672" y="360" width="111" height="28" rx="14" fill="#ffedd5"/>
+  <text x="727" y="379" text-anchor="middle" class="node-sub">inline payload bridge</text>
+
+  <!-- Stage 1 accelerator work -->
+  <rect x="835" y="120" width="270" height="220" rx="18" fill="#ecfdf5" stroke="#4ade80" stroke-width="1.6"/>
+  <text x="857" y="151" class="stage-title">Stage 1 · H3 diffusion</text>
+  <text x="857" y="174" class="stage-sub">independent USP/DP · VAE PP</text>
+
+  <rect x="855" y="207" width="105" height="92" rx="11" fill="#ffffff" stroke="#34d399" stroke-width="1.4"/>
+  <text x="907" y="239" text-anchor="middle" class="node-title">H3 DiT</text>
+  <text x="907" y="263" text-anchor="middle" class="node-sub">joint A/V</text>
+
+  <rect x="980" y="197" width="105" height="112" rx="11" fill="#d1fae5" stroke="#16a34a" stroke-width="1.4"/>
+  <text x="1032" y="228" text-anchor="middle" class="node-title">Video VAE</text>
+  <text x="1032" y="250" text-anchor="middle" class="node-sub">tile / VAE PP</text>
+  <text x="1032" y="280" text-anchor="middle" class="node-title">Audio VAE</text>
+
+  <!-- CPU response is intentionally outside Stage 1 -->
+  <rect x="1135" y="213" width="110" height="80" rx="12" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1190" y="244" text-anchor="middle" class="node-title">CPU response</text>
+  <text x="1190" y="269" text-anchor="middle" class="node-sub">H.264 + AAC</text>
+
+  <!-- Main data flow: every arrow points left to right -->
+  <path class="arrow-blue" d="M 195 253 L 241 253"/>
+  <text x="218" y="241" text-anchor="middle" class="arrow-label">presentation</text>
+  <path class="arrow-blue" d="M 350 253 L 371 253"/>
+  <path class="arrow-blue" d="M 480 253 L 501 253"/>
+  <path class="arrow-orange" d="M 600 253 L 646 253"/>
+  <path class="arrow" d="M 805 253 L 851 253"/>
+  <path class="arrow" d="M 960 253 L 976 253"/>
+  <path class="arrow" d="M 1085 253 L 1131 253"/>
+
+  <!-- Original request-state bypass is a separate left-to-right lane -->
+  <path class="arrow-orange dash" d="M 195 378 L 646 378"/>
+  <text x="420" y="367" text-anchor="middle" class="arrow-label">original prompt + media retained by the orchestrator</text>
+
+  <!-- Operational notes, no control-flow arrows -->
+  <rect x="225" y="445" width="395" height="64" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="422" y="471" text-anchor="middle" class="note-title">Independent queues across requests</text>
+  <text x="422" y="494" text-anchor="middle" class="note-sub">encode request N+1 while Stage 1 denoises request N</text>
+
+  <rect x="650" y="445" width="595" height="120" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="6 5"/>
+  <text x="675" y="471" class="note-title">OmniConnector status</text>
+  <text x="675" y="493" class="note-sub">Current #5885: orchestrator payload merge + inline Stage 1.</text>
+  <text x="675" y="512" class="note-sub">OmniConnector is not configured in this single-node deployment.</text>
+  <text x="675" y="531" class="note-sub">RFC #5707: OmniConnector (SHM/RDMA) is a future/cross-node option.</text>
+  <text x="675" y="550" class="note-sub">That transport is outside the current deployment.</text>
+
+  <text x="42" y="590" class="foot">Adapted from vLLM-Omni PR #5885, recipe MiniMax-H3-Disaggregated, and RFC #5707.</text>
+</svg>
