@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" font-family="Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+    <marker id="arrowDown" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+    <marker id="arrowUp" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto-start-reverse">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="550" fill="#FAFBFC" rx="8"/>
+
+  <!-- Accelerator box -->
+  <rect x="240" y="30" width="320" height="80" rx="10" fill="#EEF2FF" stroke="#818CF8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="62" text-anchor="middle" font-size="15" font-weight="600" fill="#4338CA">Accelerator (HBM)</text>
+  <text x="400" y="85" text-anchor="middle" font-size="12" fill="#6366F1">KV data computed during inference</text>
+
+  <!-- Arrow: Accelerator to Host -->
+  <line x1="400" y1="110" x2="400" y2="165" stroke="#6B7280" stroke-width="2" marker-end="url(#arrowDown)"/>
+  <text x="415" y="142" font-size="11" fill="#6B7280">fast PCIe DMA</text>
+
+  <!-- Host Primary Tier box -->
+  <rect x="100" y="170" width="600" height="100" rx="10" fill="#ECFDF5" stroke="#34D399" stroke-width="2" filter="url(#shadow)"/>
+  <text x="400" y="200" text-anchor="middle" font-size="15" font-weight="600" fill="#065F46">Host Primary Tier (CPU DRAM)</text>
+  <text x="400" y="225" text-anchor="middle" font-size="12" fill="#047857">LRU / ARC eviction cache</text>
+  <text x="400" y="245" text-anchor="middle" font-size="12" fill="#047857">Shared across all accelerators | Canonical memory layout</text>
+  <text x="400" y="262" text-anchor="middle" font-size="11" fill="#6B7280">Chunks remain cached for future lookups after secondary tier writes complete</text>
+
+  <!-- Arrows: Host to Secondary Tiers -->
+  <line x1="200" y1="270" x2="200" y2="340" stroke="#6B7280" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+  <line x1="400" y1="270" x2="400" y2="340" stroke="#6B7280" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+  <line x1="600" y1="270" x2="600" y2="340" stroke="#6B7280" stroke-width="1.5" marker-end="url(#arrowDown)"/>
+
+  <!-- Filesystem Tier -->
+  <rect x="110" y="345" width="180" height="70" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="200" y="375" text-anchor="middle" font-size="14" font-weight="500" fill="#92400E">Filesystem Tier</text>
+  <text x="200" y="395" text-anchor="middle" font-size="11" fill="#A16207">Local or networked storage</text>
+
+  <!-- Object Store Tier -->
+  <rect x="310" y="345" width="180" height="70" rx="8" fill="#FEE2E2" stroke="#F87171" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="400" y="375" text-anchor="middle" font-size="14" font-weight="500" fill="#991B1B">Object Store Tier</text>
+  <text x="400" y="395" text-anchor="middle" font-size="11" fill="#B91C1C">S3-compatible (via NIXL)</text>
+
+  <!-- P2P Tier -->
+  <rect x="510" y="345" width="180" height="70" rx="8" fill="#E0E7FF" stroke="#6366F1" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="600" y="375" text-anchor="middle" font-size="14" font-weight="500" fill="#3730A3">P2P Tier</text>
+  <text x="600" y="395" text-anchor="middle" font-size="11" fill="#4338CA">RDMA to remote peers</text>
+
+  <!-- Legend -->
+  <rect x="100" y="450" width="600" height="50" rx="6" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="130" y="472" font-size="11" fill="#374151">Offload: accelerator &gt; host &gt; secondary tiers (cascade to all)</text>
+  <text x="130" y="490" font-size="11" fill="#374151">Reload: secondary tiers &gt; host &gt; accelerator (first hit wins)</text>
+</svg>
