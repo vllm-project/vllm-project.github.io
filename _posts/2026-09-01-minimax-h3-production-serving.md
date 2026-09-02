@@ -12,7 +12,7 @@ tags:
   - vllm-omni
   - fastvideo
   - fasth3
-published: false
+published: true
 ---
 
 > A two-stage optimization story: first reduce overhead across the complete
@@ -187,17 +187,34 @@ optimized path performs each conversion once:
 Both runtimes use eight B300 GPUs, the same prompt and seed, 50 sigma points,
 and the same complete-MP4 boundary. Diffusers uses replicated weights with
 native context parallelism; vLLM-Omni uses encoder TP8, DiT USP8/Ring1 with
-Fast Ulysses, VAE PP8 tile decode, and dense `TRTLLM_ATTN`.
+Fast Ulysses, VAE PP8 tile decode, and `TRTLLM_ATTN`.
 
 | Runtime | Model execution (s) | Prompt (s) | DiT total / per-forward (s) | Video / audio VAE (s) | MP4 (s) | Client E2E (s) | Peak HBM/rank (GiB) |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Diffusers | - | - | - | - | - | **82.239** | 151.699 |
 | vLLM-Omni | **54.246** | 0.057 | 51.800 / 1.057 | 0.952 / 0.055 | 1.528 | **56.917** | 128.232 |
 
-vLLM-Omni lowers complete-response latency by **30.8%**, a **1.445x** speedup.
-Diffusers phase timings were not isolated, and cross-runtime generator draw
-order is not established, so this is a matched-deployment result rather than a
-pixelwise-parity claim.
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/main/assets/t2va.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax-H3 model-card sample</strong> · <a href="https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/main/assets/t2va.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>vLLM-Omni baseline</strong> · <a href="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
+
+Using lossless optimizations, vLLM-Omni lowers complete-response latency by
+**30.8%** compared to Diffusers, a **1.445x** speedup. Here, lossless means the
+speedup does not rely on quantization, sparse attention, cache reuse, or fewer
+denoising steps. It does not imply bitwise-identical output: different kernel
+implementations and floating-point reduction orders can still perturb the
+diffusion trajectory.
 
 > These improvements reduce overhead around denoising. FastH3 attacks the
 > remaining dominant term by reducing the denoising loop itself from 49
@@ -318,7 +335,7 @@ Every measured request returned 243 RGB frames at 1344×768 and 32 kHz stereo
 audio. Distinct seeds across the three repetitions establish output shape and
 successful generation, not pixelwise equivalence to BF16.
 
-#### Quantized and Sparse Attention
+#### Quantized and Sparse Attention in `TRTLLM_ATTN`
 
 `TRTLLM_ATTN` provides two optional lossy acceleration modes:
 
@@ -337,12 +354,39 @@ decision to bypass selected Softmax and P×V tiles.*
 The following table compares video quality and speedup against the dense,
 unquantized attention baseline:
 
-| Attention policy | SAGE configuration | Skip-Softmax configuration | Model execution | Speedup | LPIPS vs. dense | Sample |
-|---|---|---|---:|---:|---:|---|
-| Dense TRTLLM | Off | Off | 54.246 s | 1.000x | 0 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4) |
-| SAGE FP8 | `dtype_qk=fp8_e4m3`, `q_block_size=1`, `k_block_size=16` | Off | 44.787 s | **1.211x** | 0.3697 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8.mp4) |
-| Skip-Softmax | Off | threshold 0.05; disabled until 0.97 | 50.029 s | **1.084x** | 0.0917 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/skip_softmax_005_gate097.mp4) |
-| SAGE + Skip-Softmax | `dtype_qk=fp8_e4m3`, `q_block_size=1`, `k_block_size=16` | threshold 0.05; disabled until 0.97 | 43.867 s | **1.237x** | 0.3750 | [Video](/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8_skip_005_gate097.mp4) |
+| Attention policy | SAGE configuration | Skip-Softmax configuration | Model execution | Speedup | LPIPS vs. baseline |
+|---|---|---|---:|---:|---:|
+| TRTLLM Baseline | Off | Off | 54.246 s | 1.000x | 0 |
+| SAGE FP8 | `dtype_qk=fp8_e4m3`, `q_block_size=1`, `k_block_size=16` | Off | 44.787 s | **1.211x** | 0.3697 |
+| Skip-Softmax | Off | threshold 0.05; disabled until 0.97 | 50.029 s | **1.084x** | 0.0917 |
+| SAGE + Skip-Softmax | `dtype_qk=fp8_e4m3`, `q_block_size=1`, `k_block_size=16` | threshold 0.05; disabled until 0.97 | 43.867 s | **1.237x** | 0.3750 |
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/trtllm_dense.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>TRTLLM Baseline</strong></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>SAGE</strong></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/skip_softmax_005_gate097.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>Skip-Softmax</strong></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/evidence/b300/sage_fp8_skip_005_gate097.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>SAGE + Skip-Softmax</strong></figcaption>
+  </figure>
+</div>
 
 The measured Skip-Softmax configuration is **conservative** for preserving
 video quality.
@@ -469,7 +513,7 @@ curl -sS -X POST http://127.0.0.1:8095/v1/videos/sync \
 ```
 
 The service uses one FastH3 replica, encoder TP8, DiT DP1 x TP1 x USP8 with
-Ring1 and Fast Ulysses, VAE PP8 tile decode, dense `TRTLLM_ATTN`, and the
+Ring1 and Fast Ulysses, VAE PP8 tile decode, `TRTLLM_ATTN`, and the
 standard compact output/MP4 path.
 
 ### 6.3 Ten-second critical path
@@ -509,13 +553,34 @@ These supplied FastH3 outputs cover the same 5/10/15-second duration classes.
 They are 1280x736 representative examples, not the 1344x768 timing artifacts
 used in Section 6.4.
 
-| Request | Frames | MP4 duration | Resolution / FPS | Video |
-|---:|---:|---:|---:|---|
-| 5 s | 124 | 5.184 s | 1280x736 / 24 FPS | [Open MP4](/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4) |
-| 10 s | 243 | 10.144 s | 1280x736 / 24 FPS | [Open MP4](/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4) |
-| 15 s | 362 | 15.104 s | 1280x736 / 24 FPS | [Open MP4](/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4) |
+| Request | Frames | MP4 duration | Resolution / FPS |
+|---:|---:|---:|---:|
+| 5 s | 124 | 5.184 s | 1280x736 / 24 FPS |
+| 10 s | 243 | 10.144 s | 1280x736 / 24 FPS |
+| 15 s | 362 | 15.104 s | 1280x736 / 24 FPS |
 
-The links above are presentation examples. The publication-grade timing and
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>5 seconds</strong> · <a href="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-5s.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>10 seconds</strong> · <a href="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-10s.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>15 seconds</strong> · <a href="https://vllm-project.github.io/assets/figures/2026-08-29-minimax-h3-production-serving/fast-h3-15s.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
+
+These clips are presentation examples. The publication-grade timing and
 media evidence remains subject to the raw-bundle gate in Section 6.3.
 
 | Quality gate | Status |
