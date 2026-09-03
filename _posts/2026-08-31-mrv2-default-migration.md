@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Making Model Runner V2 the Default in vLLM"
-author: "Wentao Ye"
+author: "Wentao Ye, Nick Hill, Woosuk Kwon"
 summary: "How we rolled out Model Runner V2 across vLLM models and features while keeping known incompatibilities on Model Runner V1."
 image: /assets/figures/2026-08-31-mrv2-default-migration/rollout.svg
 tags:
@@ -78,4 +78,4 @@ export VLLM_USE_V2_MODEL_RUNNER=1 / 0
 
 The original MRV2 architecture and implementation made this rollout possible. Thanks to [Woosuk Kwon](https://github.com/WoosukKwon) and the other contributors listed in the [MRV2 announcement](https://vllm.ai/blog/2026-03-24-mrv2).
 
-[Nick Hill](https://github.com/njhill) co-drove the rollout and much of the compatibility work. [Taneem Ibrahim](https://github.com/taneem-ibrahim) led the pooling-model migration, while [Michael Goin](https://github.com/mgoin) and [Giancarlo Delfin](https://github.com/gcanlin) contributed supporting features. Thanks also to [Kaichao You](https://github.com/youkaichao) for shepherding key default-boundary changes, to the model, platform, and CI contributors who tested the broader matrix, and to users such as [malaiwah](https://github.com/malaiwah), whose reports became regression tests.
+[Taneem Ibrahim](https://github.com/taneem-ibrahim) led the pooling-model migration, while [Michael Goin](https://github.com/mgoin) and [Giancarlo Delfin](https://github.com/gcanlin) contributed supporting features. Thanks also to [Kaichao You](https://github.com/youkaichao) for shepherding key default-boundary changes, to the model, platform, and CI contributors who tested the broader matrix, and to users such as [malaiwah](https://github.com/malaiwah), whose reports became regression tests.
