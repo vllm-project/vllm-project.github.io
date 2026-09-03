@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Model Runner V2 rollout from opt-in to default</title>
+  <desc id="desc">A timeline from the March 2026 experimental release through canary models, dense and MoE expansion, long-tail model support, and the all-model default in August 2026.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#eef2ff"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#64748b"/>
+      <stop offset="0.45" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#16a34a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#64748b"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+      .eyebrow { font-size: 22px; font-weight: 700; letter-spacing: 3px; fill: #4f46e5; }
+      .title { font-size: 64px; font-weight: 800; letter-spacing: -1.5px; }
+      .subtitle { font-size: 27px; fill: #475569; }
+      .date { font-size: 20px; font-weight: 800; fill: #4f46e5; }
+      .node-title { font-size: 23px; font-weight: 750; }
+      .node-copy { font-size: 18px; fill: #64748b; }
+      .metric { font-size: 34px; font-weight: 800; }
+      .metric-copy { font-size: 19px; fill: #475569; }
+      .fallback { font-size: 21px; font-weight: 650; fill: #475569; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" rx="32" fill="url(#background)"/>
+
+  <text x="110" y="92" class="eyebrow">MODEL RUNNER V2</text>
+  <text x="110" y="170" class="title">From Opt-In to Default</text>
+  <text x="110" y="218" class="subtitle">A staged, reversible migration across the vLLM model and feature surface</text>
+
+  <path d="M140 416 C430 416, 520 416, 790 416 S1190 416, 1460 416" fill="none" stroke="url(#line)" stroke-width="12" stroke-linecap="round"/>
+
+  <g transform="translate(170 416)">
+    <circle r="25" fill="#64748b" stroke="#fff" stroke-width="8"/>
+    <text x="0" y="-67" text-anchor="middle" class="date">MAR 24</text>
+    <text x="0" y="72" text-anchor="middle" class="node-title">Experimental</text>
+    <text x="0" y="101" text-anchor="middle" class="node-copy">Opt-in MRV2</text>
+  </g>
+
+  <g transform="translate(415 416)">
+    <circle r="25" fill="#6366f1" stroke="#fff" stroke-width="8"/>
+    <text x="0" y="-67" text-anchor="middle" class="date">MAY 14</text>
+    <text x="0" y="72" text-anchor="middle" class="node-title">First Canary</text>
+    <text x="0" y="101" text-anchor="middle" class="node-copy">Qwen3 + oracle</text>
+  </g>
+
+  <g transform="translate(680 416)">
+    <circle r="25" fill="#6366f1" stroke="#fff" stroke-width="8"/>
+    <text x="0" y="-67" text-anchor="middle" class="date">JUN 2–18</text>
+    <text x="0" y="72" text-anchor="middle" class="node-title">Expand Coverage</text>
+    <text x="0" y="101" text-anchor="middle" class="node-copy">Llama · Mistral · MoE · quant</text>
+  </g>
+
+  <g transform="translate(945 416)">
+    <circle r="25" fill="#4f46e5" stroke="#fff" stroke-width="8"/>
+    <text x="0" y="-67" text-anchor="middle" class="date">JUL 2</text>
+    <text x="0" y="72" text-anchor="middle" class="node-title">All Dense</text>
+    <text x="0" y="101" text-anchor="middle" class="node-copy">Default boundary widens</text>
+  </g>
+
+  <g transform="translate(1200 416)">
+    <circle r="25" fill="#22c55e" stroke="#fff" stroke-width="8"/>
+    <text x="0" y="-67" text-anchor="middle" class="date">AUG 7–19</text>
+    <text x="0" y="72" text-anchor="middle" class="node-title">Long-Tail Paths</text>
+    <text x="0" y="101" text-anchor="middle" class="node-copy">Offload · Mamba · pooling</text>
+  </g>
+
+  <g transform="translate(1440 416)">
+    <circle r="32" fill="#16a34a" stroke="#fff" stroke-width="9" filter="url(#shadow)"/>
+    <text x="0" y="-67" text-anchor="middle" class="date" style="fill:#15803d">AUG 27</text>
+    <text x="0" y="72" text-anchor="middle" class="node-title">All Models</text>
+    <text x="0" y="101" text-anchor="middle" class="node-copy">MRV2 by default</text>
+  </g>
+
+  <g transform="translate(110 620)" filter="url(#shadow)">
+    <rect width="1380" height="120" rx="24" fill="#fff"/>
+    <line x1="460" y1="24" x2="460" y2="96" stroke="#e2e8f0" stroke-width="2"/>
+    <line x1="920" y1="24" x2="920" y2="96" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="230" y="58" text-anchor="middle" class="metric">47</text>
+    <text x="230" y="88" text-anchor="middle" class="metric-copy">completed migration PRs</text>
+    <text x="690" y="58" text-anchor="middle" class="metric">9 + 38</text>
+    <text x="690" y="88" text-anchor="middle" class="metric-copy">rollout milestones + support fixes</text>
+    <text x="1150" y="58" text-anchor="middle" class="metric">5 months</text>
+    <text x="1150" y="88" text-anchor="middle" class="metric-copy">from architecture post to default</text>
+  </g>
+
+  <path d="M350 808 H1240" stroke="#64748b" stroke-width="3" stroke-dasharray="9 10" marker-end="url(#arrow)"/>
+  <text x="800" y="794" text-anchor="middle" class="fallback">MRV1 remains an explicit compatibility path for known blockers</text>
+</svg>
