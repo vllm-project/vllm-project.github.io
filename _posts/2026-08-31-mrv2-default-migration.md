@@ -43,6 +43,20 @@ We started with Qwen3 because Qwen3 and OPT-based tests covered much of the MRV1
 
 We used the existing vLLM test suite rather than building a separate MRV2 suite. For each rollout step, we selected MRV2 to find assumptions inherited from MRV1, reran relevant tests on MRV1 to protect the old path, and added focused tests for new failures. The [migration tracker](https://github.com/vllm-project/vllm/issues/41286) records **47 completed PRs**: nine rollout milestones and 38 compatibility changes.
 
+### Request State Needs an Explicit Lifecycle
+
+The prompt-logprob bug in [#39937](https://github.com/vllm-project/vllm/pull/39937) was not about accumulating results across chunks; that already worked. MRV2 did not retain the requested top-k count for each request. The fix added per-request state and tested it with chunked prefill and preemption. A similar issue appeared in [#48132](https://github.com/vllm-project/vllm/pull/48132): when `MambaHybridModelState` reused a request slot, `num_accepted_tokens` could be left over from the previous request unless it was reset in `add_request`. GPU-resident request fields need explicit initialization and reuse semantics.
+
+### Ordering Is Part of the Runner Contract
+
+In [#42676](https://github.com/vllm-project/vllm/pull/42676), MRV2 bound KV connector metadata before handling preemptions, reversing the expected lifecycle. [#43719](https://github.com/vllm-project/vllm/pull/43719) moved KV connector post-forward work until after sampling and draft-token proposal for speculative decoding. These were not model-output bugs: they showed that compatibility also includes the ordering of scheduler events, forward execution, sampling, and connector side effects.
+
+### Buffer Shapes Are Backend Contracts
+
+Several failures came from treating one model-level bound as correct for every execution path. [#39353](https://github.com/vllm-project/vllm/pull/39353) corrected a FlexAttention allocation that used `max_model_len` instead of the scheduled-token limit. [#46753](https://github.com/vllm-project/vllm/pull/46753) expanded cross-attention block tables for encoder inputs that can exceed the decoder's `max_model_len`. [#46746](https://github.com/vllm-project/vllm/pull/46746) bounded the top-k logprob kernel's working set rather than padding it to an arbitrarily large requested k. Buffer shapes need to follow the workload and the backend's physical layout, not a convenient global maximum.
+
+---
+
 Not every gap appeared in presubmit. [#51396](https://github.com/vllm-project/vllm/issues/51396) reported that MRV2 silently ignored `--cpu-offload-gb`; [#51413](https://github.com/vllm-project/vllm/pull/51413) added support and [#51440](https://github.com/vllm-project/vllm/pull/51440) added regression coverage.
 
 The number of passing checks was useful, but it was not a coverage metric. [#39337](https://github.com/vllm-project/vllm/pull/39337) had 94 passing checks and still missed a prefill/decode (P/D) issue. Later, [#42846](https://github.com/vllm-project/vllm/issues/42846) found a KV-cache layout problem with Qwen3, NIXL, and FlashInfer. [#42955](https://github.com/vllm-project/vllm/pull/42955) temporarily sent KV connector configurations to MRV1; [#42766](https://github.com/vllm-project/vllm/pull/42766) fixed the `kernel_block_size` handling and removed that fallback.
