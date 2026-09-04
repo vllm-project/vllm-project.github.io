@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 360" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="1440" height="360" fill="#ffffff"/>
+
+  <!-- card 1: clients -->
+  <rect x="40" y="10" width="230" height="330" rx="14" fill="#eaf2fd" stroke="#a9c9ef" stroke-width="1.5"/>
+  <text x="155" y="48" text-anchor="middle" font-size="20" font-weight="700" fill="#12263a">Client apps</text>
+  <rect x="56" y="70" width="198" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="155" y="95" text-anchor="middle" font-size="15.5" fill="#2b3a4a">coding agents</text>
+  <rect x="56" y="116" width="198" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="155" y="141" text-anchor="middle" font-size="15.5" fill="#2b3a4a">chat UIs</text>
+  <rect x="56" y="162" width="198" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="155" y="187" text-anchor="middle" font-size="15.5" fill="#2b3a4a">SDKs · curl</text>
+
+  <!-- arrow 1 -->
+  <text x="320" y="150" text-anchor="middle" font-size="13.5" fill="#5a6472">OpenAI API</text>
+  <rect x="282" y="170" width="50" height="8" fill="#4a9df8"/>
+  <polygon points="332,161 354,174 332,187" fill="#4a9df8"/>
+
+  <!-- card 2: upstream vLLM -->
+  <rect x="370" y="10" width="270" height="330" rx="14" fill="#eaf2fd" stroke="#a9c9ef" stroke-width="1.5"/>
+  <text x="505" y="48" text-anchor="middle" font-size="20" font-weight="700" fill="#12263a">Upstream vLLM V1</text>
+  <rect x="388" y="70" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="505" y="95" text-anchor="middle" font-size="15.5" fill="#2b3a4a">OpenAI frontend · Rust</text>
+  <rect x="388" y="116" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="505" y="141" text-anchor="middle" font-size="15.5" fill="#2b3a4a">V1 scheduler</text>
+  <rect x="388" y="162" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="505" y="187" text-anchor="middle" font-size="15.5" fill="#2b3a4a">block manager · prefix cache</text>
+  <rect x="388" y="208" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="505" y="233" text-anchor="middle" font-size="15.5" fill="#2b3a4a">continuous batching</text>
+
+  <!-- arrow 2 -->
+  <text x="685" y="134" text-anchor="middle" font-size="13.5" fill="#5a6472">packed step +</text>
+  <text x="685" y="152" text-anchor="middle" font-size="13.5" fill="#5a6472">block tables</text>
+  <rect x="647" y="170" width="48" height="8" fill="#2a78d6"/>
+  <polygon points="695,161 717,174 695,187" fill="#2a78d6"/>
+
+  <!-- card 3: vllm-metal runner (star) -->
+  <rect x="730" y="10" width="400" height="330" rx="14" fill="#e9eefc" stroke="#2a78d6" stroke-width="2"/>
+  <text x="930" y="44" text-anchor="middle" font-size="20" font-weight="700" fill="#12263a">vllm-metal model runner</text>
+  <text x="930" y="66" text-anchor="middle" font-size="13.5" fill="#5a6472">cache policy · Metal dispatch</text>
+
+  <!-- reused sub-panel -->
+  <rect x="746" y="80" width="180" height="240" rx="10" fill="#ffffff" stroke="#c3cad4" stroke-width="1.4"/>
+  <text x="836" y="106" text-anchor="middle" font-size="15" font-weight="700" fill="#5a6472">reused from mlx_lm</text>
+  <rect x="758" y="120" width="156" height="34" rx="8" fill="#f6f7f9" stroke="#d5dbe3"/>
+  <text x="836" y="142" text-anchor="middle" font-size="14" fill="#2b3a4a">weight loading</text>
+  <rect x="758" y="162" width="156" height="34" rx="8" fill="#f6f7f9" stroke="#d5dbe3"/>
+  <text x="836" y="184" text-anchor="middle" font-size="14" fill="#2b3a4a">RMSNorm · linear</text>
+  <rect x="758" y="204" width="156" height="34" rx="8" fill="#f6f7f9" stroke="#d5dbe3"/>
+  <text x="836" y="226" text-anchor="middle" font-size="14" fill="#2b3a4a">MLP · MoE</text>
+  <text x="836" y="272" text-anchor="middle" font-size="13.5" fill="#5a6472">M5 NAX for free</text>
+  <text x="836" y="291" text-anchor="middle" font-size="13.5" fill="#5a6472">via MLX matmuls</text>
+
+  <!-- custom sub-panel -->
+  <rect x="934" y="80" width="180" height="240" rx="10" fill="#ffffff" stroke="#2a78d6" stroke-width="1.6"/>
+  <text x="1024" y="106" text-anchor="middle" font-size="15" font-weight="700" fill="#2a78d6">custom Metal paths</text>
+  <rect x="946" y="120" width="156" height="34" rx="8" fill="#eef2fd" stroke="#b9c7f0"/>
+  <text x="1024" y="142" text-anchor="middle" font-size="14" fill="#12263a">paged varlen attention</text>
+  <rect x="946" y="162" width="156" height="34" rx="8" fill="#eef2fd" stroke="#b9c7f0"/>
+  <text x="1024" y="184" text-anchor="middle" font-size="14" fill="#12263a">M5 NAX prefill port</text>
+  <rect x="946" y="204" width="156" height="34" rx="8" fill="#eef2fd" stroke="#b9c7f0"/>
+  <text x="1024" y="226" text-anchor="middle" font-size="14" fill="#12263a">MTP draft + verify</text>
+  <text x="1024" y="272" text-anchor="middle" font-size="13.5" fill="#2a78d6">replaces MLX attention,</text>
+  <text x="1024" y="291" text-anchor="middle" font-size="13.5" fill="#2a78d6">consumes cu_seqlens</text>
+
+  <!-- arrow 3 -->
+  <text x="1175" y="134" text-anchor="middle" font-size="13.5" fill="#5a6472">MLX ops ·</text>
+  <text x="1175" y="152" text-anchor="middle" font-size="13.5" fill="#5a6472">Metal kernels</text>
+  <rect x="1137" y="170" width="48" height="8" fill="#58a05a"/>
+  <polygon points="1185,161 1207,174 1185,187" fill="#58a05a"/>
+
+  <!-- card 4: MLX / hardware -->
+  <rect x="1220" y="10" width="180" height="330" rx="14" fill="#edf6ea" stroke="#a3cf96" stroke-width="1.5"/>
+  <text x="1310" y="48" text-anchor="middle" font-size="20" font-weight="700" fill="#12263a">MLX · Metal GPU</text>
+  <rect x="1234" y="70" width="152" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="1310" y="95" text-anchor="middle" font-size="15" fill="#2b3a4a">MLX runtime</text>
+  <rect x="1234" y="116" width="152" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="1310" y="141" text-anchor="middle" font-size="15" fill="#2b3a4a">Apple Silicon GPU</text>
+  <rect x="1234" y="162" width="152" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="1310" y="187" text-anchor="middle" font-size="15" fill="#2b3a4a">unified memory</text>
+  <rect x="1234" y="208" width="152" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
+  <text x="1310" y="233" text-anchor="middle" font-size="15" fill="#2b3a4a">weights + paged KV</text>
+</svg>
