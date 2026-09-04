@@ -2,7 +2,7 @@
 layout: post
 title: "Serving LLMs on Tenstorrent Hardware: Inside the vLLM TT Plugin"
 author: "Tenstorrent Team"
-summary: "Tenstorrent accelerators come to vLLM as an out-of-tree platform plugin. A look at the design choices a mesh architecture forces: phase-based scheduling, single-process lane data parallelism on Galaxy, on-device sampling with automatic host fallback, and decode overlap built on asynchronous host readback."
+summary: "Tenstorrent accelerators join vLLM as an out-of-tree platform plugin, driven by mesh-architecture choices: phase-based scheduling, single-process data parallelism on Galaxy, on-device sampling with host fallback, and async decode overlap."
 image: /assets/figures/2026-09-04-vllm-tt-plugin/mesh-vs-collectives.svg
 tags:
   - hardware
