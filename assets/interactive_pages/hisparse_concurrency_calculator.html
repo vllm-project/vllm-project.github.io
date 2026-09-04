@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HiSparse concurrency calculator</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --panel: #fdfdfd;
+      --panel-2: #f3f3f3;
+      --text: #111111;
+      --muted: #666666;
+      --line: #e8e8e8;
+      --track: #e8e8e8;
+      --base: #828282;
+      --hi: #008768;
+      --accent: #2a7ae2;
+      --warn: #9a5d00;
+      --host: #7656b5;
+      --weights: #4b5563;
+      --reserve: #a8adb5;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --panel: #181818;
+        --panel-2: #212121;
+        --text: #bbbbbb;
+        --muted: #999999;
+        --line: #404040;
+        --track: #303030;
+        --base: #999999;
+        --hi: #52d3a5;
+        --accent: #79b8ff;
+        --warn: #ffc66d;
+        --host: #b59cff;
+        --weights: #cbd5e1;
+        --reserve: #555c66;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      background: transparent;
+      color: var(--text);
+      font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    .calculator {
+      width: min(1120px, calc(100% - 32px));
+      margin: 20px auto;
+    }
+
+    header { margin-bottom: 14px; }
+    h1 { margin: 0 0 4px; font-size: clamp(24px, 4vw, 32px); letter-spacing: -.03em; }
+    p { margin: 0; }
+    .subtitle, .hint, .assumption { color: var(--muted); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(270px, 360px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .controls { padding: 14px; }
+    fieldset { margin: 0 0 14px; padding: 0; border: 0; }
+    fieldset:last-of-type { margin-bottom: 8px; }
+    legend {
+      width: 100%;
+      margin-bottom: 7px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 118px;
+      gap: 12px;
+      align-items: center;
+      margin: 6px 0;
+    }
+
+    .compact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 14px;
+    }
+    .preset-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .preset {
+      padding: 6px 5px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .preset.active { border-color: var(--hi); color: var(--hi); background: #52d3a510; }
+    .gpu-capacity { margin: 6px 0 8px; text-align: center; font-size: 12px; color: var(--muted); }
+
+    .slider-field { min-width: 0; margin: 8px 0; }
+    .slider-field label { display: flex; justify-content: space-between; gap: 12px; }
+    .slider-field output { color: var(--text); font-variant-numeric: tabular-nums; }
+    input[type="range"] {
+      height: 18px;
+      margin-top: 1px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      accent-color: var(--hi);
+      box-shadow: none;
+    }
+
+    .toggle {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      margin: 8px 0 3px;
+      color: var(--muted);
+    }
+    .toggle input { width: 17px; height: 17px; accent-color: var(--hi); }
+    .inline-hint { margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .minimum-host {
+      margin: 3px 0 10px;
+      padding: 10px 12px;
+      border: 1px solid color-mix(in srgb, var(--hi) 45%, var(--line));
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--hi) 8%, var(--panel));
+    }
+    .minimum-host-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .minimum-host strong {
+      display: block;
+      margin: 1px 0;
+      color: var(--hi);
+      font-size: 26px;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+    .minimum-host-note { color: var(--muted); font-size: 11px; }
+    .fit-warning {
+      margin-top: 7px;
+      padding: 7px 9px;
+      border: 1px solid var(--warn);
+      border-radius: 8px;
+      color: var(--warn);
+      font-size: 12px;
+    }
+    .fit-warning[hidden] { display: none; }
+    .advanced { margin: 6px 0 10px; }
+    .advanced summary { color: var(--accent); font-size: 12px; font-weight: 700; }
+    .advanced .field:first-of-type { margin-top: 14px; }
+
+    label { color: var(--muted); }
+    input,
+    select {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: none;
+      background: var(--panel-2);
+      color: var(--text);
+      font: inherit;
+      font-variant-numeric: tabular-nums;
+    }
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+
+    button {
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    button:hover { color: var(--text); border-color: var(--accent); }
+
+    .results { display: grid; gap: 14px; }
+    .summary { padding: 14px; }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .card { padding: 10px; background: var(--panel-2); border-radius: 8px; }
+    .card .label { color: var(--muted); font-size: 12px; }
+    .card .value {
+      margin-top: 3px;
+      font-size: clamp(22px, 4vw, 30px);
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.03em;
+    }
+    .card.hisparse .value { color: var(--hi); }
+    .enablement {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid color-mix(in srgb, var(--hi) 55%, var(--line));
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--hi) 8%, var(--panel));
+    }
+    .enablement[hidden] { display: none; }
+    .enablement strong { display: block; color: var(--hi); }
+    .enablement span { color: var(--muted); font-size: 12px; }
+    .summary-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .bars { margin-top: 12px; display: grid; gap: 8px; }
+    .bar-label { display: flex; justify-content: space-between; color: var(--muted); }
+    .track { height: 13px; overflow: hidden; background: var(--track); border-radius: 99px; }
+    .bar { height: 100%; min-width: 2px; border-radius: inherit; transition: width 160ms ease; }
+    .bar.baseline { background: var(--base); }
+    .bar.hisparse { background: linear-gradient(90deg, #37b98c, var(--hi)); }
+
+    .memory-composition {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+    .memory-composition h2 { margin: 0; font-size: 14px; }
+    .memory-control { margin: 6px 0 9px; }
+    .memory-control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .memory-control output { color: var(--text); font-variant-numeric: tabular-nums; }
+    .memory-control input { margin-top: 1px; }
+    .memory-note { margin: -3px 0 9px; color: var(--muted); font-size: 11px; }
+    .memory-rows { display: grid; gap: 12px; }
+    .memory-label {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 2px 12px;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .memory-track {
+      display: flex;
+      height: 30px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--track);
+    }
+    .memory-segment { height: 100%; transition: width 160ms ease; }
+    .memory-segment.hot { background: var(--hi); }
+    .memory-segment.indexer { background: var(--accent); }
+    .memory-segment.standard { background: var(--warn); }
+    .memory-segment.host { background: var(--host); }
+    .memory-segment.weights { background: var(--weights); }
+    .memory-segment.reserve { background: var(--reserve); }
+    .memory-segment.unused { background: var(--track); }
+    .memory-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 12px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+    .memory-key { display: inline-flex; align-items: center; gap: 5px; }
+    .memory-swatch {
+      width: 8px;
+      height: 8px;
+      flex: none;
+      border-radius: 2px;
+      background: var(--track);
+    }
+    .memory-swatch.hot { background: var(--hi); }
+    .memory-swatch.indexer { background: var(--accent); }
+    .memory-swatch.standard { background: var(--warn); }
+    .memory-swatch.host { background: var(--host); }
+    .memory-swatch.weights { background: var(--weights); }
+    .memory-swatch.reserve { background: var(--reserve); }
+
+    .chart-panel { padding: 14px; }
+    .chart-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; }
+    .chart-heading h2 { margin: 0; font-size: 16px; }
+    .chart-summary { color: var(--muted); font-size: 12px; }
+    .chart-assumption { margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .chart-wrap { position: relative; margin-top: 8px; }
+    .chart-wrap svg { display: block; width: 100%; height: 280px; }
+    .chart-frame { fill: transparent; stroke: var(--line); }
+    .chart-grid { stroke: var(--line); }
+    .chart-axis, .chart-label { fill: var(--muted); font-size: 11px; }
+    .chart-axis-title { fill: var(--text); font-size: 12px; }
+    .chart-curve { fill: none; stroke: var(--hi); stroke-width: 2.5; }
+    .chart-crossover { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .chart-crossover-point { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+    .chart-selected { stroke: var(--base); stroke-dasharray: 3 4; }
+    .chart-selected-point { fill: var(--hi); stroke: var(--panel); stroke-width: 2; }
+    .chart-only-region { fill: color-mix(in srgb, var(--hi) 10%, transparent); }
+    .chart-hover-guide { stroke: var(--muted); stroke-width: 1; }
+    .chart-hover-point { fill: var(--hi); stroke: var(--panel); stroke-width: 2; }
+    .chart-tooltip {
+      position: absolute;
+      z-index: 1;
+      width: max-content;
+      max-width: 220px;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1.4;
+      white-space: pre-line;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+    .chart-tooltip[hidden] { display: none; }
+
+    .details { padding: 14px; }
+    .details > details:first-child { margin-top: 0; }
+    .details table { margin-top: 8px; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+    th:first-child, td:first-child { text-align: left; color: var(--muted); }
+    th { color: var(--text); font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    .limiter { color: var(--warn); }
+
+    details { margin-top: 10px; color: var(--muted); }
+    summary { cursor: pointer; color: var(--text); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .assumption { margin-top: 14px; font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .calculator { width: min(100% - 12px, 620px); margin: 8px auto; }
+      .layout { grid-template-columns: 1fr; }
+      .results { display: contents; }
+      .summary { order: 1; }
+      .controls { order: 2; }
+      .details { order: 3; }
+    }
+
+    @media (max-width: 480px) {
+      .compact-grid, .cards { grid-template-columns: 1fr; }
+      .topology-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="calculator">
+    <header>
+      <h1>HiSparse concurrency calculator</h1>
+      <p class="subtitle">Estimate ordinary GPU KV capacity and HiSparse’s fully offloaded steady state. Results are planning estimates, not guaranteed serving limits.</p>
+    </header>
+
+    <div class="layout">
+      <form class="panel controls" id="controls">
+        <fieldset>
+          <legend>GPU</legend>
+          <div class="preset-row">
+            <button class="preset active" type="button" data-gpu="H200" data-memory="141">H200</button>
+            <button class="preset" type="button" data-gpu="B200" data-memory="180">B200</button>
+            <button class="preset" type="button" data-gpu="B300" data-memory="288">B300</button>
+          </div>
+          <p class="gpu-capacity" id="gpuCapacity">H200 · 141 GB HBM3e per GPU</p>
+          <label class="toggle" for="fp8Kv">
+            <input id="fp8Kv" type="checkbox" checked>
+            FP8 KV cache
+          </label>
+          <p class="fit-warning" id="fitWarning" hidden></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Workload and topology</legend>
+          <div class="slider-field">
+            <label for="sequence">Sequence length <output id="sequenceValue"></output></label>
+            <input id="sequence" type="range" min="1024" max="1048576" step="1024" value="81920">
+          </div>
+          <div class="compact-grid topology-grid">
+            <div class="slider-field">
+              <label for="dp">Data parallel size</label>
+              <select id="dp">
+                <option value="1" selected>DP1</option>
+                <option value="2">DP2</option>
+                <option value="4">DP4</option>
+                <option value="8">DP8</option>
+                <option value="16">DP16</option>
+              </select>
+            </div>
+            <div class="slider-field">
+              <label for="tp">Tensor parallel size</label>
+              <select id="tp">
+                <option value="1">TP1</option>
+                <option value="2">TP2</option>
+                <option value="4">TP4</option>
+                <option value="8" selected>TP8</option>
+              </select>
+            </div>
+          </div>
+          <label class="toggle" for="expertParallel">
+            <input id="expertParallel" type="checkbox" checked>
+            Expert parallelism across DP×TP
+          </label>
+          <p class="inline-hint">With EP off, every DP replica holds the same TP-sharded experts, so DP no longer changes available KV HBM per GPU.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>HiSparse</legend>
+          <div class="minimum-host">
+            <div class="minimum-host-label">Minimum host pool / DP rank</div>
+            <strong id="minHostPerDp">–</strong>
+            <div class="minimum-host-note">Avoids host capacity becoming the concurrency limit.</div>
+          </div>
+          <div class="compact-grid">
+            <div class="slider-field">
+              <label for="hostGiB">Host pool / DP rank <output id="hostGiBValue"></output></label>
+              <input id="hostGiB" type="range" min="16" max="4096" step="1" value="134">
+            </div>
+            <div class="slider-field">
+              <label for="deviceBuffer">Hot-buffer rows <output id="deviceBufferValue"></output></label>
+              <input id="deviceBuffer" type="range" min="2048" max="8192" step="64" value="4096">
+            </div>
+            <div class="slider-field">
+              <label for="systemRamGiB">System RAM budget <output id="systemRamGiBValue"></output></label>
+              <input id="systemRamGiB" type="range" min="128" max="8192" step="64" value="4096">
+            </div>
+            <div class="slider-field">
+              <label for="speculativeTokens">Speculative tokens / step <output id="speculativeTokensValue"></output></label>
+              <input id="speculativeTokens" type="range" min="0" max="16" step="1" value="0">
+            </div>
+          </div>
+          <p class="inline-hint">The verification step scales hot-buffer reservation by speculative tokens + 1.</p>
+          <label class="toggle" for="shareHost">
+            <input id="shareHost" type="checkbox" checked>
+            Share the host cache across TP ranks
+          </label>
+          <p class="inline-hint">Sharing changes physical CPU RAM usage, not logical request capacity.</p>
+          <p class="fit-warning" id="ramWarning" hidden></p>
+        </fieldset>
+
+        <details class="advanced">
+          <summary>Advanced GLM-5.3 layout values</summary>
+          <div class="slider-field">
+            <label for="kvHbm">Available KV HBM / GPU override <output id="kvHbmValue"></output></label>
+            <input id="kvHbm" type="range" min="0" max="131.32" step="0.1" value="17.8">
+          </div>
+          <p class="inline-hint">Automatically estimated from GLM-5.3’s TP/EP-sharded weights at 92% GPU utilization. Override only to match vLLM’s reported startup value.</p>
+          <div class="field"><label for="maxSeqs">Max sequences / DP</label><input id="maxSeqs" type="number" min="1" value="1024"></div>
+          <div class="field"><label for="baselinePoolBytes">Baseline GPU block bytes</label><input id="baselinePoolBytes" type="number" min="1" value="3052800"></div>
+          <div class="field"><label for="baselineBlock">Baseline block tokens</label><input id="baselineBlock" type="number" min="1" value="64"></div>
+          <div class="field"><label for="hisparsePoolBytes">HiSparse GPU block bytes</label><input id="hisparsePoolBytes" type="number" min="1" value="184320"></div>
+          <div class="field"><label for="hostBlockBytes">Host block bytes</label><input id="hostBlockBytes" type="number" min="1" value="2875392"></div>
+          <div class="field"><label for="gpuBlock">GPU block tokens</label><input id="gpuBlock" type="number" min="1" value="64"></div>
+          <div class="field"><label for="hostBlock">Host block tokens</label><input id="hostBlock" type="number" min="1" value="64"></div>
+          <div class="field"><label for="hotGroups">Hot/resident groups</label><input id="hotGroups" type="number" min="1" value="20"></div>
+          <div class="field"><label for="residentPages">Retained pages / group</label><input id="residentPages" type="number" min="0" value="2"></div>
+          <div class="field"><label for="otherGpu">Other GPU blocks / request</label><input id="otherGpu" type="number" min="0" value="0"></div>
+        </details>
+        <button type="reset">Reset GLM-5.3 defaults</button>
+      </form>
+
+      <section class="results" aria-live="polite">
+        <div class="panel summary">
+          <div class="cards">
+            <div class="card">
+              <div class="label">Estimated non-HiSparse total</div>
+              <div class="value" id="baselineTotal">–</div>
+            </div>
+            <div class="card hisparse">
+              <div class="label">Estimated HiSparse total</div>
+              <div class="value" id="hisparseTotal">–</div>
+            </div>
+            <div class="card">
+              <div class="label">Estimated capacity multiplier</div>
+              <div class="value" id="multiplier">–</div>
+            </div>
+          </div>
+          <div class="enablement" id="enablement" hidden>
+            <strong>HiSparse enables this sequence length.</strong>
+            <span id="enablementDetail"></span>
+          </div>
+          <div class="summary-meta">
+            <span>Topology: <strong id="gpuTopology">–</strong></span>
+            <span>Model weights / GPU: <strong id="modelWeight">–</strong></span>
+            <span>Physical host pool: <strong id="physicalHost">–</strong></span>
+          </div>
+
+          <div class="bars">
+            <div>
+              <div class="bar-label"><span>Non-HiSparse</span><span id="baselineBarValue"></span></div>
+              <div class="track"><div class="bar baseline" id="baselineBar"></div></div>
+            </div>
+            <div>
+              <div class="bar-label"><span>HiSparse</span><span id="hisparseBarValue"></span></div>
+              <div class="track"><div class="bar hisparse" id="hisparseBar"></div></div>
+            </div>
+          </div>
+
+          <div class="memory-composition">
+            <h2>HiSparse memory composition</h2>
+            <div class="memory-control">
+              <label for="memoryConcurrency">
+                Concurrency / DP group
+                <output id="memoryConcurrencyValue">–</output>
+              </label>
+              <input id="memoryConcurrency" type="range" min="0" max="1" step="1" value="1">
+            </div>
+            <p class="memory-note">Standard KV remains resident until pressure activates hot buffers and releases older pages.</p>
+            <div class="memory-rows">
+              <div>
+                <div class="memory-label">
+                  <span>GPU HBM per DP group</span>
+                  <span id="gpuMemoryTotal">–</span>
+                </div>
+                <div class="memory-track" id="gpuMemoryBar" role="img">
+                  <div class="memory-segment weights" id="gpuMemoryWeights"></div>
+                  <div class="memory-segment reserve" id="gpuMemoryReserve"></div>
+                  <div class="memory-segment hot" id="gpuMemoryHot"></div>
+                  <div class="memory-segment indexer" id="gpuMemoryIndexer"></div>
+                  <div class="memory-segment standard" id="gpuMemoryStandard"></div>
+                  <div class="memory-segment unused" id="gpuMemoryUnused"></div>
+                </div>
+                <div class="memory-legend">
+                  <span class="memory-key"><i class="memory-swatch weights"></i>Model weights <strong id="gpuMemoryWeightsValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch reserve"></i>vLLM runtime + HBM headroom <strong id="gpuMemoryReserveValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch hot"></i>Hot buffers <strong id="gpuMemoryHotValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch indexer"></i>Indexer KV <strong id="gpuMemoryIndexerValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch standard"></i>Standard KV <strong id="gpuMemoryStandardValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch"></i>Unused KV <strong id="gpuMemoryUnusedValue">–</strong></span>
+                </div>
+              </div>
+              <div>
+                <div class="memory-label">
+                  <span>CPU host pools per DP group</span>
+                  <span id="cpuMemoryTotal">–</span>
+                </div>
+                <div class="memory-track" id="cpuMemoryBar" role="img">
+                  <div class="memory-segment host" id="cpuMemoryHost"></div>
+                  <div class="memory-segment unused" id="cpuMemoryUnused"></div>
+                </div>
+                <div class="memory-legend">
+                  <span class="memory-key"><i class="memory-swatch host"></i>Host buffers <strong id="cpuMemoryHostValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch"></i>Unused <strong id="cpuMemoryUnusedValue">–</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel chart-panel">
+          <div class="chart-heading">
+            <h2>Concurrency multiplier vs. sequence length</h2>
+            <p class="chart-summary" id="crossoverSummary">–</p>
+          </div>
+          <p class="chart-assumption">Assumes the minimum non-limiting host pool at each sequence length.</p>
+          <div class="chart-wrap" id="chartWrap">
+            <svg id="multiplierChart" role="img" aria-labelledby="multiplierChartTitle multiplierChartDesc">
+              <title id="multiplierChartTitle">HiSparse concurrency multiplier by sequence length</title>
+              <desc id="multiplierChartDesc">The 1.0 times line marks where HiSparse begins to provide a concurrency benefit.</desc>
+            </svg>
+            <div class="chart-tooltip" id="chartTooltip" role="tooltip" hidden></div>
+          </div>
+        </div>
+
+        <div class="panel details">
+          <details>
+            <summary>Per-DP-replica accounting</summary>
+            <table>
+              <thead><tr><th>Resource</th><th>Non-HiSparse</th><th>HiSparse</th></tr></thead>
+              <tbody>
+                <tr><td>GPU pool capacity</td><td id="baseGpuPool"></td><td id="hiGpuPool"></td></tr>
+                <tr><td>Unique GPU / request</td><td id="baseGpuPerReq"></td><td id="hiGpuPerReq"></td></tr>
+                <tr><td>↳ Indexer history</td><td>included</td><td id="indexerPerReq"></td></tr>
+                <tr><td>↳ Hot buffers</td><td>–</td><td id="hotPerReq"></td></tr>
+                <tr><td>↳ Retained pages</td><td>–</td><td id="residentPerReq"></td></tr>
+                <tr><td>Unique host / request</td><td>–</td><td id="hostPerReq"></td></tr>
+                <tr><td>GPU concurrency limit</td><td id="baseGpuLimit"></td><td id="hiGpuLimit"></td></tr>
+                <tr><td>Host concurrency limit</td><td>–</td><td id="hiHostLimit"></td></tr>
+                <tr><td>Final concurrency limit</td><td id="baseFinal"></td><td id="hiFinal"></td></tr>
+              </tbody>
+            </table>
+          </details>
+
+          <details>
+            <summary>Model and assumptions</summary>
+            <p class="assumption">
+              HiSparse GPU usage is the unique indexer history plus per-request hot buffers,
+              multiplied by speculative tokens + 1 when speculative decoding is enabled,
+              two retained resident pages per hot group, and any additional GPU blocks entered
+              above. Host usage includes the full latent KV history. GLM’s latent and indexer
+              KV are replicated across TP ranks;
+              therefore TP does not directly divide KV bytes per request. It can still leave
+              more HBM for KV by reducing the per-GPU weight shard. With TP host sharing
+              enabled, one host pool serves the whole TP group. This is a steady-state estimate;
+              spill transitions, request-length skew, routing imbalance, and temporary
+              workspaces can lower the reachable concurrency. The automatic HBM estimate
+              shards routed-expert weights across DP×TP when EP is enabled; otherwise each
+              DP replica duplicates them. Shared weights always shard across TP.
+            </p>
+          </details>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const form = document.querySelector("#controls");
+    const ids = [
+      "sequence", "dp", "tp", "maxSeqs", "kvHbm", "baselinePoolBytes",
+      "baselineBlock", "hisparsePoolBytes", "hostGiB", "hostBlockBytes",
+      "gpuBlock", "hostBlock", "deviceBuffer", "hotGroups",
+      "residentPages", "otherGpu", "shareHost", "fp8Kv", "expertParallel",
+      "systemRamGiB", "speculativeTokens", "memoryConcurrency"
+    ];
+    const fields = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+    const output = id => document.getElementById(id);
+    const ceilDiv = (a, b) => Math.ceil(a / b);
+    const fmt = n => Number.isFinite(n) ? Math.floor(n).toLocaleString("en-US") : "unbounded";
+    const fmtTokens = n => `${fmt(n)} tokens`;
+    const fmtHost = gib => gib >= 1024 ? `${(gib / 1024).toFixed(2)} TiB` : `${fmt(gib)} GiB`;
+    const fmtBytes = bytes => {
+      const gib = bytes / 2 ** 30;
+      if (gib >= 1024) return `${(gib / 1024).toFixed(2)} TiB`;
+      if (gib >= 1) return `${gib >= 10 ? gib.toFixed(1) : gib.toFixed(2)} GiB`;
+      return `${(bytes / 2 ** 20).toFixed(bytes >= 100 * 2 ** 20 ? 0 : 1)} MiB`;
+    };
+
+    function updateMemoryBar(barId, total, segments) {
+      const safeTotal = Math.max(total, 1);
+      const labels = [];
+      for (const { id, label, bytes } of segments) {
+        const safeBytes = Math.max(0, Math.min(bytes, total));
+        output(id).style.width = `${100 * safeBytes / safeTotal}%`;
+        output(`${id}Value`).textContent = fmtBytes(safeBytes);
+        labels.push(`${label}: ${fmtBytes(safeBytes)}`);
+      }
+      output(barId).setAttribute("aria-label", labels.join("; "));
+    }
+    let currentGpu = { name: "H200", memoryGB: 141 };
+    let hostPoolUsesMinimum = true;
+    let memoryConcurrencyUsesMaximum = true;
+    const glmWeights = {
+      sharedGiB: 19.556,
+      routedExpertGiB: 684.167,
+      gpuMemoryUtilization: .92,
+      runtimeReserveGiB: 15,
+    };
+    const kvLayouts = {
+      fp8: { baseline: 3052800, hisparse: 184320, host: 2875392 },
+      bf16: { baseline: 5928192, hisparse: 294912, host: 5750784 },
+    };
+
+    function value(id, minimum = 0) {
+      const parsed = Number(fields[id].value);
+      return Number.isFinite(parsed) ? Math.max(parsed, minimum) : minimum;
+    }
+
+    function hotBufferMultiplier() {
+      return value("speculativeTokens") + 1;
+    }
+
+    function estimateModelWeightGiB() {
+      const dp = value("dp", 1);
+      const tp = value("tp", 1);
+      const expertShards = fields.expertParallel.checked ? dp * tp : tp;
+      return (
+        glmWeights.sharedGiB / tp
+        + glmWeights.routedExpertGiB / expertShards
+      );
+    }
+
+    function gpuMemoryBudgetGiB() {
+      const gpuMemoryGiB = currentGpu.memoryGB * 1e9 / 2 ** 30;
+      return gpuMemoryGiB * glmWeights.gpuMemoryUtilization;
+    }
+
+    function estimateAvailableKvHbm() {
+      return Math.max(
+        0,
+        gpuMemoryBudgetGiB()
+          - estimateModelWeightGiB()
+          - glmWeights.runtimeReserveGiB,
+      );
+    }
+
+    function updateEstimatedKvHbm() {
+      fields.kvHbm.value = Math.min(
+        Number(fields.kvHbm.max),
+        estimateAvailableKvHbm(),
+      ).toFixed(1);
+    }
+
+    function updateKvLayout() {
+      const layout = fields.fp8Kv.checked ? kvLayouts.fp8 : kvLayouts.bf16;
+      fields.baselinePoolBytes.value = layout.baseline;
+      fields.hisparsePoolBytes.value = layout.hisparse;
+      fields.hostBlockBytes.value = layout.host;
+    }
+
+    function capacityAtSequence(sequence, effectiveHostGiB = Infinity) {
+      const maxSeqs = value("maxSeqs", 1);
+      const availableKvHbm = value("kvHbm") * 2 ** 30;
+      const baselineBlock = value("baselineBlock", 1);
+      const baselinePool = Math.floor(
+        availableKvHbm / value("baselinePoolBytes", 1)
+      );
+      const baselinePerRequest = ceilDiv(sequence, baselineBlock);
+      const baselineLimit = Math.min(
+        maxSeqs,
+        Math.max(0, Math.floor(baselinePool / baselinePerRequest)),
+      );
+
+      const gpuBlock = value("gpuBlock", 1);
+      const hostBlock = value("hostBlock", 1);
+      const gpuPool = Math.floor(
+        availableKvHbm / value("hisparsePoolBytes", 1)
+      );
+      const indexerPerRequest = ceilDiv(sequence, gpuBlock);
+      const hot = value("hotGroups", 1) * ceilDiv(
+        value("deviceBuffer", 1) * hotBufferMultiplier(),
+        gpuBlock,
+      );
+      const resident = value("hotGroups", 1) * value("residentPages");
+      const hiGpuPerReq = indexerPerRequest + hot + resident + value("otherGpu");
+      const hiGpuLimit = Math.max(0, Math.floor(gpuPool / hiGpuPerReq));
+
+      const hostPerRequest = ceilDiv(sequence, hostBlock);
+      const hostPool = Math.floor(
+        effectiveHostGiB * 2 ** 30 / value("hostBlockBytes", 1)
+      );
+      const hiHostLimit = Math.max(0, Math.floor(hostPool / hostPerRequest));
+      const hiLimit = Math.min(maxSeqs, hiGpuLimit, hiHostLimit);
+      const nonLimitingHostBytes = (
+        Math.min(maxSeqs, hiGpuLimit)
+        * hostPerRequest
+        * value("hostBlockBytes", 1)
+      );
+
+      return {
+        baselineLimit,
+        baselinePerRequest,
+        baselinePool,
+        gpuPool,
+        indexerPerRequest,
+        hot,
+        resident,
+        hiGpuPerReq,
+        hiGpuLimit,
+        hostPerRequest,
+        hiHostLimit,
+        hiLimit,
+        nonLimitingHostBytes,
+      };
+    }
+
+    let chartState;
+
+    function fmtAxisTokens(tokens) {
+      if (tokens >= 1048576) return `${(tokens / 1048576).toFixed(1).replace(".0", "")}M`;
+      if (tokens >= 1024) {
+        const thousands = tokens / 1024;
+        const precision = thousands < 10 ? 1 : 0;
+        return `${thousands.toFixed(precision).replace(".0", "")}K`;
+      }
+      return fmt(tokens);
+    }
+
+    function drawMultiplierChart(selectedSequence, modelFits) {
+      chartState = { selectedSequence, modelFits };
+      const svg = output("multiplierChart");
+      const tooltip = output("chartTooltip");
+      const width = Math.max(280, Math.round(svg.clientWidth || 640));
+      const height = 280;
+      const margin = { top: 20, right: 16, bottom: 42, left: 54 };
+      const plotWidth = width - margin.left - margin.right;
+      const plotHeight = height - margin.top - margin.bottom;
+      const minSequence = Number(fields.sequence.min);
+      const maxSequence = Number(fields.sequence.max);
+      const sequenceStep = Number(fields.sequence.step);
+      const dp = value("dp", 1);
+      const points = [];
+
+      for (let sequence = minSequence; sequence <= maxSequence; sequence += sequenceStep) {
+        const capacity = capacityAtSequence(sequence);
+        const baselineTotal = capacity.baselineLimit * dp;
+        const hiTotal = capacity.hiLimit * dp;
+        const ratio = baselineTotal > 0
+          ? hiTotal / baselineTotal
+          : hiTotal > 0 ? Infinity : NaN;
+        const minimumHostGiB = Math.ceil(capacity.nonLimitingHostBytes / 2 ** 30);
+        points.push({ sequence, baselineTotal, hiTotal, ratio, minimumHostGiB });
+      }
+
+      const title = `<title id="multiplierChartTitle">HiSparse concurrency multiplier by sequence length</title>`;
+      const desc = `<desc id="multiplierChartDesc">The 1.0 times line and crossover marker show where HiSparse begins to provide a concurrency benefit.</desc>`;
+      if (!modelFits) {
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.innerHTML = (
+          title
+          + desc
+          + `<rect class="chart-frame" x="${margin.left}" y="${margin.top}" width="${plotWidth}" height="${plotHeight}"/>`
+          + `<text class="chart-label" x="${width / 2}" y="${height / 2}" text-anchor="middle">Curve unavailable: model does not fit.</text>`
+        );
+        output("crossoverSummary").textContent = "No valid curve for this topology";
+        tooltip.hidden = true;
+        svg.onpointermove = null;
+        svg.onpointerleave = null;
+        return;
+      }
+
+      const finiteRatios = points
+        .map(point => point.ratio)
+        .filter(ratio => Number.isFinite(ratio) && ratio > 0);
+      const minimumRatio = Math.min(1, ...finiteRatios);
+      const maximumRatio = Math.max(1, ...finiteRatios);
+      let minimumExponent = Math.floor(Math.log2(minimumRatio));
+      let maximumExponent = Math.ceil(Math.log2(maximumRatio));
+      if (minimumExponent === maximumExponent) {
+        minimumExponent -= 1;
+        maximumExponent += 1;
+      }
+      const yMinimum = 2 ** minimumExponent;
+      const yMaximum = 2 ** maximumExponent;
+      const xFor = sequence => (
+        margin.left
+        + Math.log(sequence / minSequence) / Math.log(maxSequence / minSequence) * plotWidth
+      );
+      const sequenceForX = x => (
+        minSequence * (maxSequence / minSequence) ** ((x - margin.left) / plotWidth)
+      );
+      const yFor = ratio => (
+        margin.top
+        + (Math.log2(yMaximum) - Math.log2(ratio))
+          / (Math.log2(yMaximum) - Math.log2(yMinimum)) * plotHeight
+      );
+
+      const exponentCount = maximumExponent - minimumExponent + 1;
+      const exponentStep = Math.max(1, Math.ceil(exponentCount / 7));
+      const yExponents = [];
+      for (let exponent = minimumExponent; exponent <= maximumExponent; exponent += 1) {
+        if (
+          exponent === minimumExponent
+          || exponent === maximumExponent
+          || exponent === 0
+          || (exponent - minimumExponent) % exponentStep === 0
+        ) {
+          yExponents.push(exponent);
+        }
+      }
+      const yGrid = [...new Set(yExponents)].sort((a, b) => a - b).map(exponent => {
+        const ratio = 2 ** exponent;
+        const y = yFor(ratio);
+        const ratioLabel = ratio < .01
+          ? ratio.toPrecision(1)
+          : ratio < 1 ? ratio.toFixed(2) : ratio;
+        return (
+          `<line class="chart-grid" x1="${margin.left}" x2="${width - margin.right}" y1="${y}" y2="${y}"/>`
+          + `<text class="chart-axis" x="${margin.left - 7}" y="${y}" text-anchor="end" dominant-baseline="middle">${ratioLabel}×</text>`
+        );
+      }).join("");
+      const xTicks = [1024, 16384, 262144, 1048576].map(sequence => {
+        const x = xFor(sequence);
+        return (
+          `<line class="chart-grid" x1="${x}" x2="${x}" y1="${margin.top}" y2="${height - margin.bottom}"/>`
+          + `<text class="chart-axis" x="${x}" y="${height - margin.bottom + 17}" text-anchor="middle">${fmtAxisTokens(sequence)}</text>`
+        );
+      }).join("");
+
+      let linePath = "";
+      let drawing = false;
+      points.forEach(point => {
+        if (!Number.isFinite(point.ratio) || point.ratio <= 0) {
+          drawing = false;
+          return;
+        }
+        linePath += `${drawing ? "L" : "M"}${xFor(point.sequence).toFixed(2)},${yFor(point.ratio).toFixed(2)}`;
+        drawing = true;
+      });
+
+      const crossoverIndex = points.findIndex(point => point.ratio > 1);
+      const crossover = points[crossoverIndex];
+      let crossoverMarkup = "";
+      if (crossover) {
+        let crossoverX = xFor(crossover.sequence);
+        const previous = points[crossoverIndex - 1];
+        if (
+          previous
+          && Number.isFinite(previous.ratio)
+          && previous.ratio > 0
+          && previous.ratio <= 1
+          && Number.isFinite(crossover.ratio)
+        ) {
+          const previousLogRatio = Math.log2(previous.ratio);
+          const crossoverFraction = (
+            -previousLogRatio / (Math.log2(crossover.ratio) - previousLogRatio)
+          );
+          crossoverX = (
+            xFor(previous.sequence)
+            + crossoverFraction * (xFor(crossover.sequence) - xFor(previous.sequence))
+          );
+        }
+        const crossoverSequence = sequenceForX(crossoverX);
+        const crossoverY = yFor(1);
+        const labelAnchor = crossoverX > width - 150 ? "end" : "start";
+        const labelX = crossoverX + (labelAnchor === "end" ? -6 : 6);
+        crossoverMarkup = (
+          `<line class="chart-crossover" x1="${crossoverX}" x2="${crossoverX}" y1="${margin.top}" y2="${height - margin.bottom}"/>`
+          + `<circle class="chart-crossover-point" cx="${crossoverX}" cy="${crossoverY}" r="4"/>`
+          + `<text class="chart-label" x="${labelX}" y="${crossoverY - 7}" text-anchor="${labelAnchor}">crossover ~${fmtAxisTokens(crossoverSequence)}</text>`
+        );
+        output("crossoverSummary").textContent = (
+          `1.0× crossover near ${fmtTokens(Math.round(crossoverSequence))} with `
+          + `${fmt(value("deviceBuffer", 1) * hotBufferMultiplier())} `
+          + `effective hot-buffer rows`
+        );
+      } else {
+        output("crossoverSummary").textContent = "No 1.0× crossover in this range";
+      }
+
+      const hiSparseOnly = points.filter(point => point.ratio === Infinity);
+      let onlyMarkup = "";
+      if (hiSparseOnly.length > 0) {
+        const regionStart = xFor(hiSparseOnly[0].sequence);
+        const regionEnd = xFor(hiSparseOnly[hiSparseOnly.length - 1].sequence);
+        const regionWidth = Math.max(0, regionEnd - regionStart);
+        const regionCenter = regionStart + regionWidth / 2;
+        const regionLabel = regionWidth > 80
+          ? `<text class="chart-label" x="${regionCenter}" y="${margin.top + 15}" text-anchor="middle">HiSparse only</text>`
+          : `<text class="chart-label" x="${regionCenter}" y="${margin.top + plotHeight / 2}" text-anchor="middle" transform="rotate(-90 ${regionCenter} ${margin.top + plotHeight / 2})">HiSparse only</text>`;
+        onlyMarkup = (
+          `<rect class="chart-only-region" x="${regionStart}" y="${margin.top}" width="${regionWidth}" height="${plotHeight}"/>`
+          + regionLabel
+        );
+      }
+
+      const selectedPoint = points[Math.max(
+        0,
+        Math.min(points.length - 1, Math.round((selectedSequence - minSequence) / sequenceStep)),
+      )];
+      const selectedX = xFor(selectedPoint.sequence);
+      const selectedMarkup = (
+        `<line class="chart-selected" x1="${selectedX}" x2="${selectedX}" y1="${margin.top}" y2="${height - margin.bottom}"/>`
+        + (Number.isFinite(selectedPoint.ratio) && selectedPoint.ratio > 0
+          ? `<circle class="chart-selected-point" cx="${selectedX}" cy="${yFor(selectedPoint.ratio)}" r="4"/>`
+          : "")
+      );
+
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.innerHTML = (
+        title
+        + desc
+        + onlyMarkup
+        + yGrid
+        + xTicks
+        + `<rect class="chart-frame" x="${margin.left}" y="${margin.top}" width="${plotWidth}" height="${plotHeight}"/>`
+        + `<line class="chart-crossover" x1="${margin.left}" x2="${width - margin.right}" y1="${yFor(1)}" y2="${yFor(1)}"/>`
+        + (linePath ? `<path class="chart-curve" d="${linePath}"/>` : "")
+        + crossoverMarkup
+        + selectedMarkup
+        + `<text class="chart-axis-title" x="${margin.left + plotWidth / 2}" y="${height - 5}" text-anchor="middle">Sequence length (tokens)</text>`
+        + `<text class="chart-axis-title" x="14" y="${margin.top + plotHeight / 2}" text-anchor="middle" transform="rotate(-90 14 ${margin.top + plotHeight / 2})">Concurrency multiplier (log scale)</text>`
+        + `<line class="chart-hover-guide" data-hover-guide x1="0" x2="0" y1="${margin.top}" y2="${height - margin.bottom}" visibility="hidden"/>`
+        + `<circle class="chart-hover-point" data-hover-point cx="0" cy="0" r="4" visibility="hidden"/>`
+      );
+
+      const hoverGuide = svg.querySelector("[data-hover-guide]");
+      const hoverPoint = svg.querySelector("[data-hover-point]");
+      svg.onpointermove = event => {
+        const bounds = svg.getBoundingClientRect();
+        const pointerX = (event.clientX - bounds.left) * width / bounds.width;
+        if (pointerX < margin.left || pointerX > width - margin.right) {
+          tooltip.hidden = true;
+          hoverGuide.setAttribute("visibility", "hidden");
+          hoverPoint.setAttribute("visibility", "hidden");
+          return;
+        }
+        const rawSequence = sequenceForX(pointerX);
+        const pointIndex = Math.max(
+          0,
+          Math.min(points.length - 1, Math.round((rawSequence - minSequence) / sequenceStep)),
+        );
+        const point = points[pointIndex];
+        const x = xFor(point.sequence);
+        hoverGuide.setAttribute("x1", x);
+        hoverGuide.setAttribute("x2", x);
+        hoverGuide.setAttribute("visibility", "visible");
+        if (Number.isFinite(point.ratio) && point.ratio > 0) {
+          hoverPoint.setAttribute("cx", x);
+          hoverPoint.setAttribute("cy", yFor(point.ratio));
+          hoverPoint.setAttribute("visibility", "visible");
+        } else {
+          hoverPoint.setAttribute("visibility", "hidden");
+        }
+        const ratioLabel = point.ratio === Infinity
+          ? "HiSparse only"
+          : Number.isFinite(point.ratio) ? `${point.ratio.toFixed(2)}×` : "No capacity";
+        tooltip.textContent = (
+          `${fmtTokens(point.sequence)}\n`
+          + `Multiplier: ${ratioLabel}\n`
+          + `HiSparse: ${fmt(point.hiTotal)} · non-HiSparse: ${fmt(point.baselineTotal)}\n`
+          + `Minimum host / DP: ${fmt(point.minimumHostGiB)} GiB`
+        );
+        tooltip.hidden = false;
+        const localX = event.clientX - bounds.left;
+        const localY = event.clientY - bounds.top;
+        tooltip.style.left = `${Math.max(90, Math.min(bounds.width - 90, localX))}px`;
+        tooltip.style.top = `${Math.max(4, localY - 70)}px`;
+      };
+      svg.onpointerleave = () => {
+        tooltip.hidden = true;
+        hoverGuide.setAttribute("visibility", "hidden");
+        hoverPoint.setAttribute("visibility", "hidden");
+      };
+    }
+
+    function calculate() {
+      const sequence = value("sequence", 1);
+      const dp = value("dp", 1);
+      const tp = value("tp", 1);
+      const maxSeqs = value("maxSeqs", 1);
+      const hostPoolCopiesPerDp = fields.shareHost.checked ? 1 : tp;
+      const hostPoolCopies = dp * hostPoolCopiesPerDp;
+      const unconstrained = capacityAtSequence(sequence);
+      const minimumHostGiB = Math.ceil(unconstrained.nonLimitingHostBytes / 2 ** 30);
+      if (hostPoolUsesMinimum) {
+        fields.hostGiB.value = Math.min(
+          Number(fields.hostGiB.max),
+          Math.max(Number(fields.hostGiB.min), minimumHostGiB),
+        );
+      }
+      const requestedHostGiB = value("hostGiB", .01) * hostPoolCopies;
+      const systemRamGiB = value("systemRamGiB", .01);
+      const effectiveHostGiB = Math.min(
+        value("hostGiB", .01),
+        systemRamGiB / hostPoolCopies,
+      );
+      const capacity = capacityAtSequence(sequence, effectiveHostGiB);
+      const {
+        baselineLimit,
+        baselinePerRequest,
+        baselinePool,
+        gpuPool,
+        indexerPerRequest,
+        hot,
+        resident,
+        hiGpuPerReq,
+        hiGpuLimit,
+        hostPerRequest,
+        hiHostLimit,
+        hiLimit,
+      } = capacity;
+
+      const baselineTotal = baselineLimit * dp;
+      const hiTotal = hiLimit * dp;
+      const ratio = baselineTotal > 0
+        ? hiTotal / baselineTotal
+        : hiTotal > 0 ? Infinity : NaN;
+      const gpuCount = dp * tp;
+      const physicalHostGiB = effectiveHostGiB * hostPoolCopies;
+
+      output("baselineTotal").textContent = fmt(baselineTotal);
+      output("hisparseTotal").textContent = fmt(hiTotal);
+      output("multiplier").textContent = Number.isNaN(ratio)
+        ? "–"
+        : Number.isFinite(ratio) ? `${ratio.toFixed(2)}×` : "∞";
+      output("gpuTopology").textContent = `${gpuCount} GPUs`;
+      output("modelWeight").textContent = `${estimateModelWeightGiB().toFixed(1)} GiB`;
+      output("minHostPerDp").textContent = `${fmt(minimumHostGiB)} GiB`;
+      output("physicalHost").textContent = fmtHost(physicalHostGiB);
+      output("baselineBarValue").textContent = `${fmt(baselineTotal)} requests`;
+      output("hisparseBarValue").textContent = `${fmt(hiTotal)} requests`;
+      const barMax = Math.max(baselineTotal, hiTotal, 1);
+      output("baselineBar").style.width = `${100 * baselineTotal / barMax}%`;
+      output("hisparseBar").style.width = `${100 * hiTotal / barMax}%`;
+
+      const baselinePoolBytes = value("baselinePoolBytes", 1);
+      const hisparsePoolBytes = value("hisparsePoolBytes", 1);
+      const hostBlockBytes = value("hostBlockBytes", 1);
+      fields.memoryConcurrency.max = hiLimit;
+      if (memoryConcurrencyUsesMaximum) fields.memoryConcurrency.value = hiLimit;
+      fields.memoryConcurrency.value = Math.min(
+        hiLimit,
+        Math.max(0, Number(fields.memoryConcurrency.value)),
+      );
+      const memoryConcurrency = value("memoryConcurrency");
+      output("memoryConcurrencyValue").textContent = `${fmt(memoryConcurrency)} requests`;
+
+      const gpuMemoryTotal = currentGpu.memoryGB * 1e9 * tp;
+      const gpuMemoryWeights = estimateModelWeightGiB() * 2 ** 30 * tp;
+      const availableKvMemory = value("kvHbm") * 2 ** 30 * tp;
+      const gpuMemoryReserve = Math.max(
+        0,
+        gpuMemoryTotal - gpuMemoryWeights - availableKvMemory,
+      );
+      const indexerBlocks = memoryConcurrency * indexerPerRequest;
+      const fullStandardBlocksPerRequest = ceilDiv(
+        hostPerRequest * hostBlockBytes,
+        hisparsePoolBytes,
+      ) + value("otherGpu");
+      const fullStandardBlocks = memoryConcurrency * fullStandardBlocksPerRequest;
+      const fullResidencyFits = indexerBlocks + fullStandardBlocks <= gpuPool;
+      const hotBlocks = fullResidencyFits ? 0 : memoryConcurrency * hot;
+      const standardBlocks = fullResidencyFits
+        ? fullStandardBlocks
+        : Math.max(0, Math.min(
+          fullStandardBlocks,
+          gpuPool - indexerBlocks - hotBlocks,
+        ));
+      const gpuMemoryHot = hotBlocks * hisparsePoolBytes * tp;
+      const gpuMemoryIndexer = indexerBlocks * hisparsePoolBytes * tp;
+      const gpuMemoryStandard = standardBlocks * hisparsePoolBytes * tp;
+      const gpuMemoryUnused = Math.max(
+        0,
+        availableKvMemory - gpuMemoryHot - gpuMemoryIndexer - gpuMemoryStandard,
+      );
+      const cpuMemoryTotal = effectiveHostGiB * hostPoolCopiesPerDp * 2 ** 30;
+      const cpuMemoryHost = (
+        memoryConcurrency * hostPerRequest * hostBlockBytes * hostPoolCopiesPerDp
+      );
+      const cpuMemoryUnused = Math.max(0, cpuMemoryTotal - cpuMemoryHost);
+      output("gpuMemoryTotal").textContent = fmtBytes(gpuMemoryTotal);
+      output("cpuMemoryTotal").textContent = fmtBytes(cpuMemoryTotal);
+      updateMemoryBar("gpuMemoryBar", gpuMemoryTotal, [
+        { id: "gpuMemoryWeights", label: "Model weights", bytes: gpuMemoryWeights },
+        { id: "gpuMemoryReserve", label: "vLLM runtime and HBM headroom", bytes: gpuMemoryReserve },
+        { id: "gpuMemoryHot", label: "Hot buffers", bytes: gpuMemoryHot },
+        { id: "gpuMemoryIndexer", label: "Indexer KV", bytes: gpuMemoryIndexer },
+        { id: "gpuMemoryStandard", label: "Standard KV", bytes: gpuMemoryStandard },
+        { id: "gpuMemoryUnused", label: "Unused KV", bytes: gpuMemoryUnused },
+      ]);
+      updateMemoryBar("cpuMemoryBar", cpuMemoryTotal, [
+        { id: "cpuMemoryHost", label: "Host buffers", bytes: cpuMemoryHost },
+        { id: "cpuMemoryUnused", label: "Unused", bytes: cpuMemoryUnused },
+      ]);
+      output("baseGpuPerReq").textContent = fmtBytes(baselinePerRequest * baselinePoolBytes);
+      output("hiGpuPerReq").textContent = fmtBytes(hiGpuPerReq * hisparsePoolBytes);
+      output("baseGpuPool").textContent = fmtBytes(baselinePool * baselinePoolBytes);
+      output("hiGpuPool").textContent = fmtBytes(gpuPool * hisparsePoolBytes);
+      output("indexerPerReq").textContent = fmtBytes(indexerPerRequest * hisparsePoolBytes);
+      output("hotPerReq").textContent = fmtBytes(hot * hisparsePoolBytes);
+      output("residentPerReq").textContent = fmtBytes(resident * hisparsePoolBytes);
+      output("hostPerReq").textContent = fmtBytes(hostPerRequest * hostBlockBytes);
+      output("baseGpuLimit").textContent = fmt(baselineLimit);
+      output("hiGpuLimit").textContent = fmt(hiGpuLimit);
+      output("hiHostLimit").textContent = fmt(hiHostLimit);
+      output("baseFinal").textContent = `${fmt(baselineLimit)} / DP`;
+      output("hiFinal").textContent = `${fmt(hiLimit)} / DP`;
+      output("hiGpuLimit").classList.toggle("limiter", hiGpuLimit <= hiHostLimit && hiGpuLimit <= maxSeqs);
+      output("hiHostLimit").classList.toggle("limiter", hiHostLimit <= hiGpuLimit && hiHostLimit <= maxSeqs);
+
+      output("sequenceValue").textContent = fmtTokens(sequence);
+      output("kvHbmValue").textContent = `${value("kvHbm").toFixed(1)} GiB`;
+      output("hostGiBValue").textContent = `${fmt(value("hostGiB", .01))} GiB`;
+      output("systemRamGiBValue").textContent = fmtHost(systemRamGiB);
+      output("deviceBufferValue").textContent = fmt(value("deviceBuffer", 1));
+      const speculativeTokens = value("speculativeTokens");
+      output("speculativeTokensValue").textContent = speculativeTokens === 0
+        ? "Off"
+        : `${fmt(speculativeTokens)} speculative · ${fmt(hotBufferMultiplier())}× hot buffer`;
+      const requiredGiB = estimateModelWeightGiB() + glmWeights.runtimeReserveGiB;
+      const modelFits = requiredGiB <= gpuMemoryBudgetGiB();
+      output("fitWarning").hidden = modelFits;
+      output("fitWarning").textContent = modelFits
+        ? ""
+        : (
+          `Model does not fit under these estimates: weights plus runtime reserve `
+          + `need about ${requiredGiB.toFixed(1)} GiB/GPU, but the 92% GPU budget `
+          + `is ${gpuMemoryBudgetGiB().toFixed(1)} GiB. Increase TP, enable EP, `
+          + `or choose a larger GPU.`
+        );
+      const newlyEnabled = modelFits && baselineLimit === 0 && hiLimit > 0;
+      output("enablement").hidden = !newlyEnabled;
+      output("enablementDetail").textContent = newlyEnabled
+        ? (
+          `This topology supports ${fmt(hiTotal)} concurrent `
+          + `${fmt(sequence)}-token request${hiTotal === 1 ? "" : "s"} with `
+          + `HiSparse; ordinary GPU-resident KV supports none.`
+        )
+        : "";
+      drawMultiplierChart(sequence, modelFits);
+      const hostFits = requestedHostGiB <= systemRamGiB;
+      output("ramWarning").hidden = hostFits;
+      output("ramWarning").textContent = hostFits ? "" : (
+        `Host pools request ${fmtHost(requestedHostGiB)}, but the system RAM `
+        + `budget is ${fmtHost(systemRamGiB)}. Estimated capacity uses `
+        + `${fmtHost(effectiveHostGiB)} per physical host pool.`
+      );
+    }
+
+    function selectGpu(button) {
+      currentGpu = {
+        name: button.dataset.gpu,
+        memoryGB: Number(button.dataset.memory)
+      };
+      const memoryGiB = currentGpu.memoryGB * 1e9 / 2 ** 30;
+      fields.kvHbm.max = memoryGiB.toFixed(2);
+      updateEstimatedKvHbm();
+      document.querySelectorAll(".preset").forEach(candidate => {
+        candidate.classList.toggle("active", candidate === button);
+      });
+      output("gpuCapacity").textContent = (
+        `${currentGpu.name} · ${currentGpu.memoryGB} GB HBM3e per GPU`
+      );
+      calculate();
+    }
+
+    document.querySelectorAll(".preset").forEach(button => {
+      button.addEventListener("click", () => selectGpu(button));
+    });
+    fields.memoryConcurrency.addEventListener("input", () => {
+      memoryConcurrencyUsesMaximum = false;
+      calculate();
+    });
+    form.addEventListener("input", event => {
+      if (event.target === fields.hostGiB) hostPoolUsesMinimum = false;
+      if (
+        event.target === fields.dp
+        || event.target === fields.tp
+        || event.target === fields.expertParallel
+      ) {
+        updateEstimatedKvHbm();
+      }
+      if (event.target === fields.fp8Kv) updateKvLayout();
+      calculate();
+    });
+    form.addEventListener("reset", () => requestAnimationFrame(() => {
+      hostPoolUsesMinimum = true;
+      memoryConcurrencyUsesMaximum = true;
+      selectGpu(document.querySelector('[data-gpu="H200"]'));
+      updateKvLayout();
+      calculate();
+    }));
+    updateEstimatedKvHbm();
+    updateKvLayout();
+    calculate();
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(() => {
+        if (chartState) {
+          drawMultiplierChart(
+            chartState.selectedSequence,
+            chartState.modelFits,
+          );
+        }
+      }).observe(output("chartWrap"));
+    }
+  </script>
+</body>
+</html>
