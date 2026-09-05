@@ -87,10 +87,9 @@ We benchmarked GLM-5.3 on 8× H200 using an OpenHands-style agentic workload: 13
 
 <figure>
   <img src="{{ '/assets/figures/2026-09-04-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg' | relative_url }}" alt="GLM-5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
-  <figcaption><em>Top: the interactivity-throughput sweep. Interactivity is 1000 divided by mean TPOT; logical total-token throughput includes prefix-cached prompt tokens and is divided by eight GPUs. Bottom: mean non-zero <code>vllm:num_requests_running</code> samples collected during each benchmark point. Hybrid HiSparse: <code>e8ef1e07bd</code>. Offloading baseline: <code>80cb71c9ff</code>.</em></figcaption>
+  <figcaption><em>Top: the interactivity-throughput sweep.
 </figure>
 
-At c16, Hybrid HiSparse reaches 9,617 logical tokens/s/GPU versus 2,577 for offloading, while the measured number of requests running rises from 4.8 to 12.1. At c24 and c32, Hybrid HiSparse sustains 9,263–9,480 logical tokens/s/GPU and keeps 17.2–17.8 requests running; offloading remains near five requests and about 1,000 logical tokens/s/GPU. Prefix-cache hit rate remains about 92% throughout, while vLLM's decoded-tokens-per-iteration metric remains between 3.62 and 3.76 for HiSparse.
 
 We are planning to make Hybrid HiSparse widely available in vLLM v0.30. In the meantime, the exact launch commands and benchmark client setup used for these results are in the [reproduction appendix](#appendix-reproducing-our-results) below.
 
