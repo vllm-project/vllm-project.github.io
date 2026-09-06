@@ -61,7 +61,7 @@ Hot buffers default to 2x top-K rows per request, which ensures high hit rates w
 
 ## The numbers
 
-We benchmarked GLM 5.3 on 8× H200 using an OpenHands-style agentic workload: 13-turn conversations with a 74,160-token first turn, 753-token later turns, and fixed 220-token outputs. Both TP8 deployments used MTP3, FP8 KV cache, a 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92`. The offloading baseline used a 512 GiB offload pool; Hybrid HiSparse split the same host budget into a 384 GiB HiSparse pool and 128 GiB of offloading.
+We benchmarked GLM 5.3 on 8× H200 using an OpenHands multi-turn agentic workload ([source](https://www.lmsys.org/blog/2026-07-13-glm52-optimization)): 13-turn conversations with a 74,160-token first turn, 753-token later turns, and fixed 220-token outputs. Both TP8 deployments used MTP3, FP8 KV cache, a 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92`. The offloading baseline used a 512 GiB offload pool; Hybrid HiSparse split the same host budget into a 384 GiB HiSparse pool and 128 GiB of offloading.
 
 <figure>
   <img src="{{ '/assets/figures/2026-09-06-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg' | relative_url }}" alt="GLM 5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
@@ -131,7 +131,7 @@ vllm serve zai-org/GLM-5.3 \
 
 `host_pool_gib` is per DP replica and is rounded to whole host blocks. The 128 GiB offloading pool stores cache groups that HiSparse does not manage, including the indexer KV. To reproduce HiSparse without MTP, omit `--speculative-config`. For the no-HiSparse MTP3 baseline shown in the figure, keep `--speculative-config`, omit `--attention-config`, and change `cpu_bytes_to_use` to `549755813888` (512 GiB). Omit both HiSparse and `--speculative-config` for the no-MTP baseline. HiSparse is currently implemented only for NVIDIA GPUs.
 
-### Reproducing the OpenHands sweep
+### Reproducing the padded OpenHands sweep
 
 Everything the benchmark client needs ships with this blog so the recipe is self-contained: [`build_openhands_padded_dataset.py`]({{ '/assets/repro/2026-09-06-glm53-part1-hybrid-sparse-offloading/build_openhands_padded_dataset.py' | relative_url }}), [`install_evalscope_deps.sh`]({{ '/assets/repro/2026-09-06-glm53-part1-hybrid-sparse-offloading/install_evalscope_deps.sh' | relative_url }}), and [`evalscope-all-nodeps.txt`]({{ '/assets/repro/2026-09-06-glm53-part1-hybrid-sparse-offloading/evalscope-all-nodeps.txt' | relative_url }}). Download all three into one directory. EvalScope is pinned at `acd09b44384d53174768bb1063f675420f76fae9`. The following builds the deterministic 128-conversation dataset, then runs c1/c8/c16/c24/c32 with fresh conversations at every point:
 
