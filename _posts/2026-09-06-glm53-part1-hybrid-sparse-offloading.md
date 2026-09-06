@@ -85,7 +85,7 @@ We benchmarked GLM 5.3 on 8× H200 using an OpenHands-style agentic workload: 13
 
 <figure>
   <img src="{{ '/assets/figures/2026-09-06-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg' | relative_url }}" alt="GLM 5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
-  <figcaption><em>Top: the interactivity-throughput sweep.
+  <figcaption><em>Top: the interactivity-throughput sweep. Interactivity is 1000 divided by mean TPOT; logical total-token throughput includes prefix-cached prompt tokens and is divided by eight GPUs. Bottom: mean non-zero <code>vllm:num_requests_running</code> samples collected during each benchmark point. Hybrid HiSparse: <code>e8ef1e07bd</code>. Offloading baseline: <code>80cb71c9ff</code>.</em></figcaption>
 </figure>
 
 
