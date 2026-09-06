@@ -202,7 +202,7 @@ This means:
 - **Sliding window layers** reload only the tokens within their window, not the full history
 - **State-space layers** (Mamba) offload and reload their state alongside attention KV
 
-The framework supports state-of-the-art hybrid architectures including DeepSeek V4 and GLM 5.2.
+The framework supports state-of-the-art hybrid architectures including DeepSeek V4, GLM 5.3, Nemotron 3, and others.
 
 ---
 
