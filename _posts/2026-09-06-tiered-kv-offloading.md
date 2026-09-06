@@ -15,7 +15,7 @@ Instead of recomputing, vLLM reloads the data from a lower tier — saving compu
 
 With secondary tiers, KV data also becomes **shareable across nodes** — enabling horizontal scaling of the cache, warm-starting new instances from shared storage, and transferring KV data between peers for disaggregated serving or load balancing.
 
-The framework has been available in vLLM since v0.22.
+The framework has been available in vLLM since v0.22 and a detailed usage guide can be found [here](https://docs.vllm.ai/en/latest/features/kv_offloading_usage/).
 
 ---
 
@@ -68,8 +68,8 @@ Multiple accelerator shards fan into one shared host region. Secondary tiers see
 
 ### Canonical memory layout
 
-The host region uses a canonical memory layout: a uniform, block-indexed representation where locating any KV chunk is a simple offset calculation.
-This layout is the same regardless of the accelerator type, attention backend (FlashAttention, FlashInfer, Triton), or parallelism configuration (TP).
+The host region uses a canonical memory layout: each page stores one block of one layer, with all KV heads from across TP ranks gathered into a single contiguous region. Locating any chunk is a simple offset calculation.
+The fixed host-side layout ensures correct sharing even when the GPU memory layout differs across nodes — different accelerator types, attention backends (FlashAttention, FlashInfer, Triton), or parallelism configurations all map to the same canonical representation.
 Because the layout is configuration-independent, **nodes with different setups share KV data directly** — no remapping or format conversion needed.
 A TP=2 node and a TP=4 node produce identical host-side chunks for the same KV data.
 
