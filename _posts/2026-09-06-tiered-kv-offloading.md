@@ -158,7 +158,7 @@ Enables **cross-instance KV cache sharing** over the network.
 Uses ZMQ for coordination and RDMA (via NIXL) for bulk data transfer.
 All transfers are **host-to-host** — no accelerator memory involved on either side.
 
-P2P transfers are triggered via `kv_transfer_params` request headers, typically managed by an external orchestrator such as [llm-d](https://github.com/llm-d/llm-d).
+The P2P tier does not decide which peer to pull KV data from — that is the orchestration layer's job (e.g., a router such as [llm-d](https://github.com/llm-d/llm-d)). The orchestrator drives cross-node transfers through the request's `kv_transfer_params`. An example and more details can be found in the [usage guide](https://docs.vllm.ai/en/latest/features/kv_offloading_usage/#orchestration-layer-protocol).
 
 ```bash
 --kv-transfer-config '{
