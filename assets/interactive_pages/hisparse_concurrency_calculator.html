@@ -274,6 +274,7 @@
     .memory-segment { height: 100%; transition: width 160ms ease; }
     .memory-segment.hot { background: var(--hi); }
     .memory-segment.indexer { background: var(--accent); }
+    .memory-segment.indexer-offload { background: var(--accent); opacity: .72; }
     .memory-segment.standard { background: var(--warn); }
     .memory-segment.host { background: var(--host); }
     .memory-segment.weights { background: var(--weights); }
@@ -298,6 +299,7 @@
     }
     .memory-swatch.hot { background: var(--hi); }
     .memory-swatch.indexer { background: var(--accent); }
+    .memory-swatch.indexer-offload { background: var(--accent); opacity: .72; }
     .memory-swatch.standard { background: var(--warn); }
     .memory-swatch.host { background: var(--host); }
     .memory-swatch.weights { background: var(--weights); }
@@ -314,14 +316,20 @@
     .chart-grid { stroke: var(--line); }
     .chart-axis, .chart-label { fill: var(--muted); font-size: 11px; }
     .chart-axis-title { fill: var(--text); font-size: 12px; }
-    .chart-curve { fill: none; stroke: var(--hi); stroke-width: 2.5; }
-    .chart-crossover { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; }
-    .chart-crossover-point { fill: var(--panel); stroke: var(--accent); stroke-width: 2; }
+    .chart-curve { fill: none; stroke-width: 2.5; }
+    .chart-curve.hisparse { stroke: var(--hi); }
+    .chart-curve.baseline { stroke: var(--base); }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .chart-legend i { width: 16px; height: 3px; border-radius: 99px; background: var(--base); }
+    .chart-legend i.hisparse { background: var(--hi); }
     .chart-selected { stroke: var(--base); stroke-dasharray: 3 4; }
     .chart-selected-point { fill: var(--hi); stroke: var(--panel); stroke-width: 2; }
+    .chart-selected-point.baseline { fill: var(--base); }
     .chart-only-region { fill: color-mix(in srgb, var(--hi) 10%, transparent); }
     .chart-hover-guide { stroke: var(--muted); stroke-width: 1; }
     .chart-hover-point { fill: var(--hi); stroke: var(--panel); stroke-width: 2; }
+    .chart-hover-point.baseline { fill: var(--base); }
     .chart-tooltip {
       position: absolute;
       z-index: 1;
@@ -374,7 +382,7 @@
   <main class="calculator">
     <header>
       <h1>HiSparse concurrency calculator</h1>
-      <p class="subtitle">Estimate ordinary GPU KV capacity and HiSparse’s fully offloaded steady state. Results are planning estimates, not guaranteed serving limits.</p>
+      <p class="subtitle">Estimate ordinary GPU KV capacity, HiSparse’s fully offloaded steady state, and native indexer offloading. Results are planning estimates, not guaranteed serving limits.</p>
     </header>
 
     <div class="layout">
@@ -398,7 +406,7 @@
           <legend>Workload and topology</legend>
           <div class="slider-field">
             <label for="sequence">Sequence length <output id="sequenceValue"></output></label>
-            <input id="sequence" type="range" min="1024" max="1048576" step="1024" value="81920">
+            <input id="sequence" type="range" min="8192" max="1048576" step="1024" value="81920">
           </div>
           <div class="compact-grid topology-grid">
             <div class="slider-field">
@@ -431,7 +439,7 @@
         <fieldset>
           <legend>HiSparse</legend>
           <div class="minimum-host">
-            <div class="minimum-host-label">Minimum host pool / DP rank</div>
+            <div class="minimum-host-label">Minimum HiSparse host pool / DP rank</div>
             <strong id="minHostPerDp">–</strong>
             <div class="minimum-host-note">Avoids host capacity becoming the concurrency limit.</div>
           </div>
@@ -441,6 +449,10 @@
               <input id="hostGiB" type="range" min="16" max="4096" step="1" value="134">
             </div>
             <div class="slider-field">
+              <label for="indexerOffloadGiB">Indexer offload total <output id="indexerOffloadGiBValue"></output></label>
+              <input id="indexerOffloadGiB" type="range" min="0" max="2048" step="16" value="128">
+            </div>
+            <div class="slider-field">
               <label for="deviceBuffer">Hot-buffer rows <output id="deviceBufferValue"></output></label>
               <input id="deviceBuffer" type="range" min="2048" max="8192" step="64" value="4096">
             </div>
@@ -448,12 +460,9 @@
               <label for="systemRamGiB">System RAM budget <output id="systemRamGiBValue"></output></label>
               <input id="systemRamGiB" type="range" min="128" max="8192" step="64" value="4096">
             </div>
-            <div class="slider-field">
-              <label for="speculativeTokens">Speculative tokens / step <output id="speculativeTokensValue"></output></label>
-              <input id="speculativeTokens" type="range" min="0" max="16" step="1" value="0">
-            </div>
           </div>
-          <p class="inline-hint">The verification step scales hot-buffer reservation by speculative tokens + 1.</p>
+          <p class="inline-hint">MTP can further limit concurrency because its hot buffers must accommodate all verification tokens at once. At publication time, this means sizing each hot buffer to (num_speculative_tokens + 2) × top-K. This is subject to change as we work to shrink the buffers.</p>
+          <p class="inline-hint">Native indexer offloading extends the prefix cache in CPU memory. Active indexer history must still fit in HBM, so this pool does not directly raise the running-request limit.</p>
           <label class="toggle" for="shareHost">
             <input id="shareHost" type="checkbox" checked>
             Share the host cache across TP ranks
@@ -506,7 +515,8 @@
           <div class="summary-meta">
             <span>Topology: <strong id="gpuTopology">–</strong></span>
             <span>Model weights / GPU: <strong id="modelWeight">–</strong></span>
-            <span>Physical host pool: <strong id="physicalHost">–</strong></span>
+            <span>Physical host allocation: <strong id="physicalHost">–</strong></span>
+            <span>Indexer offload coverage: <strong id="indexerOffloadCoverage">–</strong></span>
           </div>
 
           <div class="bars">
@@ -560,10 +570,12 @@
                 </div>
                 <div class="memory-track" id="cpuMemoryBar" role="img">
                   <div class="memory-segment host" id="cpuMemoryHost"></div>
+                  <div class="memory-segment indexer-offload" id="cpuMemoryIndexerOffload"></div>
                   <div class="memory-segment unused" id="cpuMemoryUnused"></div>
                 </div>
                 <div class="memory-legend">
-                  <span class="memory-key"><i class="memory-swatch host"></i>Host buffers <strong id="cpuMemoryHostValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch host"></i>HiSparse latent KV <strong id="cpuMemoryHostValue">–</strong></span>
+                  <span class="memory-key"><i class="memory-swatch indexer-offload"></i>Native indexer offload <strong id="cpuMemoryIndexerOffloadValue">–</strong></span>
                   <span class="memory-key"><i class="memory-swatch"></i>Unused <strong id="cpuMemoryUnusedValue">–</strong></span>
                 </div>
               </div>
@@ -573,14 +585,18 @@
 
         <div class="panel chart-panel">
           <div class="chart-heading">
-            <h2>Concurrency multiplier vs. sequence length</h2>
-            <p class="chart-summary" id="crossoverSummary">–</p>
+            <h2>Concurrency vs. sequence length</h2>
+            <p class="chart-summary" id="chartSummary">–</p>
           </div>
-          <p class="chart-assumption">Assumes the minimum non-limiting host pool at each sequence length.</p>
+          <div class="chart-legend" aria-label="Chart series">
+            <span><i class="hisparse"></i>HiSparse</span>
+            <span><i></i>Non-HiSparse</span>
+          </div>
+          <p class="chart-assumption">Shows total concurrency across the deployment and assumes the minimum non-limiting HiSparse host pool at each sequence length. Native indexer offloading does not change active-request HBM.</p>
           <div class="chart-wrap" id="chartWrap">
-            <svg id="multiplierChart" role="img" aria-labelledby="multiplierChartTitle multiplierChartDesc">
-              <title id="multiplierChartTitle">HiSparse concurrency multiplier by sequence length</title>
-              <desc id="multiplierChartDesc">The 1.0 times line marks where HiSparse begins to provide a concurrency benefit.</desc>
+            <svg id="concurrencyChart" role="img" aria-labelledby="concurrencyChartTitle concurrencyChartDesc">
+              <title id="concurrencyChartTitle">Concurrency by sequence length</title>
+              <desc id="concurrencyChartDesc">HiSparse and non-HiSparse concurrency across sequence lengths.</desc>
             </svg>
             <div class="chart-tooltip" id="chartTooltip" role="tooltip" hidden></div>
           </div>
@@ -598,6 +614,8 @@
                 <tr><td>↳ Hot buffers</td><td>–</td><td id="hotPerReq"></td></tr>
                 <tr><td>↳ Retained pages</td><td>–</td><td id="residentPerReq"></td></tr>
                 <tr><td>Unique host / request</td><td>–</td><td id="hostPerReq"></td></tr>
+                <tr><td>Native indexer offload / request</td><td>–</td><td id="indexerOffloadPerReq"></td></tr>
+                <tr><td>Native indexer offload coverage</td><td>–</td><td id="indexerOffloadCoverageDetail"></td></tr>
                 <tr><td>GPU concurrency limit</td><td id="baseGpuLimit"></td><td id="hiGpuLimit"></td></tr>
                 <tr><td>Host concurrency limit</td><td>–</td><td id="hiHostLimit"></td></tr>
                 <tr><td>Final concurrency limit</td><td id="baseFinal"></td><td id="hiFinal"></td></tr>
@@ -609,10 +627,12 @@
             <summary>Model and assumptions</summary>
             <p class="assumption">
               HiSparse GPU usage is the unique indexer history plus per-request hot buffers,
-              multiplied by speculative tokens + 1 when speculative decoding is enabled,
               two retained resident pages per hot group, and any additional GPU blocks entered
-              above. Host usage includes the full latent KV history. GLM’s latent and indexer
-              KV are replicated across TP ranks;
+              above. With MTP, set hot-buffer rows to the full verification-time reservation
+              described above. HiSparse host usage includes the full latent KV history. The native
+              OffloadingConnector pool caches completed indexer blocks for prefix reuse, but
+              does not remove active indexer history from HBM. GLM’s latent and indexer KV
+              are replicated across TP ranks;
               therefore TP does not directly divide KV bytes per request. It can still leave
               more HBM for KV by reducing the per-GPU weight shard. With TP host sharing
               enabled, one host pool serves the whole TP group. This is a steady-state estimate;
@@ -631,10 +651,10 @@
     const form = document.querySelector("#controls");
     const ids = [
       "sequence", "dp", "tp", "maxSeqs", "kvHbm", "baselinePoolBytes",
-      "baselineBlock", "hisparsePoolBytes", "hostGiB", "hostBlockBytes",
+      "baselineBlock", "hisparsePoolBytes", "hostGiB", "indexerOffloadGiB", "hostBlockBytes",
       "gpuBlock", "hostBlock", "deviceBuffer", "hotGroups",
       "residentPages", "otherGpu", "shareHost", "fp8Kv", "expertParallel",
-      "systemRamGiB", "speculativeTokens", "memoryConcurrency"
+      "systemRamGiB", "memoryConcurrency"
     ];
     const fields = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
     const output = id => document.getElementById(id);
@@ -677,10 +697,6 @@
     function value(id, minimum = 0) {
       const parsed = Number(fields[id].value);
       return Number.isFinite(parsed) ? Math.max(parsed, minimum) : minimum;
-    }
-
-    function hotBufferMultiplier() {
-      return value("speculativeTokens") + 1;
     }
 
     function estimateModelWeightGiB() {
@@ -741,24 +757,25 @@
       );
       const indexerPerRequest = ceilDiv(sequence, gpuBlock);
       const hot = value("hotGroups", 1) * ceilDiv(
-        value("deviceBuffer", 1) * hotBufferMultiplier(),
+        value("deviceBuffer", 1),
         gpuBlock,
       );
       const resident = value("hotGroups", 1) * value("residentPages");
       const hiGpuPerReq = indexerPerRequest + hot + resident + value("otherGpu");
-      const hiGpuLimit = Math.max(0, Math.floor(gpuPool / hiGpuPerReq));
+      const offloadedGpuLimit = Math.max(0, Math.floor(gpuPool / hiGpuPerReq));
 
       const hostPerRequest = ceilDiv(sequence, hostBlock);
       const hostPool = Math.floor(
         effectiveHostGiB * 2 ** 30 / value("hostBlockBytes", 1)
       );
       const hiHostLimit = Math.max(0, Math.floor(hostPool / hostPerRequest));
-      const hiLimit = Math.min(maxSeqs, hiGpuLimit, hiHostLimit);
-      const nonLimitingHostBytes = (
-        Math.min(maxSeqs, hiGpuLimit)
-        * hostPerRequest
-        * value("hostBlockBytes", 1)
-      );
+      const offloadedLimit = Math.min(maxSeqs, offloadedGpuLimit, hiHostLimit);
+      const hiGpuLimit = Math.max(baselineLimit, offloadedGpuLimit);
+      const hiLimit = Math.max(baselineLimit, offloadedLimit);
+      const nonLimitingOffloadedLimit = Math.min(maxSeqs, offloadedGpuLimit);
+      const nonLimitingHostBytes = nonLimitingOffloadedLimit > baselineLimit
+        ? nonLimitingOffloadedLimit * hostPerRequest * value("hostBlockBytes", 1)
+        : 0;
 
       return {
         baselineLimit,
@@ -770,6 +787,7 @@
         resident,
         hiGpuPerReq,
         hiGpuLimit,
+        offloadedGpuLimit,
         hostPerRequest,
         hiHostLimit,
         hiLimit,
@@ -789,9 +807,9 @@
       return fmt(tokens);
     }
 
-    function drawMultiplierChart(selectedSequence, modelFits) {
+    function drawConcurrencyChart(selectedSequence, modelFits) {
       chartState = { selectedSequence, modelFits };
-      const svg = output("multiplierChart");
+      const svg = output("concurrencyChart");
       const tooltip = output("chartTooltip");
       const width = Math.max(280, Math.round(svg.clientWidth || 640));
       const height = 280;
@@ -808,15 +826,12 @@
         const capacity = capacityAtSequence(sequence);
         const baselineTotal = capacity.baselineLimit * dp;
         const hiTotal = capacity.hiLimit * dp;
-        const ratio = baselineTotal > 0
-          ? hiTotal / baselineTotal
-          : hiTotal > 0 ? Infinity : NaN;
         const minimumHostGiB = Math.ceil(capacity.nonLimitingHostBytes / 2 ** 30);
-        points.push({ sequence, baselineTotal, hiTotal, ratio, minimumHostGiB });
+        points.push({ sequence, baselineTotal, hiTotal, minimumHostGiB });
       }
 
-      const title = `<title id="multiplierChartTitle">HiSparse concurrency multiplier by sequence length</title>`;
-      const desc = `<desc id="multiplierChartDesc">The 1.0 times line and crossover marker show where HiSparse begins to provide a concurrency benefit.</desc>`;
+      const title = `<title id="concurrencyChartTitle">Concurrency by sequence length</title>`;
+      const desc = `<desc id="concurrencyChartDesc">HiSparse and non-HiSparse total deployment concurrency across sequence lengths.</desc>`;
       if (!modelFits) {
         svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
         svg.innerHTML = (
@@ -825,26 +840,18 @@
           + `<rect class="chart-frame" x="${margin.left}" y="${margin.top}" width="${plotWidth}" height="${plotHeight}"/>`
           + `<text class="chart-label" x="${width / 2}" y="${height / 2}" text-anchor="middle">Curve unavailable: model does not fit.</text>`
         );
-        output("crossoverSummary").textContent = "No valid curve for this topology";
+        output("chartSummary").textContent = "No valid concurrency curves for this topology";
         tooltip.hidden = true;
         svg.onpointermove = null;
         svg.onpointerleave = null;
         return;
       }
 
-      const finiteRatios = points
-        .map(point => point.ratio)
-        .filter(ratio => Number.isFinite(ratio) && ratio > 0);
-      const minimumRatio = Math.min(1, ...finiteRatios);
-      const maximumRatio = Math.max(1, ...finiteRatios);
-      let minimumExponent = Math.floor(Math.log2(minimumRatio));
-      let maximumExponent = Math.ceil(Math.log2(maximumRatio));
-      if (minimumExponent === maximumExponent) {
-        minimumExponent -= 1;
-        maximumExponent += 1;
-      }
-      const yMinimum = 2 ** minimumExponent;
-      const yMaximum = 2 ** maximumExponent;
+      const maximumConcurrency = Math.max(
+        1,
+        ...points.flatMap(point => [point.baselineTotal, point.hiTotal]),
+      );
+      const yMaximum = Math.max(4, 2 ** Math.ceil(Math.log2(maximumConcurrency)));
       const xFor = sequence => (
         margin.left
         + Math.log(sequence / minSequence) / Math.log(maxSequence / minSequence) * plotWidth
@@ -852,37 +859,20 @@
       const sequenceForX = x => (
         minSequence * (maxSequence / minSequence) ** ((x - margin.left) / plotWidth)
       );
-      const yFor = ratio => (
+      const yFor = concurrency => (
         margin.top
-        + (Math.log2(yMaximum) - Math.log2(ratio))
-          / (Math.log2(yMaximum) - Math.log2(yMinimum)) * plotHeight
+        + (1 - Math.max(0, Math.min(yMaximum, concurrency)) / yMaximum) * plotHeight
       );
 
-      const exponentCount = maximumExponent - minimumExponent + 1;
-      const exponentStep = Math.max(1, Math.ceil(exponentCount / 7));
-      const yExponents = [];
-      for (let exponent = minimumExponent; exponent <= maximumExponent; exponent += 1) {
-        if (
-          exponent === minimumExponent
-          || exponent === maximumExponent
-          || exponent === 0
-          || (exponent - minimumExponent) % exponentStep === 0
-        ) {
-          yExponents.push(exponent);
-        }
-      }
-      const yGrid = [...new Set(yExponents)].sort((a, b) => a - b).map(exponent => {
-        const ratio = 2 ** exponent;
-        const y = yFor(ratio);
-        const ratioLabel = ratio < .01
-          ? ratio.toPrecision(1)
-          : ratio < 1 ? ratio.toFixed(2) : ratio;
+      const yGrid = [0, .25, .5, .75, 1].map(fraction => {
+        const concurrency = yMaximum * fraction;
+        const y = yFor(concurrency);
         return (
           `<line class="chart-grid" x1="${margin.left}" x2="${width - margin.right}" y1="${y}" y2="${y}"/>`
-          + `<text class="chart-axis" x="${margin.left - 7}" y="${y}" text-anchor="end" dominant-baseline="middle">${ratioLabel}×</text>`
+          + `<text class="chart-axis" x="${margin.left - 7}" y="${y}" text-anchor="end" dominant-baseline="middle">${fmt(concurrency)}</text>`
         );
       }).join("");
-      const xTicks = [1024, 16384, 262144, 1048576].map(sequence => {
+      const xTicks = [8192, 32768, 131072, 524288, 1048576].map(sequence => {
         const x = xFor(sequence);
         return (
           `<line class="chart-grid" x1="${x}" x2="${x}" y1="${margin.top}" y2="${height - margin.bottom}"/>`
@@ -890,58 +880,13 @@
         );
       }).join("");
 
-      let linePath = "";
-      let drawing = false;
-      points.forEach(point => {
-        if (!Number.isFinite(point.ratio) || point.ratio <= 0) {
-          drawing = false;
-          return;
-        }
-        linePath += `${drawing ? "L" : "M"}${xFor(point.sequence).toFixed(2)},${yFor(point.ratio).toFixed(2)}`;
-        drawing = true;
-      });
+      const pathFor = key => points.map((point, index) => (
+        `${index === 0 ? "M" : "L"}${xFor(point.sequence).toFixed(2)},${yFor(point[key]).toFixed(2)}`
+      )).join("");
+      const hiPath = pathFor("hiTotal");
+      const baselinePath = pathFor("baselineTotal");
 
-      const crossoverIndex = points.findIndex(point => point.ratio > 1);
-      const crossover = points[crossoverIndex];
-      let crossoverMarkup = "";
-      if (crossover) {
-        let crossoverX = xFor(crossover.sequence);
-        const previous = points[crossoverIndex - 1];
-        if (
-          previous
-          && Number.isFinite(previous.ratio)
-          && previous.ratio > 0
-          && previous.ratio <= 1
-          && Number.isFinite(crossover.ratio)
-        ) {
-          const previousLogRatio = Math.log2(previous.ratio);
-          const crossoverFraction = (
-            -previousLogRatio / (Math.log2(crossover.ratio) - previousLogRatio)
-          );
-          crossoverX = (
-            xFor(previous.sequence)
-            + crossoverFraction * (xFor(crossover.sequence) - xFor(previous.sequence))
-          );
-        }
-        const crossoverSequence = sequenceForX(crossoverX);
-        const crossoverY = yFor(1);
-        const labelAnchor = crossoverX > width - 150 ? "end" : "start";
-        const labelX = crossoverX + (labelAnchor === "end" ? -6 : 6);
-        crossoverMarkup = (
-          `<line class="chart-crossover" x1="${crossoverX}" x2="${crossoverX}" y1="${margin.top}" y2="${height - margin.bottom}"/>`
-          + `<circle class="chart-crossover-point" cx="${crossoverX}" cy="${crossoverY}" r="4"/>`
-          + `<text class="chart-label" x="${labelX}" y="${crossoverY - 7}" text-anchor="${labelAnchor}">crossover ~${fmtAxisTokens(crossoverSequence)}</text>`
-        );
-        output("crossoverSummary").textContent = (
-          `1.0× crossover near ${fmtTokens(Math.round(crossoverSequence))} with `
-          + `${fmt(value("deviceBuffer", 1) * hotBufferMultiplier())} `
-          + `effective hot-buffer rows`
-        );
-      } else {
-        output("crossoverSummary").textContent = "No 1.0× crossover in this range";
-      }
-
-      const hiSparseOnly = points.filter(point => point.ratio === Infinity);
+      const hiSparseOnly = points.filter(point => point.baselineTotal === 0 && point.hiTotal > 0);
       let onlyMarkup = "";
       if (hiSparseOnly.length > 0) {
         const regionStart = xFor(hiSparseOnly[0].sequence);
@@ -964,9 +909,12 @@
       const selectedX = xFor(selectedPoint.sequence);
       const selectedMarkup = (
         `<line class="chart-selected" x1="${selectedX}" x2="${selectedX}" y1="${margin.top}" y2="${height - margin.bottom}"/>`
-        + (Number.isFinite(selectedPoint.ratio) && selectedPoint.ratio > 0
-          ? `<circle class="chart-selected-point" cx="${selectedX}" cy="${yFor(selectedPoint.ratio)}" r="4"/>`
-          : "")
+        + `<circle class="chart-selected-point" cx="${selectedX}" cy="${yFor(selectedPoint.hiTotal)}" r="4"/>`
+        + `<circle class="chart-selected-point baseline" cx="${selectedX}" cy="${yFor(selectedPoint.baselineTotal)}" r="4"/>`
+      );
+      output("chartSummary").textContent = (
+        `${fmtTokens(selectedPoint.sequence)}: HiSparse ${fmt(selectedPoint.hiTotal)} · `
+        + `non-HiSparse ${fmt(selectedPoint.baselineTotal)}`
       );
 
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
@@ -977,25 +925,27 @@
         + yGrid
         + xTicks
         + `<rect class="chart-frame" x="${margin.left}" y="${margin.top}" width="${plotWidth}" height="${plotHeight}"/>`
-        + `<line class="chart-crossover" x1="${margin.left}" x2="${width - margin.right}" y1="${yFor(1)}" y2="${yFor(1)}"/>`
-        + (linePath ? `<path class="chart-curve" d="${linePath}"/>` : "")
-        + crossoverMarkup
+        + `<path class="chart-curve baseline" d="${baselinePath}"/>`
+        + `<path class="chart-curve hisparse" d="${hiPath}"/>`
         + selectedMarkup
         + `<text class="chart-axis-title" x="${margin.left + plotWidth / 2}" y="${height - 5}" text-anchor="middle">Sequence length (tokens)</text>`
-        + `<text class="chart-axis-title" x="14" y="${margin.top + plotHeight / 2}" text-anchor="middle" transform="rotate(-90 14 ${margin.top + plotHeight / 2})">Concurrency multiplier (log scale)</text>`
+        + `<text class="chart-axis-title" x="14" y="${margin.top + plotHeight / 2}" text-anchor="middle" transform="rotate(-90 14 ${margin.top + plotHeight / 2})">Total concurrent requests</text>`
         + `<line class="chart-hover-guide" data-hover-guide x1="0" x2="0" y1="${margin.top}" y2="${height - margin.bottom}" visibility="hidden"/>`
-        + `<circle class="chart-hover-point" data-hover-point cx="0" cy="0" r="4" visibility="hidden"/>`
+        + `<circle class="chart-hover-point" data-hover-hi cx="0" cy="0" r="4" visibility="hidden"/>`
+        + `<circle class="chart-hover-point baseline" data-hover-baseline cx="0" cy="0" r="4" visibility="hidden"/>`
       );
 
       const hoverGuide = svg.querySelector("[data-hover-guide]");
-      const hoverPoint = svg.querySelector("[data-hover-point]");
+      const hoverHi = svg.querySelector("[data-hover-hi]");
+      const hoverBaseline = svg.querySelector("[data-hover-baseline]");
       svg.onpointermove = event => {
         const bounds = svg.getBoundingClientRect();
         const pointerX = (event.clientX - bounds.left) * width / bounds.width;
         if (pointerX < margin.left || pointerX > width - margin.right) {
           tooltip.hidden = true;
           hoverGuide.setAttribute("visibility", "hidden");
-          hoverPoint.setAttribute("visibility", "hidden");
+          hoverHi.setAttribute("visibility", "hidden");
+          hoverBaseline.setAttribute("visibility", "hidden");
           return;
         }
         const rawSequence = sequenceForX(pointerX);
@@ -1008,21 +958,16 @@
         hoverGuide.setAttribute("x1", x);
         hoverGuide.setAttribute("x2", x);
         hoverGuide.setAttribute("visibility", "visible");
-        if (Number.isFinite(point.ratio) && point.ratio > 0) {
-          hoverPoint.setAttribute("cx", x);
-          hoverPoint.setAttribute("cy", yFor(point.ratio));
-          hoverPoint.setAttribute("visibility", "visible");
-        } else {
-          hoverPoint.setAttribute("visibility", "hidden");
-        }
-        const ratioLabel = point.ratio === Infinity
-          ? "HiSparse only"
-          : Number.isFinite(point.ratio) ? `${point.ratio.toFixed(2)}×` : "No capacity";
+        hoverHi.setAttribute("cx", x);
+        hoverHi.setAttribute("cy", yFor(point.hiTotal));
+        hoverHi.setAttribute("visibility", "visible");
+        hoverBaseline.setAttribute("cx", x);
+        hoverBaseline.setAttribute("cy", yFor(point.baselineTotal));
+        hoverBaseline.setAttribute("visibility", "visible");
         tooltip.textContent = (
           `${fmtTokens(point.sequence)}\n`
-          + `Multiplier: ${ratioLabel}\n`
           + `HiSparse: ${fmt(point.hiTotal)} · non-HiSparse: ${fmt(point.baselineTotal)}\n`
-          + `Minimum host / DP: ${fmt(point.minimumHostGiB)} GiB`
+          + `Minimum HiSparse host / DP: ${fmt(point.minimumHostGiB)} GiB`
         );
         tooltip.hidden = false;
         const localX = event.clientX - bounds.left;
@@ -1033,7 +978,8 @@
       svg.onpointerleave = () => {
         tooltip.hidden = true;
         hoverGuide.setAttribute("visibility", "hidden");
-        hoverPoint.setAttribute("visibility", "hidden");
+        hoverHi.setAttribute("visibility", "hidden");
+        hoverBaseline.setAttribute("visibility", "hidden");
       };
     }
 
@@ -1052,11 +998,19 @@
           Math.max(Number(fields.hostGiB.min), minimumHostGiB),
         );
       }
-      const requestedHostGiB = value("hostGiB", .01) * hostPoolCopies;
       const systemRamGiB = value("systemRamGiB", .01);
+      const requestedIndexerOffloadGiB = value("indexerOffloadGiB");
+      const requestedHostGiB = (
+        value("hostGiB", .01) * hostPoolCopies
+        + requestedIndexerOffloadGiB
+      );
       const effectiveHostGiB = Math.min(
         value("hostGiB", .01),
         systemRamGiB / hostPoolCopies,
+      );
+      const effectiveIndexerOffloadGiB = Math.min(
+        requestedIndexerOffloadGiB,
+        Math.max(0, systemRamGiB - effectiveHostGiB * hostPoolCopies),
       );
       const capacity = capacityAtSequence(sequence, effectiveHostGiB);
       const {
@@ -1069,6 +1023,7 @@
         resident,
         hiGpuPerReq,
         hiGpuLimit,
+        offloadedGpuLimit,
         hostPerRequest,
         hiHostLimit,
         hiLimit,
@@ -1080,7 +1035,10 @@
         ? hiTotal / baselineTotal
         : hiTotal > 0 ? Infinity : NaN;
       const gpuCount = dp * tp;
-      const physicalHostGiB = effectiveHostGiB * hostPoolCopies;
+      const physicalHostGiB = (
+        effectiveHostGiB * hostPoolCopies
+        + effectiveIndexerOffloadGiB
+      );
 
       output("baselineTotal").textContent = fmt(baselineTotal);
       output("hisparseTotal").textContent = fmt(hiTotal);
@@ -1100,6 +1058,13 @@
       const baselinePoolBytes = value("baselinePoolBytes", 1);
       const hisparsePoolBytes = value("hisparsePoolBytes", 1);
       const hostBlockBytes = value("hostBlockBytes", 1);
+      const indexerOffloadPerRequest = indexerPerRequest * hisparsePoolBytes * tp;
+      const indexerOffloadCoverage = indexerOffloadPerRequest > 0
+        ? Math.floor(effectiveIndexerOffloadGiB * 2 ** 30 / indexerOffloadPerRequest)
+        : 0;
+      output("indexerOffloadCoverage").textContent = requestedIndexerOffloadGiB > 0
+        ? `${fmt(indexerOffloadCoverage)} full histories`
+        : "Off";
       fields.memoryConcurrency.max = hiLimit;
       if (memoryConcurrencyUsesMaximum) fields.memoryConcurrency.value = hiLimit;
       fields.memoryConcurrency.value = Math.min(
@@ -1137,11 +1102,22 @@
         0,
         availableKvMemory - gpuMemoryHot - gpuMemoryIndexer - gpuMemoryStandard,
       );
-      const cpuMemoryTotal = effectiveHostGiB * hostPoolCopiesPerDp * 2 ** 30;
+      const indexerOffloadBytesPerDp = effectiveIndexerOffloadGiB / dp * 2 ** 30;
+      const cpuMemoryTotal = (
+        effectiveHostGiB * hostPoolCopiesPerDp * 2 ** 30
+        + indexerOffloadBytesPerDp
+      );
       const cpuMemoryHost = (
         memoryConcurrency * hostPerRequest * hostBlockBytes * hostPoolCopiesPerDp
       );
-      const cpuMemoryUnused = Math.max(0, cpuMemoryTotal - cpuMemoryHost);
+      const cpuMemoryIndexerOffload = Math.min(
+        memoryConcurrency * indexerOffloadPerRequest,
+        indexerOffloadBytesPerDp,
+      );
+      const cpuMemoryUnused = Math.max(
+        0,
+        cpuMemoryTotal - cpuMemoryHost - cpuMemoryIndexerOffload,
+      );
       output("gpuMemoryTotal").textContent = fmtBytes(gpuMemoryTotal);
       output("cpuMemoryTotal").textContent = fmtBytes(cpuMemoryTotal);
       updateMemoryBar("gpuMemoryBar", gpuMemoryTotal, [
@@ -1153,7 +1129,8 @@
         { id: "gpuMemoryUnused", label: "Unused KV", bytes: gpuMemoryUnused },
       ]);
       updateMemoryBar("cpuMemoryBar", cpuMemoryTotal, [
-        { id: "cpuMemoryHost", label: "Host buffers", bytes: cpuMemoryHost },
+        { id: "cpuMemoryHost", label: "HiSparse latent KV", bytes: cpuMemoryHost },
+        { id: "cpuMemoryIndexerOffload", label: "Native indexer offload", bytes: cpuMemoryIndexerOffload },
         { id: "cpuMemoryUnused", label: "Unused", bytes: cpuMemoryUnused },
       ]);
       output("baseGpuPerReq").textContent = fmtBytes(baselinePerRequest * baselinePoolBytes);
@@ -1164,23 +1141,34 @@
       output("hotPerReq").textContent = fmtBytes(hot * hisparsePoolBytes);
       output("residentPerReq").textContent = fmtBytes(resident * hisparsePoolBytes);
       output("hostPerReq").textContent = fmtBytes(hostPerRequest * hostBlockBytes);
+      output("indexerOffloadPerReq").textContent = fmtBytes(indexerOffloadPerRequest);
+      output("indexerOffloadCoverageDetail").textContent = requestedIndexerOffloadGiB > 0
+        ? `${fmt(indexerOffloadCoverage)} full histories across the deployment`
+        : "Off";
       output("baseGpuLimit").textContent = fmt(baselineLimit);
       output("hiGpuLimit").textContent = fmt(hiGpuLimit);
       output("hiHostLimit").textContent = fmt(hiHostLimit);
       output("baseFinal").textContent = `${fmt(baselineLimit)} / DP`;
       output("hiFinal").textContent = `${fmt(hiLimit)} / DP`;
-      output("hiGpuLimit").classList.toggle("limiter", hiGpuLimit <= hiHostLimit && hiGpuLimit <= maxSeqs);
-      output("hiHostLimit").classList.toggle("limiter", hiHostLimit <= hiGpuLimit && hiHostLimit <= maxSeqs);
+      const offloadedLimit = Math.min(maxSeqs, offloadedGpuLimit, hiHostLimit);
+      const fullResidencySelected = baselineLimit >= offloadedLimit;
+      output("hiGpuLimit").classList.toggle(
+        "limiter",
+        fullResidencySelected || (offloadedGpuLimit <= hiHostLimit && offloadedGpuLimit <= maxSeqs),
+      );
+      output("hiHostLimit").classList.toggle(
+        "limiter",
+        !fullResidencySelected && hiHostLimit <= offloadedGpuLimit && hiHostLimit <= maxSeqs,
+      );
 
       output("sequenceValue").textContent = fmtTokens(sequence);
       output("kvHbmValue").textContent = `${value("kvHbm").toFixed(1)} GiB`;
       output("hostGiBValue").textContent = `${fmt(value("hostGiB", .01))} GiB`;
+      output("indexerOffloadGiBValue").textContent = requestedIndexerOffloadGiB > 0
+        ? `${fmt(requestedIndexerOffloadGiB)} GiB`
+        : "Off";
       output("systemRamGiBValue").textContent = fmtHost(systemRamGiB);
       output("deviceBufferValue").textContent = fmt(value("deviceBuffer", 1));
-      const speculativeTokens = value("speculativeTokens");
-      output("speculativeTokensValue").textContent = speculativeTokens === 0
-        ? "Off"
-        : `${fmt(speculativeTokens)} speculative · ${fmt(hotBufferMultiplier())}× hot buffer`;
       const requiredGiB = estimateModelWeightGiB() + glmWeights.runtimeReserveGiB;
       const modelFits = requiredGiB <= gpuMemoryBudgetGiB();
       output("fitWarning").hidden = modelFits;
@@ -1201,13 +1189,14 @@
           + `HiSparse; ordinary GPU-resident KV supports none.`
         )
         : "";
-      drawMultiplierChart(sequence, modelFits);
+      drawConcurrencyChart(sequence, modelFits);
       const hostFits = requestedHostGiB <= systemRamGiB;
       output("ramWarning").hidden = hostFits;
       output("ramWarning").textContent = hostFits ? "" : (
         `Host pools request ${fmtHost(requestedHostGiB)}, but the system RAM `
-        + `budget is ${fmtHost(systemRamGiB)}. Estimated capacity uses `
-        + `${fmtHost(effectiveHostGiB)} per physical host pool.`
+        + `budget is ${fmtHost(systemRamGiB)}. HiSparse pools are reserved first; `
+        + `the effective native indexer offload pool is `
+        + `${fmtHost(effectiveIndexerOffloadGiB)}.`
       );
     }
 
@@ -1257,16 +1246,30 @@
     updateEstimatedKvHbm();
     updateKvLayout();
     calculate();
+
+    function resizeEmbeddingFrame() {
+      const frame = window.frameElement;
+      if (!frame) return;
+      const height = Math.ceil(document.documentElement.scrollHeight);
+      const nextHeight = `${height}px`;
+      if (frame.style.height !== nextHeight) frame.style.height = nextHeight;
+    }
+
     if ("ResizeObserver" in window) {
       new ResizeObserver(() => {
         if (chartState) {
-          drawMultiplierChart(
+          drawConcurrencyChart(
             chartState.selectedSequence,
             chartState.modelFits,
           );
         }
       }).observe(output("chartWrap"));
+      if (window.frameElement) {
+        new ResizeObserver(resizeEmbeddingFrame).observe(document.body);
+      }
     }
+    window.addEventListener("load", resizeEmbeddingFrame);
+    requestAnimationFrame(resizeEmbeddingFrame);
   </script>
 </body>
 </html>

@@ -59,26 +59,6 @@ Hybrid HiSparse is a residency policy over the shared HMA pool and a connector a
 
 Hot buffers default to 2x top-K rows per request, which ensures high hit rates while keeping the buffer size small. Since MLA KV is identical across TP ranks, the pinned host pool is allocated per DP replica and shared across its local TP ranks. TP rank 0 writes the shared copy, every rank can read it, and a CUDA event preserves stream ordering.
 
-## Estimate the benefit for your configuration
-
-The calculator below estimates ordinary GPU-resident KV and hybrid sparse offloading capacity using the same available HBM. Adjust the workload, GPU, parallelism, hot buffer, and host pool to approximate a deployment. Adjusting the values gives a sense of the potential increase in concurrency.
-
-The calculator exposes two useful thresholds. The minimum host pool is the capacity required to keep CPU memory from limiting the concurrency that the GPU-side indexer and hot buffers can sustain. The plot assumes this non-limiting host capacity at each sequence length and exposes a second threshold: hot buffers add a fixed GPU cost per request, so at short contexts ordinary GPU-resident KV may fit more requests; beyond the crossover, bounding sparse-MLA residency outweighs that fixed cost and the multiplier rises above 1.0×. Increasing the hot buffer moves this crossover to longer sequences and reduces the concurrency multiplier, trading capacity for greater hot-cache coverage.
-
-> [!NOTE]  
-> These are planning estimates, not guaranteed serving limits: runtime workspaces, request-length skew, and scheduling behavior can lower the concurrency reached in practice.
-
-<iframe
-  src="{{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }}"
-  title="Hybrid sparse offloading concurrency calculator"
-  loading="lazy"
-  width="100%"
-  height="1520"
-  style="border: 0; border-radius: 12px;"
-></iframe>
-
-[Open the concurrency calculator full-screen]({{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }})
-
 ## The numbers
 
 We benchmarked GLM 5.3 on 8× H200 using an OpenHands-style agentic workload: 13-turn conversations with a 74,160-token first turn, 753-token later turns, and fixed 220-token outputs. Both TP8 deployments used MTP3, FP8 KV cache, a 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92`. The offloading baseline used a 512 GiB offload pool; Hybrid HiSparse split the same host budget into a 384 GiB HiSparse pool and 128 GiB of offloading.
@@ -94,6 +74,29 @@ We are planning to make Hybrid HiSparse widely available in vLLM v0.30. In the m
 ## Offloading only where we need it
 
 Hybrid HiSparse only offloads where we need it. KV starts on the GPU and stays there while there is room, then gives up residency page by page as the pool runs short. Hot buffers and resident pages share pool and tensor and thus a request under pressure keeps decoding at partial residency instead of waiting for a slot to free up or paying to prefill itself again.
+
+## Estimate the benefit for your configuration
+
+The calculator below estimates ordinary GPU-resident KV and hybrid sparse offloading capacity using the same available HBM. Adjust the workload, GPU, parallelism, hot buffer, and host pool to approximate a deployment. Adjusting the values gives a sense of the potential increase in concurrency.
+
+The calculator shows the minimum HiSparse host pool required to keep CPU memory from limiting the concurrency that the GPU-side indexer and hot buffers can sustain. Native indexer offloading is modeled as a separate total CPU pool: it extends the prefix cache, but active indexer history still consumes HBM and therefore remains part of the running-request limit. The plot compares total HiSparse and ordinary GPU-resident concurrency across sequence lengths while assuming non-limiting HiSparse host capacity. Hot buffers add a fixed GPU cost per request, so ordinary residency can fit more requests at short contexts; at longer contexts, bounding sparse-MLA residency lets HiSparse sustain more concurrent requests. Increasing the hot buffer trades some of that capacity for greater hot-cache coverage.
+
+> [!NOTE]  
+> These are planning estimates, not guaranteed serving limits: runtime workspaces, request-length skew, and scheduling behavior can lower the concurrency reached in practice.
+
+<iframe
+  src="{{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }}"
+  title="Hybrid sparse offloading concurrency calculator"
+  loading="lazy"
+  width="100%"
+  height="1520"
+  scrolling="no"
+  style="border: 0; border-radius: 12px;"
+></iframe>
+
+[Open the concurrency calculator full-screen]({{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }})
+
+## Part 2
 
 This is the first post in a series on serving GLM 5.3 with vLLM. Hybrid HiSparse matters most on the decode side of a P/D deployment, where contexts are longest and KV pressure is highest. In Part 2 we put the pieces together on large-scale deployments, combining new and existing optimizations: Prefill Context Parallelism (PCP), Decode Context Parallelism (DCP), [adaptive verification](https://vllm.ai/blog/2026-08-14-dspark-adaptive-verification), and Hybrid HiSparse.
 
