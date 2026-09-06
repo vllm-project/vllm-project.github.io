@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "GLM-5.3 Optimizations, Part 1: Hybrid HiSparse Offloading in vLLM"
+title: "GLM 5.3 Optimizations, Part 1: Hybrid HiSparse Offloading in vLLM"
 author: "vLLM Team"
-summary: "vLLM integrates HiSparse as a pressure-driven memory tier that composes with the Hybrid Memory Allocator and KV offloading, letting GLM-5.3 requests keep decoding when their KV no longer fits in GPU memory, so concurrency stays high."
+summary: "vLLM integrates HiSparse as a pressure-driven memory tier that composes with the Hybrid Memory Allocator and KV offloading, letting GLM 5.3 requests keep decoding when their KV no longer fits in GPU memory, so concurrency stays high."
 image: /assets/figures/2026-09-06-glm53-part1-hybrid-sparse-offloading/hisparse-residency.svg
 tags:
   - glm
@@ -12,30 +12,27 @@ tags:
 
 <!-- DRAFT. -->
 
-**TL;DR:** vLLM is on a mission to make inference faster and cheaper to serve; this two-part series covers new GLM-5.3 optimizations toward that goal, with Part 1 focused on deploying on memory-constrained hardware. GLM-5.3's sparse attention reads only the top-K token rows per decode step, which greatly reduces the cost of attention at long contexts. [HiSparse](https://arxiv.org/abs/2608.07009) exploits the locality of those selections to keep cold KV in CPU memory and the rows attention actually needs in a small GPU hot cache. This means we can keep concurrency high because single requests can keep decoding even when not fitting entirely in GPU memory.
-Hybrid HiSparse builds upon vLLM's Hybrid Memory Allocator. GPU pages are released only if the shared pool is under pressure, and statically reserving blocks for requests is abandoned in favour of leasing out hot-cache blocks. Preparing completed prefix pages on the host while keeping their copies on the GPU keeps low-pressure scenarios on the fast GPU path, which means they incur little overhead under our mechanism. Part 2 puts this together with PCP, DCP, and adaptive verification in large-scale GLM-5.3 deployments.
-
-With vLLM, we are on a mission to make inference easier and cheaper to serve. That means making inference both faster and easier to deploy on more constrained hardware. In this two-part series we cover new optimizations we've introduced for GLM-5.3 in pursuit of that goal: in Part 1 we demonstrate how Hybrid HiSparse assists with an aggregated deployment on a single 8× H200 node, which is tight on memory for a model of this size.
+**TL;DR:** vLLM is on a mission to make inference faster and cheaper to serve. That means making inference both faster and easier to deploy on more constrained hardware. In this two-part series we cover new optimizations we've introduced for GLM 5.3 in pursuit of that goal: in Part 1 we demonstrate how Hybrid HiSparse assists with an aggregated deployment on a single 8× H200 node, which is tight on memory for a model of this size. Hybrid HiSparse enables running GLM 5.3 at full 1 million context length—previously impossible on this hardware—and achieves substantially higher concurrency across context lengths.
 
 ## Exploiting sparsity when we need to
 
-Agentic workloads inherently involve many concurrent requests, each with a long context that keeps growing. Because the GPU block pool is fixed, the KV cache will eventually run out of room for concurrent requests to allocate new blocks.
+Agentic workloads are characterized by many concurrent requests, each with a long context that keeps growing. Because the GPU block pool is fixed, the KV cache will eventually run out of room for concurrent requests to allocate new blocks.
 
 So far there have been two main options for addressing this issue, each with its own tradeoffs:
 
 * **Preemption** picks a request, drops its KV cache, and re-prefills it later. The request pays its full TTFT again on every eviction.
 * **Offloading** moves blocks out to host memory, but dense attention requires every token to be resident on the GPU, so the number of concurrent requests remains bounded by GPU memory.
 
-For sparse-MLA KV cache the indexer selects top-K tokens and only these needs to reside on GPU. [HiSparse](https://arxiv.org/abs/2608.07009) exploits this behaviour by keeping everything except the selected tokens on the CPU which gives us an effective upper bound for the GPU memory each request needs. The indexer KV does stay GPU-resident and still grows with context length, but it is much smaller overall, and GLM-5.3's [IndexShare](https://arxiv.org/abs/2603.12201) means there is only one index layer per four sparse-MLA layers. 
+For sparse-MLA KV cache, the indexer selects top-K tokens and attends only to these. [HiSparse](https://arxiv.org/abs/2608.07009) exploits this behaviour by offloading all KV cache—except these selected tokens—to the CPU, which yields an effective upper bound for the GPU memory each request needs. The indexer KV stays GPU-resident and still grows with context length, but it is much smaller overall, and GLM 5.3's [IndexShare](https://arxiv.org/abs/2603.12201) means there is only one indexer layer per four sparse-MLA layers. 
 
-We introduce Hybrid HiSparse, which additionally keeps block on the GPU as long as there is enough capacity. Only when KV cache is under pressure we apply above described HiSparse mechanism to only keep on the GPU what the indexer selects.  Hot buffer pages are indexed by tokens and thus a page can hold tokens drawn from many different CPU block, which leads to reduction across a wide span of context. Thus Hybrid HiSparse only pays the cost of CPU-GPU memory transfers when the system is under KV-cache pressure, i.e. higher concurrency.
+We introduce Hybrid HiSparse, which additionally keeps KV cache on the GPU as long as there is enough capacity. Only when KV cache is under pressure do we apply the above described HiSparse offloading mechanism. Hot buffer pages are indexed by tokens; thus, a page can hold tokens drawn from many different CPU blocks, which leads to reduction across a wide span of context. In this way, Hybrid HiSparse only pays the cost of CPU-GPU memory transfers when the system is under KV cache pressure, i.e., higher concurrency.
 
 <figure>
   <img src="{{ '/assets/figures/2026-09-06-glm53-part1-hybrid-sparse-offloading/hisparse-two-requests.svg' | relative_url }}" alt="One pool, two growing requests: preempt vs offload" style="width: 100%;">
   <figcaption><em>Preemption: B's slots are freed and its KV is gone. Conventional offload: B's KV survives on host and we don't need to re-prefill but B still can't run until all of it fits on GPU again, so A decodes alone. Hybrid sparse offload: each request releases its coldest pages in place, the same slots are re-leased as new tails and hot pages, and both keep decoding.</em></figcaption>
 </figure>
 
-Only Hybrid HiSparse keeps both requests decoding. The hot pages are leased from the same block pool as the KV pages, and more importantly they live in the same KV-cache tensor, so they look like ordinary pages to the sparse MLA kernel. Unique to hybrid sparse, some tokens can exist in the hot buffers while some tokens can still exist in GPU-resident pages, reducing the amount of CPU reloading.
+Only Hybrid HiSparse keeps both requests decoding. The hot pages are leased from the same block pool as the KV pages, and, more importantly, they live in the same KV-cache tensor, so they look like ordinary pages to the sparse MLA kernel. Uniquely to hybrid sparse, some tokens can exist in the hot buffers while some tokens can still exist in GPU-resident pages, reducing the amount of CPU reloading.
 
 ## How it works
 
@@ -83,10 +80,10 @@ The calculator exposes two useful thresholds. The minimum host pool is the capac
 
 ## The numbers
 
-We benchmarked GLM-5.3 on 8× H200 using an OpenHands-style agentic workload: 13-turn conversations with a 74,160-token first turn, 753-token later turns, and fixed 220-token outputs. Both TP8 deployments used MTP3, FP8 KV cache, a 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92`. The offloading baseline used a 512 GiB offload pool; Hybrid HiSparse split the same host budget into a 384 GiB HiSparse pool and 128 GiB of offloading.
+We benchmarked GLM 5.3 on 8× H200 using an OpenHands-style agentic workload: 13-turn conversations with a 74,160-token first turn, 753-token later turns, and fixed 220-token outputs. Both TP8 deployments used MTP3, FP8 KV cache, a 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92`. The offloading baseline used a 512 GiB offload pool; Hybrid HiSparse split the same host budget into a 384 GiB HiSparse pool and 128 GiB of offloading.
 
 <figure>
-  <img src="{{ '/assets/figures/2026-09-06-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg' | relative_url }}" alt="GLM-5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
+  <img src="{{ '/assets/figures/2026-09-06-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg' | relative_url }}" alt="GLM 5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
   <figcaption><em>Top: the interactivity-throughput sweep.
 </figure>
 
@@ -97,7 +94,7 @@ We are planning to make Hybrid HiSparse widely available in vLLM v0.30. In the m
 
 Hybrid HiSparse only offloads where we need it. KV starts on the GPU and stays there while there is room, then gives up residency page by page as the pool runs short. Hot buffers and resident pages share pool and tensor and thus a request under pressure keeps decoding at partial residency instead of waiting for a slot to free up or paying to prefill itself again.
 
-This is the first post in a series on serving GLM-5.3 with vLLM. Hybrid HiSparse matters most on the decode side of a P/D deployment, where contexts are longest and KV pressure is highest. In Part 2 we put the pieces together on large-scale deployments, combining new and existing optimizations: Prefill Context Parallelism (PCP), Decode Context Parallelism (DCP), [adaptive verification](https://vllm.ai/blog/2026-08-14-dspark-adaptive-verification), and Hybrid HiSparse.
+This is the first post in a series on serving GLM 5.3 with vLLM. Hybrid HiSparse matters most on the decode side of a P/D deployment, where contexts are longest and KV pressure is highest. In Part 2 we put the pieces together on large-scale deployments, combining new and existing optimizations: Prefill Context Parallelism (PCP), Decode Context Parallelism (DCP), [adaptive verification](https://vllm.ai/blog/2026-08-14-dspark-adaptive-verification), and Hybrid HiSparse.
 
 ## Acknowledgements
 
