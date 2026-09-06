@@ -287,6 +287,8 @@ But at scale, the choice is between a storage-backed cache hit and a full recomp
 - Max request concurrency: 64
 - Measures prefiller throughput only (prefill-decode disaggregated)
 
+Full performance results and reproduction scripts are available at [neuralmagic/fs-offload-experiments](https://github.com/neuralmagic/fs-offload-experiments).
+
 ---
 
 ## Acknowledgements
