@@ -3,7 +3,7 @@ layout: post
 title: "GLM 5.3 Optimizations, Part 1: Hybrid HiSparse Offloading in vLLM"
 author: "vLLM Team"
 summary: "vLLM integrates HiSparse as a pressure-driven memory tier that composes with the Hybrid Memory Allocator and KV offloading, letting GLM 5.3 requests keep decoding when their KV no longer fits in GPU memory, so concurrency stays high."
-image: /assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/hisparse-residency.svg
+image: /assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg
 tags:
   - glm
   - kv-cache
