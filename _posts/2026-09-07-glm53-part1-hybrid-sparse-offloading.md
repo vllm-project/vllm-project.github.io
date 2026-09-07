@@ -91,7 +91,7 @@ The calculator shows the minimum HiSparse host pool required to keep CPU memory 
   src="/assets/interactive_pages/hisparse_concurrency_calculator.html"
   title="Hybrid sparse offloading concurrency calculator"
   loading="lazy"
-  width="100%"
+  width="768"
   height="1520"
   scrolling="no"
   style="border: 0; border-radius: 12px;"
