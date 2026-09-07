@@ -3,7 +3,7 @@ layout: post
 title: "Serving LLMs on Tenstorrent Hardware: Inside the vLLM TT Plugin"
 author: "Tenstorrent Team"
 summary: "Tenstorrent accelerators join vLLM as an out-of-tree platform plugin, driven by mesh-architecture choices: phase-based scheduling, single-process data parallelism on Galaxy, on-device sampling with host fallback, and async decode overlap."
-image: /assets/figures/2026-09-04-vllm-tt-plugin/mesh-vs-collectives.svg
+image: /assets/figures/2026-09-07-vllm-tt-plugin/mesh-vs-collectives.svg
 tags:
   - hardware
   - ecosystem
@@ -50,7 +50,7 @@ The models served through this plugin are **hand-written [TTNN](https://github.c
 
 <figure>
   <img
-    src="/assets/figures/2026-09-04-vllm-tt-plugin/mesh-vs-collectives.svg"
+    src="/assets/figures/2026-09-07-vllm-tt-plugin/mesh-vs-collectives.svg"
     width="100%"
     alt="Diagram comparing host-issued collectives on GPUs with a compiled Tenstorrent mesh program" />
   <figcaption>Figure 1: Where cross-chip parallelism lives. In a GPU-shaped stack the host issues collectives on every layer and parallelism is a runtime choice expressed as tensor-parallel and pipeline-parallel ranks. On Tenstorrent, the mesh is compiled and traced as one program and the fabric moves data between chips inside it, so the host submits and reads once per step.</figcaption>
@@ -107,7 +107,7 @@ There are no mixed prefill+decode batches. Chunked prefill is supported within t
 
 <figure>
   <img
-    src="/assets/figures/2026-09-04-vllm-tt-plugin/scheduling-phases.svg"
+    src="/assets/figures/2026-09-07-vllm-tt-plugin/scheduling-phases.svg"
     width="100%"
     alt="Timeline comparing upstream token-budget steps with Tenstorrent phase-homogeneous steps" />
   <figcaption>Figure 2: The same long prompt under both scheduling models. Upstream spreads it across four chunked steps and mixes decode work for other requests into those same steps. On Tenstorrent a step is still all-prefill or all-decode: the prompt runs as prefill-only chunks with decode-only steps interleaved between them, so every step keeps a stable, traceable shape while in-flight requests keep advancing.</figcaption>
@@ -145,7 +145,7 @@ The coordinator then merges the per-lane `SchedulerOutput` objects, the worker b
 
 <figure>
   <img
-    src="/assets/figures/2026-09-04-vllm-tt-plugin/lane-dp.svg"
+    src="/assets/figures/2026-09-07-vllm-tt-plugin/lane-dp.svg"
     width="100%"
     alt="Diagram comparing the abandoned multi-process DP design with the shipped single-process lane-DP design" />
   <figcaption>Figure 3: The same four data-parallel KV caches, scheduled two ways. Top, the design we abandoned: four engine processes negotiate a shared prefill-or-decode mode over inter-process scatter/gather on every step, even though there is only one mesh submit and readout. Bottom, what we shipped: one engine process, a coordinator that picks the shared mode, four independent schedulers with lane-local block IDs, one merged device input, and results split back by lane.</figcaption>
@@ -192,7 +192,7 @@ Underneath, "async" here means something narrower than it usually does, and the 
 
 <figure>
   <img
-    src="/assets/figures/2026-09-04-vllm-tt-plugin/async-decode.svg"
+    src="/assets/figures/2026-09-07-vllm-tt-plugin/async-decode.svg"
     width="100%"
     alt="Timeline showing decode overlap through asynchronous host readback" />
   <figcaption>Figure 4: Where the overlap comes from. Without it, the device waits while the host reads back and samples the previous step. With async decode the readback is left in flight, so the host schedules the next step and finalizes the previous one while the device is still busy - and the only blocking wait is <code>ttnn.event_synchronize()</code> at finalization.</figcaption>
