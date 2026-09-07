@@ -461,7 +461,6 @@
               <input id="systemRamGiB" type="range" min="128" max="8192" step="64" value="4096">
             </div>
           </div>
-          <p class="inline-hint">MTP can further limit concurrency because its hot buffers must accommodate all verification tokens at once. At publication time, this means sizing each hot buffer to (num_speculative_tokens + 2) × top-K. This is subject to change as we work to shrink the buffers.</p>
           <p class="inline-hint">Native indexer offloading extends the prefix cache in CPU memory. Active indexer history must still fit in HBM, so this pool does not directly raise the running-request limit.</p>
           <label class="toggle" for="shareHost">
             <input id="shareHost" type="checkbox" checked>
@@ -628,8 +627,7 @@
             <p class="assumption">
               HiSparse GPU usage is the unique indexer history plus per-request hot buffers,
               two retained resident pages per hot group, and any additional GPU blocks entered
-              above. With MTP, set hot-buffer rows to the full verification-time reservation
-              described above. HiSparse host usage includes the full latent KV history. The native
+              above. HiSparse host usage includes the full latent KV history. The native
               OffloadingConnector pool caches completed indexer blocks for prefix reuse, but
               does not remove active indexer history from HBM. GLM’s latent and indexer KV
               are replicated across TP ranks;

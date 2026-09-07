@@ -81,8 +81,11 @@ The calculator below estimates ordinary GPU-resident KV and hybrid sparse offloa
 
 The calculator shows the minimum HiSparse host pool required to keep CPU memory from limiting the concurrency that the GPU-side indexer and hot buffers can sustain. Native indexer offloading is modeled as a separate total CPU pool: it extends the prefix cache, but active indexer history still consumes HBM and therefore remains part of the running-request limit. The plot compares total HiSparse and ordinary GPU-resident concurrency across sequence lengths while assuming non-limiting HiSparse host capacity. Hot buffers add a fixed GPU cost per request, so ordinary residency can fit more requests at short contexts; at longer contexts, bounding sparse-MLA residency lets HiSparse sustain more concurrent requests. Increasing the hot buffer trades some of that capacity for greater hot-cache coverage.
 
-> [!NOTE]  
+> [!NOTE]
 > These are planning estimates, not guaranteed serving limits: runtime workspaces, request-length skew, and scheduling behavior can lower the concurrency reached in practice.
+
+> [!NOTE]
+> MTP can further limit concurrency because its hot buffers must accommodate all verification tokens at once. At publication time, this means sizing each hot buffer to `(num_speculative_tokens + 2) × top-K`. This is subject to change as we work to shrink the buffers. Currently this is not taken into account by calculator below as we plan to relax this constraint.
 
 <iframe
   src="{{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }}"
