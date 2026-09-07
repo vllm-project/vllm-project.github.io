@@ -28,7 +28,7 @@ For sparse-MLA KV cache, the indexer selects top-K tokens and attends only to th
 We introduce Hybrid HiSparse, which additionally keeps KV cache on the GPU as long as there is enough capacity. Only when KV cache is under pressure do we apply the above described HiSparse offloading mechanism. Hot buffer pages are indexed by tokens; thus, a page can hold tokens drawn from many different CPU blocks, which leads to reduction across a wide span of context. In this way, Hybrid HiSparse only pays the cost of CPU-GPU memory transfers when the system is under KV cache pressure, i.e., higher concurrency.
 
 <figure>
-  <img src="{{ '/assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/hisparse-two-requests.svg' | relative_url }}" alt="One pool, two growing requests: preempt vs offload" style="width: 100%;">
+  <img src="/assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/hisparse-two-requests.svg" alt="One pool, two growing requests: preempt vs offload" style="width: 100%;">
   <figcaption><em>Preemption: B's slots are freed and its KV is gone. Conventional offload: B's KV survives on host and we don't need to re-prefill but B still can't run until all of it fits on GPU again, so A decodes alone. Hybrid sparse offload: each request releases its coldest pages in place, the same slots are re-leased as new tails and hot pages, and both keep decoding.</em></figcaption>
 </figure>
 
@@ -37,7 +37,7 @@ Only Hybrid HiSparse keeps both requests decoding. The hot pages are leased from
 ## How it works
 
 <figure>
-  <img src="{{ '/assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/hisparse-residency.svg' | relative_url }}" alt="Three KV residency states over one shared GPU block pool" style="width: 100%;">
+  <img src="/assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/hisparse-residency.svg" alt="Three KV residency states over one shared GPU block pool" style="width: 100%;">
   <figcaption><em>The same six top-K tokens are ringed in every panel; only their residency changes. Solid arrows: misses copying one row into a hot page. Dashed arrows: hot hits reused without a copy.</em></figcaption>
 </figure>
 
@@ -64,7 +64,7 @@ Hot buffers default to 2x top-K rows per request, which ensures high hit rates w
 We benchmarked GLM 5.3 on 8× H200 using an OpenHands multi-turn agentic workload ([source](https://www.lmsys.org/blog/2026-07-13-glm52-optimization)): 13-turn conversations with a 74,160-token first turn, 753-token later turns, and fixed 220-token outputs. Both TP8 deployments used MTP3, FP8 KV cache, a 142K admission limit, `max_num_batched_tokens=32768`, `max_num_seqs=256`, and `gpu_memory_utilization=0.92`. The offloading baseline used a 512 GiB offload pool; Hybrid HiSparse split the same host budget into a 384 GiB HiSparse pool and 128 GiB of offloading.
 
 <figure>
-  <img src="{{ '/assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg' | relative_url }}" alt="GLM 5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
+  <img src="/assets/figures/2026-09-07-glm53-part1-hybrid-sparse-offloading/openhands-pareto-occupancy.svg" alt="GLM 5.3 interactivity-throughput Pareto and measured concurrent running requests for Hybrid HiSparse and KV offloading" style="width: 100%;">
   <figcaption><em>Top: the interactivity-throughput sweep. Interactivity is 1000 divided by mean TPOT; logical total-token throughput includes prefix-cached prompt tokens and is divided by eight GPUs. Bottom: mean non-zero <code>vllm:num_requests_running</code> samples collected during each benchmark point. Hybrid HiSparse: <code>e8ef1e07bd</code>. Offloading baseline: <code>80cb71c9ff</code>.</em></figcaption>
 </figure>
 
@@ -88,7 +88,7 @@ The calculator shows the minimum HiSparse host pool required to keep CPU memory 
 > MTP can further limit concurrency because its hot buffers must accommodate all verification tokens at once. At publication time, this means sizing each hot buffer to `(num_speculative_tokens + 2) × top-K`. This is subject to change as we work to shrink the buffers. Currently this is not taken into account by calculator below as we plan to relax this constraint.
 
 <iframe
-  src="{{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }}"
+  src="/assets/interactive_pages/hisparse_concurrency_calculator.html"
   title="Hybrid sparse offloading concurrency calculator"
   loading="lazy"
   width="100%"
@@ -97,7 +97,7 @@ The calculator shows the minimum HiSparse host pool required to keep CPU memory 
   style="border: 0; border-radius: 12px;"
 ></iframe>
 
-[Open the concurrency calculator full-screen]({{ '/assets/interactive_pages/hisparse_concurrency_calculator.html' | relative_url }})
+[Open the concurrency calculator full-screen](/assets/interactive_pages/hisparse_concurrency_calculator.html)
 
 ## Part 2
 
@@ -136,7 +136,7 @@ vllm serve zai-org/GLM-5.3 \
 
 ### Reproducing the padded OpenHands sweep
 
-Everything the benchmark client needs ships with this blog so the recipe is self-contained: [`build_openhands_padded_dataset.py`]({{ '/assets/repro/2026-09-07-glm53-part1-hybrid-sparse-offloading/build_openhands_padded_dataset.py' | relative_url }}), [`install_evalscope_deps.sh`]({{ '/assets/repro/2026-09-07-glm53-part1-hybrid-sparse-offloading/install_evalscope_deps.sh' | relative_url }}), and [`evalscope-all-nodeps.txt`]({{ '/assets/repro/2026-09-07-glm53-part1-hybrid-sparse-offloading/evalscope-all-nodeps.txt' | relative_url }}). Download all three into one directory. EvalScope is pinned at `acd09b44384d53174768bb1063f675420f76fae9`. The following builds the deterministic 128-conversation dataset, then runs c1/c8/c16/c24/c32 with fresh conversations at every point:
+Everything the benchmark client needs ships with this blog so the recipe is self-contained: [`build_openhands_padded_dataset.py`](/assets/repro/2026-09-07-glm53-part1-hybrid-sparse-offloading/build_openhands_padded_dataset.py), [`install_evalscope_deps.sh`](/assets/repro/2026-09-07-glm53-part1-hybrid-sparse-offloading/install_evalscope_deps.sh), and [`evalscope-all-nodeps.txt`](/assets/repro/2026-09-07-glm53-part1-hybrid-sparse-offloading/evalscope-all-nodeps.txt). Download all three into one directory. EvalScope is pinned at `acd09b44384d53174768bb1063f675420f76fae9`. The following builds the deterministic 128-conversation dataset, then runs c1/c8/c16/c24/c32 with fresh conversations at every point:
 
 ```bash
 python3.12 -m venv client-venv
