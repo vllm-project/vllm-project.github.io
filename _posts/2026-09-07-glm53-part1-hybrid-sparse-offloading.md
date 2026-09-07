@@ -12,7 +12,7 @@ tags:
 
 <!-- DRAFT. -->
 
-**TL;DR:** vLLM is on a mission to make inference faster and cheaper to serve. That means making inference both faster and easier to deploy on more constrained hardware. In this two-part series we cover new optimizations we've introduced for GLM 5.3 in pursuit of that goal: in Part 1 we demonstrate how Hybrid HiSparse assists with an aggregated deployment on a single 8× H200 node, which is tight on memory for a model of this size. Hybrid HiSparse enables running GLM 5.3 at full 1 million context length—previously impossible on this hardware—and achieves substantially higher concurrency across context lengths.
+**TL;DR:** vLLM is on a mission to make inference faster and cheaper to serve. In this two-part series we cover new optimizations we've introduced for GLM 5.3 in pursuit of that goal: in Part 1 we demonstrate how Hybrid HiSparse assists with an aggregated deployment on a single 8× H200 node, which is tight on memory for a model of this size. Hybrid HiSparse enables running GLM 5.3 at full 1 million context length—previously impossible on this hardware—and achieves substantially higher concurrency across context lengths.
 
 ## Exploiting sparsity when we need to
 
