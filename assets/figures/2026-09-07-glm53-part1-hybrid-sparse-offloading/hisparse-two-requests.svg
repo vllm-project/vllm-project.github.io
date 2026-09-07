@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 564" width="1240" height="564" role="img"
+  aria-label="One GPU block pool shared by two growing requests, with three responses to exhaustion: preemption drops B's KV entirely; conventional offload saves B's KV to host but B still cannot run until fully resident; hybrid sparse offload frees the coldest slots in place and both requests keep decoding">
+<style>
+  :root {
+    --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --reqA: #2a78d6; --reqB: #86b6ef; --host: #eb6834; --hot: #1baf7a;
+    --pool-fill: rgba(11,11,11,0.025);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --reqA: #3987e5; --reqB: #184f95; --host: #d95926; --hot: #199e70;
+      --pool-fill: rgba(255,255,255,0.03);
+    }
+  }
+  text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .title { font-size: 17px; font-weight: 650; fill: var(--ink); }
+  .legend { font-size: 12px; fill: var(--ink2); }
+  .panel-title { font-size: 14.5px; font-weight: 650; fill: var(--ink); }
+  .panel-desc { font-size: 12px; fill: var(--ink2); }
+  .band-label { font-size: 11px; font-weight: 550; fill: var(--muted); letter-spacing: 0.02em; }
+  .note { font-size: 11.5px; fill: var(--ink2); }
+  .req-label { font-size: 12px; font-weight: 650; fill: var(--ink2); }
+  .row-label { font-size: 11px; font-weight: 600; fill: var(--ink2); }
+  .cell-label { font-size: 10.5px; font-weight: 650; fill: var(--ink); }
+  .reqA { fill: var(--reqA); }
+  .reqB { fill: var(--reqB); }
+  .hot { fill: var(--hot); }
+  .host { fill: var(--host); }
+  .hot-outline { fill: none; stroke: var(--hot); stroke-width: 1.2; opacity: 0.55; }
+  .null { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .slot-trace { fill: var(--pool-fill); stroke: var(--border); }
+  .pool { fill: var(--pool-fill); stroke: var(--border); }
+  .pool-host { fill: none; stroke: var(--grid); stroke-width: 1; stroke-dasharray: 6 4; }
+  .footer { fill: var(--pool-fill); stroke: var(--border); }
+  .arrow { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+</style>
+<defs>
+  <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M 0 0 L 8 4 L 0 8 z" fill="var(--muted)"/>
+  </marker>
+</defs>
+<rect x="0" y="0" width="1240" height="564" fill="var(--surface)"/>
+<text x="24" y="30" class="title" text-anchor="start">Three ways to avoid a full pool when two request contexts are growing</text>
+<rect x="24" y="46" width="14" height="14" rx="3" class="reqA"/>
+<text x="44" y="57" class="legend">Request A pages</text>
+<rect x="162.0" y="46" width="14" height="14" rx="3" class="reqB"/>
+<text x="182.0" y="57" class="legend">Request B pages</text>
+<rect x="300.0" y="46" width="8" height="14" rx="3" class="hot"/>
+<text x="314.0" y="57" class="legend">Hot row = 1 token</text>
+<rect x="444.8" y="46" width="14" height="14" rx="3" class="host"/>
+<text x="464.8" y="57" class="legend">Host copy (CPU)</text>
+<rect x="582.8" y="46" width="14" height="14" rx="3" class="null"/>
+<text x="602.8" y="57" class="legend">Released — free slot</text>
+<rect x="320" y="78" width="600" height="76" rx="8" class="pool"/>
+<text x="332" y="96" class="band-label" text-anchor="start">GPU · one HMA block pool — 0 blocks free</text>
+<text x="908" y="96" class="band-label" text-anchor="end">both need one more page</text>
+<rect x="352" y="116" width="40" height="22" rx="4" class="reqA"/>
+<text x="372.0" y="131.0" class="cell-label" text-anchor="middle">A</text>
+<rect x="397" y="116" width="40" height="22" rx="4" class="reqB"/>
+<text x="417.0" y="131.0" class="cell-label" text-anchor="middle">B</text>
+<rect x="442" y="116" width="40" height="22" rx="4" class="reqA"/>
+<rect x="487" y="116" width="40" height="22" rx="4" class="reqB"/>
+<rect x="532" y="116" width="40" height="22" rx="4" class="reqB"/>
+<rect x="577" y="116" width="40" height="22" rx="4" class="reqA"/>
+<rect x="622" y="116" width="40" height="22" rx="4" class="reqA"/>
+<rect x="667" y="116" width="40" height="22" rx="4" class="reqB"/>
+<rect x="712" y="116" width="40" height="22" rx="4" class="reqA"/>
+<rect x="757" y="116" width="40" height="22" rx="4" class="reqB"/>
+<rect x="802" y="116" width="40" height="22" rx="4" class="reqB"/>
+<rect x="847" y="116" width="40" height="22" rx="4" class="reqA"/>
+<path d="M 440 160 C 440 180, 218.0 176, 218.0 196" class="arrow" marker-end="url(#arr)"/>
+<path d="M 800 160 C 800 180, 1022.0 176, 1022.0 196" class="arrow" marker-end="url(#arr)"/>
+<line x1="620.0" y1="160" x2="620.0" y2="196" class="arrow" marker-end="url(#arr)"/>
+<rect x="24" y="202" width="388" height="200" rx="8" class="footer"/>
+<text x="40" y="226" class="panel-title" text-anchor="start">Preempt</text>
+<text x="40" y="244" class="panel-desc" text-anchor="start">The newest request is preempted:</text>
+<text x="40" y="260" class="panel-desc" text-anchor="start">B’s slots are freed and its KV is gone.</text>
+<rect x="40" y="274" width="356" height="62" rx="8" class="pool"/>
+<rect x="52" y="290" width="25" height="22" rx="4" class="reqA"/>
+<text x="64.5" y="305.0" class="cell-label" text-anchor="middle">A</text>
+<rect x="80" y="290" width="25" height="22" rx="4" class="reqA"/>
+<text x="92.5" y="305.0" class="cell-label" text-anchor="middle">+1</text>
+<rect x="108" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="136" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="164" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="192" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="220" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="248" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="276" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="304" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="332" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="360" y="290" width="25" height="22" rx="4" class="reqA"/>
+<text x="52" y="330" class="band-label" text-anchor="start">GPU · same pool</text>
+<text x="40" y="358" class="panel-desc" text-anchor="start">B re-enters the queue and re-prefills from</text>
+<text x="40" y="374" class="panel-desc" text-anchor="start">scratch — wasted compute, TTFT spike.</text>
+<rect x="426" y="202" width="388" height="300" rx="8" class="footer"/>
+<text x="442" y="226" class="panel-title" text-anchor="start">Conventional offload</text>
+<text x="442" y="244" class="panel-desc" text-anchor="start">B is still paused, but its KV is copied to</text>
+<text x="442" y="260" class="panel-desc" text-anchor="start">host first — nothing to recompute later.</text>
+<rect x="442" y="274" width="356" height="62" rx="8" class="pool"/>
+<rect x="454" y="290" width="25" height="22" rx="4" class="reqA"/>
+<text x="466.5" y="305.0" class="cell-label" text-anchor="middle">A</text>
+<rect x="482" y="290" width="25" height="22" rx="4" class="reqA"/>
+<text x="494.5" y="305.0" class="cell-label" text-anchor="middle">+1</text>
+<rect x="510" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="538" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="566" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="594" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="622" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="650" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="678" y="290" width="25" height="22" rx="4" class="reqA"/>
+<rect x="706" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="734" y="290" width="25" height="22" rx="4" class="null"/>
+<rect x="762" y="290" width="25" height="22" rx="4" class="reqA"/>
+<text x="454" y="330" class="band-label" text-anchor="start">GPU · same pool</text>
+<rect x="442" y="352" width="356" height="54" rx="8" class="pool-host"/>
+<text x="508" y="377" class="req-label" text-anchor="end">B</text>
+<rect x="516" y="362" width="25" height="22" rx="4" class="host"/>
+<rect x="544" y="362" width="25" height="22" rx="4" class="host"/>
+<rect x="572" y="362" width="25" height="22" rx="4" class="host"/>
+<rect x="600" y="362" width="25" height="22" rx="4" class="host"/>
+<rect x="628" y="362" width="25" height="22" rx="4" class="host"/>
+<rect x="656" y="362" width="25" height="22" rx="4" class="host"/>
+<text x="454" y="399" class="band-label" text-anchor="start">Pinned host pool (CPU)</text>
+<line x1="550.5" y1="314" x2="550.5" y2="348" class="arrow" marker-end="url(#arr)"/>
+<line x1="662.5" y1="314" x2="662.5" y2="348" class="arrow" marker-end="url(#arr)"/>
+<line x1="746.5" y1="314" x2="746.5" y2="348" class="arrow" marker-end="url(#arr)"/>
+<text x="442" y="426" class="panel-desc" text-anchor="start">B resumes without re-prefill — but dense</text>
+<text x="442" y="442" class="panel-desc" text-anchor="start">attention needs full residency, so B waits</text>
+<text x="442" y="458" class="panel-desc" text-anchor="start">until all of its pages fit on GPU again.</text>
+<text x="442" y="474" class="panel-desc" text-anchor="start">A runs alone: concurrency is unchanged.</text>
+<rect x="828" y="202" width="388" height="338" rx="8" class="footer"/>
+<text x="844" y="226" class="panel-title" text-anchor="start">Hybrid sparse offload</text>
+<text x="844" y="244" class="panel-desc" text-anchor="start">Each request releases its coldest pages.</text>
+<text x="844" y="260" class="panel-desc" text-anchor="start">Host-valid pages release without another copy.</text>
+<rect x="844" y="274" width="356" height="118" rx="8" class="pool"/>
+<rect x="905" y="285" width="27" height="82" rx="6" class="slot-trace"/>
+<rect x="929" y="285" width="27" height="82" rx="6" class="slot-trace"/>
+<rect x="977" y="285" width="27" height="82" rx="6" class="slot-trace"/>
+<rect x="1025" y="285" width="27" height="82" rx="6" class="slot-trace"/>
+<text x="900" y="305" class="row-label" text-anchor="end">release</text>
+<rect x="908" y="290" width="21" height="22" rx="4" class="null"/>
+<rect x="932" y="290" width="21" height="22" rx="4" class="null"/>
+<rect x="956" y="290" width="21" height="22" rx="4" class="reqA"/>
+<text x="966.5" y="305.0" class="cell-label" text-anchor="middle">A</text>
+<rect x="980" y="290" width="21" height="22" rx="4" class="null"/>
+<rect x="1004" y="290" width="21" height="22" rx="4" class="reqB"/>
+<text x="1014.5" y="305.0" class="cell-label" text-anchor="middle">B</text>
+<rect x="1028" y="290" width="21" height="22" rx="4" class="null"/>
+<rect x="1052" y="290" width="21" height="22" rx="4" class="reqA"/>
+<rect x="1076" y="290" width="21" height="22" rx="4" class="reqB"/>
+<rect x="1100" y="290" width="21" height="22" rx="4" class="reqA"/>
+<rect x="1124" y="290" width="21" height="22" rx="4" class="reqB"/>
+<rect x="1148" y="290" width="21" height="22" rx="4" class="reqB"/>
+<rect x="1172" y="290" width="21" height="22" rx="4" class="reqA"/>
+<text x="900" y="355" class="row-label" text-anchor="end">re-lease</text>
+<rect x="908" y="340" width="21" height="22" rx="4" class="reqA"/>
+<text x="918.5" y="355.0" class="cell-label" text-anchor="middle">+1</text>
+<rect x="932" y="340" width="21" height="22" rx="4" class="reqB"/>
+<text x="942.5" y="355.0" class="cell-label" text-anchor="middle">+1</text>
+<rect x="956" y="340" width="21" height="22" rx="4" class="reqA"/>
+<text x="966.5" y="355.0" class="cell-label" text-anchor="middle">A</text>
+<rect x="980" y="340" width="21" height="22" rx="4" class="hot-outline"/>
+<rect x="982" y="343" width="5" height="16" rx="2" class="hot"/>
+<rect x="988" y="343" width="5" height="16" rx="2" class="hot"/>
+<rect x="994" y="343" width="5" height="16" rx="2" class="hot"/>
+<rect x="1004" y="340" width="21" height="22" rx="4" class="reqB"/>
+<text x="1014.5" y="355.0" class="cell-label" text-anchor="middle">B</text>
+<rect x="1028" y="340" width="21" height="22" rx="4" class="hot-outline"/>
+<rect x="1030" y="343" width="5" height="16" rx="2" class="hot"/>
+<rect x="1036" y="343" width="5" height="16" rx="2" class="hot"/>
+<rect x="1042" y="343" width="5" height="16" rx="2" class="hot"/>
+<rect x="1052" y="340" width="21" height="22" rx="4" class="reqA"/>
+<rect x="1076" y="340" width="21" height="22" rx="4" class="reqB"/>
+<rect x="1100" y="340" width="21" height="22" rx="4" class="reqA"/>
+<rect x="1124" y="340" width="21" height="22" rx="4" class="reqB"/>
+<rect x="1148" y="340" width="21" height="22" rx="4" class="reqB"/>
+<rect x="1172" y="340" width="21" height="22" rx="4" class="reqA"/>
+<line x1="918.5" y1="314" x2="918.5" y2="336" class="arrow" marker-end="url(#arr)"/>
+<line x1="942.5" y1="314" x2="942.5" y2="336" class="arrow" marker-end="url(#arr)"/>
+<line x1="990.5" y1="314" x2="990.5" y2="336" class="arrow" marker-end="url(#arr)"/>
+<line x1="1038.5" y1="314" x2="1038.5" y2="336" class="arrow" marker-end="url(#arr)"/>
+<text x="990.5" y="378" class="band-label" text-anchor="middle">hot</text>
+<text x="1038.5" y="378" class="band-label" text-anchor="middle">hot</text>
+<text x="856" y="386" class="band-label" text-anchor="start">GPU · same pool</text>
+<text x="844" y="410" class="note" text-anchor="start">Same slots: freed in place, re-leased in place</text>
+<text x="844" y="426" class="note" text-anchor="start">as new tails and hot pages — no shuffling.</text>
+<rect x="844" y="438" width="356" height="54" rx="8" class="pool-host"/>
+<text x="888" y="463" class="req-label" text-anchor="end">A</text>
+<rect x="896" y="448" width="33" height="22" rx="4" class="host"/>
+<rect x="932" y="448" width="33" height="22" rx="4" class="host"/>
+<text x="1014" y="463" class="req-label" text-anchor="end">B</text>
+<rect x="1022" y="448" width="33" height="22" rx="4" class="host"/>
+<rect x="1058" y="448" width="33" height="22" rx="4" class="host"/>
+<text x="856" y="485" class="band-label" text-anchor="start">Pinned host pool (CPU)</text>
+<text x="844" y="510" class="panel-desc" text-anchor="start">Both keep decoding; spilled tokens stream</text>
+<text x="844" y="526" class="panel-desc" text-anchor="start">back through the hot pages on top-K hits.</text>
+</svg>
