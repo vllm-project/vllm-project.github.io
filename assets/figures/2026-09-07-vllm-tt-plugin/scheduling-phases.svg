@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 388" width="960" height="388" role="img" aria-labelledby="f3t f3d">
+<title id="f3t">Token-budget steps versus phase-homogeneous steps</title>
+<desc id="f3d">Upstream vLLM spreads a long prompt across four chunked steps while other requests keep decoding in those same steps. The Tenstorrent scheduler runs the same chunks as prefill-only steps and interleaves decode-only steps between them, so in-flight requests keep advancing.</desc>
+
+  <style>
+    .bg-panel  { fill: #f6f6fb; stroke: #d9d9e8; }
+    .bg-box    { fill: #ffffff; stroke: #c3c3d6; }
+    .idle      { fill: #eeeef4; stroke: #b6b6c8; }
+    .t         { fill: #16162a; font-family: ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+    .t-mut     { fill: #5c5c78; font-family: ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+    .ln        { stroke: #9a9ab4; fill: none; }
+    .ln-div    { stroke: #d2d2e2; fill: none; }
+    .acc-s     { stroke: #6C5CE7; fill: none; }
+    .acc-f     { fill: #6C5CE7; }
+    .acc-soft  { fill: #ece9fd; stroke: #6C5CE7; }
+    .acc-mid   { fill: #d8d2fb; stroke: #6C5CE7; }
+    .fab       { stroke: #6C5CE7; opacity: 0.8; fill: none; }
+    .acc2-s    { stroke: #0E8A7D; fill: none; }
+    .acc2-f    { fill: #0E8A7D; }
+    .acc2-soft { fill: #e2f4f1; stroke: #0E8A7D; }
+    .acc2-mid  { fill: #c6e9e3; stroke: #0E8A7D; }
+    .warn-f    { fill: #C2410C; }
+    .warn-s    { stroke: #C2410C; fill: none; }
+    .warn-soft { fill: #fdeee4; stroke: #C2410C; }
+    .ah        { fill: #9a9ab4; }
+    .ah-acc    { fill: #6C5CE7; }
+    .ah-acc2   { fill: #0E8A7D; }
+    .ah-warn   { fill: #C2410C; }
+    @media (prefers-color-scheme: dark) {
+      .bg-panel  { fill: #1b1b2b; stroke: #34344a; }
+      .bg-box    { fill: #23233a; stroke: #45455e; }
+      .idle      { fill: #26263a; stroke: #4b4b62; }
+      .t         { fill: #e9e9f2; }
+      .t-mut     { fill: #a2a2bd; }
+      .ln        { stroke: #6a6a86; }
+      .ln-div    { stroke: #3a3a52; }
+      .acc-s     { stroke: #A29BFE; }
+      .acc-f     { fill: #A29BFE; }
+      .acc-soft  { fill: #2e2b52; stroke: #A29BFE; }
+      .acc-mid   { fill: #423a78; stroke: #A29BFE; }
+      .fab       { stroke: #A29BFE; opacity: 1; }
+      .acc2-s    { stroke: #4ECDC4; }
+      .acc2-f    { fill: #4ECDC4; }
+      .acc2-soft { fill: #1d3a3a; stroke: #4ECDC4; }
+      .acc2-mid  { fill: #27514e; stroke: #4ECDC4; }
+      .warn-f    { fill: #FB923C; }
+      .warn-s    { stroke: #FB923C; }
+      .warn-soft { fill: #3a2a1c; stroke: #FB923C; }
+      .ah        { fill: #6a6a86; }
+      .ah-acc    { fill: #A29BFE; }
+      .ah-acc2   { fill: #4ECDC4; }
+      .ah-warn   { fill: #FB923C; }
+    }
+  </style>
+
+<text x="20" y="30" class="t" font-size="17" text-anchor="start" font-weight="700">One long prompt, two scheduling models</text>
+<rect x="600" y="19" width="15" height="11" rx="2.5" class="acc-mid" stroke-width="1.1"/><text x="621" y="28.5" class="t-mut" font-size="12.5" text-anchor="start">prefill work</text>
+<rect x="736" y="19" width="15" height="11" rx="2.5" class="acc2-mid" stroke-width="1.1"/><text x="757" y="28.5" class="t-mut" font-size="12.5" text-anchor="start">decode work</text>
+<text x="20" y="88" class="t" font-size="15" text-anchor="start" font-weight="600">Upstream vLLM — token-budget steps</text>
+<rect x="95" y="100" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="130.0" y="136.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="171" y="100" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="206.0" y="136.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="247" y="100" width="88" height="29" rx="4" class="acc-mid" stroke-width="1.1"/>
+<text x="291.0" y="119.0" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 1</text>
+<rect x="247" y="129" width="88" height="35" rx="4" class="acc2-mid" stroke-width="1.1"/>
+<text x="291.0" y="151.0" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="341" y="100" width="88" height="29" rx="4" class="acc-mid" stroke-width="1.1"/>
+<text x="385.0" y="119.0" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 2</text>
+<rect x="341" y="129" width="88" height="35" rx="4" class="acc2-mid" stroke-width="1.1"/>
+<text x="385.0" y="151.0" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="435" y="100" width="88" height="29" rx="4" class="acc-mid" stroke-width="1.1"/>
+<text x="479.0" y="119.0" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 3</text>
+<rect x="435" y="129" width="88" height="35" rx="4" class="acc2-mid" stroke-width="1.1"/>
+<text x="479.0" y="151.0" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="529" y="100" width="88" height="29" rx="4" class="acc-mid" stroke-width="1.1"/>
+<text x="573.0" y="119.0" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 4</text>
+<rect x="529" y="129" width="88" height="35" rx="4" class="acc2-mid" stroke-width="1.1"/>
+<text x="573.0" y="151.0" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="623" y="100" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="658.0" y="136.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="699" y="100" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="734.0" y="136.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="775" y="100" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="810.0" y="136.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<text x="20" y="182" class="t-mut" font-size="13" text-anchor="start">Prompt B is chunked over four steps, and requests A and C keep decoding inside those same steps.</text>
+<text x="20" y="212" class="t" font-size="15" text-anchor="start" font-weight="600">Tenstorrent — each step is all-prefill or all-decode</text>
+<rect x="95" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="130.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="171" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="206.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="247" y="224" width="64" height="64" rx="4" class="acc-mid" stroke-width="1.1"/><text x="279.0" y="260.2" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 1</text>
+<rect x="317" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="352.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="393" y="224" width="64" height="64" rx="4" class="acc-mid" stroke-width="1.1"/><text x="425.0" y="260.2" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 2</text>
+<rect x="463" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="498.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="539" y="224" width="64" height="64" rx="4" class="acc-mid" stroke-width="1.1"/><text x="571.0" y="260.2" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 3</text>
+<rect x="609" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="644.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="685" y="224" width="64" height="64" rx="4" class="acc-mid" stroke-width="1.1"/><text x="717.0" y="260.2" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">chunk 4</text>
+<rect x="755" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="790.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<rect x="831" y="224" width="70" height="64" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="866.0" y="260.2" class="acc2-f" font-size="12" text-anchor="middle" font-weight="600">decode</text>
+<path d="M247,293 L247,299 L749,299 L749,293" class="acc2-s" stroke-width="1.3" fill="none"/><text x="498.0" y="312" class="acc2-f" font-size="12.5" text-anchor="middle" font-weight="600">requests A and C keep decoding between chunks</text>
+<line x1="247" y1="94" x2="247" y2="293" class="ln" stroke-width="1.3" stroke-dasharray="4 3"/>
+<text x="254" y="72" class="t-mut" font-size="12" text-anchor="start">long prompt B arrives</text>
+<text x="901" y="72" class="t-mut" font-size="12" text-anchor="end">time →</text>
+<text x="20" y="346" class="t" font-size="13.5" text-anchor="start">The constraint buys a stable, traceable shape for every step; versus upstream, prefill and decode interleave at whole-step granularity.</text>
+<text x="20" y="368" class="t-mut" font-size="13" text-anchor="start">Step widths and the interleave cadence are schematic.</text>
+</svg>
