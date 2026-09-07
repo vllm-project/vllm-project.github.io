@@ -98,7 +98,7 @@ The calculator shows the minimum HiSparse host pool required to keep CPU memory 
 
 ## Part 2
 
-This is the first post in a series on serving GLM 5.3 with vLLM. Hybrid HiSparse matters most on the decode side of a P/D deployment, where contexts are longest and KV pressure is highest. In Part 2 we put the pieces together on large-scale deployments, combining new and existing optimizations: Prefill Context Parallelism (PCP), Decode Context Parallelism (DCP), [adaptive verification](https://vllm.ai/blog/2026-08-14-dspark-adaptive-verification), and Hybrid HiSparse.
+This is the first post in a series on serving GLM 5.3 with vLLM. Hybrid HiSparse matters most on the decode side of a P/D deployment, where contexts are longest and KV pressure is highest. In Part 2 we put the pieces together on large-scale deployments, combining new and existing optimizations: Prefill Context Parallelism (PCP), [Decode Context Parallelism (DCP)](https://vllm.ai/blog/2026-08-07-decode-context-parallelism), [adaptive verification](https://vllm.ai/blog/2026-08-14-dspark-adaptive-verification), and Hybrid HiSparse.
 
 ## Acknowledgements
 
