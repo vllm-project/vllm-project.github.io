@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820" data-generator="fireworks-tech-graph" data-schema-version="1" data-text-metrics="heuristic-v1" data-style-id="1" data-visual-theme="Flat Icon" data-diagram-type="flowchart" data-motion-scene="" data-semantic-profile="generic" data-semantic-valid="true" data-quality-profile="showcase" data-max-bends-per-edge="2" data-max-total-bends="8" data-max-route-stretch="1.35" data-max-bridged-crossings="0" data-min-node-gap="40.0" data-min-container-gutter="20.0" data-min-label-clearance="4.0" data-min-segment-length="16.0">
+  <defs>
+    <marker id="arrowA" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowB" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arrowC" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+    </marker>
+    <marker id="arrowF" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowH" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+    <filter id="shadowSoft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowGlass" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#020617" flood-opacity="0.28"/>
+    </filter>
+    <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .title { font-size: 30px; font-weight: 700; fill: #111827; }
+    .subtitle { font-size: 14px; font-weight: 500; fill: #6b7280; }
+    .section { font-size: 13px; font-weight: 700; fill: #2563eb; letter-spacing: 1.4px; }
+    .section-sub { font-size: 12px; font-weight: 500; fill: #94a3b8; }
+    .node-title { font-weight: 700; fill: #111827; }
+    .node-sub { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .node-type { font-size: 12px; font-weight: 700; fill: #9ca3af; letter-spacing: 0.08em; }
+    .arrow-label { font-size: 12px; font-weight: 600; fill: #6b7280; }
+    .legend { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .footnote { font-size: 12px; font-weight: 500; fill: #94a3b8; }
+    .metric-label { font-size: 8.5px; font-weight: 700; fill: #94a3b8; text-transform: uppercase; }
+    .metric-value { font-size: 9.5px; font-weight: 700; fill: #111827; }
+    </style>
+  </defs>
+  <rect data-graph-role="background" width="1200.0" height="820.0" fill="#ffffff"/>
+  <text x="600.0" y="56" text-anchor="middle" class="title">DP Multi-concurrency: One Request per Rank</text>
+  <text x="600.0" y="82" text-anchor="middle" class="subtitle">AllGather synchronizes request-independent weights while ranks compute different activations</text>
+  <g id="serial" data-graph-role="container" data-container-id="serial" data-semantic-role="boundary" data-graph-bounds="40,120,460,660">
+  <rect data-graph-role="container" x="40.0" y="120.0" width="420.0" height="540.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="58.0" y="144.0" class="section">WITHOUT DP MULTI-CONCURRENCY</text>
+    <rect id="serial-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="126" width="234.88" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="parallel" data-graph-role="container" data-container-id="parallel" data-semantic-role="boundary" data-graph-bounds="500,120,1160,660">
+  <rect data-graph-role="container" x="500.0" y="120.0" width="660.0" height="540.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="518.0" y="144.0" class="section">WITH DP MULTI-CONCURRENCY</text>
+    <rect id="parallel-header" data-graph-role="reserved" data-reserved-kind="container-header" x="508" y="126" width="212.26" height="30" fill="none" stroke="none"/>
+  </g>
+  <path id="serial-dispatch" data-graph-role="edge" data-edge-id="serial-dispatch" data-source="serial-queue" data-target="serial-worker" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 250,320 L 250,430" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="batch-broadcast" data-graph-role="edge" data-edge-id="batch-broadcast" data-source="request-list" data-target="broadcast" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 830,280 L 830,350" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
+  <path id="rank-select" data-graph-role="edge" data-edge-id="rank-select" data-source="broadcast" data-target="rank-map" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 830,440 L 830,520" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
+  <g id="node-serial-queue" data-graph-role="node" data-node-id="serial-queue" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="100,220,400,320">
+  <rect x="100.0" y="220.0" width="300.0" height="100.0" rx="10.0" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="250.0" y="270.0" text-anchor="middle" class="node-title" font-size="18.0">Requests 1–4 wait in line</text>
+  <text x="250.0" y="292.0" text-anchor="middle" class="node-sub">one request admitted at a time</text>
+  </g>
+  <g id="node-serial-worker" data-graph-role="node" data-node-id="serial-worker" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="100,430,400,540">
+  <rect x="100.0" y="430.0" width="300.0" height="110.0" rx="10.0" fill="#fef2f2" stroke="#dc2626" stroke-width="1.8"/>
+  <text x="250.0" y="485.0" text-anchor="middle" class="node-title" font-size="18.0">All ranks run one request</text>
+  <text x="250.0" y="507.0" text-anchor="middle" class="node-sub">throughput: one request per wave</text>
+  </g>
+  <g id="node-request-list" data-graph-role="node" data-node-id="request-list" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="570,190,1090,280">
+  <rect x="570.0" y="190.0" width="520.0" height="90.0" rx="10.0" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="830.0" y="235.0" text-anchor="middle" class="node-title" font-size="18.0">Batched request list</text>
+  <text x="830.0" y="257.0" text-anchor="middle" class="node-sub">req0 · req1 · req2 · req3</text>
+  </g>
+  <g id="node-broadcast" data-graph-role="node" data-node-id="broadcast" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="650,350,1010,440">
+  <rect x="650.0" y="350.0" width="360.0" height="90.0" rx="10.0" fill="#faf5ff" stroke="#7c3aed" stroke-width="2.0"/>
+  <rect x="656.0" y="356.0" width="348.0" height="78.0" rx="7.0" fill="none" stroke="#7c3aed" stroke-width="1.2" opacity="0.65"/>
+  <text x="830.0" y="395.0" text-anchor="middle" class="node-title" font-size="18.0">Single broadcast RPC</text>
+  <text x="830.0" y="417.0" text-anchor="middle" class="node-sub">execute on every DP rank</text>
+  </g>
+  <g id="node-rank-map" data-graph-role="node" data-node-id="rank-map" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="570,520,1090,620">
+  <rect x="570.0" y="520.0" width="520.0" height="100.0" rx="10.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="830.0" y="570.0" text-anchor="middle" class="node-title" font-size="18.0">DP ranks 0–3 compute req[0]–req[3]</text>
+  <text x="830.0" y="592.0" text-anchor="middle" class="node-sub">four outputs in parallel · 3.22 generated frames/s</text>
+  </g>
+  <g id="serial-dispatch-label" data-graph-role="label" data-owner="serial-dispatch" data-graph-bounds="197.48,361,247,381">
+  <text x="222.24" y="375.0" text-anchor="middle" class="arrow-label">serial</text>
+  </g>
+  <g id="batch-broadcast-label" data-graph-role="label" data-owner="batch-broadcast" data-graph-bounds="750.36,301,827,321">
+  <text x="788.68" y="315.0" text-anchor="middle" class="arrow-label">broadcast</text>
+  </g>
+  <g id="rank-select-label" data-graph-role="label" data-owner="rank-select" data-graph-bounds="703.08,466,827,486">
+  <text x="765.04" y="480.0" text-anchor="middle" class="arrow-label">select by dp_rank</text>
+  </g>
+  <g id="legend" data-graph-role="legend">
+    <rect id="legend-zone" data-graph-role="reserved" data-reserved-kind="legend" x="510" y="696" width="367.68" height="46" rx="10" fill="none" stroke="none"/>
+    <line data-graph-role="decoration" x1="520.0" y1="710.0" x2="550.0" y2="710.0" stroke="#7c3aed" stroke-width="2.4" marker-end="url(#arrowA)"/>
+    <text data-graph-role="decoration" x="560.0" y="714.0" class="legend">request dispatch</text>
+    <line data-graph-role="decoration" x1="693.6" y1="710.0" x2="723.6" y2="710.0" stroke="#f97316" stroke-width="2.4" marker-end="url(#arrowE)"/>
+    <text data-graph-role="decoration" x="733.6" y="714.0" class="legend">rank-local selection</text>
+  </g>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,778,531,794">
+  <text x="48.0" y="790.0" class="footnote">4-way concurrency reaches 3.3× HSDP throughput (~83% of the ideal 4×)</text>
+  </g>
+</svg>

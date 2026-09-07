@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="387" viewBox="0 0 1060 387" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+<rect width="1060" height="387" fill="#ffffff"/>
+<defs>
+</defs>
+<rect x="15" y="15" width="330" height="324" rx="14" fill="#ffffff" stroke="#e3e6ee"/>
+<rect x="33" y="31" width="84" height="20" rx="10" fill="#fdecec" stroke="#f6c9ca"/>
+<text x="75" y="45" font-size="11" font-weight="800" fill="#b4272c" text-anchor="middle" letter-spacing="0.3">LIMITATION</text>
+<text x="33" y="73" font-size="16.5" font-weight="800" fill="#1a1d24">Grouped Query Attention</text>
+<text x="33" y="89" font-size="11" font-weight="700" fill="#9aa0ab">ex. Qwen</text>
+<text x="33" y="111" font-size="11.5" font-weight="600" fill="#444b57">When TP &gt; KV heads, the extra ranks duplicate.</text>
+<rect x="33" y="123" width="294" height="138" rx="10" fill="#fbfcfe" stroke="#e3e6ee"/>
+<text x="180" y="141" font-size="10" font-weight="700" fill="#9aa0ab" text-anchor="middle" letter-spacing="0.5">TP = 4 · NUM_KV_HEADS = 2</text>
+<text x="76.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 0</text>
+<rect x="45.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="46.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#2f6bff"/>
+<rect x="45.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="145.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 1</text>
+<rect x="114.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="115.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#8bb0ff"/>
+<rect x="114.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="214.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 2</text>
+<rect x="183.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="184.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#2f6bff"/>
+<rect x="183.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e5484d" stroke-width="2"/>
+<rect x="199.5" y="193.0" width="30" height="14" rx="4" fill="#ffffff" fill-opacity="0.94"/>
+<text x="214.5" y="203.0" font-size="8" font-weight="800" fill="#e5484d" text-anchor="middle" letter-spacing="0.3">DUP</text>
+<text x="283.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 3</text>
+<rect x="252.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="253.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#8bb0ff"/>
+<rect x="252.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e5484d" stroke-width="2"/>
+<rect x="268.5" y="193.0" width="30" height="14" rx="4" fill="#ffffff" fill-opacity="0.94"/>
+<text x="283.5" y="203.0" font-size="8" font-weight="800" fill="#e5484d" text-anchor="middle" letter-spacing="0.3">DUP</text>
+<rect x="33" y="277" width="294" height="48" rx="8" fill="#fdecec" stroke="#f6c9ca"/>
+<text x="44" y="296" font-size="11.5" fill="#b4272c">Duplicate copies fill GPU memory —</text>
+<text x="44" y="312" font-size="11.5" font-weight="800" fill="#b4272c">less room to fit new requests.</text>
+<rect x="365" y="15" width="330" height="324" rx="14" fill="#ffffff" stroke="#e3e6ee"/>
+<rect x="383" y="31" width="84" height="20" rx="10" fill="#fdecec" stroke="#f6c9ca"/>
+<text x="425" y="45" font-size="11" font-weight="800" fill="#b4272c" text-anchor="middle" letter-spacing="0.3">LIMITATION</text>
+<text x="383" y="73" font-size="16.5" font-weight="800" fill="#1a1d24">Multihead Latent Attention</text>
+<text x="383" y="89" font-size="11" font-weight="700" fill="#9aa0ab">ex. DeepSeek, Kimi</text>
+<text x="383" y="111" font-size="11.5" font-weight="600" fill="#444b57">One shared latent, duplicated on every rank.</text>
+<rect x="383" y="123" width="294" height="138" rx="10" fill="#fbfcfe" stroke="#e3e6ee"/>
+<text x="530" y="141" font-size="10" font-weight="700" fill="#9aa0ab" text-anchor="middle" letter-spacing="0.5">SINGLE LATENT — NOTHING TO SPLIT</text>
+<text x="426.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 0</text>
+<rect x="395.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="396.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#2f6bff"/>
+<rect x="395.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="495.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 1</text>
+<rect x="464.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="465.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#2f6bff"/>
+<rect x="464.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e5484d" stroke-width="2"/>
+<rect x="480.5" y="193.0" width="30" height="14" rx="4" fill="#ffffff" fill-opacity="0.94"/>
+<text x="495.5" y="203.0" font-size="8" font-weight="800" fill="#e5484d" text-anchor="middle" letter-spacing="0.3">DUP</text>
+<text x="564.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 2</text>
+<rect x="533.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="534.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#2f6bff"/>
+<rect x="533.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e5484d" stroke-width="2"/>
+<rect x="549.5" y="193.0" width="30" height="14" rx="4" fill="#ffffff" fill-opacity="0.94"/>
+<text x="564.5" y="203.0" font-size="8" font-weight="800" fill="#e5484d" text-anchor="middle" letter-spacing="0.3">DUP</text>
+<text x="633.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 3</text>
+<rect x="602.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<rect x="603.0" y="168.0" width="61.0" height="64.0" rx="5.0" fill="#2f6bff"/>
+<rect x="602.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e5484d" stroke-width="2"/>
+<rect x="618.5" y="193.0" width="30" height="14" rx="4" fill="#ffffff" fill-opacity="0.94"/>
+<text x="633.5" y="203.0" font-size="8" font-weight="800" fill="#e5484d" text-anchor="middle" letter-spacing="0.3">DUP</text>
+<rect x="383" y="277" width="294" height="48" rx="8" fill="#fdecec" stroke="#f6c9ca"/>
+<text x="394" y="296" font-size="11.5" fill="#b4272c">Whole cache replicated everywhere —</text>
+<text x="394" y="312" font-size="11.5" font-weight="800" fill="#b4272c">almost no room for new requests.</text>
+<rect x="715" y="15" width="330" height="324" rx="14" fill="#f8fdfb" stroke="#bfe6d6"/>
+<rect x="733" y="31" width="71" height="20" rx="10" fill="#e8f6f0" stroke="#bfe6d6"/>
+<text x="769" y="45" font-size="11" font-weight="800" fill="#0e7a5b" text-anchor="middle" letter-spacing="0.3">SOLUTION</text>
+<text x="733" y="73" font-size="16.5" font-weight="800" fill="#0e7a5b">Decode Context Parallelism</text>
+<text x="733" y="89" font-size="11" font-weight="700" fill="#9aa0ab">splits by sequence, not by head</text>
+<text x="733" y="111" font-size="11.5" font-weight="600" fill="#444b57">Each GPU keeps 1/N of the cache.</text>
+<rect x="733" y="123" width="294" height="138" rx="10" fill="#f6fcf9" stroke="#cfeede"/>
+<text x="880" y="141" font-size="10" font-weight="700" fill="#9aa0ab" text-anchor="middle" letter-spacing="0.5">SHARDED BY TOKEN POSITION</text>
+<text x="776.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 0</text>
+<rect x="745.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<path d="M 746.0 214.1 L 807.0 214.1 L 807.0 227.0 Q 807.0 232.0 802.0 232.0 L 751.0 232.0 Q 746.0 232.0 746.0 227.0 Z" fill="#2f6bff"/>
+<rect x="745.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="776.5" y="182" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">room for</text>
+<text x="776.5" y="191" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">requests</text>
+<text x="776.5" y="226.0" font-size="8" font-weight="800" fill="#ffffff" text-anchor="middle">1/4</text>
+<text x="845.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 1</text>
+<rect x="814.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<path d="M 815.0 214.1 L 876.0 214.1 L 876.0 227.0 Q 876.0 232.0 871.0 232.0 L 820.0 232.0 Q 815.0 232.0 815.0 227.0 Z" fill="#2f6bff"/>
+<rect x="814.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="845.5" y="182" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">room for</text>
+<text x="845.5" y="191" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">requests</text>
+<text x="845.5" y="226.0" font-size="8" font-weight="800" fill="#ffffff" text-anchor="middle">1/4</text>
+<text x="914.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 2</text>
+<rect x="883.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<path d="M 884.0 214.1 L 945.0 214.1 L 945.0 227.0 Q 945.0 232.0 940.0 232.0 L 889.0 232.0 Q 884.0 232.0 884.0 227.0 Z" fill="#2f6bff"/>
+<rect x="883.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="914.5" y="182" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">room for</text>
+<text x="914.5" y="191" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">requests</text>
+<text x="914.5" y="226.0" font-size="8" font-weight="800" fill="#ffffff" text-anchor="middle">1/4</text>
+<text x="983.5" y="161" font-size="8.5" font-weight="700" fill="#9aa0ab" text-anchor="middle">GPU 3</text>
+<rect x="952.0" y="167" width="63.0" height="66" rx="6" fill="#ffffff"/>
+<path d="M 953.0 214.1 L 1014.0 214.1 L 1014.0 227.0 Q 1014.0 232.0 1009.0 232.0 L 958.0 232.0 Q 953.0 232.0 953.0 227.0 Z" fill="#2f6bff"/>
+<rect x="952.0" y="167" width="63.0" height="66" rx="6" fill="none" stroke="#e3e6ee" stroke-width="1"/>
+<text x="983.5" y="182" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">room for</text>
+<text x="983.5" y="191" font-size="7.5" font-weight="700" fill="#8aa0cc" text-anchor="middle">requests</text>
+<text x="983.5" y="226.0" font-size="8" font-weight="800" fill="#ffffff" text-anchor="middle">1/4</text>
+<rect x="733" y="277" width="294" height="48" rx="8" fill="#e8f6f0" stroke="#bfe6d6"/>
+<text x="744" y="296" font-size="11.5" fill="#0e7a5b">No duplication — the freed memory is</text>
+<text x="744" y="312" font-size="11.5" font-weight="800" fill="#0e7a5b">space to fit more requests.</text>
+<rect x="300" y="358" width="13" height="13" rx="3" fill="#2f6bff" stroke="none" stroke-width="1"/>
+<text x="319" y="369" font-size="11.5" fill="#6b7280">KV cache</text>
+<rect x="393.0" y="358" width="13" height="13" rx="3" fill="#ffffff" stroke="#e3e6ee" stroke-width="1"/>
+<text x="412.0" y="369" font-size="11.5" fill="#6b7280">free GPU memory (room for requests)</text>
+<rect x="648.0" y="358" width="13" height="13" rx="3" fill="#ffffff" stroke="#e5484d" stroke-width="2"/>
+<text x="667.0" y="369" font-size="11.5" fill="#6b7280">duplicated copy</text>
+</svg>

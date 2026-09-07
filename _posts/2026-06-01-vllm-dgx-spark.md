@@ -149,7 +149,7 @@ docker run -d --name vllm --ipc=host --restart unless-stopped \
   -e HF_TOKEN="$HF_TOKEN" \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   vllm/vllm-openai:cu130-nightly \
-  vllm serve nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4 \
+  nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4 \
     --served-model-name nemotron-3-super \
     --trust-remote-code \
     --max-model-len 131072 \

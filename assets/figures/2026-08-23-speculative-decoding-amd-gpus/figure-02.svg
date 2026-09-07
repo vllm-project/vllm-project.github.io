@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1380 820" role="img" aria-labelledby="title desc">
+  <title id="title">A simple accept/reject example</title>
+  <desc id="desc">Draft tokens are verified from left to right. The first two tokens are accepted, the third token is rejected and replaced by a target model token, and the fourth draft token is discarded.</desc>
+  <defs>
+    <style>
+      .title { font: 700 42px Arial, Helvetica, sans-serif; fill: #111827; }
+      .subtitle { font: 400 22px Arial, Helvetica, sans-serif; fill: #374151; }
+      .label { font: 700 22px Arial, Helvetica, sans-serif; fill: #2f343b; letter-spacing: 0.04em; }
+      .body { font: 400 26px Arial, Helvetica, sans-serif; fill: #111827; }
+      .token { font: 700 24px Arial, Helvetica, sans-serif; }
+      .small { font: 400 18px Arial, Helvetica, sans-serif; fill: #111827; }
+      .note { font: italic 400 20px Arial, Helvetica, sans-serif; fill: #111827; }
+      .note-strong { font: italic 700 20px Arial, Helvetica, sans-serif; fill: #111827; }
+      .box { fill: #ffffff; stroke-width: 2; }
+      .neutral { stroke: #8b8f96; }
+      .accept { stroke: #6bbf9a; fill: #ecfdf5; }
+      .reject { stroke: #f29b9b; fill: #fff5f5; }
+      .output { stroke: #8fb5ff; fill: #f3f7ff; }
+      .accepted-text { fill: #0b7d33; }
+      .rejected-text { fill: #dc2626; }
+      .discarded-text { fill: #6b7280; font-style: italic; }
+      .blue-text { fill: #0b51b7; font-weight: 700; }
+      .arrow { stroke: #111827; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .thin-line { stroke: #b5bac2; stroke-width: 2; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#111827" />
+    </marker>
+  </defs>
+
+  <rect width="1380" height="820" fill="#ffffff" />
+
+  <text class="title" x="36" y="58">A simple accept/reject example</text>
+  <text class="subtitle" x="36" y="100">Draft tokens are verified left to right. After the first rejection, all later tokens are discarded.</text>
+
+  <text class="label" x="38" y="196">CONTEXT</text>
+  <rect class="box neutral" x="230" y="156" width="1120" height="72" rx="12" />
+  <text class="body" x="276" y="201">The weather today is</text>
+
+  <text class="label" x="38" y="300">DRAFT</text>
+  <text class="label" x="38" y="330">PROPOSAL</text>
+  <rect class="box accept" x="230" y="278" width="255" height="72" rx="12" />
+  <text class="token accepted-text" x="357" y="323" text-anchor="middle">sunny</text>
+  <rect class="box accept" x="510" y="278" width="255" height="72" rx="12" />
+  <text class="token accepted-text" x="637" y="323" text-anchor="middle">and</text>
+  <rect class="box reject" x="790" y="278" width="255" height="72" rx="12" />
+  <text class="token rejected-text" x="918" y="323" text-anchor="middle">warm</text>
+  <rect class="box neutral" x="1070" y="278" width="255" height="72" rx="12" />
+  <text class="token discarded-text" x="1198" y="323" text-anchor="middle">outside</text>
+
+  <text class="label" x="38" y="432">VERIFICATION</text>
+  <line class="arrow" x1="357" y1="362" x2="357" y2="390" />
+  <line class="arrow" x1="637" y1="362" x2="637" y2="390" />
+  <line class="arrow" x1="918" y1="362" x2="918" y2="390" />
+  <line class="arrow" x1="1198" y1="362" x2="1198" y2="390" />
+
+  <rect class="box accept" x="230" y="398" width="255" height="64" rx="10" />
+  <text class="token accepted-text" x="357" y="438" text-anchor="middle">accept</text>
+  <rect class="box accept" x="510" y="398" width="255" height="64" rx="10" />
+  <text class="token accepted-text" x="637" y="438" text-anchor="middle">accept</text>
+  <rect class="box reject" x="790" y="398" width="255" height="64" rx="10" />
+  <text class="token rejected-text" x="918" y="438" text-anchor="middle">reject</text>
+  <rect class="box neutral" x="1070" y="398" width="255" height="64" rx="10" />
+  <text class="token discarded-text" x="1198" y="438" text-anchor="middle">discard</text>
+
+  <line x1="918" y1="468" x2="918" y2="492" stroke="#111827" stroke-width="2" />
+  <text class="small" x="918" y="516" text-anchor="middle">target model selects</text>
+  <text class="small blue-text" x="918" y="542" text-anchor="middle">"clear"</text>
+
+  <text class="label" x="38" y="624">OUTPUT</text>
+  <rect class="box output" x="230" y="582" width="1120" height="72" rx="12" />
+  <text class="body" x="276" y="627">
+    The weather today is sunny and
+    <tspan class="blue-text">clear</tspan>
+  </text>
+
+  <line class="thin-line" x1="38" y1="696" x2="1350" y2="696" />
+
+  <text class="note-strong" x="142" y="752" text-anchor="end">Rule:</text>
+  <text class="note" x="154" y="752">accept until first rejection -&gt; replace that position with the target model's token -&gt; discard the rest -&gt; continue decoding.</text>
+
+  <text class="note-strong" x="142" y="784" text-anchor="end">Outcome:</text>
+  <text class="note" x="154" y="784">three tokens are committed in this round: two accepted draft tokens and one target-supplied token.</text>
+</svg>

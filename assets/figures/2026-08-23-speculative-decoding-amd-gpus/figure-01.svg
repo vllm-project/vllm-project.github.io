@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1380 460" role="img" aria-labelledby="title desc">
+  <title id="title">Speculative decoding flow</title>
+  <desc id="desc">A draft component proposes candidate draft tokens, the target model verifies them, and accepted tokens are committed.</desc>
+  <defs>
+    <style>
+      .label { font: 700 24px Arial, Helvetica, sans-serif; }
+      .body { font: 600 25px Arial, Helvetica, sans-serif; fill: #111827; }
+      .token { font: 500 25px Arial, Helvetica, sans-serif; fill: #111827; }
+      .green { stroke: #0b7d33; }
+      .blue { stroke: #0b51b7; }
+      .box { fill: #ffffff; stroke-width: 2.5; }
+      .soft-green { fill: #ecfdf5; }
+      .soft-blue { fill: #f3f7ff; }
+      .dashed { fill: none; stroke-dasharray: 8 8; stroke-width: 2; }
+      .arrow { stroke: #111827; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .callout { fill: #ffffff; stroke: #111827; stroke-width: 2; stroke-dasharray: 7 7; }
+      .callout-line { stroke: #111827; stroke-width: 2; stroke-dasharray: 7 7; marker-end: url(#thin-arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,4 L0,8 Z" fill="#111827" />
+    </marker>
+    <marker id="thin-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#111827" />
+    </marker>
+  </defs>
+
+  <rect width="1380" height="460" fill="#ffffff" />
+
+  <rect class="box green soft-green" x="45" y="104" width="205" height="196" rx="12" />
+  <text class="body" x="148" y="190" text-anchor="middle">Draft</text>
+  <text class="body" x="148" y="226" text-anchor="middle">Component</text>
+
+  <line class="arrow" x1="262" y1="202" x2="314" y2="202" />
+
+  <text class="label" x="504" y="114" text-anchor="middle" fill="#0b7d33">Candidate Draft Tokens</text>
+  <rect class="dashed green" x="320" y="145" width="365" height="108" rx="12" />
+
+  <rect class="box green" x="340" y="170" width="55" height="62" rx="8" />
+  <text class="token" x="368" y="209" text-anchor="middle">t<tspan baseline-shift="sub" font-size="16">1</tspan></text>
+  <rect class="box green" x="414" y="170" width="55" height="62" rx="8" />
+  <text class="token" x="442" y="209" text-anchor="middle">t<tspan baseline-shift="sub" font-size="16">2</tspan></text>
+  <rect class="box green" x="486" y="170" width="55" height="62" rx="8" />
+  <text class="token" x="514" y="209" text-anchor="middle">t<tspan baseline-shift="sub" font-size="16">3</tspan></text>
+  <text class="token" x="574" y="207" text-anchor="middle">...</text>
+  <rect class="box green" x="610" y="170" width="55" height="62" rx="8" />
+  <text class="token" x="638" y="209" text-anchor="middle">t<tspan baseline-shift="sub" font-size="16">k</tspan></text>
+
+  <rect class="callout" x="337" y="322" width="340" height="58" rx="8" />
+  <text class="token" x="507" y="359" text-anchor="middle">num_speculative_tokens = K</text>
+  <line class="callout-line" x1="507" y1="322" x2="507" y2="261" />
+
+  <line class="arrow" x1="696" y1="202" x2="743" y2="202" />
+
+  <rect class="box blue soft-blue" x="748" y="104" width="278" height="196" rx="12" />
+  <text class="body" x="887" y="150" text-anchor="middle">Target Model</text>
+  <rect class="box blue" x="767" y="180" width="240" height="88" rx="9" />
+  <text class="body" x="887" y="232" text-anchor="middle">Verification Pass</text>
+
+  <line class="arrow" x1="1034" y1="202" x2="1085" y2="202" />
+
+  <text class="label" x="1234" y="138" text-anchor="middle" fill="#0b51b7">Committed Tokens</text>
+  <rect class="box blue" x="1086" y="170" width="49" height="60" rx="7" />
+  <text class="token" x="1111" y="207" text-anchor="middle">a<tspan baseline-shift="sub" font-size="16">1</tspan></text>
+  <rect class="box blue" x="1145" y="170" width="49" height="60" rx="7" />
+  <text class="token" x="1170" y="207" text-anchor="middle">a<tspan baseline-shift="sub" font-size="16">2</tspan></text>
+  <rect class="box blue" x="1203" y="170" width="49" height="60" rx="7" />
+  <text class="token" x="1228" y="207" text-anchor="middle">a<tspan baseline-shift="sub" font-size="16">3</tspan></text>
+  <text class="token" x="1280" y="207" text-anchor="middle">...</text>
+  <rect class="box blue" x="1305" y="170" width="51" height="60" rx="7" />
+  <text class="token" x="1331" y="207" text-anchor="middle">a<tspan baseline-shift="sub" font-size="16">m</tspan></text>
+</svg>
