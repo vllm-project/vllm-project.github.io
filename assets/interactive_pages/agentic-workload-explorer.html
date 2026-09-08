@@ -1,0 +1,2141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Agentic Workload Explorer</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Agentic Workload Explorer" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Agentic Workload Explorer&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress {
+  display: flex;
+  height: 6px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 6px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;agentx-trace-viz&quot; class=&quot;agentx-trace-viz&quot;&gt;
+  &lt;style&gt;
+    #agentx-trace-viz {
+      width: 100%;
+      color: var(--foreground);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    #agentx-trace-viz .ax-head,
+    #agentx-trace-viz .ax-legend,
+    #agentx-trace-viz .ax-overview-wrap,
+    #agentx-trace-viz .ax-controls-wrap,
+    #agentx-trace-viz .ax-detail-wrap {
+      margin-bottom: 1.25rem;
+    }
+
+    #agentx-trace-viz .ax-head h2,
+    #agentx-trace-viz .ax-head p,
+    #agentx-trace-viz .ax-overview-note,
+    #agentx-trace-viz .ax-state-title,
+    #agentx-trace-viz .ax-state-copy {
+      margin: 0;
+    }
+
+    #agentx-trace-viz .ax-head p {
+      max-width: 58rem;
+      margin-top: 0.4rem;
+      color: var(--muted-foreground);
+      font-size: 1.05rem;
+    }
+
+    #agentx-trace-viz .ax-head h2 {
+      font-size: clamp(1.55rem, 3vw, 2rem);
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+    }
+
+    #agentx-trace-viz h3 {
+      font-size: 1.22rem;
+      line-height: 1.3;
+    }
+
+    #agentx-trace-viz .ax-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 1rem;
+    }
+
+    #agentx-trace-viz .ax-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+      color: var(--muted-foreground);
+      font-size: 0.96rem;
+    }
+
+    #agentx-trace-viz .ax-swatch {
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 0.18rem;
+      flex: 0 0 auto;
+    }
+
+    #agentx-trace-viz .ax-line-swatch {
+      width: 1.35rem;
+      height: 0;
+      border-top: 0.22rem solid;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    #agentx-trace-viz .ax-system { background: var(--viz-series-1); }
+    #agentx-trace-viz .ax-user { background: var(--muted-foreground); }
+    #agentx-trace-viz .ax-thinking { background: var(--viz-series-2); }
+    #agentx-trace-viz .ax-toolcall { background: var(--viz-series-5); }
+    #agentx-trace-viz .ax-result { background: var(--viz-series-4); }
+    #agentx-trace-viz .ax-response { background: var(--viz-series-6); }
+    #agentx-trace-viz .ax-reused { border-color: var(--viz-series-3); }
+    #agentx-trace-viz .ax-fresh {
+      border-color: var(--viz-series-5);
+      border-top-style: dashed;
+    }
+
+    #agentx-trace-viz .ax-overview-head,
+    #agentx-trace-viz .ax-range-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    #agentx-trace-viz .ax-range-head {
+      align-items: center;
+    }
+
+    #agentx-trace-viz .ax-overview-note {
+      margin-top: 0.25rem;
+    }
+
+    #agentx-trace-viz .ax-overview,
+    #agentx-trace-viz .ax-detail {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 0.65rem;
+      padding: 0.8rem 0.9rem;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      background: var(--card);
+      box-shadow: 0 10px 28px color-mix(in srgb, var(--foreground) 6%, transparent);
+    }
+
+    #agentx-trace-viz .ax-overview svg,
+    #agentx-trace-viz .ax-detail svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    #agentx-trace-viz .ax-range-head strong {
+      font-size: 1rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    #agentx-trace-viz .ax-range-head .form-label {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    #agentx-trace-viz .ax-playback {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    #agentx-trace-viz .ax-play-button {
+      min-width: 4.6rem;
+      padding: 0.38rem 0.72rem;
+      border: 1px solid var(--border);
+      border-radius: 0.65rem;
+      background: var(--muted);
+      color: var(--foreground);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 650;
+      line-height: 1.2;
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    #agentx-trace-viz .ax-play-button[aria-pressed=&quot;true&quot;] {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    #agentx-trace-viz .ax-play-button:hover {
+      transform: translateY(-1px);
+    }
+
+    #agentx-trace-viz .ax-play-button:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--primary) 35%, transparent);
+      outline-offset: 2px;
+    }
+
+    #agentx-trace-viz .form-range {
+      display: block;
+      width: 100%;
+      height: 1.6rem;
+      margin: 0.35rem 0 0;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    #agentx-trace-viz .form-range::-webkit-slider-runnable-track {
+      height: 3px;
+      border-radius: 999px;
+      background: var(--border);
+    }
+
+    #agentx-trace-viz .form-range::-webkit-slider-thumb {
+      width: 18px;
+      height: 18px;
+      margin-top: -7.5px;
+      border: 3px solid var(--card);
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary), 0 2px 8px color-mix(in srgb, var(--foreground) 22%, transparent);
+      appearance: none;
+    }
+
+    #agentx-trace-viz .form-range::-moz-range-track {
+      height: 3px;
+      border-radius: 999px;
+      background: var(--border);
+    }
+
+    #agentx-trace-viz .form-range::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border: 3px solid var(--card);
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary), 0 2px 8px color-mix(in srgb, var(--foreground) 22%, transparent);
+    }
+
+    #agentx-trace-viz .ax-ticks {
+      position: relative;
+      height: 1.4rem;
+      margin-top: 0.2rem;
+      text-align: center;
+      font-size: 0.92rem;
+      line-height: 1.25;
+    }
+
+    #agentx-trace-viz .ax-ticks span {
+      position: absolute;
+      top: 0;
+      white-space: nowrap;
+      transform: translateX(-50%);
+    }
+
+    #agentx-trace-viz .ax-ticks span:nth-child(1) { left: 0; transform: none; text-align: left; }
+    #agentx-trace-viz .ax-ticks span:nth-child(2) { left: calc(25% + 4.5px); }
+    #agentx-trace-viz .ax-ticks span:nth-child(3) { left: 50%; }
+    #agentx-trace-viz .ax-ticks span:nth-child(4) { left: calc(75% - 4.5px); }
+    #agentx-trace-viz .ax-ticks span:nth-child(5) { right: 0; transform: none; text-align: right; }
+
+    @media (max-width: 560px) {
+      #agentx-trace-viz .ax-range-head {
+        gap: 0.55rem;
+      }
+
+      #agentx-trace-viz .ax-playback {
+        gap: 0.45rem;
+      }
+
+      #agentx-trace-viz .ax-play-button {
+        min-width: 3.9rem;
+        padding-inline: 0.55rem;
+      }
+
+      #agentx-trace-viz .ax-ticks {
+        height: 2.2rem;
+      }
+
+      #agentx-trace-viz .ax-ticks span:nth-child(2),
+      #agentx-trace-viz .ax-ticks span:nth-child(5) {
+        max-width: 4.8rem;
+        white-space: normal;
+      }
+    }
+
+    #agentx-trace-viz .ax-state-title {
+      margin-top: 1rem;
+    }
+
+    #agentx-trace-viz .ax-state-copy {
+      margin-top: 0.25rem;
+      color: var(--muted-foreground);
+      font-size: 1.05rem;
+    }
+
+    #agentx-trace-viz .ax-overview-note.text-small {
+      color: var(--muted-foreground);
+      font-size: 0.96rem;
+    }
+
+    @keyframes ax-overview-in {
+      from { opacity: 0.72; }
+      to { opacity: 1; }
+    }
+
+    @keyframes ax-detail-in {
+      from { opacity: 0.38; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes ax-copy-in {
+      from { opacity: 0.45; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #agentx-trace-viz.ax-transitioning .ax-overview svg {
+      animation: ax-overview-in 180ms ease-out both;
+    }
+
+    #agentx-trace-viz.ax-transitioning .ax-detail svg {
+      animation: ax-detail-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    #agentx-trace-viz.ax-transitioning .ax-state-title {
+      animation: ax-copy-in 220ms ease-out both;
+    }
+
+    #agentx-trace-viz.ax-transitioning .ax-state-copy {
+      animation: ax-copy-in 260ms ease-out both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #agentx-trace-viz.ax-transitioning .ax-overview svg,
+      #agentx-trace-viz.ax-transitioning .ax-detail svg,
+      #agentx-trace-viz.ax-transitioning .ax-state-title,
+      #agentx-trace-viz.ax-transitioning .ax-state-copy {
+        animation: none;
+      }
+    }
+  &lt;/style&gt;
+
+  &lt;section aria-labelledby=&quot;agentx-trace-title&quot;&gt;
+    &lt;div class=&quot;ax-head&quot;&gt;
+      &lt;h2 id=&quot;agentx-trace-title&quot;&gt;Agentic sessions grow through reuse and branching&lt;/h2&gt;
+      &lt;p&gt;Each request carries prior tokens forward; subagents either fork the parent context or start fresh.&lt;/p&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;ax-legend&quot; aria-label=&quot;Context legend&quot;&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-system&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;system context&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-user&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;user / delegated task&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-thinking&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;thinking&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-toolcall&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;tool call&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-result&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;tool / branch result&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-response&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;assistant response&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-line-swatch ax-reused&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;reused prefix&lt;/span&gt;
+      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-line-swatch ax-fresh&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;new prefill&lt;/span&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;ax-overview-wrap&quot;&gt;
+      &lt;div class=&quot;ax-overview-head&quot;&gt;
+        &lt;h3&gt;Session overview&lt;/h3&gt;
+      &lt;/div&gt;
+      &lt;p class=&quot;ax-overview-note text-small&quot;&gt;Solid = parent turns. Dashed = subagent fork and join.&lt;/p&gt;
+      &lt;div class=&quot;ax-overview&quot;&gt;
+        &lt;svg id=&quot;agentx-overview-svg&quot; role=&quot;img&quot; aria-labelledby=&quot;agentx-overview-title agentx-overview-desc&quot;&gt;
+          &lt;title id=&quot;agentx-overview-title&quot;&gt;High-level agentic session overview&lt;/title&gt;
+          &lt;desc id=&quot;agentx-overview-desc&quot;&gt;An open-ended parent loop with forked and fresh subagent branches that join before the final answer.&lt;/desc&gt;
+        &lt;/svg&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;ax-controls-wrap&quot;&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;ax-range-head&quot;&gt;
+          &lt;label class=&quot;form-label&quot; for=&quot;agentx-trace-range&quot;&gt;Trace position&lt;/label&gt;
+          &lt;div class=&quot;ax-playback&quot;&gt;
+            &lt;button id=&quot;agentx-play-button&quot; class=&quot;ax-play-button&quot; type=&quot;button&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Pause autoplay&quot;&gt;Pause&lt;/button&gt;
+            &lt;strong id=&quot;agentx-step-count&quot;&gt;1 / 5&lt;/strong&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;input id=&quot;agentx-trace-range&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;4&quot; step=&quot;1&quot; value=&quot;0&quot; aria-describedby=&quot;agentx-state-copy&quot;&gt;
+        &lt;div class=&quot;ax-ticks text-small&quot; aria-hidden=&quot;true&quot;&gt;
+          &lt;span&gt;Fresh&lt;/span&gt;
+          &lt;span&gt;Retain output&lt;/span&gt;
+          &lt;span&gt;Reuse&lt;/span&gt;
+          &lt;span&gt;Fork&lt;/span&gt;
+          &lt;span&gt;Join + answer&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;h3 id=&quot;agentx-state-title&quot; class=&quot;ax-state-title&quot;&gt;&lt;/h3&gt;
+        &lt;p id=&quot;agentx-state-copy&quot; class=&quot;ax-state-copy&quot; aria-live=&quot;polite&quot;&gt;&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;ax-detail-wrap&quot;&gt;
+      &lt;h3&gt;Context at this position&lt;/h3&gt;
+      &lt;div class=&quot;ax-detail&quot;&gt;
+        &lt;svg id=&quot;agentx-detail-svg&quot; role=&quot;img&quot; aria-labelledby=&quot;agentx-detail-title agentx-detail-desc&quot;&gt;
+          &lt;title id=&quot;agentx-detail-title&quot;&gt;Selected context transition&lt;/title&gt;
+          &lt;desc id=&quot;agentx-detail-desc&quot;&gt;The token-level context composition for the selected point in the agentic session.&lt;/desc&gt;
+        &lt;/svg&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&#x27;agentx-trace-viz&#x27;);
+      const overviewSvg = root.querySelector(&#x27;#agentx-overview-svg&#x27;);
+      const detailSvg = root.querySelector(&#x27;#agentx-detail-svg&#x27;);
+      const range = root.querySelector(&#x27;#agentx-trace-range&#x27;);
+      const playButton = root.querySelector(&#x27;#agentx-play-button&#x27;);
+      const stepCount = root.querySelector(&#x27;#agentx-step-count&#x27;);
+      const stateTitle = root.querySelector(&#x27;#agentx-state-title&#x27;);
+      const stateCopy = root.querySelector(&#x27;#agentx-state-copy&#x27;);
+      const ns = &#x27;http://www.w3.org/2000/svg&#x27;;
+      const reduceMotion = window.matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;);
+      const autoplayDelay = 2400;
+      let selected = 0;
+      let isPlaying = !reduceMotion.matches;
+      let autoplayTimer = 0;
+      let transitionTimer = 0;
+
+      const colors = {
+        system: &#x27;var(--viz-series-1)&#x27;,
+        user: &#x27;var(--muted-foreground)&#x27;,
+        thinking: &#x27;var(--viz-series-2)&#x27;,
+        toolcall: &#x27;var(--viz-series-5)&#x27;,
+        result: &#x27;var(--viz-series-4)&#x27;,
+        response: &#x27;var(--viz-series-6)&#x27;,
+        reused: &#x27;var(--viz-series-3)&#x27;,
+        fresh: &#x27;var(--viz-series-5)&#x27;,
+        foreground: &#x27;var(--foreground)&#x27;,
+        mutedForeground: &#x27;var(--muted-foreground)&#x27;,
+        background: &#x27;var(--background)&#x27;,
+        muted: &#x27;var(--muted)&#x27;,
+        border: &#x27;var(--border)&#x27;,
+        primary: &#x27;var(--primary)&#x27;,
+        primaryForeground: &#x27;var(--primary-foreground)&#x27;
+      };
+
+      const steps = [
+        {
+          title: &#x27;Fresh start&#x27;,
+          copy: &#x27;T₁ prefills system and user tokens, then decodes reasoning and a tool call.&#x27;
+        },
+        {
+          title: &#x27;Output becomes future input&#x27;,
+          copy: &#x27;Decoded reasoning and the tool call become the tail of T₁’s retained KV state.&#x27;
+        },
+        {
+          title: &#x27;Reuse dominates later turns&#x27;,
+          copy: &#x27;The next turn reuses the retained prefix; only the returned tool result is newly prefetched.&#x27;
+        },
+        {
+          title: &#x27;Forked vs. fresh subagents&#x27;,
+          copy: &#x27;A forked subagent inherits the parent history; a fresh subagent starts a separate context.&#x27;
+        },
+        {
+          title: &#x27;Results join; the final turn answers&#x27;,
+          copy: &#x27;Branch results append to the parent. The final turn emits the assistant response instead of another tool call.&#x27;
+        }
+      ];
+
+      const typeColor = {
+        system: colors.system,
+        user: colors.user,
+        thinking: colors.thinking,
+        toolcall: colors.toolcall,
+        result: colors.result,
+        response: colors.response
+      };
+
+      function node(name, attrs = {}, textValue = &#x27;&#x27;) {
+        const el = document.createElementNS(ns, name);
+        Object.entries(attrs).forEach(([key, value]) =&gt; el.setAttribute(key, value));
+        if (textValue) el.textContent = textValue;
+        return el;
+      }
+
+      function label(x, y, value, options = {}) {
+        return node(&#x27;text&#x27;, {
+          x,
+          y,
+          fill: options.fill || colors.foreground,
+          &#x27;font-size&#x27;: options.size || 15,
+          &#x27;font-weight&#x27;: options.weight || 400,
+          &#x27;text-anchor&#x27;: options.anchor || &#x27;start&#x27;
+        }, value);
+      }
+
+      function addMarker(defs, id, fill) {
+        const marker = node(&#x27;marker&#x27;, {
+          id,
+          markerWidth: 5,
+          markerHeight: 5,
+          refX: 4.5,
+          refY: 2.5,
+          orient: &#x27;auto&#x27;,
+          markerUnits: &#x27;strokeWidth&#x27;,
+          viewBox: &#x27;0 0 5 5&#x27;
+        });
+        marker.appendChild(node(&#x27;path&#x27;, { d: &#x27;M0,0 L5,2.5 L0,5 Z&#x27;, fill }));
+        defs.appendChild(marker);
+      }
+
+      function svgBase(svg, width, height, titleText, descText, prefix) {
+        const defs = node(&#x27;defs&#x27;);
+        addMarker(defs, `${prefix}-arrow-active`, colors.primary);
+        addMarker(defs, `${prefix}-arrow-muted`, colors.mutedForeground);
+        addMarker(defs, `${prefix}-arrow-result`, colors.result);
+        addMarker(defs, `${prefix}-arrow-thinking`, colors.thinking);
+        addMarker(defs, `${prefix}-arrow-tool`, colors.toolcall);
+        svg.replaceChildren(
+          node(&#x27;title&#x27;, { id: `${prefix}-title` }, titleText),
+          node(&#x27;desc&#x27;, { id: `${prefix}-desc` }, descText),
+          defs
+        );
+        svg.setAttribute(&#x27;aria-labelledby&#x27;, `${prefix}-title ${prefix}-desc`);
+        svg.setAttribute(&#x27;viewBox&#x27;, `0 0 ${width} ${height}`);
+        svg.setAttribute(&#x27;height&#x27;, height);
+      }
+
+      function pathEdge(group, d, options = {}) {
+        group.appendChild(node(&#x27;path&#x27;, {
+          d,
+          fill: &#x27;none&#x27;,
+          stroke: options.active ? colors.primary : (options.stroke || colors.mutedForeground),
+          &#x27;stroke-opacity&#x27;: options.active ? 1 : 0.48,
+          &#x27;stroke-width&#x27;: options.active ? 2.4 : 1.6,
+          &#x27;stroke-dasharray&#x27;: options.dashed ? &#x27;6 7&#x27; : &#x27;none&#x27;,
+          &#x27;stroke-linecap&#x27;: &#x27;round&#x27;,
+          &#x27;stroke-linejoin&#x27;: &#x27;round&#x27;,
+          &#x27;marker-end&#x27;: options.arrow === false ? &#x27;none&#x27; : `url(#${options.marker || (options.active ? &#x27;overview-arrow-active&#x27; : &#x27;overview-arrow-muted&#x27;)})`
+        }));
+      }
+
+      function activeOverviewKeys() {
+        if (selected &lt;= 1) return new Set([&#x27;m1&#x27;]);
+        if (selected === 2) return new Set([&#x27;m2&#x27;]);
+        if (selected === 3) return new Set([&#x27;m2&#x27;, &#x27;a&#x27;, &#x27;b&#x27;]);
+        return new Set([&#x27;m3&#x27;, &#x27;m4&#x27;]);
+      }
+
+      function overviewNode(group, item, active, past, compact) {
+        const fill = active ? colors.primary : past ? colors.muted : colors.background;
+        const stroke = active ? colors.primary : colors.border;
+        const textFill = active ? colors.primaryForeground : colors.foreground;
+        const subFill = active ? colors.primaryForeground : colors.mutedForeground;
+        const g = node(&#x27;g&#x27;);
+        g.appendChild(node(&#x27;title&#x27;, {}, `${item.title}: ${item.subtitle}`));
+        g.appendChild(node(&#x27;rect&#x27;, {
+          x: item.x,
+          y: item.y,
+          width: item.w,
+          height: item.h,
+          rx: compact ? 8 : 10,
+          fill,
+          stroke,
+          &#x27;stroke-width&#x27;: active ? 2 : 1.25
+        }));
+        g.appendChild(label(item.x + item.w / 2, item.y + (compact ? 20 : 22), item.title, {
+          size: compact ? 15 : 17,
+          weight: 600,
+          fill: textFill,
+          anchor: &#x27;middle&#x27;
+        }));
+        g.appendChild(label(item.x + item.w / 2, item.y + (compact ? 38 : 42), item.subtitle, {
+          size: compact ? 13 : 14,
+          fill: subFill,
+          anchor: &#x27;middle&#x27;
+        }));
+        group.appendChild(g);
+      }
+
+      function drawOverview() {
+        const container = root.querySelector(&#x27;.ax-overview&#x27;);
+        const width = Math.max(320, Math.round(container.getBoundingClientRect().width));
+        const compact = width &lt; 560;
+        const height = compact ? 318 : 305;
+        svgBase(
+          overviewSvg,
+          width,
+          height,
+          &#x27;High-level agentic session overview&#x27;,
+          &#x27;An open-ended parent loop with forked and fresh subagent branches that join before the final answer.&#x27;,
+          &#x27;overview&#x27;
+        );
+        const group = node(&#x27;g&#x27;, { &#x27;font-family&#x27;: &#x27;inherit&#x27; });
+        overviewSvg.appendChild(group);
+        const active = activeOverviewKeys();
+        const w = compact ? 68 : 112;
+        const h = compact ? 48 : 54;
+        const branchW = compact ? 126 : 156;
+        const branchH = compact ? 46 : 50;
+        const mainY = compact ? 42 : 48;
+        const positions = compact
+          ? {
+              m1: { x: 4, y: mainY },
+              m2: { x: Math.round(width * 0.255), y: mainY },
+              m3: { x: Math.round(width * 0.51), y: mainY },
+              m4: { x: width - w - 4, y: mainY },
+              a: { x: Math.round((width - branchW) / 2), y: 152 },
+              b: { x: Math.round((width - branchW) / 2), y: 238 }
+            }
+          : {
+              m1: { x: 12, y: mainY },
+              m2: { x: 174, y: mainY },
+              m3: { x: width - 244, y: mainY },
+              m4: { x: width - 116, y: mainY },
+              a: { x: Math.round((174 + w + width - 244 - branchW) / 2), y: 158 },
+              b: { x: Math.round((174 + w + width - 244 - branchW) / 2), y: 238 }
+            };
+
+        const items = {
+          m1: { ...positions.m1, w, h, title: &#x27;T₁&#x27;, subtitle: &#x27;think → call&#x27; },
+          m2: { ...positions.m2, w, h, title: &#x27;T₂…Tₖ₋₁&#x27;, subtitle: &#x27;repeat + fork&#x27; },
+          m3: { ...positions.m3, w, h, title: &#x27;Tₖ&#x27;, subtitle: &#x27;join → call&#x27; },
+          m4: { ...positions.m4, w, h, title: &#x27;Tₖ₊₁&#x27;, subtitle: &#x27;final answer&#x27; },
+          a: { ...positions.a, w: branchW, h: branchH, title: &#x27;Forked subagent&#x27;, subtitle: &#x27;inherits parent&#x27; },
+          b: { ...positions.b, w: branchW, h: branchH, title: &#x27;Fresh subagent&#x27;, subtitle: &#x27;new context&#x27; }
+        };
+
+        const centerY = (item) =&gt; item.y + item.h / 2;
+        pathEdge(group, `M${items.m1.x + w},${centerY(items.m1)} L${items.m2.x},${centerY(items.m2)}`, { active: selected &gt;= 2 });
+        pathEdge(group, `M${items.m2.x + w},${centerY(items.m2)} L${items.m3.x},${centerY(items.m3)}`, { active: selected &gt;= 4 });
+        pathEdge(group, `M${items.m3.x + w},${centerY(items.m3)} L${items.m4.x},${centerY(items.m4)}`, { active: selected &gt;= 4 });
+
+        const spawnX = items.m2.x + w / 2;
+        const joinX = items.m3.x + w / 2;
+        pathEdge(group, `M${spawnX},${items.m2.y + h} C${spawnX},${items.a.y - 22} ${items.a.x - 20},${centerY(items.a)} ${items.a.x},${centerY(items.a)}`, { active: selected &gt;= 3, dashed: true });
+        pathEdge(group, `M${spawnX},${items.m2.y + h} C${spawnX},${items.b.y - 24} ${items.b.x - 20},${centerY(items.b)} ${items.b.x},${centerY(items.b)}`, { active: selected &gt;= 3, dashed: true });
+        pathEdge(group, `M${items.a.x + branchW},${centerY(items.a)} C${items.a.x + branchW + 24},${centerY(items.a)} ${joinX},${items.m3.y + h + 22} ${joinX},${items.m3.y + h}`, { active: selected &gt;= 4, dashed: true });
+        pathEdge(group, `M${items.b.x + branchW},${centerY(items.b)} C${items.b.x + branchW + 24},${centerY(items.b)} ${joinX},${items.m3.y + h + 28} ${joinX},${items.m3.y + h}`, { active: selected &gt;= 4, dashed: true });
+
+        if (!compact) {
+          group.appendChild(label((items.m1.x + w + items.m2.x) / 2, mainY - 14, &#x27;tool result&#x27;, { size: 14, fill: colors.mutedForeground, anchor: &#x27;middle&#x27; }));
+          group.appendChild(label((items.m2.x + w + items.m3.x) / 2, mainY - 14, &#x27;many reuse cycles&#x27;, { size: 14, fill: colors.mutedForeground, anchor: &#x27;middle&#x27; }));
+          group.appendChild(label((items.m3.x + w + items.m4.x) / 2, mainY - 14, &#x27;last tool result&#x27;, { size: 14, fill: colors.mutedForeground, anchor: &#x27;middle&#x27; }));
+        }
+        const past = {
+          m1: selected &gt; 1,
+          m2: selected &gt; 3,
+          m3: false,
+          m4: false,
+          a: selected &gt; 3,
+          b: selected &gt; 3
+        };
+        Object.entries(items).forEach(([key, item]) =&gt; overviewNode(group, item, active.has(key), past[key], compact));
+      }
+
+      function segmentRect(group, x, y, width, height, item, compact) {
+        const rect = node(&#x27;rect&#x27;, {
+          x,
+          y,
+          width: Math.max(2, width),
+          height,
+          rx: compact ? 5 : 6,
+          fill: typeColor[item.type]
+        });
+        rect.appendChild(node(&#x27;title&#x27;, {}, item.label));
+        group.appendChild(rect);
+        const candidates = [item.label, item.short, item.tiny].filter(Boolean);
+        const textValue = candidates.find((candidate) =&gt; width &gt;= candidate.length * (compact ? 7 : 7.6) + 14) || &#x27;&#x27;;
+        if (textValue) {
+          group.appendChild(label(x + width / 2, y + height * 0.64, textValue, {
+            size: compact ? 14 : 15,
+            weight: 600,
+            fill: colors.background,
+            anchor: &#x27;middle&#x27;
+          }));
+        }
+        return { ...item, x, y, width, height };
+      }
+
+      function drawBar(group, x, y, baseWidth, height, segments, referenceWeight, compact) {
+        const total = segments.reduce((sum, item) =&gt; sum + item.weight, 0);
+        const scaleWeight = referenceWeight || total;
+        let cursor = x;
+        const bounds = segments.map((item) =&gt; {
+          const width = baseWidth * item.weight / scaleWeight;
+          const bound = segmentRect(group, cursor, y, width, height, item, compact);
+          cursor += width;
+          return bound;
+        });
+        return { bounds, usedWidth: baseWidth * total / scaleWeight };
+      }
+
+      function underline(group, x1, x2, y, kind, compact) {
+        if (x2 &lt;= x1) return;
+        group.appendChild(node(&#x27;line&#x27;, {
+          x1,
+          x2,
+          y1: y,
+          y2: y,
+          stroke: kind === &#x27;reused&#x27; ? colors.reused : colors.fresh,
+          &#x27;stroke-width&#x27;: 4,
+          &#x27;stroke-dasharray&#x27;: kind === &#x27;reused&#x27; ? &#x27;none&#x27; : &#x27;3 6&#x27;,
+          &#x27;stroke-linecap&#x27;: &#x27;round&#x27;
+        }));
+        group.appendChild(label(kind === &#x27;reused&#x27; ? x1 : x2, y + 21, kind === &#x27;reused&#x27; ? &#x27;reused prefix&#x27; : &#x27;new prefill&#x27;, {
+          size: compact ? 13 : 14,
+          fill: colors.mutedForeground,
+          anchor: kind === &#x27;reused&#x27; ? &#x27;start&#x27; : &#x27;end&#x27;
+        }));
+      }
+
+      function traceRow(group, options, dims) {
+        const { y, title, input, output = [], cacheWeight = 0, referenceWeight = null, scale = 1 } = options;
+        const { width, compact } = dims;
+        const x = compact ? 8 : 18;
+        const marginRight = compact ? 8 : 18;
+        const outputWidth = compact ? 92 : 190;
+        const gap = compact ? 28 : 38;
+        const outputX = width - marginRight - outputWidth;
+        const inputBaseWidth = Math.max(150, outputX - gap - x) * scale;
+        const height = compact ? 38 : 44;
+        const inputWeight = input.reduce((sum, item) =&gt; sum + item.weight, 0);
+        const scaleWeight = referenceWeight || inputWeight;
+
+        group.appendChild(label(x, y - 14, title, { size: compact ? 14 : 17, weight: 600, fill: colors.foreground }));
+        if (output.length) {
+          group.appendChild(label(outputX, y - 14, compact ? &#x27;OUTPUT&#x27; : &#x27;MODEL OUTPUT&#x27;, { size: compact ? 13 : 14, weight: 600, fill: colors.mutedForeground }));
+        }
+
+        const inputBar = drawBar(group, x, y, inputBaseWidth, height, input, scaleWeight, compact);
+        let outputBar = { bounds: [], usedWidth: 0 };
+        if (output.length) {
+          const lineY = y + height / 2;
+          group.appendChild(node(&#x27;line&#x27;, {
+            x1: x + inputBar.usedWidth + 8,
+            y1: lineY,
+            x2: outputX - 9,
+            y2: lineY,
+            stroke: colors.primary,
+            &#x27;stroke-width&#x27;: 2,
+            &#x27;stroke-linecap&#x27;: &#x27;round&#x27;,
+            &#x27;marker-end&#x27;: &#x27;url(#detail-arrow-active)&#x27;
+          }));
+          outputBar = drawBar(group, outputX, y, outputWidth, height, output, null, compact);
+        }
+
+        if (cacheWeight !== null) {
+          const cachedWidth = inputBaseWidth * Math.max(0, Math.min(cacheWeight, scaleWeight)) / scaleWeight;
+          if (cacheWeight &gt; 0) underline(group, x, x + cachedWidth, y + height + 14, &#x27;reused&#x27;, compact);
+          if (cacheWeight &lt; inputWeight) underline(group, x + cachedWidth + (cacheWeight &gt; 0 ? 5 : 0), x + inputBar.usedWidth, y + height + 14, &#x27;fresh&#x27;, compact);
+        }
+        return { x, y, height, input: inputBar.bounds, output: outputBar.bounds, inputWidth: inputBar.usedWidth, outputX, outputWidth };
+      }
+
+      function connector(group, from, to, options = {}) {
+        const x1 = from.x + from.width / 2;
+        const y1 = from.y + from.height + 6;
+        const x2 = to.x + to.width / 2;
+        const y2 = to.y - 8;
+        const midY = (y1 + y2) / 2;
+        const path = node(&#x27;path&#x27;, {
+          d: `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`,
+          fill: &#x27;none&#x27;,
+          stroke: options.stroke || colors.mutedForeground,
+          &#x27;stroke-width&#x27;: 2,
+          &#x27;stroke-dasharray&#x27;: &#x27;4 6&#x27;,
+          &#x27;stroke-linecap&#x27;: &#x27;round&#x27;,
+          &#x27;marker-end&#x27;: `url(#${options.marker || &#x27;detail-arrow-muted&#x27;})`
+        });
+        group.insertBefore(path, group.firstChild);
+      }
+
+      function drawSourceChip(group, target, y, labelText, compact) {
+        const width = compact ? 52 : 98;
+        const height = compact ? 30 : 34;
+        const x = target.x + target.width / 2 - width / 2;
+        const branchId = labelText.startsWith(&#x27;forked&#x27;) ? &#x27;fork&#x27; : &#x27;fresh&#x27;;
+        const source = segmentRect(group, x, y, width, height, {
+          label: labelText,
+          short: branchId,
+          tiny: branchId,
+          type: &#x27;result&#x27;,
+          weight: 1
+        }, compact);
+        connector(group, source, target, { stroke: colors.result, marker: &#x27;detail-arrow-result&#x27; });
+      }
+
+      const S = { label: &#x27;system + tools&#x27;, short: &#x27;system&#x27;, tiny: &#x27;S&#x27;, type: &#x27;system&#x27;, weight: 24 };
+      const U = { label: &#x27;user task&#x27;, short: &#x27;user&#x27;, tiny: &#x27;U&#x27;, type: &#x27;user&#x27;, weight: 18 };
+      const T1 = { label: &#x27;thinking t₁&#x27;, short: &#x27;think t₁&#x27;, tiny: &#x27;t₁&#x27;, type: &#x27;thinking&#x27;, weight: 18 };
+      const C1 = { label: &#x27;tool call c₁&#x27;, short: &#x27;call c₁&#x27;, tiny: &#x27;c₁&#x27;, type: &#x27;toolcall&#x27;, weight: 14 };
+      const R1 = { label: &#x27;tool result r₁&#x27;, short: &#x27;result r₁&#x27;, tiny: &#x27;r₁&#x27;, type: &#x27;result&#x27;, weight: 18 };
+      const T2 = { label: &#x27;thinking t₂&#x27;, short: &#x27;think t₂&#x27;, tiny: &#x27;t₂&#x27;, type: &#x27;thinking&#x27;, weight: 16 };
+      const C2 = { label: &#x27;delegate call c₂&#x27;, short: &#x27;fork c₂&#x27;, tiny: &#x27;c₂&#x27;, type: &#x27;toolcall&#x27;, weight: 14 };
+      const TASK_A = { label: &#x27;delegated task&#x27;, short: &#x27;task&#x27;, tiny: &#x27;task&#x27;, type: &#x27;user&#x27;, weight: 20 };
+      const TASK_B = { label: &#x27;delegated task&#x27;, short: &#x27;task&#x27;, tiny: &#x27;task&#x27;, type: &#x27;user&#x27;, weight: 20 };
+      const TA = { label: &#x27;forked reasoning&#x27;, short: &#x27;reasoning&#x27;, tiny: &#x27;think&#x27;, type: &#x27;thinking&#x27;, weight: 16 };
+      const CA = { label: &#x27;forked tool call&#x27;, short: &#x27;tool call&#x27;, tiny: &#x27;call&#x27;, type: &#x27;toolcall&#x27;, weight: 12 };
+      const TB = { label: &#x27;fresh reasoning&#x27;, short: &#x27;reasoning&#x27;, tiny: &#x27;think&#x27;, type: &#x27;thinking&#x27;, weight: 16 };
+      const CB = { label: &#x27;fresh tool call&#x27;, short: &#x27;tool call&#x27;, tiny: &#x27;call&#x27;, type: &#x27;toolcall&#x27;, weight: 12 };
+      const RA = { label: &#x27;forked result&#x27;, short: &#x27;forked&#x27;, tiny: &#x27;fork&#x27;, type: &#x27;result&#x27;, weight: 16 };
+      const RB = { label: &#x27;fresh result&#x27;, short: &#x27;fresh&#x27;, tiny: &#x27;fresh&#x27;, type: &#x27;result&#x27;, weight: 16 };
+      const T3 = { label: &#x27;thinking t₃&#x27;, short: &#x27;think t₃&#x27;, tiny: &#x27;t₃&#x27;, type: &#x27;thinking&#x27;, weight: 14 };
+      const C3 = { label: &#x27;tool call c₃&#x27;, short: &#x27;call c₃&#x27;, tiny: &#x27;c₃&#x27;, type: &#x27;toolcall&#x27;, weight: 12 };
+      const R3 = { label: &#x27;last tool result&#x27;, short: &#x27;result r₃&#x27;, tiny: &#x27;r₃&#x27;, type: &#x27;result&#x27;, weight: 16 };
+      const T4 = { label: &#x27;thinking t₄&#x27;, short: &#x27;think t₄&#x27;, tiny: &#x27;t₄&#x27;, type: &#x27;thinking&#x27;, weight: 14 };
+      const ANSWER = { label: &#x27;assistant response&#x27;, short: &#x27;response&#x27;, tiny: &#x27;answer&#x27;, type: &#x27;response&#x27;, weight: 22 };
+
+      function drawDetail() {
+        const container = root.querySelector(&#x27;.ax-detail&#x27;);
+        const width = Math.max(320, Math.round(container.getBoundingClientRect().width));
+        const compact = width &lt; 560;
+        const heights = [238, 370, 390, 468, 515];
+        const height = heights[selected];
+        svgBase(
+          detailSvg,
+          width,
+          height,
+          &#x27;Selected context transition&#x27;,
+          &#x27;Token blocks show reused prompt prefixes, fresh suffix prefill, model thinking, tool calls, subagent results, and the final response.&#x27;,
+          &#x27;detail&#x27;
+        );
+        const group = node(&#x27;g&#x27;, { &#x27;font-family&#x27;: &#x27;inherit&#x27; });
+        detailSvg.appendChild(group);
+        const dims = { width, compact };
+
+        if (selected === 0) {
+          traceRow(group, {
+            y: 42,
+            title: &#x27;T₁ · FRESH INPUT&#x27;,
+            input: [S, U],
+            output: [T1, C1],
+            cacheWeight: 0
+          }, dims);
+          group.appendChild(label(compact ? 8 : 18, 165, &#x27;Prefill creates KV; decode appends reasoning + a call.&#x27;, { size: compact ? 14 : 15, fill: colors.mutedForeground }));
+        } else if (selected === 1) {
+          const first = traceRow(group, {
+            y: 42,
+            title: compact ? &#x27;T₁ · PREFILL → DECODE&#x27; : &#x27;T₁ · PREFILL, THEN DECODE&#x27;,
+            input: [S, U],
+            output: [T1, C1],
+            cacheWeight: 0
+          }, dims);
+          const retained = traceRow(group, {
+            y: 218,
+            title: compact ? &#x27;T₁ · RETAINED KV&#x27; : &#x27;T₁ · RETAINED KV AFTER DECODE&#x27;,
+            input: [S, U, T1, C1],
+            output: [],
+            cacheWeight: null,
+            referenceWeight: S.weight + U.weight + T1.weight + C1.weight
+          }, dims);
+          const source = {
+            x: first.output[0].x,
+            y: first.output[0].y,
+            width: first.output[0].width + first.output[1].width,
+            height: first.output[0].height
+          };
+          const target = {
+            x: retained.input[2].x,
+            y: retained.input[2].y,
+            width: retained.input[2].width + retained.input[3].width,
+            height: retained.input[2].height
+          };
+          connector(group, source, target, { stroke: colors.thinking, marker: &#x27;detail-arrow-thinking&#x27; });
+          group.appendChild(label(compact ? 8 : 18, 178, &#x27;decoded tokens become the retained suffix&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.thinking }));
+        } else if (selected === 2) {
+          const fullWeight = S.weight + U.weight + T1.weight + C1.weight + R1.weight;
+          const previous = traceRow(group, {
+            y: 42,
+            title: &#x27;PREVIOUS TURN · RETAINED KV&#x27;,
+            input: [S, U, T1, C1],
+            output: [],
+            cacheWeight: null,
+            referenceWeight: fullWeight
+          }, dims);
+          const next = traceRow(group, {
+            y: 220,
+            title: compact ? &#x27;NEXT TURN · REUSE + RESULT&#x27; : &#x27;NEXT TURN · REUSED HISTORY + NEW RESULT&#x27;,
+            input: [S, U, T1, C1, R1],
+            output: [T2, C2],
+            cacheWeight: S.weight + U.weight + T1.weight + C1.weight,
+            referenceWeight: fullWeight
+          }, dims);
+          connector(group, previous.input[2], next.input[2], { stroke: colors.thinking, marker: &#x27;detail-arrow-thinking&#x27; });
+          connector(group, previous.input[3], next.input[3], { stroke: colors.toolcall, marker: &#x27;detail-arrow-tool&#x27; });
+          group.appendChild(label(compact ? 8 : 18, 181, &#x27;Prior reasoning and the tool call are now input history.&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.foreground }));
+        } else if (selected === 3) {
+          const parent = { label: &#x27;parent token history&#x27;, short: &#x27;parent prefix&#x27;, tiny: &#x27;parent&#x27;, type: &#x27;system&#x27;, weight: 52 };
+          traceRow(group, {
+            y: 38,
+            title: compact ? &#x27;PARENT TURN · RETAINED&#x27; : &#x27;PARENT TURN · RETAINED DURING BRANCHES&#x27;,
+            input: [parent, C2],
+            output: [],
+            cacheWeight: parent.weight + C2.weight,
+            referenceWeight: parent.weight + TASK_A.weight
+          }, dims);
+          traceRow(group, {
+            y: 188,
+            title: compact ? &#x27;FORKED · INHERITS PARENT&#x27; : &#x27;FORKED SUBAGENT · INHERITS PARENT&#x27;,
+            input: [parent, TASK_A],
+            output: [TA, CA],
+            cacheWeight: parent.weight
+          }, dims);
+          traceRow(group, {
+            y: 338,
+            title: compact ? &#x27;FRESH · NEW CONTEXT&#x27; : &#x27;FRESH SUBAGENT · NEW CONTEXT&#x27;,
+            input: [{ ...S, weight: 24 }, TASK_B],
+            output: [TB, CB],
+            cacheWeight: 0
+          }, dims);
+        } else {
+          const cachedParent = { label: &#x27;cached parent + delegate&#x27;, short: &#x27;parent prefix&#x27;, tiny: &#x27;parent&#x27;, type: &#x27;system&#x27;, weight: 50 };
+          const m3 = traceRow(group, {
+            y: 118,
+            title: compact ? &#x27;Tₖ · JOIN RESULTS&#x27; : &#x27;Tₖ · JOIN BRANCH RESULTS&#x27;,
+            input: [cachedParent, RA, RB],
+            output: [T3, C3],
+            cacheWeight: cachedParent.weight
+          }, dims);
+          group.appendChild(label(compact ? 8 : 18, 28, &#x27;BRANCH OUTPUTS RETURN AS TEXT&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.mutedForeground }));
+          drawSourceChip(group, m3.input[1], 42, &#x27;forked result&#x27;, compact);
+          drawSourceChip(group, m3.input[2], 42, &#x27;fresh result&#x27;, compact);
+
+          const prior = { label: &#x27;parent + branch history&#x27;, short: &#x27;cached history&#x27;, tiny: &#x27;history&#x27;, type: &#x27;system&#x27;, weight: 40 };
+          const m4 = traceRow(group, {
+            y: 340,
+            title: &#x27;Tₖ₊₁ · FINAL TURN&#x27;,
+            input: [prior, T3, C3, R3],
+            output: [T4, ANSWER],
+            cacheWeight: prior.weight + T3.weight + C3.weight
+          }, dims);
+          connector(group, m3.output[0], m4.input[1], { stroke: colors.thinking, marker: &#x27;detail-arrow-thinking&#x27; });
+          connector(group, m3.output[1], m4.input[2], { stroke: colors.toolcall, marker: &#x27;detail-arrow-tool&#x27; });
+          group.appendChild(label(compact ? 8 : 18, 292, &#x27;Join output is cached; only the last tool result is new.&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.foreground }));
+        }
+      }
+
+      function draw() {
+        stepCount.textContent = `${selected + 1} / 5`;
+        stateTitle.textContent = steps[selected].title;
+        stateCopy.textContent = steps[selected].copy;
+        range.value = String(selected);
+        range.setAttribute(&#x27;aria-valuetext&#x27;, `${selected + 1} of 5: ${steps[selected].title}`);
+        drawOverview();
+        drawDetail();
+      }
+
+      function animateTransition() {
+        if (reduceMotion.matches) return;
+        window.clearTimeout(transitionTimer);
+        root.classList.remove(&#x27;ax-transitioning&#x27;);
+        void root.offsetWidth;
+        root.classList.add(&#x27;ax-transitioning&#x27;);
+        transitionTimer = window.setTimeout(() =&gt; root.classList.remove(&#x27;ax-transitioning&#x27;), 280);
+      }
+
+      function updatePlaybackControl() {
+        playButton.textContent = isPlaying ? &#x27;Pause&#x27; : &#x27;Play&#x27;;
+        playButton.setAttribute(&#x27;aria-pressed&#x27;, String(isPlaying));
+        playButton.setAttribute(&#x27;aria-label&#x27;, isPlaying ? &#x27;Pause autoplay&#x27; : &#x27;Play trace&#x27;);
+      }
+
+      function stopAutoplayTimer() {
+        window.clearInterval(autoplayTimer);
+        autoplayTimer = 0;
+      }
+
+      function advanceTrace() {
+        selected = (selected + 1) % steps.length;
+        draw();
+        animateTransition();
+      }
+
+      function startAutoplayTimer() {
+        stopAutoplayTimer();
+        if (isPlaying &amp;&amp; !document.hidden) {
+          autoplayTimer = window.setInterval(advanceTrace, autoplayDelay);
+        }
+      }
+
+      function setPlaying(nextPlaying) {
+        isPlaying = nextPlaying;
+        updatePlaybackControl();
+        if (isPlaying) startAutoplayTimer();
+        else stopAutoplayTimer();
+      }
+
+      range.addEventListener(&#x27;input&#x27;, () =&gt; {
+        setPlaying(false);
+        selected = Number(range.value);
+        draw();
+        animateTransition();
+      });
+
+      playButton.addEventListener(&#x27;click&#x27;, () =&gt; {
+        if (isPlaying) {
+          setPlaying(false);
+          return;
+        }
+        if (selected === steps.length - 1) {
+          selected = 0;
+          draw();
+          animateTransition();
+        }
+        setPlaying(true);
+      });
+
+      document.addEventListener(&#x27;visibilitychange&#x27;, () =&gt; {
+        if (document.hidden) stopAutoplayTimer();
+        else if (isPlaying) startAutoplayTimer();
+      });
+
+      const observer = new ResizeObserver(draw);
+      observer.observe(root.querySelector(&#x27;.ax-overview&#x27;));
+      observer.observe(root.querySelector(&#x27;.ax-detail&#x27;));
+      draw();
+      updatePlaybackControl();
+      if (isPlaying) startAutoplayTimer();
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
