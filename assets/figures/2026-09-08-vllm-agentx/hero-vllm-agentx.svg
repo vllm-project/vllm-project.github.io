@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef3fa"/>
+    </linearGradient>
+    <linearGradient id="agentx" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f2a900"/>
+      <stop offset="55%" stop-color="#e88a0c"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="arcGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2a900" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#f2a900" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="arcBlue" x1="1" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="turn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.08"/>
+    </linearGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="14" cy="14" r="1.3" fill="#94a3b8" fill-opacity="0.35"/>
+    </pattern>
+    <radialGradient id="dotFade" cx="50%" cy="50%" r="60%">
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.10"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#dots)"/>
+  <rect width="1600" height="900" fill="url(#dotFade)"/>
+
+  <!-- corner arcs (gold top-left, blue bottom-right) -->
+  <g fill="none" stroke-width="2">
+    <path d="M -80 260 C 180 240, 330 120, 360 -60" stroke="url(#arcGold)"/>
+    <path d="M -80 310 C 220 290, 390 150, 420 -60" stroke="url(#arcGold)"/>
+    <path d="M -80 360 C 260 340, 450 180, 480 -60" stroke="url(#arcGold)"/>
+    <path d="M 1680 640 C 1420 660, 1270 780, 1240 960" stroke="url(#arcBlue)"/>
+    <path d="M 1680 590 C 1380 610, 1210 750, 1180 960" stroke="url(#arcBlue)"/>
+    <path d="M 1680 540 C 1340 560, 1150 720, 1120 960" stroke="url(#arcBlue)"/>
+  </g>
+
+  <!-- agentic session motif: a multi-turn trace that forks into subagents (bottom band) -->
+  <g transform="translate(0,730)">
+    <!-- parent turns -->
+    <g stroke="#3b82f6" stroke-opacity="0.35" stroke-width="2" fill="none">
+      <line x1="300" y1="40" x2="1300" y2="40"/>
+    </g>
+    <g fill="#3b82f6" fill-opacity="0.85">
+      <circle cx="300" cy="40" r="6"/>
+      <circle cx="470" cy="40" r="6"/>
+      <circle cx="640" cy="40" r="6"/>
+      <circle cx="810" cy="40" r="6"/>
+      <circle cx="980" cy="40" r="6"/>
+      <circle cx="1150" cy="40" r="6"/>
+      <circle cx="1300" cy="40" r="6"/>
+    </g>
+    <!-- growing context bars under each turn -->
+    <g fill="url(#turn)">
+      <rect x="290" y="56" width="20" height="8" rx="4"/>
+      <rect x="440" y="56" width="60" height="8" rx="4"/>
+      <rect x="590" y="56" width="100" height="8" rx="4"/>
+      <rect x="740" y="56" width="140" height="8" rx="4"/>
+      <rect x="890" y="56" width="180" height="8" rx="4"/>
+      <rect x="1040" y="56" width="220" height="8" rx="4"/>
+    </g>
+    <!-- subagent forks -->
+    <g stroke="#f2a900" stroke-opacity="0.8" stroke-width="2" stroke-dasharray="6 6" fill="none">
+      <path d="M 640 40 C 690 90, 740 90, 790 90 C 850 90, 900 60, 980 40"/>
+      <path d="M 810 40 C 860 -10, 910 -10, 960 -10 C 1040 -10, 1090 20, 1150 40"/>
+    </g>
+    <g fill="#f2a900">
+      <circle cx="790" cy="90" r="5"/>
+      <circle cx="960" cy="-10" r="5"/>
+    </g>
+    <text x="800" y="128" text-anchor="middle" font-size="18" font-weight="500" fill="#64748b" letter-spacing="1">multi-turn sessions · long contexts · prefix reuse · subagents</text>
+  </g>
+
+  <!-- ===== main lockup ===== -->
+  <!-- vLLM logo mark + wordmark -->
+  <g transform="translate(235,290)">
+    <g transform="scale(0.6)">
+      <polygon points="0,68 118,68 118,300" fill="#f2b32a"/>
+      <polygon points="178,52 288,4 210,300 118,300" fill="#4d8ff2"/>
+    </g>
+    <text x="190" y="180" font-size="150" font-weight="500" fill="#3d3d3d" letter-spacing="-3">LLM</text>
+  </g>
+
+  <!-- × -->
+  <text x="775" y="462" font-size="72" font-weight="500" fill="#f2a900" text-anchor="middle">×</text>
+
+  <!-- AgentX wordmark -->
+  <text x="835" y="470" font-size="150" font-weight="800" font-style="italic" fill="url(#agentx)" letter-spacing="-4">AgentX</text>
+
+  <!-- tagline -->
+  <text x="800" y="650" font-size="46" font-weight="600" fill="#1f2937" text-anchor="middle" letter-spacing="-0.5">Optimizing vLLM for Real-World Agentic Serving</text>
+
+  <!-- benchmark attribution chip -->
+  <g transform="translate(800,140)" filter="url(#soft)">
+    <rect x="-225" y="-32" width="450" height="64" rx="32" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <text x="-200" y="9" font-size="24" font-weight="500" fill="#475569" letter-spacing="0.3">Benchmarked on</text>
+    <!-- semianalysis wordmark -->
+    <g transform="translate(20,0)">
+      <g stroke-width="6" stroke-linecap="round">
+        <line x1="60" y1="16" x2="92" y2="-18" stroke="#2b6cb0"/>
+        <line x1="70" y1="22" x2="102" y2="-12" stroke="#f2a900"/>
+      </g>
+      <text x="0" y="10" font-size="28" font-weight="700" fill="#2b6cb0" letter-spacing="-0.5">semi<tspan fill="#f2a900">analysis</tspan></text>
+    </g>
+  </g>
+</svg>
