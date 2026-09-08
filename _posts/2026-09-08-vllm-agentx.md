@@ -52,6 +52,8 @@ To evaluate that frontier under representative traffic, SemiAnalysis recently re
 - **Extensive prefix reuse.** Prefix-cache hit rate above 96%.
 - **Subagent-heavy traffic.** 44% of sessions contain at least one subagent, with a median of four subagent rollouts among those sessions.
 
+These statistics follow from how an agentic session is built. Each turn appends the latest tool result to the accumulated context and sends the whole thing back to the model, so the input keeps growing while each turn adds only a short new prefill, and almost all of the request is a prefix the engine has already seen. Subagents either fork from that context or start fresh, and their results are joined back into the parent before the final answer. The figure below walks through one such session: use the slider to step from the first turn to the final answer and see how much of each request is reused prefix versus new prefill.
+
 <embed
   src="/assets/interactive_pages/agentic-workload-explorer.html"
   type="text/html"
@@ -62,7 +64,7 @@ To evaluate that frontier under representative traffic, SemiAnalysis recently re
 >
 
 <p align="center">
-<em>Figure: Agentic sessions accumulate context across turns and branch into subagents, as the traces show. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or <a href="/assets/interactive_pages/agentic-workload-explorer.html">open the explorer full-screen</a>.</em>
+<em>Figure: Agentic sessions accumulate context across turns and branch into subagents. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or <a href="/assets/interactive_pages/agentic-workload-explorer.html">open the explorer full-screen</a>.</em>
 </p>
 
 ## Challenges in serving agentic workloads
