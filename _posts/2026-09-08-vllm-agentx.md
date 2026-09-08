@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM x AgentX: Optimizing for Real-World Agentic Serving"
 author: "vLLM Team and Inferact"
+date: 2026-09-08 12:00:00 +0000
 summary: "How vLLM optimizes KV cache management, parallelism, scheduling, and P/D disaggregation for agentic workloads, validated on SemiAnalysis AgentX with up to 130K tokens per GPU-second and a 14.6x-106x serving-cost advantage over Opus 5."
 image: /assets/figures/2026-09-08-vllm-agentx/hero-vllm-agentx.png
 social_image: /assets/figures/2026-09-08-vllm-agentx/hero-vllm-agentx.png
