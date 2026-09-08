@@ -87,15 +87,16 @@ The calculator shows the minimum HiSparse host pool required to keep CPU memory 
 > [!NOTE]
 > MTP can further limit concurrency because its hot buffers must accommodate all verification tokens at once. At publication time, this means sizing each hot buffer to `(num_speculative_tokens + 2) × top-K`. This is subject to change as we work to shrink the buffers. Currently this is not taken into account by calculator below as we plan to relax this constraint.
 
-<iframe
-  src="/assets/interactive_pages/hisparse_concurrency_calculator.html"
-  title="Hybrid sparse offloading concurrency calculator"
-  loading="lazy"
-  width="768"
+<object
+  data="/blog-assets/interactive_pages/hisparse_concurrency_calculator.html"
+  type="text/html"
+  aria-label="Hybrid sparse offloading concurrency calculator"
+  width="100%"
   height="1520"
-  scrolling="no"
-  style="border: 0; border-radius: 12px;"
-></iframe>
+  style="display: block; width: 100%; max-width: 100%; overflow: hidden; border: 0; border-radius: 12px;"
+>
+  [Open the concurrency calculator](/assets/interactive_pages/hisparse_concurrency_calculator.html)
+</object>
 
 [Open the concurrency calculator full-screen](/assets/interactive_pages/hisparse_concurrency_calculator.html)
 
