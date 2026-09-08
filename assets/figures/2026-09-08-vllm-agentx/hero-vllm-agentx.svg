@@ -90,7 +90,7 @@
 
   <!-- ===== main lockup ===== -->
   <!-- official vLLM logo (https://vllm.ai/vLLM-Full-Logo.svg), scaled to fit -->
-  <g transform="translate(235,277) scale(1.416)">
+  <g transform="translate(264.2,311.6) scale(1.1605)">
     <path fill="#434343" d="m172.66676 136.49417l-58.875 0l0 -93.0625l12.375 0l0 82.0625l46.5 0l0 11.0zm71.25 0l-58.875 0l0 -93.0625l12.375 0l0 82.0625l46.5 0l0 11.0zm95.249985 0l-12.375 0l0 -80.1875l-25.875 54.5625l-7.375 0l-25.6875 -54.5625l0 80.1875l-11.5625 0l0 -93.0625l16.875 0l24.8125 51.8125l24.0 -51.8125l17.1875 0l0 93.0625z" fill-rule="nonzero"/>
     <path fill="#d9d9d9" d="m59.641495 83.01899l0 55.30709l-27.653543 -55.30709z" fill-rule="evenodd"/>
     <path fill="#d9d9d9" d="m59.640358 138.32608l21.72966 0l18.653542 -70.38583l-25.574799 13.461945z" fill-rule="evenodd"/>
@@ -99,10 +99,10 @@
   </g>
 
   <!-- × -->
-  <text x="775" y="462" font-size="72" font-weight="500" fill="#f2a900" text-anchor="middle">×</text>
+  <text x="718.5" y="462" font-size="72" font-weight="500" fill="#f2a900" text-anchor="middle">×</text>
 
   <!-- AgentX wordmark -->
-  <text x="835" y="470" font-size="150" font-weight="800" font-style="italic" fill="url(#agentx)" letter-spacing="-4">AgentX</text>
+  <text x="777.5" y="470" font-size="150" font-weight="800" font-style="italic" fill="url(#agentx)" letter-spacing="-4">AgentX</text>
 
   <!-- tagline -->
   <text x="800" y="650" font-size="46" font-weight="600" fill="#1f2937" text-anchor="middle" letter-spacing="-0.5">Optimizing vLLM for Real-World Agentic Serving</text>
