@@ -19,28 +19,15 @@
  <defs>
   <style type="text/css">
     :root {
-      --surface: #fcfcfb;
-      --ink: #0b0b0b;
-      --ink-secondary: #52514e;
-      --grid: #e1e0d9;
+      --surface: #1a1a19;
+      --ink: #ffffff;
+      --ink-secondary: #c3c2b7;
+      --grid: #2c2c2a;
       --axis: #898781;
-      --teal: #0f9fa8;
-      --blue: #2563eb;
-      --purple: #7047eb;
-      --orange: #f59e0b;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --surface: #1a1a19;
-        --ink: #ffffff;
-        --ink-secondary: #c3c2b7;
-        --grid: #2c2c2a;
-        --axis: #898781;
-        --teal: #21b6bf;
-        --blue: #3987e5;
-        --purple: #8b6cf6;
-        --orange: #f5a623;
-      }
+      --teal: #21b6bf;
+      --blue: #3987e5;
+      --purple: #8b6cf6;
+      --orange: #f5a623;
     }
     * { stroke-linejoin: round; stroke-linecap: butt; }
   </style>

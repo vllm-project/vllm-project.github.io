@@ -2,18 +2,10 @@
   aria-label="One GPU block pool shared by two growing requests, with three responses to exhaustion: preemption drops B's KV entirely; conventional offload saves B's KV to host but B still cannot run until fully resident; hybrid sparse offload frees the coldest slots in place and both requests keep decoding">
 <style>
   :root {
-    --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
-    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
-    --reqA: #2a78d6; --reqB: #86b6ef; --host: #eb6834; --hot: #1baf7a;
-    --pool-fill: rgba(11,11,11,0.025);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
-      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
-      --reqA: #3987e5; --reqB: #184f95; --host: #d95926; --hot: #199e70;
-      --pool-fill: rgba(255,255,255,0.03);
-    }
+    --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+    --reqA: #3987e5; --reqB: #184f95; --host: #d95926; --hot: #199e70;
+    --pool-fill: rgba(255,255,255,0.03);
   }
   text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
   .title { font-size: 17px; font-weight: 650; fill: var(--ink); }
