@@ -238,13 +238,13 @@ Figure 11 shows the Kimi K3 dashboard as an example; the benchmark and all of it
 
 In this post, we focus on the results of three open frontier models: DeepSeek V4 Pro, MiniMax M3, and Kimi K3. For each model, we report the highest-throughput vLLM configuration that maintains P90 interactivity above 50 tokens per second per user, a common and demanding latency SLO. The table below summarizes the key results.
 
-| Model | GPUs / concurrency | Total tokens per GPU-second (TPGS)[^tpgs] @ P90 > 50 tok/s | P90 interactivity |
+| Model | GPUs / concurrency | Total tokens per GPU-second (TPGS)<sup><a href="#note-tpgs">1</a></sup> @ P90 > 50 tok/s | P90 interactivity |
 | :---- | ----: | ----: | ----: |
 | [DeepSeek V4 Pro 1.6T](https://inferencex.semianalysis.com/inference/agentic/439873) | 12 GB300s / 256 | **83K TPGS** | 58.3 tok/s |
 | [MiniMax M3 428B](https://inferencex.semianalysis.com/inference/agentic/439907) | 2 B300s / 24 | 70K TPGS | **74.2 tok/s** |
 | [Kimi K3 2.8T](https://inferencex.semianalysis.com/inference/agentic/441066) | 16 GB300s / 48 | 11.8K TPGS | 62.7 tok/s |
 
-[^tpgs]: Total tokens per GPU-second (TPGS) counts input, output, and cached tokens. A detailed breakdown is available via each model's link.
+<p id="note-tpgs"><small><sup>1</sup> Total tokens per GPU-second (TPGS) counts input, output, and cached tokens. A detailed breakdown is available via each model's link.</small></p>
 
 DeepSeek V4 Pro represents the high-throughput, cost-efficient case. A 12-chip GB300 P/D deployment serves 256 concurrent agent sessions while sustaining 58.3 tokens/s/user at P90. At this operating point, it processes 83K total tokens per GPU-second.
 
@@ -254,13 +254,13 @@ Kimi K3, one of the largest open frontier models, makes the case for frontier in
 
 Beyond performance, cost is the metric most relevant to users' daily use and to tokenomics. The table below compares the serving cost of all three open models against Opus 5.
 
-| Model | GPU TCO/hour | Equivalent Opus 5 cost/hour[^opus] | Cost advantage |
+| Model | GPU TCO/hour | Equivalent Opus 5 cost/hour<sup><a href="#note-opus">2</a></sup> | Cost advantage |
 | :---- | ----: | ----: | ----: |
 | [DeepSeek V4 Pro 1.6T](https://inferencex.semianalysis.com/inference/agentic/439873) | $27.72 | $2,926 | **106×** |
 | [MiniMax M3 428B](https://inferencex.semianalysis.com/inference/agentic/439907) | $4.52 | $384 | **85×** |
 | [Kimi K3 2.8T](https://inferencex.semianalysis.com/inference/agentic/441066) | $36.96 | $538 | **14.6×** |
 
-[^opus]: The Opus 5 calculation uses cached input × $0.50/M + uncached input × $5/M + output × $25/M. It assumes a perfect theoretical cache hit rate and excludes cache-write charges and long-context pricing premiums, which is conservative and favorable to Opus. The comparison is about serving cost, not model quality.
+<p id="note-opus"><small><sup>2</sup> The Opus 5 calculation uses cached input × $0.50/M + uncached input × $5/M + output × $25/M. It assumes a perfect theoretical cache hit rate and excludes cache-write charges and long-context pricing premiums, which is conservative and favorable to Opus. The comparison is about serving cost, not model quality.</small></p>
 
 The cost advantage comes from the defining property of agentic traffic: with a theoretical cache hit rate of more than 96%, vLLM reuses prefixes effectively and turns that reuse into serving efficiency across all three models, under the same settings as the table above.
 
