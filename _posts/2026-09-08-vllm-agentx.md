@@ -26,14 +26,7 @@ Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-d
 <img src="/assets/figures/2026-09-08-vllm-agentx/agentx-pareto-summary.png" alt="vLLM on SemiAnalysis AgentX: cost efficiency vs. P90 interactivity for DeepSeek V4 Pro, MiniMax M3, and Kimi K3" width="100%">
 </p>
 
-<embed
-  src="/assets/interactive_pages/vllm-agentx-pareto.html"
-  type="text/html"
-  title="vLLM on AgentX: cost efficiency vs. interactivity (interactive)"
-  width="100%"
-  height="640"
-  style="display: block; width: 100%; max-width: 100%; overflow: hidden; border: 0; border-radius: 12px;"
->
+<iframe class="vllm-embed" src="/assets/interactive_pages/vllm-agentx-pareto.html" title="vLLM on AgentX: cost efficiency vs. interactivity (interactive)" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 640px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
 <p align="center">
 <em>Explore the interactive curve above or <a href="/assets/interactive_pages/vllm-agentx-pareto.html">open it full-screen</a>. Data source: <a href="https://inferencex.semianalysis.com/inference">SemiAnalysis AgentX</a>.</em>
@@ -54,14 +47,7 @@ To evaluate that frontier under representative traffic, SemiAnalysis recently re
 
 These statistics follow from how an agentic session is built. Each turn appends the latest tool result to the accumulated context and sends the whole thing back to the model, so the input keeps growing while each turn adds only a short new prefill, and almost all of the request is a prefix the engine has already seen. Subagents either fork from that context or start fresh, and their results are joined back into the parent before the final answer. The figure below walks through one such session: use the slider to step from the first turn to the final answer and see how much of each request is reused prefix versus new prefill.
 
-<embed
-  src="/assets/interactive_pages/agentic-workload-explorer.html"
-  type="text/html"
-  title="Agentic workload explorer: sessions grow through reuse and branching"
-  width="100%"
-  height="1000"
-  style="display: block; width: 100%; max-width: 100%; overflow: hidden; border: 0; border-radius: 12px;"
->
+<iframe class="vllm-embed" src="/assets/interactive_pages/agentic-workload-explorer.html" title="Agentic workload explorer: sessions grow through reuse and branching" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
 <p align="center">
 <em>Figure: Agentic sessions accumulate context across turns and branch into subagents. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or <a href="/assets/interactive_pages/agentic-workload-explorer.html">open the explorer full-screen</a>.</em>
@@ -103,14 +89,7 @@ The abstraction continues to evolve as new architectures expose fragmentation an
 
 The new [packed KV cache layout](https://github.com/vllm-project/vllm/pull/44577) instead stores all cache groups and layers in one contiguous backing allocation per block rather than 92 fragmented ones. This reduces descriptor and P/D transfer overhead, and also permits a smaller allocation unit when the FP4 indexer is enabled, saving [roughly 10% of KV cache memory](https://github.com/vllm-project/vllm/pull/48993).
 
-<embed
-  src="/assets/interactive_pages/dsv4-kv-cache-layout.html"
-  type="text/html"
-  title="DeepSeek V4 Pro hybrid KV cache: size-bucketed tensors vs. packed layout"
-  width="100%"
-  height="700"
-  style="display: block; width: 100%; max-width: 100%; overflow: hidden; border: 0; border-radius: 12px;"
->
+<iframe class="vllm-embed" src="/assets/interactive_pages/dsv4-kv-cache-layout.html" title="DeepSeek V4 Pro hybrid KV cache: size-bucketed tensors vs. packed layout" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 700px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
 <p align="center">
 <em>Figure: Hybrid KV cache manager and packed KV cache layout for DeepSeek V4 Pro. Toggle between the MXFP4 and FP8 indexer configurations, or <a href="/assets/interactive_pages/dsv4-kv-cache-layout.html">open the layout full-screen</a>.</em>
@@ -322,3 +301,19 @@ In the execution plane and data plane, we are working with the community to supp
 ## Acknowledgments
 
 This effort was led by Inferact with extensive support from the vLLM community. We thank SemiAnalysis for developing and operating the open AgentX benchmark and for making its methodology and results reproducible. We also thank NVIDIA and AMD for their close collaboration and support throughout this work.
+
+<script>
+(function () {
+  // Resize embedded interactive figures to their content height (they post it when framed).
+  window.addEventListener('message', function (event) {
+    var d = event.data;
+    if (!d || d.type !== 'vllm-embed-resize' || typeof d.height !== 'number') return;
+    var frames = document.querySelectorAll('iframe.vllm-embed');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow === event.source) {
+        frames[i].style.height = Math.ceil(d.height) + 'px';
+      }
+    }
+  });
+})();
+</script>

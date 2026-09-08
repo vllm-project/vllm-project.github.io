@@ -4,20 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Agentic Workload Explorer</title>
-<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
-</head>
-<body>
-<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Agentic Workload Explorer" srcdoc="&lt;!doctype html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-&lt;meta charset=&quot;utf-8&quot;&gt;
-&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
-&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
-&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
-&lt;title&gt;Agentic Workload Explorer&lt;/title&gt;
-&lt;style&gt;:root {
+<style>:root {
   color-scheme: light dark;
   background-color: var(
     --background,
@@ -109,9 +98,9 @@
   --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
 
   /* Internal implementation variables; not part of the agent contract. */
-  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
   --font-mono:
-    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
     monospace;
   --font-size-normal: max(11px, var(--font-size-base));
   --font-size-tooltip: calc(var(--font-size-base) - 1px);
@@ -131,7 +120,7 @@
   --radius-2xl: calc(var(--radius) * 1.6);
   --radius-full: 9999px;
   --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
-  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
 
   /* Legacy aliases; not part of the current agent contract. */
   --viz-bg: transparent;
@@ -146,11 +135,11 @@
   --viz-warning: var(--destructive);
 }
 
-:root[data-theme=&quot;light&quot;] {
+:root[data-theme="light"] {
   color-scheme: light;
 }
 
-:root[data-theme=&quot;dark&quot;] {
+:root[data-theme="dark"] {
   color-scheme: dark;
 }
 
@@ -158,7 +147,7 @@
   box-sizing: border-box;
 }
 
-html &gt; body {
+html > body {
   /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
   --color-background-primary: var(
     --background,
@@ -271,7 +260,7 @@ code:not(pre code) {
   vertical-align: top;
 }
 
-.table-responsive &gt; .table :is(th, td) {
+.table-responsive > .table :is(th, td) {
   overflow-wrap: break-word;
 }
 
@@ -300,12 +289,12 @@ code:not(pre code) {
   padding-inline-end: 16px;
 }
 
-.table :is(.text-end, [align=&quot;right&quot;]) {
+.table :is(.text-end, [align="right"]) {
   text-align: end;
   font-variant-numeric: tabular-nums;
 }
 
-.table :is(.text-center, [align=&quot;center&quot;]) {
+.table :is(.text-center, [align="center"]) {
   text-align: center;
 }
 
@@ -333,7 +322,7 @@ code:not(pre code) {
   background: var(--card);
 }
 
-#widget &gt; :not(.card, .progress) {
+#widget > :not(.card, .progress) {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
@@ -453,7 +442,7 @@ small,
   gap: 8px;
 }
 
-.viz-controls &gt; .form-label {
+.viz-controls > .form-label {
   display: grid;
   min-width: min(100%, 260px);
   flex: 1 1 280px;
@@ -463,7 +452,7 @@ small,
   margin-bottom: 0;
 }
 
-.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
   grid-column: 1 / -1;
 }
 
@@ -578,13 +567,13 @@ a.btn {
   color: var(--muted-foreground);
 }
 
-.form-control[type=&quot;file&quot;] {
+.form-control[type="file"] {
   padding: 0;
   overflow: hidden;
   cursor: var(--cursor-interaction, pointer);
 }
 
-.form-control[type=&quot;file&quot;]::file-selector-button {
+.form-control[type="file"]::file-selector-button {
   min-height: 26px;
   margin-right: 8px;
   padding: 0 8px;
@@ -596,22 +585,22 @@ a.btn {
   font: inherit;
 }
 
-.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+.form-control[type="file"]:not(:disabled):hover::file-selector-button {
   background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
 }
 
-.form-control-color[type=&quot;color&quot;] {
+.form-control-color[type="color"] {
   width: 40px;
   height: 28px;
   padding: 3px;
   cursor: var(--cursor-interaction, pointer);
 }
 
-.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+.form-control-color[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
 }
 
-.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+.form-control-color[type="color"]::-webkit-color-swatch {
   border: 0;
   border-radius: calc(var(--radius-lg) - 4px);
   corner-shape: superellipse(1.5);
@@ -691,7 +680,7 @@ textarea.form-control {
     box-shadow 150ms;
 }
 
-.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
   border-color: var(--input);
   border-radius: var(--radius-sm);
   corner-shape: superellipse(1.5);
@@ -704,28 +693,28 @@ textarea.form-control {
   background-color: var(--card);
 }
 
-.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
   border-color: var(--primary);
   background-color: var(--primary);
 }
 
 .form-check:not(.form-switch)
-  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  .form-check-input[type="checkbox"]:checked::before {
   display: block;
   width: 100%;
   height: 100%;
   background: var(--primary-foreground);
-  content: &quot;&quot;;
+  content: "";
   mask: var(--checkmark-image) center / 12px 12px no-repeat;
 }
 
-.form-check-input[type=&quot;radio&quot;] {
+.form-check-input[type="radio"] {
   width: 14px;
   height: 14px;
   border-radius: var(--radius-full);
 }
 
-.form-check-input[type=&quot;radio&quot;]:checked {
+.form-check-input[type="radio"]:checked {
   border: 2px solid var(--primary);
   background:
     radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
@@ -779,7 +768,7 @@ textarea.form-control {
   border-radius: var(--radius-full);
   background: light-dark(var(--primary-foreground), var(--foreground));
   box-shadow: var(--shadow-sm);
-  content: &quot;&quot;;
+  content: "";
   transform: translate(2px, -50%);
   transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
 }
@@ -858,8 +847,8 @@ textarea.form-control {
 }
 
 .btn:not(.btn-primary, .viz-tile):is(
-  [aria-pressed=&quot;true&quot;],
-  [aria-selected=&quot;true&quot;],
+  [aria-pressed="true"],
+  [aria-selected="true"],
   .is-selected
 ) {
   border-color: var(--primary);
@@ -867,7 +856,7 @@ textarea.form-control {
   background: var(--primary);
 }
 
-.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
   border-color: var(--primary);
   box-shadow: inset 0 0 0 1px var(--primary);
 }
@@ -883,7 +872,7 @@ svg {
   height: auto;
 }
 
-#widget &gt; svg {
+#widget > svg {
   width: 100%;
 }
 
@@ -902,11 +891,11 @@ svg.lucide {
   color: var(--destructive);
 }
 
-html&gt;body{padding:0}&lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id=&quot;agentx-trace-viz&quot; class=&quot;agentx-trace-viz&quot;&gt;
-  &lt;style&gt;
+html>body{padding:0}</style>
+</head>
+<body>
+<div id="agentx-trace-viz" class="agentx-trace-viz">
+  <style>
     #agentx-trace-viz {
       width: 100%;
       color: var(--foreground);
@@ -1059,7 +1048,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
     }
 
-    #agentx-trace-viz .ax-play-button[aria-pressed=&quot;true&quot;] {
+    #agentx-trace-viz .ax-play-button[aria-pressed="true"] {
       border-color: var(--primary);
       background: var(--primary);
       color: var(--primary-foreground);
@@ -1217,83 +1206,83 @@ html&gt;body{padding:0}&lt;/style&gt;
         animation: none;
       }
     }
-  &lt;/style&gt;
+  </style>
 
-  &lt;section aria-labelledby=&quot;agentx-trace-title&quot;&gt;
-    &lt;div class=&quot;ax-head&quot;&gt;
-      &lt;h2 id=&quot;agentx-trace-title&quot;&gt;Agentic sessions grow through reuse and branching&lt;/h2&gt;
-      &lt;p&gt;Each request carries prior tokens forward; subagents either fork the parent context or start fresh.&lt;/p&gt;
-    &lt;/div&gt;
+  <section aria-labelledby="agentx-trace-title">
+    <div class="ax-head">
+      <h2 id="agentx-trace-title">Agentic sessions grow through reuse and branching</h2>
+      <p>Each request carries prior tokens forward; subagents either fork the parent context or start fresh.</p>
+    </div>
 
-    &lt;div class=&quot;ax-legend&quot; aria-label=&quot;Context legend&quot;&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-system&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;system context&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-user&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;user / delegated task&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-thinking&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;thinking&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-toolcall&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;tool call&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-result&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;tool / branch result&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-swatch ax-response&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;assistant response&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-line-swatch ax-reused&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;reused prefix&lt;/span&gt;
-      &lt;span class=&quot;ax-legend-item&quot;&gt;&lt;span class=&quot;ax-line-swatch ax-fresh&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;new prefill&lt;/span&gt;
-    &lt;/div&gt;
+    <div class="ax-legend" aria-label="Context legend">
+      <span class="ax-legend-item"><span class="ax-swatch ax-system" aria-hidden="true"></span>system context</span>
+      <span class="ax-legend-item"><span class="ax-swatch ax-user" aria-hidden="true"></span>user / delegated task</span>
+      <span class="ax-legend-item"><span class="ax-swatch ax-thinking" aria-hidden="true"></span>thinking</span>
+      <span class="ax-legend-item"><span class="ax-swatch ax-toolcall" aria-hidden="true"></span>tool call</span>
+      <span class="ax-legend-item"><span class="ax-swatch ax-result" aria-hidden="true"></span>tool / branch result</span>
+      <span class="ax-legend-item"><span class="ax-swatch ax-response" aria-hidden="true"></span>assistant response</span>
+      <span class="ax-legend-item"><span class="ax-line-swatch ax-reused" aria-hidden="true"></span>reused prefix</span>
+      <span class="ax-legend-item"><span class="ax-line-swatch ax-fresh" aria-hidden="true"></span>new prefill</span>
+    </div>
 
-    &lt;div class=&quot;ax-overview-wrap&quot;&gt;
-      &lt;div class=&quot;ax-overview-head&quot;&gt;
-        &lt;h3&gt;Session overview&lt;/h3&gt;
-      &lt;/div&gt;
-      &lt;p class=&quot;ax-overview-note text-small&quot;&gt;Solid = parent turns. Dashed = subagent fork and join.&lt;/p&gt;
-      &lt;div class=&quot;ax-overview&quot;&gt;
-        &lt;svg id=&quot;agentx-overview-svg&quot; role=&quot;img&quot; aria-labelledby=&quot;agentx-overview-title agentx-overview-desc&quot;&gt;
-          &lt;title id=&quot;agentx-overview-title&quot;&gt;High-level agentic session overview&lt;/title&gt;
-          &lt;desc id=&quot;agentx-overview-desc&quot;&gt;An open-ended parent loop with forked and fresh subagent branches that join before the final answer.&lt;/desc&gt;
-        &lt;/svg&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+    <div class="ax-overview-wrap">
+      <div class="ax-overview-head">
+        <h3>Session overview</h3>
+      </div>
+      <p class="ax-overview-note text-small">Solid = parent turns. Dashed = subagent fork and join.</p>
+      <div class="ax-overview">
+        <svg id="agentx-overview-svg" role="img" aria-labelledby="agentx-overview-title agentx-overview-desc">
+          <title id="agentx-overview-title">High-level agentic session overview</title>
+          <desc id="agentx-overview-desc">An open-ended parent loop with forked and fresh subagent branches that join before the final answer.</desc>
+        </svg>
+      </div>
+    </div>
 
-    &lt;div class=&quot;ax-controls-wrap&quot;&gt;
-      &lt;div class=&quot;card&quot;&gt;
-        &lt;div class=&quot;ax-range-head&quot;&gt;
-          &lt;label class=&quot;form-label&quot; for=&quot;agentx-trace-range&quot;&gt;Trace position&lt;/label&gt;
-          &lt;div class=&quot;ax-playback&quot;&gt;
-            &lt;button id=&quot;agentx-play-button&quot; class=&quot;ax-play-button&quot; type=&quot;button&quot; aria-pressed=&quot;true&quot; aria-label=&quot;Pause autoplay&quot;&gt;Pause&lt;/button&gt;
-            &lt;strong id=&quot;agentx-step-count&quot;&gt;1 / 5&lt;/strong&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-        &lt;input id=&quot;agentx-trace-range&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;4&quot; step=&quot;1&quot; value=&quot;0&quot; aria-describedby=&quot;agentx-state-copy&quot;&gt;
-        &lt;div class=&quot;ax-ticks text-small&quot; aria-hidden=&quot;true&quot;&gt;
-          &lt;span&gt;Fresh&lt;/span&gt;
-          &lt;span&gt;Retain output&lt;/span&gt;
-          &lt;span&gt;Reuse&lt;/span&gt;
-          &lt;span&gt;Fork&lt;/span&gt;
-          &lt;span&gt;Join + answer&lt;/span&gt;
-        &lt;/div&gt;
-        &lt;h3 id=&quot;agentx-state-title&quot; class=&quot;ax-state-title&quot;&gt;&lt;/h3&gt;
-        &lt;p id=&quot;agentx-state-copy&quot; class=&quot;ax-state-copy&quot; aria-live=&quot;polite&quot;&gt;&lt;/p&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
+    <div class="ax-controls-wrap">
+      <div class="card">
+        <div class="ax-range-head">
+          <label class="form-label" for="agentx-trace-range">Trace position</label>
+          <div class="ax-playback">
+            <button id="agentx-play-button" class="ax-play-button" type="button" aria-pressed="true" aria-label="Pause autoplay">Pause</button>
+            <strong id="agentx-step-count">1 / 5</strong>
+          </div>
+        </div>
+        <input id="agentx-trace-range" class="form-range" type="range" min="0" max="4" step="1" value="0" aria-describedby="agentx-state-copy">
+        <div class="ax-ticks text-small" aria-hidden="true">
+          <span>Fresh</span>
+          <span>Retain output</span>
+          <span>Reuse</span>
+          <span>Fork</span>
+          <span>Join + answer</span>
+        </div>
+        <h3 id="agentx-state-title" class="ax-state-title"></h3>
+        <p id="agentx-state-copy" class="ax-state-copy" aria-live="polite"></p>
+      </div>
+    </div>
 
-    &lt;div class=&quot;ax-detail-wrap&quot;&gt;
-      &lt;h3&gt;Context at this position&lt;/h3&gt;
-      &lt;div class=&quot;ax-detail&quot;&gt;
-        &lt;svg id=&quot;agentx-detail-svg&quot; role=&quot;img&quot; aria-labelledby=&quot;agentx-detail-title agentx-detail-desc&quot;&gt;
-          &lt;title id=&quot;agentx-detail-title&quot;&gt;Selected context transition&lt;/title&gt;
-          &lt;desc id=&quot;agentx-detail-desc&quot;&gt;The token-level context composition for the selected point in the agentic session.&lt;/desc&gt;
-        &lt;/svg&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/section&gt;
+    <div class="ax-detail-wrap">
+      <h3>Context at this position</h3>
+      <div class="ax-detail">
+        <svg id="agentx-detail-svg" role="img" aria-labelledby="agentx-detail-title agentx-detail-desc">
+          <title id="agentx-detail-title">Selected context transition</title>
+          <desc id="agentx-detail-desc">The token-level context composition for the selected point in the agentic session.</desc>
+        </svg>
+      </div>
+    </div>
+  </section>
 
-  &lt;script&gt;
-    (() =&gt; {
-      const root = document.getElementById(&#x27;agentx-trace-viz&#x27;);
-      const overviewSvg = root.querySelector(&#x27;#agentx-overview-svg&#x27;);
-      const detailSvg = root.querySelector(&#x27;#agentx-detail-svg&#x27;);
-      const range = root.querySelector(&#x27;#agentx-trace-range&#x27;);
-      const playButton = root.querySelector(&#x27;#agentx-play-button&#x27;);
-      const stepCount = root.querySelector(&#x27;#agentx-step-count&#x27;);
-      const stateTitle = root.querySelector(&#x27;#agentx-state-title&#x27;);
-      const stateCopy = root.querySelector(&#x27;#agentx-state-copy&#x27;);
-      const ns = &#x27;http://www.w3.org/2000/svg&#x27;;
-      const reduceMotion = window.matchMedia(&#x27;(prefers-reduced-motion: reduce)&#x27;);
+  <script>
+    (() => {
+      const root = document.getElementById('agentx-trace-viz');
+      const overviewSvg = root.querySelector('#agentx-overview-svg');
+      const detailSvg = root.querySelector('#agentx-detail-svg');
+      const range = root.querySelector('#agentx-trace-range');
+      const playButton = root.querySelector('#agentx-play-button');
+      const stepCount = root.querySelector('#agentx-step-count');
+      const stateTitle = root.querySelector('#agentx-state-title');
+      const stateCopy = root.querySelector('#agentx-state-copy');
+      const ns = 'http://www.w3.org/2000/svg';
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
       const autoplayDelay = 2400;
       let selected = 0;
       let isPlaying = !reduceMotion.matches;
@@ -1301,43 +1290,43 @@ html&gt;body{padding:0}&lt;/style&gt;
       let transitionTimer = 0;
 
       const colors = {
-        system: &#x27;var(--viz-series-1)&#x27;,
-        user: &#x27;var(--muted-foreground)&#x27;,
-        thinking: &#x27;var(--viz-series-2)&#x27;,
-        toolcall: &#x27;var(--viz-series-5)&#x27;,
-        result: &#x27;var(--viz-series-4)&#x27;,
-        response: &#x27;var(--viz-series-6)&#x27;,
-        reused: &#x27;var(--viz-series-3)&#x27;,
-        fresh: &#x27;var(--viz-series-5)&#x27;,
-        foreground: &#x27;var(--foreground)&#x27;,
-        mutedForeground: &#x27;var(--muted-foreground)&#x27;,
-        background: &#x27;var(--background)&#x27;,
-        muted: &#x27;var(--muted)&#x27;,
-        border: &#x27;var(--border)&#x27;,
-        primary: &#x27;var(--primary)&#x27;,
-        primaryForeground: &#x27;var(--primary-foreground)&#x27;
+        system: 'var(--viz-series-1)',
+        user: 'var(--muted-foreground)',
+        thinking: 'var(--viz-series-2)',
+        toolcall: 'var(--viz-series-5)',
+        result: 'var(--viz-series-4)',
+        response: 'var(--viz-series-6)',
+        reused: 'var(--viz-series-3)',
+        fresh: 'var(--viz-series-5)',
+        foreground: 'var(--foreground)',
+        mutedForeground: 'var(--muted-foreground)',
+        background: 'var(--background)',
+        muted: 'var(--muted)',
+        border: 'var(--border)',
+        primary: 'var(--primary)',
+        primaryForeground: 'var(--primary-foreground)'
       };
 
       const steps = [
         {
-          title: &#x27;Fresh start&#x27;,
-          copy: &#x27;T₁ prefills system and user tokens, then decodes reasoning and a tool call.&#x27;
+          title: 'Fresh start',
+          copy: 'T₁ prefills system and user tokens, then decodes reasoning and a tool call.'
         },
         {
-          title: &#x27;Output becomes future input&#x27;,
-          copy: &#x27;Decoded reasoning and the tool call become the tail of T₁’s retained KV state.&#x27;
+          title: 'Output becomes future input',
+          copy: 'Decoded reasoning and the tool call become the tail of T₁’s retained KV state.'
         },
         {
-          title: &#x27;Reuse dominates later turns&#x27;,
-          copy: &#x27;The next turn reuses the retained prefix; only the returned tool result is newly prefetched.&#x27;
+          title: 'Reuse dominates later turns',
+          copy: 'The next turn reuses the retained prefix; only the returned tool result is newly prefetched.'
         },
         {
-          title: &#x27;Forked vs. fresh subagents&#x27;,
-          copy: &#x27;A forked subagent inherits the parent history; a fresh subagent starts a separate context.&#x27;
+          title: 'Forked vs. fresh subagents',
+          copy: 'A forked subagent inherits the parent history; a fresh subagent starts a separate context.'
         },
         {
-          title: &#x27;Results join; the final turn answers&#x27;,
-          copy: &#x27;Branch results append to the parent. The final turn emits the assistant response instead of another tool call.&#x27;
+          title: 'Results join; the final turn answers',
+          copy: 'Branch results append to the parent. The final turn emits the assistant response instead of another tool call.'
         }
       ];
 
@@ -1350,75 +1339,75 @@ html&gt;body{padding:0}&lt;/style&gt;
         response: colors.response
       };
 
-      function node(name, attrs = {}, textValue = &#x27;&#x27;) {
+      function node(name, attrs = {}, textValue = '') {
         const el = document.createElementNS(ns, name);
-        Object.entries(attrs).forEach(([key, value]) =&gt; el.setAttribute(key, value));
+        Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
         if (textValue) el.textContent = textValue;
         return el;
       }
 
       function label(x, y, value, options = {}) {
-        return node(&#x27;text&#x27;, {
+        return node('text', {
           x,
           y,
           fill: options.fill || colors.foreground,
-          &#x27;font-size&#x27;: options.size || 15,
-          &#x27;font-weight&#x27;: options.weight || 400,
-          &#x27;text-anchor&#x27;: options.anchor || &#x27;start&#x27;
+          'font-size': options.size || 15,
+          'font-weight': options.weight || 400,
+          'text-anchor': options.anchor || 'start'
         }, value);
       }
 
       function addMarker(defs, id, fill) {
-        const marker = node(&#x27;marker&#x27;, {
+        const marker = node('marker', {
           id,
           markerWidth: 5,
           markerHeight: 5,
           refX: 4.5,
           refY: 2.5,
-          orient: &#x27;auto&#x27;,
-          markerUnits: &#x27;strokeWidth&#x27;,
-          viewBox: &#x27;0 0 5 5&#x27;
+          orient: 'auto',
+          markerUnits: 'strokeWidth',
+          viewBox: '0 0 5 5'
         });
-        marker.appendChild(node(&#x27;path&#x27;, { d: &#x27;M0,0 L5,2.5 L0,5 Z&#x27;, fill }));
+        marker.appendChild(node('path', { d: 'M0,0 L5,2.5 L0,5 Z', fill }));
         defs.appendChild(marker);
       }
 
       function svgBase(svg, width, height, titleText, descText, prefix) {
-        const defs = node(&#x27;defs&#x27;);
+        const defs = node('defs');
         addMarker(defs, `${prefix}-arrow-active`, colors.primary);
         addMarker(defs, `${prefix}-arrow-muted`, colors.mutedForeground);
         addMarker(defs, `${prefix}-arrow-result`, colors.result);
         addMarker(defs, `${prefix}-arrow-thinking`, colors.thinking);
         addMarker(defs, `${prefix}-arrow-tool`, colors.toolcall);
         svg.replaceChildren(
-          node(&#x27;title&#x27;, { id: `${prefix}-title` }, titleText),
-          node(&#x27;desc&#x27;, { id: `${prefix}-desc` }, descText),
+          node('title', { id: `${prefix}-title` }, titleText),
+          node('desc', { id: `${prefix}-desc` }, descText),
           defs
         );
-        svg.setAttribute(&#x27;aria-labelledby&#x27;, `${prefix}-title ${prefix}-desc`);
-        svg.setAttribute(&#x27;viewBox&#x27;, `0 0 ${width} ${height}`);
-        svg.setAttribute(&#x27;height&#x27;, height);
+        svg.setAttribute('aria-labelledby', `${prefix}-title ${prefix}-desc`);
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('height', height);
       }
 
       function pathEdge(group, d, options = {}) {
-        group.appendChild(node(&#x27;path&#x27;, {
+        group.appendChild(node('path', {
           d,
-          fill: &#x27;none&#x27;,
+          fill: 'none',
           stroke: options.active ? colors.primary : (options.stroke || colors.mutedForeground),
-          &#x27;stroke-opacity&#x27;: options.active ? 1 : 0.48,
-          &#x27;stroke-width&#x27;: options.active ? 2.4 : 1.6,
-          &#x27;stroke-dasharray&#x27;: options.dashed ? &#x27;6 7&#x27; : &#x27;none&#x27;,
-          &#x27;stroke-linecap&#x27;: &#x27;round&#x27;,
-          &#x27;stroke-linejoin&#x27;: &#x27;round&#x27;,
-          &#x27;marker-end&#x27;: options.arrow === false ? &#x27;none&#x27; : `url(#${options.marker || (options.active ? &#x27;overview-arrow-active&#x27; : &#x27;overview-arrow-muted&#x27;)})`
+          'stroke-opacity': options.active ? 1 : 0.48,
+          'stroke-width': options.active ? 2.4 : 1.6,
+          'stroke-dasharray': options.dashed ? '6 7' : 'none',
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          'marker-end': options.arrow === false ? 'none' : `url(#${options.marker || (options.active ? 'overview-arrow-active' : 'overview-arrow-muted')})`
         }));
       }
 
       function activeOverviewKeys() {
-        if (selected &lt;= 1) return new Set([&#x27;m1&#x27;]);
-        if (selected === 2) return new Set([&#x27;m2&#x27;]);
-        if (selected === 3) return new Set([&#x27;m2&#x27;, &#x27;a&#x27;, &#x27;b&#x27;]);
-        return new Set([&#x27;m3&#x27;, &#x27;m4&#x27;]);
+        if (selected <= 1) return new Set(['m1']);
+        if (selected === 2) return new Set(['m2']);
+        if (selected === 3) return new Set(['m2', 'a', 'b']);
+        return new Set(['m3', 'm4']);
       }
 
       function overviewNode(group, item, active, past, compact) {
@@ -1426,9 +1415,9 @@ html&gt;body{padding:0}&lt;/style&gt;
         const stroke = active ? colors.primary : colors.border;
         const textFill = active ? colors.primaryForeground : colors.foreground;
         const subFill = active ? colors.primaryForeground : colors.mutedForeground;
-        const g = node(&#x27;g&#x27;);
-        g.appendChild(node(&#x27;title&#x27;, {}, `${item.title}: ${item.subtitle}`));
-        g.appendChild(node(&#x27;rect&#x27;, {
+        const g = node('g');
+        g.appendChild(node('title', {}, `${item.title}: ${item.subtitle}`));
+        g.appendChild(node('rect', {
           x: item.x,
           y: item.y,
           width: item.w,
@@ -1436,36 +1425,36 @@ html&gt;body{padding:0}&lt;/style&gt;
           rx: compact ? 8 : 10,
           fill,
           stroke,
-          &#x27;stroke-width&#x27;: active ? 2 : 1.25
+          'stroke-width': active ? 2 : 1.25
         }));
         g.appendChild(label(item.x + item.w / 2, item.y + (compact ? 20 : 22), item.title, {
           size: compact ? 15 : 17,
           weight: 600,
           fill: textFill,
-          anchor: &#x27;middle&#x27;
+          anchor: 'middle'
         }));
         g.appendChild(label(item.x + item.w / 2, item.y + (compact ? 38 : 42), item.subtitle, {
           size: compact ? 13 : 14,
           fill: subFill,
-          anchor: &#x27;middle&#x27;
+          anchor: 'middle'
         }));
         group.appendChild(g);
       }
 
       function drawOverview() {
-        const container = root.querySelector(&#x27;.ax-overview&#x27;);
+        const container = root.querySelector('.ax-overview');
         const width = Math.max(320, Math.round(container.getBoundingClientRect().width));
-        const compact = width &lt; 560;
+        const compact = width < 560;
         const height = compact ? 318 : 305;
         svgBase(
           overviewSvg,
           width,
           height,
-          &#x27;High-level agentic session overview&#x27;,
-          &#x27;An open-ended parent loop with forked and fresh subagent branches that join before the final answer.&#x27;,
-          &#x27;overview&#x27;
+          'High-level agentic session overview',
+          'An open-ended parent loop with forked and fresh subagent branches that join before the final answer.',
+          'overview'
         );
-        const group = node(&#x27;g&#x27;, { &#x27;font-family&#x27;: &#x27;inherit&#x27; });
+        const group = node('g', { 'font-family': 'inherit' });
         overviewSvg.appendChild(group);
         const active = activeOverviewKeys();
         const w = compact ? 68 : 112;
@@ -1492,44 +1481,44 @@ html&gt;body{padding:0}&lt;/style&gt;
             };
 
         const items = {
-          m1: { ...positions.m1, w, h, title: &#x27;T₁&#x27;, subtitle: &#x27;think → call&#x27; },
-          m2: { ...positions.m2, w, h, title: &#x27;T₂…Tₖ₋₁&#x27;, subtitle: &#x27;repeat + fork&#x27; },
-          m3: { ...positions.m3, w, h, title: &#x27;Tₖ&#x27;, subtitle: &#x27;join → call&#x27; },
-          m4: { ...positions.m4, w, h, title: &#x27;Tₖ₊₁&#x27;, subtitle: &#x27;final answer&#x27; },
-          a: { ...positions.a, w: branchW, h: branchH, title: &#x27;Forked subagent&#x27;, subtitle: &#x27;inherits parent&#x27; },
-          b: { ...positions.b, w: branchW, h: branchH, title: &#x27;Fresh subagent&#x27;, subtitle: &#x27;new context&#x27; }
+          m1: { ...positions.m1, w, h, title: 'T₁', subtitle: 'think → call' },
+          m2: { ...positions.m2, w, h, title: 'T₂…Tₖ₋₁', subtitle: 'repeat + fork' },
+          m3: { ...positions.m3, w, h, title: 'Tₖ', subtitle: 'join → call' },
+          m4: { ...positions.m4, w, h, title: 'Tₖ₊₁', subtitle: 'final answer' },
+          a: { ...positions.a, w: branchW, h: branchH, title: 'Forked subagent', subtitle: 'inherits parent' },
+          b: { ...positions.b, w: branchW, h: branchH, title: 'Fresh subagent', subtitle: 'new context' }
         };
 
-        const centerY = (item) =&gt; item.y + item.h / 2;
-        pathEdge(group, `M${items.m1.x + w},${centerY(items.m1)} L${items.m2.x},${centerY(items.m2)}`, { active: selected &gt;= 2 });
-        pathEdge(group, `M${items.m2.x + w},${centerY(items.m2)} L${items.m3.x},${centerY(items.m3)}`, { active: selected &gt;= 4 });
-        pathEdge(group, `M${items.m3.x + w},${centerY(items.m3)} L${items.m4.x},${centerY(items.m4)}`, { active: selected &gt;= 4 });
+        const centerY = (item) => item.y + item.h / 2;
+        pathEdge(group, `M${items.m1.x + w},${centerY(items.m1)} L${items.m2.x},${centerY(items.m2)}`, { active: selected >= 2 });
+        pathEdge(group, `M${items.m2.x + w},${centerY(items.m2)} L${items.m3.x},${centerY(items.m3)}`, { active: selected >= 4 });
+        pathEdge(group, `M${items.m3.x + w},${centerY(items.m3)} L${items.m4.x},${centerY(items.m4)}`, { active: selected >= 4 });
 
         const spawnX = items.m2.x + w / 2;
         const joinX = items.m3.x + w / 2;
-        pathEdge(group, `M${spawnX},${items.m2.y + h} C${spawnX},${items.a.y - 22} ${items.a.x - 20},${centerY(items.a)} ${items.a.x},${centerY(items.a)}`, { active: selected &gt;= 3, dashed: true });
-        pathEdge(group, `M${spawnX},${items.m2.y + h} C${spawnX},${items.b.y - 24} ${items.b.x - 20},${centerY(items.b)} ${items.b.x},${centerY(items.b)}`, { active: selected &gt;= 3, dashed: true });
-        pathEdge(group, `M${items.a.x + branchW},${centerY(items.a)} C${items.a.x + branchW + 24},${centerY(items.a)} ${joinX},${items.m3.y + h + 22} ${joinX},${items.m3.y + h}`, { active: selected &gt;= 4, dashed: true });
-        pathEdge(group, `M${items.b.x + branchW},${centerY(items.b)} C${items.b.x + branchW + 24},${centerY(items.b)} ${joinX},${items.m3.y + h + 28} ${joinX},${items.m3.y + h}`, { active: selected &gt;= 4, dashed: true });
+        pathEdge(group, `M${spawnX},${items.m2.y + h} C${spawnX},${items.a.y - 22} ${items.a.x - 20},${centerY(items.a)} ${items.a.x},${centerY(items.a)}`, { active: selected >= 3, dashed: true });
+        pathEdge(group, `M${spawnX},${items.m2.y + h} C${spawnX},${items.b.y - 24} ${items.b.x - 20},${centerY(items.b)} ${items.b.x},${centerY(items.b)}`, { active: selected >= 3, dashed: true });
+        pathEdge(group, `M${items.a.x + branchW},${centerY(items.a)} C${items.a.x + branchW + 24},${centerY(items.a)} ${joinX},${items.m3.y + h + 22} ${joinX},${items.m3.y + h}`, { active: selected >= 4, dashed: true });
+        pathEdge(group, `M${items.b.x + branchW},${centerY(items.b)} C${items.b.x + branchW + 24},${centerY(items.b)} ${joinX},${items.m3.y + h + 28} ${joinX},${items.m3.y + h}`, { active: selected >= 4, dashed: true });
 
         if (!compact) {
-          group.appendChild(label((items.m1.x + w + items.m2.x) / 2, mainY - 14, &#x27;tool result&#x27;, { size: 14, fill: colors.mutedForeground, anchor: &#x27;middle&#x27; }));
-          group.appendChild(label((items.m2.x + w + items.m3.x) / 2, mainY - 14, &#x27;many reuse cycles&#x27;, { size: 14, fill: colors.mutedForeground, anchor: &#x27;middle&#x27; }));
-          group.appendChild(label((items.m3.x + w + items.m4.x) / 2, mainY - 14, &#x27;last tool result&#x27;, { size: 14, fill: colors.mutedForeground, anchor: &#x27;middle&#x27; }));
+          group.appendChild(label((items.m1.x + w + items.m2.x) / 2, mainY - 14, 'tool result', { size: 14, fill: colors.mutedForeground, anchor: 'middle' }));
+          group.appendChild(label((items.m2.x + w + items.m3.x) / 2, mainY - 14, 'many reuse cycles', { size: 14, fill: colors.mutedForeground, anchor: 'middle' }));
+          group.appendChild(label((items.m3.x + w + items.m4.x) / 2, mainY - 14, 'last tool result', { size: 14, fill: colors.mutedForeground, anchor: 'middle' }));
         }
         const past = {
-          m1: selected &gt; 1,
-          m2: selected &gt; 3,
+          m1: selected > 1,
+          m2: selected > 3,
           m3: false,
           m4: false,
-          a: selected &gt; 3,
-          b: selected &gt; 3
+          a: selected > 3,
+          b: selected > 3
         };
-        Object.entries(items).forEach(([key, item]) =&gt; overviewNode(group, item, active.has(key), past[key], compact));
+        Object.entries(items).forEach(([key, item]) => overviewNode(group, item, active.has(key), past[key], compact));
       }
 
       function segmentRect(group, x, y, width, height, item, compact) {
-        const rect = node(&#x27;rect&#x27;, {
+        const rect = node('rect', {
           x,
           y,
           width: Math.max(2, width),
@@ -1537,26 +1526,26 @@ html&gt;body{padding:0}&lt;/style&gt;
           rx: compact ? 5 : 6,
           fill: typeColor[item.type]
         });
-        rect.appendChild(node(&#x27;title&#x27;, {}, item.label));
+        rect.appendChild(node('title', {}, item.label));
         group.appendChild(rect);
         const candidates = [item.label, item.short, item.tiny].filter(Boolean);
-        const textValue = candidates.find((candidate) =&gt; width &gt;= candidate.length * (compact ? 7 : 7.6) + 14) || &#x27;&#x27;;
+        const textValue = candidates.find((candidate) => width >= candidate.length * (compact ? 7 : 7.6) + 14) || '';
         if (textValue) {
           group.appendChild(label(x + width / 2, y + height * 0.64, textValue, {
             size: compact ? 14 : 15,
             weight: 600,
             fill: colors.background,
-            anchor: &#x27;middle&#x27;
+            anchor: 'middle'
           }));
         }
         return { ...item, x, y, width, height };
       }
 
       function drawBar(group, x, y, baseWidth, height, segments, referenceWeight, compact) {
-        const total = segments.reduce((sum, item) =&gt; sum + item.weight, 0);
+        const total = segments.reduce((sum, item) => sum + item.weight, 0);
         const scaleWeight = referenceWeight || total;
         let cursor = x;
-        const bounds = segments.map((item) =&gt; {
+        const bounds = segments.map((item) => {
           const width = baseWidth * item.weight / scaleWeight;
           const bound = segmentRect(group, cursor, y, width, height, item, compact);
           cursor += width;
@@ -1566,21 +1555,21 @@ html&gt;body{padding:0}&lt;/style&gt;
       }
 
       function underline(group, x1, x2, y, kind, compact) {
-        if (x2 &lt;= x1) return;
-        group.appendChild(node(&#x27;line&#x27;, {
+        if (x2 <= x1) return;
+        group.appendChild(node('line', {
           x1,
           x2,
           y1: y,
           y2: y,
-          stroke: kind === &#x27;reused&#x27; ? colors.reused : colors.fresh,
-          &#x27;stroke-width&#x27;: 4,
-          &#x27;stroke-dasharray&#x27;: kind === &#x27;reused&#x27; ? &#x27;none&#x27; : &#x27;3 6&#x27;,
-          &#x27;stroke-linecap&#x27;: &#x27;round&#x27;
+          stroke: kind === 'reused' ? colors.reused : colors.fresh,
+          'stroke-width': 4,
+          'stroke-dasharray': kind === 'reused' ? 'none' : '3 6',
+          'stroke-linecap': 'round'
         }));
-        group.appendChild(label(kind === &#x27;reused&#x27; ? x1 : x2, y + 21, kind === &#x27;reused&#x27; ? &#x27;reused prefix&#x27; : &#x27;new prefill&#x27;, {
+        group.appendChild(label(kind === 'reused' ? x1 : x2, y + 21, kind === 'reused' ? 'reused prefix' : 'new prefill', {
           size: compact ? 13 : 14,
           fill: colors.mutedForeground,
-          anchor: kind === &#x27;reused&#x27; ? &#x27;start&#x27; : &#x27;end&#x27;
+          anchor: kind === 'reused' ? 'start' : 'end'
         }));
       }
 
@@ -1594,35 +1583,35 @@ html&gt;body{padding:0}&lt;/style&gt;
         const outputX = width - marginRight - outputWidth;
         const inputBaseWidth = Math.max(150, outputX - gap - x) * scale;
         const height = compact ? 38 : 44;
-        const inputWeight = input.reduce((sum, item) =&gt; sum + item.weight, 0);
+        const inputWeight = input.reduce((sum, item) => sum + item.weight, 0);
         const scaleWeight = referenceWeight || inputWeight;
 
         group.appendChild(label(x, y - 14, title, { size: compact ? 14 : 17, weight: 600, fill: colors.foreground }));
         if (output.length) {
-          group.appendChild(label(outputX, y - 14, compact ? &#x27;OUTPUT&#x27; : &#x27;MODEL OUTPUT&#x27;, { size: compact ? 13 : 14, weight: 600, fill: colors.mutedForeground }));
+          group.appendChild(label(outputX, y - 14, compact ? 'OUTPUT' : 'MODEL OUTPUT', { size: compact ? 13 : 14, weight: 600, fill: colors.mutedForeground }));
         }
 
         const inputBar = drawBar(group, x, y, inputBaseWidth, height, input, scaleWeight, compact);
         let outputBar = { bounds: [], usedWidth: 0 };
         if (output.length) {
           const lineY = y + height / 2;
-          group.appendChild(node(&#x27;line&#x27;, {
+          group.appendChild(node('line', {
             x1: x + inputBar.usedWidth + 8,
             y1: lineY,
             x2: outputX - 9,
             y2: lineY,
             stroke: colors.primary,
-            &#x27;stroke-width&#x27;: 2,
-            &#x27;stroke-linecap&#x27;: &#x27;round&#x27;,
-            &#x27;marker-end&#x27;: &#x27;url(#detail-arrow-active)&#x27;
+            'stroke-width': 2,
+            'stroke-linecap': 'round',
+            'marker-end': 'url(#detail-arrow-active)'
           }));
           outputBar = drawBar(group, outputX, y, outputWidth, height, output, null, compact);
         }
 
         if (cacheWeight !== null) {
           const cachedWidth = inputBaseWidth * Math.max(0, Math.min(cacheWeight, scaleWeight)) / scaleWeight;
-          if (cacheWeight &gt; 0) underline(group, x, x + cachedWidth, y + height + 14, &#x27;reused&#x27;, compact);
-          if (cacheWeight &lt; inputWeight) underline(group, x + cachedWidth + (cacheWeight &gt; 0 ? 5 : 0), x + inputBar.usedWidth, y + height + 14, &#x27;fresh&#x27;, compact);
+          if (cacheWeight > 0) underline(group, x, x + cachedWidth, y + height + 14, 'reused', compact);
+          if (cacheWeight < inputWeight) underline(group, x + cachedWidth + (cacheWeight > 0 ? 5 : 0), x + inputBar.usedWidth, y + height + 14, 'fresh', compact);
         }
         return { x, y, height, input: inputBar.bounds, output: outputBar.bounds, inputWidth: inputBar.usedWidth, outputX, outputWidth };
       }
@@ -1633,14 +1622,14 @@ html&gt;body{padding:0}&lt;/style&gt;
         const x2 = to.x + to.width / 2;
         const y2 = to.y - 8;
         const midY = (y1 + y2) / 2;
-        const path = node(&#x27;path&#x27;, {
+        const path = node('path', {
           d: `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`,
-          fill: &#x27;none&#x27;,
+          fill: 'none',
           stroke: options.stroke || colors.mutedForeground,
-          &#x27;stroke-width&#x27;: 2,
-          &#x27;stroke-dasharray&#x27;: &#x27;4 6&#x27;,
-          &#x27;stroke-linecap&#x27;: &#x27;round&#x27;,
-          &#x27;marker-end&#x27;: `url(#${options.marker || &#x27;detail-arrow-muted&#x27;})`
+          'stroke-width': 2,
+          'stroke-dasharray': '4 6',
+          'stroke-linecap': 'round',
+          'marker-end': `url(#${options.marker || 'detail-arrow-muted'})`
         });
         group.insertBefore(path, group.firstChild);
       }
@@ -1649,76 +1638,76 @@ html&gt;body{padding:0}&lt;/style&gt;
         const width = compact ? 52 : 98;
         const height = compact ? 30 : 34;
         const x = target.x + target.width / 2 - width / 2;
-        const branchId = labelText.startsWith(&#x27;forked&#x27;) ? &#x27;fork&#x27; : &#x27;fresh&#x27;;
+        const branchId = labelText.startsWith('forked') ? 'fork' : 'fresh';
         const source = segmentRect(group, x, y, width, height, {
           label: labelText,
           short: branchId,
           tiny: branchId,
-          type: &#x27;result&#x27;,
+          type: 'result',
           weight: 1
         }, compact);
-        connector(group, source, target, { stroke: colors.result, marker: &#x27;detail-arrow-result&#x27; });
+        connector(group, source, target, { stroke: colors.result, marker: 'detail-arrow-result' });
       }
 
-      const S = { label: &#x27;system + tools&#x27;, short: &#x27;system&#x27;, tiny: &#x27;S&#x27;, type: &#x27;system&#x27;, weight: 24 };
-      const U = { label: &#x27;user task&#x27;, short: &#x27;user&#x27;, tiny: &#x27;U&#x27;, type: &#x27;user&#x27;, weight: 18 };
-      const T1 = { label: &#x27;thinking t₁&#x27;, short: &#x27;think t₁&#x27;, tiny: &#x27;t₁&#x27;, type: &#x27;thinking&#x27;, weight: 18 };
-      const C1 = { label: &#x27;tool call c₁&#x27;, short: &#x27;call c₁&#x27;, tiny: &#x27;c₁&#x27;, type: &#x27;toolcall&#x27;, weight: 14 };
-      const R1 = { label: &#x27;tool result r₁&#x27;, short: &#x27;result r₁&#x27;, tiny: &#x27;r₁&#x27;, type: &#x27;result&#x27;, weight: 18 };
-      const T2 = { label: &#x27;thinking t₂&#x27;, short: &#x27;think t₂&#x27;, tiny: &#x27;t₂&#x27;, type: &#x27;thinking&#x27;, weight: 16 };
-      const C2 = { label: &#x27;delegate call c₂&#x27;, short: &#x27;fork c₂&#x27;, tiny: &#x27;c₂&#x27;, type: &#x27;toolcall&#x27;, weight: 14 };
-      const TASK_A = { label: &#x27;delegated task&#x27;, short: &#x27;task&#x27;, tiny: &#x27;task&#x27;, type: &#x27;user&#x27;, weight: 20 };
-      const TASK_B = { label: &#x27;delegated task&#x27;, short: &#x27;task&#x27;, tiny: &#x27;task&#x27;, type: &#x27;user&#x27;, weight: 20 };
-      const TA = { label: &#x27;forked reasoning&#x27;, short: &#x27;reasoning&#x27;, tiny: &#x27;think&#x27;, type: &#x27;thinking&#x27;, weight: 16 };
-      const CA = { label: &#x27;forked tool call&#x27;, short: &#x27;tool call&#x27;, tiny: &#x27;call&#x27;, type: &#x27;toolcall&#x27;, weight: 12 };
-      const TB = { label: &#x27;fresh reasoning&#x27;, short: &#x27;reasoning&#x27;, tiny: &#x27;think&#x27;, type: &#x27;thinking&#x27;, weight: 16 };
-      const CB = { label: &#x27;fresh tool call&#x27;, short: &#x27;tool call&#x27;, tiny: &#x27;call&#x27;, type: &#x27;toolcall&#x27;, weight: 12 };
-      const RA = { label: &#x27;forked result&#x27;, short: &#x27;forked&#x27;, tiny: &#x27;fork&#x27;, type: &#x27;result&#x27;, weight: 16 };
-      const RB = { label: &#x27;fresh result&#x27;, short: &#x27;fresh&#x27;, tiny: &#x27;fresh&#x27;, type: &#x27;result&#x27;, weight: 16 };
-      const T3 = { label: &#x27;thinking t₃&#x27;, short: &#x27;think t₃&#x27;, tiny: &#x27;t₃&#x27;, type: &#x27;thinking&#x27;, weight: 14 };
-      const C3 = { label: &#x27;tool call c₃&#x27;, short: &#x27;call c₃&#x27;, tiny: &#x27;c₃&#x27;, type: &#x27;toolcall&#x27;, weight: 12 };
-      const R3 = { label: &#x27;last tool result&#x27;, short: &#x27;result r₃&#x27;, tiny: &#x27;r₃&#x27;, type: &#x27;result&#x27;, weight: 16 };
-      const T4 = { label: &#x27;thinking t₄&#x27;, short: &#x27;think t₄&#x27;, tiny: &#x27;t₄&#x27;, type: &#x27;thinking&#x27;, weight: 14 };
-      const ANSWER = { label: &#x27;assistant response&#x27;, short: &#x27;response&#x27;, tiny: &#x27;answer&#x27;, type: &#x27;response&#x27;, weight: 22 };
+      const S = { label: 'system + tools', short: 'system', tiny: 'S', type: 'system', weight: 24 };
+      const U = { label: 'user task', short: 'user', tiny: 'U', type: 'user', weight: 18 };
+      const T1 = { label: 'thinking t₁', short: 'think t₁', tiny: 't₁', type: 'thinking', weight: 18 };
+      const C1 = { label: 'tool call c₁', short: 'call c₁', tiny: 'c₁', type: 'toolcall', weight: 14 };
+      const R1 = { label: 'tool result r₁', short: 'result r₁', tiny: 'r₁', type: 'result', weight: 18 };
+      const T2 = { label: 'thinking t₂', short: 'think t₂', tiny: 't₂', type: 'thinking', weight: 16 };
+      const C2 = { label: 'delegate call c₂', short: 'fork c₂', tiny: 'c₂', type: 'toolcall', weight: 14 };
+      const TASK_A = { label: 'delegated task', short: 'task', tiny: 'task', type: 'user', weight: 20 };
+      const TASK_B = { label: 'delegated task', short: 'task', tiny: 'task', type: 'user', weight: 20 };
+      const TA = { label: 'forked reasoning', short: 'reasoning', tiny: 'think', type: 'thinking', weight: 16 };
+      const CA = { label: 'forked tool call', short: 'tool call', tiny: 'call', type: 'toolcall', weight: 12 };
+      const TB = { label: 'fresh reasoning', short: 'reasoning', tiny: 'think', type: 'thinking', weight: 16 };
+      const CB = { label: 'fresh tool call', short: 'tool call', tiny: 'call', type: 'toolcall', weight: 12 };
+      const RA = { label: 'forked result', short: 'forked', tiny: 'fork', type: 'result', weight: 16 };
+      const RB = { label: 'fresh result', short: 'fresh', tiny: 'fresh', type: 'result', weight: 16 };
+      const T3 = { label: 'thinking t₃', short: 'think t₃', tiny: 't₃', type: 'thinking', weight: 14 };
+      const C3 = { label: 'tool call c₃', short: 'call c₃', tiny: 'c₃', type: 'toolcall', weight: 12 };
+      const R3 = { label: 'last tool result', short: 'result r₃', tiny: 'r₃', type: 'result', weight: 16 };
+      const T4 = { label: 'thinking t₄', short: 'think t₄', tiny: 't₄', type: 'thinking', weight: 14 };
+      const ANSWER = { label: 'assistant response', short: 'response', tiny: 'answer', type: 'response', weight: 22 };
 
       function drawDetail() {
-        const container = root.querySelector(&#x27;.ax-detail&#x27;);
+        const container = root.querySelector('.ax-detail');
         const width = Math.max(320, Math.round(container.getBoundingClientRect().width));
-        const compact = width &lt; 560;
+        const compact = width < 560;
         const heights = [238, 370, 390, 468, 515];
         const height = heights[selected];
         svgBase(
           detailSvg,
           width,
           height,
-          &#x27;Selected context transition&#x27;,
-          &#x27;Token blocks show reused prompt prefixes, fresh suffix prefill, model thinking, tool calls, subagent results, and the final response.&#x27;,
-          &#x27;detail&#x27;
+          'Selected context transition',
+          'Token blocks show reused prompt prefixes, fresh suffix prefill, model thinking, tool calls, subagent results, and the final response.',
+          'detail'
         );
-        const group = node(&#x27;g&#x27;, { &#x27;font-family&#x27;: &#x27;inherit&#x27; });
+        const group = node('g', { 'font-family': 'inherit' });
         detailSvg.appendChild(group);
         const dims = { width, compact };
 
         if (selected === 0) {
           traceRow(group, {
             y: 42,
-            title: &#x27;T₁ · FRESH INPUT&#x27;,
+            title: 'T₁ · FRESH INPUT',
             input: [S, U],
             output: [T1, C1],
             cacheWeight: 0
           }, dims);
-          group.appendChild(label(compact ? 8 : 18, 165, &#x27;Prefill creates KV; decode appends reasoning + a call.&#x27;, { size: compact ? 14 : 15, fill: colors.mutedForeground }));
+          group.appendChild(label(compact ? 8 : 18, 165, 'Prefill creates KV; decode appends reasoning + a call.', { size: compact ? 14 : 15, fill: colors.mutedForeground }));
         } else if (selected === 1) {
           const first = traceRow(group, {
             y: 42,
-            title: compact ? &#x27;T₁ · PREFILL → DECODE&#x27; : &#x27;T₁ · PREFILL, THEN DECODE&#x27;,
+            title: compact ? 'T₁ · PREFILL → DECODE' : 'T₁ · PREFILL, THEN DECODE',
             input: [S, U],
             output: [T1, C1],
             cacheWeight: 0
           }, dims);
           const retained = traceRow(group, {
             y: 218,
-            title: compact ? &#x27;T₁ · RETAINED KV&#x27; : &#x27;T₁ · RETAINED KV AFTER DECODE&#x27;,
+            title: compact ? 'T₁ · RETAINED KV' : 'T₁ · RETAINED KV AFTER DECODE',
             input: [S, U, T1, C1],
             output: [],
             cacheWeight: null,
@@ -1736,13 +1725,13 @@ html&gt;body{padding:0}&lt;/style&gt;
             width: retained.input[2].width + retained.input[3].width,
             height: retained.input[2].height
           };
-          connector(group, source, target, { stroke: colors.thinking, marker: &#x27;detail-arrow-thinking&#x27; });
-          group.appendChild(label(compact ? 8 : 18, 178, &#x27;decoded tokens become the retained suffix&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.thinking }));
+          connector(group, source, target, { stroke: colors.thinking, marker: 'detail-arrow-thinking' });
+          group.appendChild(label(compact ? 8 : 18, 178, 'decoded tokens become the retained suffix', { size: compact ? 14 : 15, weight: 600, fill: colors.thinking }));
         } else if (selected === 2) {
           const fullWeight = S.weight + U.weight + T1.weight + C1.weight + R1.weight;
           const previous = traceRow(group, {
             y: 42,
-            title: &#x27;PREVIOUS TURN · RETAINED KV&#x27;,
+            title: 'PREVIOUS TURN · RETAINED KV',
             input: [S, U, T1, C1],
             output: [],
             cacheWeight: null,
@@ -1750,20 +1739,20 @@ html&gt;body{padding:0}&lt;/style&gt;
           }, dims);
           const next = traceRow(group, {
             y: 220,
-            title: compact ? &#x27;NEXT TURN · REUSE + RESULT&#x27; : &#x27;NEXT TURN · REUSED HISTORY + NEW RESULT&#x27;,
+            title: compact ? 'NEXT TURN · REUSE + RESULT' : 'NEXT TURN · REUSED HISTORY + NEW RESULT',
             input: [S, U, T1, C1, R1],
             output: [T2, C2],
             cacheWeight: S.weight + U.weight + T1.weight + C1.weight,
             referenceWeight: fullWeight
           }, dims);
-          connector(group, previous.input[2], next.input[2], { stroke: colors.thinking, marker: &#x27;detail-arrow-thinking&#x27; });
-          connector(group, previous.input[3], next.input[3], { stroke: colors.toolcall, marker: &#x27;detail-arrow-tool&#x27; });
-          group.appendChild(label(compact ? 8 : 18, 181, &#x27;Prior reasoning and the tool call are now input history.&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.foreground }));
+          connector(group, previous.input[2], next.input[2], { stroke: colors.thinking, marker: 'detail-arrow-thinking' });
+          connector(group, previous.input[3], next.input[3], { stroke: colors.toolcall, marker: 'detail-arrow-tool' });
+          group.appendChild(label(compact ? 8 : 18, 181, 'Prior reasoning and the tool call are now input history.', { size: compact ? 14 : 15, weight: 600, fill: colors.foreground }));
         } else if (selected === 3) {
-          const parent = { label: &#x27;parent token history&#x27;, short: &#x27;parent prefix&#x27;, tiny: &#x27;parent&#x27;, type: &#x27;system&#x27;, weight: 52 };
+          const parent = { label: 'parent token history', short: 'parent prefix', tiny: 'parent', type: 'system', weight: 52 };
           traceRow(group, {
             y: 38,
-            title: compact ? &#x27;PARENT TURN · RETAINED&#x27; : &#x27;PARENT TURN · RETAINED DURING BRANCHES&#x27;,
+            title: compact ? 'PARENT TURN · RETAINED' : 'PARENT TURN · RETAINED DURING BRANCHES',
             input: [parent, C2],
             output: [],
             cacheWeight: parent.weight + C2.weight,
@@ -1771,42 +1760,42 @@ html&gt;body{padding:0}&lt;/style&gt;
           }, dims);
           traceRow(group, {
             y: 188,
-            title: compact ? &#x27;FORKED · INHERITS PARENT&#x27; : &#x27;FORKED SUBAGENT · INHERITS PARENT&#x27;,
+            title: compact ? 'FORKED · INHERITS PARENT' : 'FORKED SUBAGENT · INHERITS PARENT',
             input: [parent, TASK_A],
             output: [TA, CA],
             cacheWeight: parent.weight
           }, dims);
           traceRow(group, {
             y: 338,
-            title: compact ? &#x27;FRESH · NEW CONTEXT&#x27; : &#x27;FRESH SUBAGENT · NEW CONTEXT&#x27;,
+            title: compact ? 'FRESH · NEW CONTEXT' : 'FRESH SUBAGENT · NEW CONTEXT',
             input: [{ ...S, weight: 24 }, TASK_B],
             output: [TB, CB],
             cacheWeight: 0
           }, dims);
         } else {
-          const cachedParent = { label: &#x27;cached parent + delegate&#x27;, short: &#x27;parent prefix&#x27;, tiny: &#x27;parent&#x27;, type: &#x27;system&#x27;, weight: 50 };
+          const cachedParent = { label: 'cached parent + delegate', short: 'parent prefix', tiny: 'parent', type: 'system', weight: 50 };
           const m3 = traceRow(group, {
             y: 118,
-            title: compact ? &#x27;Tₖ · JOIN RESULTS&#x27; : &#x27;Tₖ · JOIN BRANCH RESULTS&#x27;,
+            title: compact ? 'Tₖ · JOIN RESULTS' : 'Tₖ · JOIN BRANCH RESULTS',
             input: [cachedParent, RA, RB],
             output: [T3, C3],
             cacheWeight: cachedParent.weight
           }, dims);
-          group.appendChild(label(compact ? 8 : 18, 28, &#x27;BRANCH OUTPUTS RETURN AS TEXT&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.mutedForeground }));
-          drawSourceChip(group, m3.input[1], 42, &#x27;forked result&#x27;, compact);
-          drawSourceChip(group, m3.input[2], 42, &#x27;fresh result&#x27;, compact);
+          group.appendChild(label(compact ? 8 : 18, 28, 'BRANCH OUTPUTS RETURN AS TEXT', { size: compact ? 14 : 15, weight: 600, fill: colors.mutedForeground }));
+          drawSourceChip(group, m3.input[1], 42, 'forked result', compact);
+          drawSourceChip(group, m3.input[2], 42, 'fresh result', compact);
 
-          const prior = { label: &#x27;parent + branch history&#x27;, short: &#x27;cached history&#x27;, tiny: &#x27;history&#x27;, type: &#x27;system&#x27;, weight: 40 };
+          const prior = { label: 'parent + branch history', short: 'cached history', tiny: 'history', type: 'system', weight: 40 };
           const m4 = traceRow(group, {
             y: 340,
-            title: &#x27;Tₖ₊₁ · FINAL TURN&#x27;,
+            title: 'Tₖ₊₁ · FINAL TURN',
             input: [prior, T3, C3, R3],
             output: [T4, ANSWER],
             cacheWeight: prior.weight + T3.weight + C3.weight
           }, dims);
-          connector(group, m3.output[0], m4.input[1], { stroke: colors.thinking, marker: &#x27;detail-arrow-thinking&#x27; });
-          connector(group, m3.output[1], m4.input[2], { stroke: colors.toolcall, marker: &#x27;detail-arrow-tool&#x27; });
-          group.appendChild(label(compact ? 8 : 18, 292, &#x27;Join output is cached; only the last tool result is new.&#x27;, { size: compact ? 14 : 15, weight: 600, fill: colors.foreground }));
+          connector(group, m3.output[0], m4.input[1], { stroke: colors.thinking, marker: 'detail-arrow-thinking' });
+          connector(group, m3.output[1], m4.input[2], { stroke: colors.toolcall, marker: 'detail-arrow-tool' });
+          group.appendChild(label(compact ? 8 : 18, 292, 'Join output is cached; only the last tool result is new.', { size: compact ? 14 : 15, weight: 600, fill: colors.foreground }));
         }
       }
 
@@ -1815,7 +1804,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         stateTitle.textContent = steps[selected].title;
         stateCopy.textContent = steps[selected].copy;
         range.value = String(selected);
-        range.setAttribute(&#x27;aria-valuetext&#x27;, `${selected + 1} of 5: ${steps[selected].title}`);
+        range.setAttribute('aria-valuetext', `${selected + 1} of 5: ${steps[selected].title}`);
         drawOverview();
         drawDetail();
       }
@@ -1823,16 +1812,16 @@ html&gt;body{padding:0}&lt;/style&gt;
       function animateTransition() {
         if (reduceMotion.matches) return;
         window.clearTimeout(transitionTimer);
-        root.classList.remove(&#x27;ax-transitioning&#x27;);
+        root.classList.remove('ax-transitioning');
         void root.offsetWidth;
-        root.classList.add(&#x27;ax-transitioning&#x27;);
-        transitionTimer = window.setTimeout(() =&gt; root.classList.remove(&#x27;ax-transitioning&#x27;), 280);
+        root.classList.add('ax-transitioning');
+        transitionTimer = window.setTimeout(() => root.classList.remove('ax-transitioning'), 280);
       }
 
       function updatePlaybackControl() {
-        playButton.textContent = isPlaying ? &#x27;Pause&#x27; : &#x27;Play&#x27;;
-        playButton.setAttribute(&#x27;aria-pressed&#x27;, String(isPlaying));
-        playButton.setAttribute(&#x27;aria-label&#x27;, isPlaying ? &#x27;Pause autoplay&#x27; : &#x27;Play trace&#x27;);
+        playButton.textContent = isPlaying ? 'Pause' : 'Play';
+        playButton.setAttribute('aria-pressed', String(isPlaying));
+        playButton.setAttribute('aria-label', isPlaying ? 'Pause autoplay' : 'Play trace');
       }
 
       function stopAutoplayTimer() {
@@ -1848,7 +1837,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
       function startAutoplayTimer() {
         stopAutoplayTimer();
-        if (isPlaying &amp;&amp; !document.hidden) {
+        if (isPlaying && !document.hidden) {
           autoplayTimer = window.setInterval(advanceTrace, autoplayDelay);
         }
       }
@@ -1860,14 +1849,14 @@ html&gt;body{padding:0}&lt;/style&gt;
         else stopAutoplayTimer();
       }
 
-      range.addEventListener(&#x27;input&#x27;, () =&gt; {
+      range.addEventListener('input', () => {
         setPlaying(false);
         selected = Number(range.value);
         draw();
         animateTransition();
       });
 
-      playButton.addEventListener(&#x27;click&#x27;, () =&gt; {
+      playButton.addEventListener('click', () => {
         if (isPlaying) {
           setPlaying(false);
           return;
@@ -1880,31 +1869,31 @@ html&gt;body{padding:0}&lt;/style&gt;
         setPlaying(true);
       });
 
-      document.addEventListener(&#x27;visibilitychange&#x27;, () =&gt; {
+      document.addEventListener('visibilitychange', () => {
         if (document.hidden) stopAutoplayTimer();
         else if (isPlaying) startAutoplayTimer();
       });
 
       const observer = new ResizeObserver(draw);
-      observer.observe(root.querySelector(&#x27;.ax-overview&#x27;));
-      observer.observe(root.querySelector(&#x27;.ax-detail&#x27;));
+      observer.observe(root.querySelector('.ax-overview'));
+      observer.observe(root.querySelector('.ax-detail'));
       draw();
       updatePlaybackControl();
       if (isPlaying) startAutoplayTimer();
     })();
-  &lt;/script&gt;
-&lt;/div&gt;
+  </script>
+</div>
 
-&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
-&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
-&lt;script&gt;
-(() =&gt; {
+<script src="https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js"></script>
+<script src="https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js"></script>
+<script>
+(() => {
   if (window.FloatingUIDOM == null) {
     return;
   }
   const { autoUpdate, computePosition, flip, offset, shift, size } =
     window.FloatingUIDOM;
-  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipPlacements = new Set(["top", "right", "bottom", "left"]);
   const tooltipId = `codex-visualization-tooltip-${
     window.crypto?.randomUUID?.() ?? Date.now().toString(36)
   }`;
@@ -1919,30 +1908,30 @@ html&gt;body{padding:0}&lt;/style&gt;
   let positionRequest = 0;
   let skipDelayUntil = 0;
 
-  const getTrigger = (target) =&gt;
+  const getTrigger = (target) =>
     target?.nodeType === Node.ELEMENT_NODE
-      ? target.closest(&quot;[data-tooltip]&quot;)
+      ? target.closest("[data-tooltip]")
       : null;
-  const containsTarget = (trigger, target) =&gt;
-    target?.nodeType != null &amp;&amp; trigger.contains(target);
-  const getContent = (trigger) =&gt;
-    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
-  const getPlacement = (trigger) =&gt; {
-    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
-    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  const containsTarget = (trigger, target) =>
+    target?.nodeType != null && trigger.contains(target);
+  const getContent = (trigger) =>
+    trigger.getAttribute("data-tooltip")?.trim() ?? "";
+  const getPlacement = (trigger) => {
+    const placement = trigger.getAttribute("data-tooltip-placement");
+    return tooltipPlacements.has(placement) ? placement : "top";
   };
-  const getTooltip = () =&gt; {
+  const getTooltip = () => {
     if (tooltip == null) {
-      tooltip = document.createElement(&quot;div&quot;);
+      tooltip = document.createElement("div");
       tooltip.id = tooltipId;
-      tooltip.className = &quot;tooltip&quot;;
-      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+      tooltip.className = "tooltip";
+      tooltip.setAttribute("role", "tooltip");
     }
     return tooltip;
   };
-  const setDescribedBy = (trigger, described) =&gt; {
+  const setDescribedBy = (trigger, described) => {
     const ids = new Set(
-      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+      (trigger.getAttribute("aria-describedby") ?? "")
         .split(/\s+/)
         .filter(Boolean),
     );
@@ -1952,19 +1941,19 @@ html&gt;body{padding:0}&lt;/style&gt;
       ids.delete(tooltipId);
     }
     if (ids.size === 0) {
-      trigger.removeAttribute(&quot;aria-describedby&quot;);
+      trigger.removeAttribute("aria-describedby");
     } else {
-      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+      trigger.setAttribute("aria-describedby", [...ids].join(" "));
     }
   };
-  const clearOpenTimeout = () =&gt; {
+  const clearOpenTimeout = () => {
     if (openTimeout != null) {
       window.clearTimeout(openTimeout);
       openTimeout = null;
     }
     pendingTrigger = null;
   };
-  const closeTooltip = (activateSkipDelay = true) =&gt; {
+  const closeTooltip = (activateSkipDelay = true) => {
     clearOpenTimeout();
     positionRequest += 1;
     autoUpdateCleanup?.();
@@ -1979,7 +1968,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       skipDelayUntil = Date.now() + skipDelay;
     }
   };
-  const updatePosition = (trigger, floating) =&gt; {
+  const updatePosition = (trigger, floating) => {
     const request = ++positionRequest;
     void computePosition(trigger, floating, {
       middleware: [
@@ -1990,34 +1979,34 @@ html&gt;body{padding:0}&lt;/style&gt;
           padding: tooltipGap,
           apply({ availableHeight, availableWidth, elements }) {
             elements.floating.style.setProperty(
-              &quot;--tooltip-available-width&quot;,
+              "--tooltip-available-width",
               `${Math.max(0, availableWidth)}px`,
             );
             elements.floating.style.setProperty(
-              &quot;--tooltip-available-height&quot;,
+              "--tooltip-available-height",
               `${Math.max(0, availableHeight)}px`,
             );
           },
         }),
       ],
       placement: getPlacement(trigger),
-      strategy: &quot;fixed&quot;,
+      strategy: "fixed",
     })
-      .then(({ x, y }) =&gt; {
+      .then(({ x, y }) => {
         if (activeTrigger !== trigger || request !== positionRequest) {
           return;
         }
         const scale = window.devicePixelRatio || 1;
         floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
-        floating.style.visibility = &quot;visible&quot;;
+        floating.style.visibility = "visible";
       })
-      .catch(() =&gt; {
-        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+      .catch(() => {
+        if (activeTrigger === trigger && request === positionRequest) {
           closeTooltip(false);
         }
       });
   };
-  const openTooltip = (trigger) =&gt; {
+  const openTooltip = (trigger) => {
     const content = getContent(trigger);
     if (!trigger.isConnected || content.length === 0) {
       return;
@@ -2029,16 +2018,16 @@ html&gt;body{padding:0}&lt;/style&gt;
     closeTooltip();
     const floating = getTooltip();
     floating.textContent = content;
-    floating.style.visibility = &quot;hidden&quot;;
-    floating.style.transform = &quot;translate(0, 0)&quot;;
+    floating.style.visibility = "hidden";
+    floating.style.transform = "translate(0, 0)";
     document.body.appendChild(floating);
     activeTrigger = trigger;
     setDescribedBy(trigger, true);
-    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+    autoUpdateCleanup = autoUpdate(trigger, floating, () => {
       updatePosition(trigger, floating);
     });
   };
-  const requestOpen = (trigger, immediate = false) =&gt; {
+  const requestOpen = (trigger, immediate = false) => {
     if (
       getContent(trigger).length === 0 ||
       activeTrigger === trigger ||
@@ -2049,21 +2038,21 @@ html&gt;body{padding:0}&lt;/style&gt;
     clearOpenTimeout();
     pendingTrigger = trigger;
     const delay =
-      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+      immediate || activeTrigger != null || Date.now() < skipDelayUntil
         ? 0
         : hoverDelay;
     if (delay === 0) {
       openTooltip(trigger);
       return;
     }
-    openTimeout = window.setTimeout(() =&gt; {
+    openTimeout = window.setTimeout(() => {
       openTimeout = null;
       pendingTrigger = null;
       openTooltip(trigger);
     }, delay);
   };
-  const handlePointerOpen = (event) =&gt; {
-    if (event.pointerType === &quot;touch&quot;) {
+  const handlePointerOpen = (event) => {
+    if (event.pointerType === "touch") {
       return;
     }
     const trigger = getTrigger(event.target);
@@ -2072,7 +2061,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     }
     requestOpen(trigger);
   };
-  const handleLeave = (event) =&gt; {
+  const handleLeave = (event) => {
     const trigger = getTrigger(event.target);
     if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
       return;
@@ -2081,47 +2070,47 @@ html&gt;body{padding:0}&lt;/style&gt;
       closeTooltip();
     }
   };
-  const handleFocusIn = (event) =&gt; {
+  const handleFocusIn = (event) => {
     const trigger = getTrigger(event.target);
-    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+    if (trigger?.matches(":focus-visible")) {
       requestOpen(trigger, true);
     }
   };
-  const handleKeyDown = (event) =&gt; {
-    if (event.key === &quot;Escape&quot;) {
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
       closeTooltip();
     }
   };
-  const handleContextMenu = (event) =&gt; {
+  const handleContextMenu = (event) => {
     const trigger = getTrigger(event.target);
     if (activeTrigger === trigger || pendingTrigger === trigger) {
       closeTooltip();
     }
   };
-  const destroy = () =&gt; {
+  const destroy = () => {
     closeTooltip(false);
-    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
-    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
-    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
-    document.removeEventListener(&quot;focusout&quot;, handleLeave);
-    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
-    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    document.removeEventListener("pointerover", handlePointerOpen);
+    document.removeEventListener("pointerout", handleLeave);
+    document.removeEventListener("focusin", handleFocusIn);
+    document.removeEventListener("focusout", handleLeave);
+    document.removeEventListener("keydown", handleKeyDown);
+    document.removeEventListener("contextmenu", handleContextMenu);
     tooltip = null;
   };
 
-  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
-  document.addEventListener(&quot;pointerout&quot;, handleLeave);
-  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
-  document.addEventListener(&quot;focusout&quot;, handleLeave);
-  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
-  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
-  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+  document.addEventListener("pointerover", handlePointerOpen);
+  document.addEventListener("pointerout", handleLeave);
+  document.addEventListener("focusin", handleFocusIn);
+  document.addEventListener("focusout", handleLeave);
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("contextmenu", handleContextMenu);
+  window.addEventListener("pagehide", destroy, { once: true });
 })();
-&lt;/script&gt;
-&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
-&lt;script&gt;
-(() =&gt; {
-  const initialize = () =&gt; {
+</script>
+<script id="codex-visualization-lucide" async src="https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js"></script>
+<script>
+(() => {
+  const initialize = () => {
     globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
   };
   if (globalThis.lucide != null) {
@@ -2129,13 +2118,36 @@ html&gt;body{padding:0}&lt;/style&gt;
     return;
   }
   document
-    .getElementById(&quot;codex-visualization-lucide&quot;)
-    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+    .getElementById("codex-visualization-lucide")
+    ?.addEventListener("load", initialize, { once: true });
 })();
-&lt;/script&gt;
+</script>
 
-&lt;/body&gt;
-&lt;/html&gt;
-"></iframe>
+
+<script>
+(function () {
+  // Report content height to the embedding page so the frame can fit without inner scrollbars.
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = 'hidden';
+  document.documentElement.style.height = 'auto';
+  document.body.style.height = 'auto';
+  var last = 0;
+  function report() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) {
+      last = h;
+      window.parent.postMessage({ type: 'vllm-embed-resize', height: h }, '*');
+    }
+  }
+  if (window.ResizeObserver) {
+    new ResizeObserver(report).observe(document.body);
+  }
+  window.addEventListener('load', report);
+  window.addEventListener('resize', report);
+  setTimeout(report, 300);
+  setTimeout(report, 1500);
+  report();
+})();
+</script>
 </body>
 </html>
