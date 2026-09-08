@@ -20,16 +20,18 @@ tags:
 
 **TL;DR:** Agentic workloads are becoming a major source of vLLM traffic. Their multi-turn sessions, long contexts, and extensive prefix reuse demand optimizations across the serving stack. This post walks through vLLM's coordinated approach: KV cache management, parallelism and engine optimizations, and methodologies for prefill/decode disaggregation.
 
-Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-does-cuda-moat), SemiAnalysis's public agentic benchmark, vLLM achieves up to 130K total tokens per GPU-second on DeepSeek V4 Pro, and an interactivity of up to 376 tokens per second on MiniMax M3. Across DeepSeek V4 Pro, MiniMax M3, and Kimi K3, vLLM delivers a 14.6×–106× serving-cost advantage over Opus 5 API pricing (see [Performance](#performance-agentic-first-and-openly-verifiable)).
+Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-does-cuda-moat), SemiAnalysis's public agentic benchmark, vLLM achieves up to 130K total tokens per GPU-second on DeepSeek V4 Pro, and an interactivity of up to 376 tokens per second on MiniMax M3. Across DeepSeek V4 Pro, MiniMax M3, and Kimi K3, vLLM delivers a 14.6×–106× serving-cost advantage over Opus 5 API pricing (Figure 1; see [Performance](#performance-agentic-first-and-openly-verifiable)).
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/agentx-pareto-summary.png" alt="vLLM on SemiAnalysis AgentX: cost efficiency vs. P90 interactivity for DeepSeek V4 Pro, MiniMax M3, and Kimi K3" width="100%">
+<br>
+<em>Figure 1: vLLM on SemiAnalysis AgentX. Total tokens per $1 of TCO against P90 interactivity for the best vLLM configuration of DeepSeek V4 Pro, MiniMax M3, and Kimi K3, with DeepSeek V4 Pro on GB300 NVL72 as a case study. Data source: <a href="https://inferencex.semianalysis.com/inference">SemiAnalysis AgentX</a>.</em>
 </p>
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-agentx-pareto.html" title="vLLM on AgentX: cost efficiency vs. interactivity (interactive)" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 640px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
 <p align="center">
-<em>Explore the interactive curve above or <a href="/assets/interactive_pages/vllm-agentx-pareto.html">open it full-screen</a>. Data source: <a href="https://inferencex.semianalysis.com/inference">SemiAnalysis AgentX</a>.</em>
+<em>Interactive version of Figure 1. Hover over a point to see its configuration, or <a href="/assets/interactive_pages/vllm-agentx-pareto.html">open it full-screen</a>.</em>
 </p>
 
 ## Characterizing agentic workloads: a second look
@@ -45,12 +47,12 @@ To evaluate that frontier under representative traffic, SemiAnalysis recently re
 - **Extensive prefix reuse.** Prefix-cache hit rate above 96%.
 - **Subagent-heavy traffic.** 44% of sessions contain at least one subagent, with a median of four subagent rollouts among those sessions.
 
-These statistics follow from how an agentic session is built. Each turn appends the latest tool result to the accumulated context and sends the whole thing back to the model, so the input keeps growing while each turn adds only a short new prefill, and almost all of the request is a prefix the engine has already seen. Subagents either fork from that context or start fresh, and their results are joined back into the parent before the final answer. The figure below walks through one such session: use the slider to step from the first turn to the final answer and see how much of each request is reused prefix versus new prefill.
+These statistics follow from how an agentic session is built. Each turn appends the latest tool result to the accumulated context and sends the whole thing back to the model, so the input keeps growing while each turn adds only a short new prefill, and almost all of the request is a prefix the engine has already seen. Subagents either fork from that context or start fresh, and their results are joined back into the parent before the final answer. Figure 2 walks through one such session: use the slider to step from the first turn to the final answer and see how much of each request is reused prefix versus new prefill.
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/agentic-workload-explorer.html" title="Agentic workload explorer: sessions grow through reuse and branching" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
 <p align="center">
-<em>Figure: Agentic sessions accumulate context across turns and branch into subagents. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or <a href="/assets/interactive_pages/agentic-workload-explorer.html">open the explorer full-screen</a>.</em>
+<em>Figure 2: Agentic sessions accumulate context across turns and branch into subagents. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or <a href="/assets/interactive_pages/agentic-workload-explorer.html">open the explorer full-screen</a>.</em>
 </p>
 
 ## Challenges in serving agentic workloads
@@ -66,8 +68,10 @@ These workload characteristics create three challenges for efficient serving.
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/full-stack-overview.png" alt="Full-stack optimization for agentic serving: control plane, execution plane, and data plane" width="100%">
 <br>
-<em>Figure: Full-stack optimization for agentic serving. The data plane manages a distributed shared KV cache, the execution plane maps each model to appropriate parallelism and kernels, and the control plane coordinates proper P/D ratio and request scheduling.</em>
+<em>Figure 3: Full-stack optimization for agentic serving. The data plane manages a distributed shared KV cache, the execution plane maps each model to appropriate parallelism and kernels, and the control plane coordinates proper P/D ratio and request scheduling.</em>
 </p>
+
+Figure 3 summarizes the three planes. The rest of this section walks through them, starting from the data plane.
 
 ### Data plane: keep KV caches warm and close to compute
 
@@ -75,24 +79,24 @@ These workload characteristics create three challenges for efficient serving.
 
 KV cache management has been central to vLLM since PagedAttention, and agentic workloads with long contexts put heavier pressure on KV cache capacity. Modern hybrid models complicate allocation further by combining sliding-window and linear attention with full attention, whose cached blocks differ in size and lifetime.
 
-vLLM's hybrid KV cache manager tackles this complexity with a simple core idea: a uniform memory page as the basic allocation unit, managed through one shared block pool.
+vLLM's hybrid KV cache manager tackles this complexity with a simple core idea: a uniform memory page as the basic allocation unit, managed through one shared block pool (Figure 4).
 
 A shared pool lets vLLM reallocate memory dynamically on demand instead of statically partitioning capacity by attention type. This matters because full-attention KV grows with sequence length, while sliding-window and recurrent state follow different lifetimes and scaling rules. The best partition therefore changes with concurrency, context length, and prefix-reuse patterns.
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/hybrid-kv-cache-manager.png" alt="vLLM's hybrid KV cache manager: one page size for all attention types, one shared block pool" width="100%">
 <br>
-<em>Figure: vLLM's hybrid KV cache manager.</em>
+<em>Figure 4: vLLM's hybrid KV cache manager. One page size serves all attention types, and a single block pool is shared between them.</em>
 </p>
 
-The abstraction continues to evolve as new architectures expose fragmentation and transfer inefficiencies. For example, [DeepSeek V4](https://vllm.ai/blog/2026-04-24-deepseek-v4)'s initial KV cache layout fragmented the different cache types into three size buckets and allocated 92 separate tensors. As shown in the figure below, this fragmentation wastes memory on padding and is inefficient for P/D transfer and KV cache offloading.
+The abstraction continues to evolve as new architectures expose fragmentation and transfer inefficiencies. For example, [DeepSeek V4](https://vllm.ai/blog/2026-04-24-deepseek-v4)'s initial KV cache layout fragmented the different cache types into three size buckets and allocated 92 separate tensors. As Figure 5 shows, this fragmentation wastes memory on padding and is inefficient for P/D transfer and KV cache offloading.
 
 The new [packed KV cache layout](https://github.com/vllm-project/vllm/pull/44577) instead stores all cache groups and layers in one contiguous backing allocation per block rather than 92 fragmented ones. This reduces descriptor and P/D transfer overhead, and also permits a smaller allocation unit when the FP4 indexer is enabled, saving [roughly 10% of KV cache memory](https://github.com/vllm-project/vllm/pull/48993).
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv4-kv-cache-layout.html" title="DeepSeek V4 Pro hybrid KV cache: size-bucketed tensors vs. packed layout" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 700px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
 <p align="center">
-<em>Figure: Hybrid KV cache manager and packed KV cache layout for DeepSeek V4 Pro. Toggle between the MXFP4 and FP8 indexer configurations, or <a href="/assets/interactive_pages/dsv4-kv-cache-layout.html">open the layout full-screen</a>.</em>
+<em>Figure 5: Hybrid KV cache groups and the packed KV cache layout for DeepSeek V4 Pro. Toggle between the MXFP4 and FP8 indexer configurations, or <a href="/assets/interactive_pages/dsv4-kv-cache-layout.html">open the layout full-screen</a>.</em>
 </p>
 
 #### Hierarchical KV cache offloading: distributed KV cache pool with smart retention policies
@@ -127,7 +131,7 @@ The optimal parallelism, however, depends on the model architecture, hardware to
 
 Kimi K3 features multi-head latent attention (MLA) and Kimi Delta Attention (KDA). Since MLA compresses KV into a single latent space with one head, plain tensor parallelism (TP), which replicates that latent cache across ranks, is not very efficient.
 
-As an alternative to TP, we have found strong performance gains from [decode context parallelism (DCP)](https://vllm.ai/blog/2026-08-07-decode-context-parallelism), which shards the cache along the sequence dimension, leaving each rank with 1/N of the KV state. Specifically, DCP offers two benefits for agentic workloads:
+As an alternative to TP, we have found strong performance gains from [decode context parallelism (DCP)](https://vllm.ai/blog/2026-08-07-decode-context-parallelism), which shards the cache along the sequence dimension, leaving each rank with 1/N of the KV state. Specifically, DCP offers two benefits for agentic workloads (Figure 6):
 
 * **Lower decode latency**. MLA attention is memory-bound, and its cost grows with context length. As agentic prefixes grow, attention becomes a larger share of each decode step, and sharding it across ranks shortens that step.
 * **Higher throughput and KV capacity**. Avoiding KV cache replication lets the engine keep more sequences in flight without stalling on KV admission, and hence achieve higher throughput.
@@ -135,25 +139,25 @@ As an alternative to TP, we have found strong performance gains from [decode con
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/k3-tp8-vs-dcp8.png" alt="Kimi K3 decode: TP8 vs. DCP8, P50 TPOT vs. sequences per rank" width="90%">
 <br>
-<em>Figure: For Kimi K3, DCP achieves lower decode latency and scales to higher concurrency.</em>
+<em>Figure 6: For Kimi K3, DCP8 achieves lower decode latency than TP8 and scales to higher concurrency.</em>
 </p>
 
 DCP's tradeoff is extra communication: the KV cache is sharded by sequence, so every MLA decode layer needs a query gather before attention and a partial-output reduction after it.
 
-We carefully optimized the DCP compute path to bypass NCCL operations and avoid these overheads. We use symmetric-memory buffers that peer GPUs can load from and store to directly. Queries are multicast straight into the buffers consumed by the attention kernels. Each GPU then writes its partial attention outputs and log-sum-exp (LSE) statistics directly into its peers' receive slots, where each rank locally merges the results with online softmax. These GPU-to-GPU writes are fused with the computation into the same kernels, cutting latency by about 13% per layer compared with the default DCP8 implementation.
+We carefully optimized the DCP compute path to bypass NCCL operations and avoid these overheads. We use symmetric-memory buffers that peer GPUs can load from and store to directly. Queries are multicast straight into the buffers consumed by the attention kernels. Each GPU then writes its partial attention outputs and log-sum-exp (LSE) statistics directly into its peers' receive slots, where each rank locally merges the results with online softmax. These GPU-to-GPU writes are fused with the computation into the same kernels (Figure 7), cutting latency by about 13% per layer compared with the default DCP8 implementation.
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/k3-dcp-symmem.gif" alt="Animation: MLA decode path under DCP4 using symmetric memory" width="80%">
 <br>
-<em>Figure: MLA decode path under DCP4 using symmetric memory. Each step is fused into a single kernel.</em>
+<em>Figure 7: MLA decode path under DCP4 using symmetric memory. Each step is fused into a single kernel, replacing the NCCL all-gather, staging copy, all-to-all, and unpack steps.</em>
 </p>
 
-A larger scale-up domain can change the best strategy. On an NVL72-class system, for example, wide EP with data parallelism (DEP) can scale better than DCP and deliver higher throughput at the same decode latency SLO. At larger, multi-node DCP sizes, the communication cost of sharded attention outweighs the compute it saves. DEP assigns requests and their KV caches to different data-parallel ranks, avoiding DCP's attention collectives while sharding the MoE experts across ranks.
+A larger scale-up domain can change the best strategy. On an NVL72-class system, for example, wide EP with data parallelism (DEP) can scale better than DCP and deliver higher throughput at the same decode latency SLO (Figure 8). At larger, multi-node DCP sizes, the communication cost of sharded attention outweighs the compute it saves. DEP assigns requests and their KV caches to different data-parallel ranks, avoiding DCP's attention collectives while sharding the MoE experts across ranks.
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/k3-dcp8-vs-dep16.png" alt="Kimi K3 decode: DCP8 vs. DEP16, P50 TPOT vs. sequences per rank" width="90%">
 <br>
-<em>Figure: Wide EP (DEP16) scales better than DCP8 when the per-rank batch size exceeds 3.</em>
+<em>Figure 8: For Kimi K3, wide EP (DEP16) scales better than DCP8 once the per-rank batch size exceeds 3.</em>
 </p>
 
 **DeepSeek V4**
@@ -178,10 +182,12 @@ Agentic serving mixes frequent append-only requests, which reuse long prefixes a
 
 ##### Breaking head-of-line blocking
 
-By default, vLLM's chunked-prefill scheduler runs in first-in, first-out order. One long prefill can claim the entire token budget step after step, and the short turns queued on the same rank cannot be scheduled at all until the long prefill finishes. This is known as head-of-line blocking and is illustrated below in the session view of one rank's queue.
+By default, vLLM's chunked-prefill scheduler runs in first-in, first-out order. One long prefill can claim the entire token budget step after step, and the short turns queued on the same rank cannot be scheduled at all until the long prefill finishes. This is known as head-of-line blocking; Figure 9 illustrates it in the session view of one rank's queue.
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/hol-blocking.gif" alt="Animation: head-of-line blocking in the prefill queue, with and without a chunk cap" width="100%">
+<br>
+<em>Figure 9: Head-of-line blocking in the prefill queue, session view of one rank. Left: without a chunk cap, a long prefill claims the whole budget and the short cached turns wait. Right: with a 512-token cap, short turns join every step and begin decoding sooner.</em>
 </p>
 
 We tackle this issue with a simple scheduling policy: we use `--long-prefill-token-threshold` to cap how many tokens one request may schedule per step. With a 512-token threshold, a long prefill leaves room for short turns to join the same batch and begin decoding sooner. With DeepSeek V4 Pro on B300s, this increases total tokens per GPU-second (TPGS) by up to 93% and improves P90 interactivity by roughly 2.3×. The trade-off is a higher TTFT for the long request itself, so TTFT-sensitive deployments should use a larger threshold.
@@ -190,10 +196,12 @@ We tackle this issue with a simple scheduling policy: we use `--long-prefill-tok
 
 DEP introduces a second inefficiency: MoE all-to-all communication forces ranks to advance in lockstep, so a rank processing prefill work slows the entire group. When prefills arrive on different steps on different ranks, this penalty is paid repeatedly.
 
-To alleviate this imbalance, we set `--prefill-schedule-interval` to admit prefill work only every Nth engine step, using a counter aligned across data-parallel ranks. This concentrates prefill work onto the same steps across ranks and increases the fraction of the remaining steps devoted entirely to decode. The figure below illustrates this cadence across a DEP8 group.
+To alleviate this imbalance, we set `--prefill-schedule-interval` to admit prefill work only every Nth engine step, using a counter aligned across data-parallel ranks. This concentrates prefill work onto the same steps across ranks and increases the fraction of the remaining steps devoted entirely to decode. Figure 10 illustrates this cadence across a DEP8 group.
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/prefill-schedule-interval.gif" alt="Animation: prefill-schedule-interval aligns prefill cadence across a DEP8 group" width="100%">
+<br>
+<em>Figure 10: Prefill schedule cadence across a DEP8 group. Left: prefills arrive on different steps and stall the lockstep group repeatedly. Right: with an interval of 4, prefills coalesce onto the cadence steps and the steps in between are decode-only.</em>
 </p>
 
 ### Scaling with optimal P/D disaggregation configurations
@@ -223,20 +231,20 @@ We demonstrate that vLLM is agentic-first through independent validation on [Sem
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/k3-agentx-dashboard.png" alt="Kimi K3 AgentX dashboard: total tokens per $1 TCO vs. P90 interactivity across hardware" width="100%">
 <br>
-<em>Figure: Total tokens per $1 under varying P90 interactivities with Kimi K3 running on various hardware. Source: <a href="https://inferencex.semianalysis.com/inference/kimi-k3?i_seq=agentic-traces&i_xmode=interactivity&g_model=Kimi-K3&i_best=0&i_active=b200_dynamo-vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm%2Cmi355x_vllm">Kimi K3 SemiAnalysis AgentX Dashboard</a>.</em>
+<em>Figure 11: Total tokens per $1 under varying P90 interactivities with Kimi K3 running on various hardware. Source: <a href="https://inferencex.semianalysis.com/inference/kimi-k3?i_seq=agentic-traces&i_xmode=interactivity&g_model=Kimi-K3&i_best=0&i_active=b200_dynamo-vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm%2Cmi355x_vllm">Kimi K3 SemiAnalysis AgentX Dashboard</a>.</em>
 </p>
 
-The figure shows the Kimi K3 dashboard as an example; the benchmark and all of its results are publicly accessible on the [AgentX Dashboard](https://inferencex.semianalysis.com/inference?i_seq=agentic-traces&i_xmode=interactivity&g_runid=33418433573&i_best=0&i_active=b200_vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm&i_hc=1&i_advlabel=0&i_label=0). We strongly recommend exploring the Pareto results for the other models and configurations.
+Figure 11 shows the Kimi K3 dashboard as an example; the benchmark and all of its results are publicly accessible on the [AgentX Dashboard](https://inferencex.semianalysis.com/inference?i_seq=agentic-traces&i_xmode=interactivity&g_runid=33418433573&i_best=0&i_active=b200_vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm&i_hc=1&i_advlabel=0&i_label=0). We strongly recommend exploring the Pareto results for the other models and configurations.
 
 In this post, we focus on the results of three open frontier models: DeepSeek V4 Pro, MiniMax M3, and Kimi K3. For each model, we report the highest-throughput vLLM configuration that maintains P90 interactivity above 50 tokens per second per user, a common and demanding latency SLO. The table below summarizes the key results.
 
-| Model | GPUs / concurrency | Total tokens per GPU-second (TPGS) @ P90 > 50 tok/s | P90 interactivity |
+| Model | GPUs / concurrency | Total tokens per GPU-second (TPGS)[^tpgs] @ P90 > 50 tok/s | P90 interactivity |
 | :---- | ----: | ----: | ----: |
 | [DeepSeek V4 Pro 1.6T](https://inferencex.semianalysis.com/inference/agentic/439873) | 12 GB300s / 256 | **83K TPGS** | 58.3 tok/s |
 | [MiniMax M3 428B](https://inferencex.semianalysis.com/inference/agentic/439907) | 2 B300s / 24 | 70K TPGS | **74.2 tok/s** |
 | [Kimi K3 2.8T](https://inferencex.semianalysis.com/inference/agentic/441066) | 16 GB300s / 48 | 11.8K TPGS | 62.7 tok/s |
 
-*Footnote: Total tokens per GPU-second (TPGS) counts input, output, and cached tokens. A detailed breakdown is available via each model's link.*
+[^tpgs]: Total tokens per GPU-second (TPGS) counts input, output, and cached tokens. A detailed breakdown is available via each model's link.
 
 DeepSeek V4 Pro represents the high-throughput, cost-efficient case. A 12-chip GB300 P/D deployment serves 256 concurrent agent sessions while sustaining 58.3 tokens/s/user at P90. At this operating point, it processes 83K total tokens per GPU-second.
 
@@ -246,13 +254,13 @@ Kimi K3, one of the largest open frontier models, makes the case for frontier in
 
 Beyond performance, cost is the metric most relevant to users' daily use and to tokenomics. The table below compares the serving cost of all three open models against Opus 5.
 
-| Model | GPU TCO/hour | Equivalent Opus 5 cost/hour | Cost advantage |
+| Model | GPU TCO/hour | Equivalent Opus 5 cost/hour[^opus] | Cost advantage |
 | :---- | ----: | ----: | ----: |
 | [DeepSeek V4 Pro 1.6T](https://inferencex.semianalysis.com/inference/agentic/439873) | $27.72 | $2,926 | **106×** |
 | [MiniMax M3 428B](https://inferencex.semianalysis.com/inference/agentic/439907) | $4.52 | $384 | **85×** |
 | [Kimi K3 2.8T](https://inferencex.semianalysis.com/inference/agentic/441066) | $36.96 | $538 | **14.6×** |
 
-*Footnote: The Opus 5 calculation uses: cached input x $0.50/M + uncached input x $5/M + output x $25/M. It assumes a perfect theoretical cache hit rate and excludes cache-write charges and long-context pricing premiums, which is conservative and favorable to Opus. The comparison is about serving cost, not model quality.*
+[^opus]: The Opus 5 calculation uses cached input × $0.50/M + uncached input × $5/M + output × $25/M. It assumes a perfect theoretical cache hit rate and excludes cache-write charges and long-context pricing premiums, which is conservative and favorable to Opus. The comparison is about serving cost, not model quality.
 
 The cost advantage comes from the defining property of agentic traffic: with a theoretical cache hit rate of more than 96%, vLLM reuses prefixes effectively and turns that reuse into serving efficiency across all three models, under the same settings as the table above.
 
@@ -300,7 +308,7 @@ In the execution plane and data plane, we are working with the community to supp
 
 ## Acknowledgments
 
-This effort was led by Inferact with extensive support from the vLLM community. We thank SemiAnalysis for developing and operating the open AgentX benchmark and for making its methodology and results reproducible. We also thank NVIDIA and AMD for their close collaboration and support throughout this work.
+This effort was led by [Inferact](https://inferact.ai/) with extensive support from the vLLM community. We thank SemiAnalysis for developing and operating the open AgentX benchmark and for making its methodology and results reproducible. We also thank NVIDIA and AMD for their close collaboration and support throughout this work.
 
 <script>
 (function () {
