@@ -89,13 +89,13 @@
   </g>
 
   <!-- ===== main lockup ===== -->
-  <!-- vLLM logo mark + wordmark -->
-  <g transform="translate(235,290)">
-    <g transform="scale(0.6)">
-      <polygon points="0,68 118,68 118,300" fill="#f2b32a"/>
-      <polygon points="178,52 288,4 210,300 118,300" fill="#4d8ff2"/>
-    </g>
-    <text x="190" y="180" font-size="150" font-weight="500" fill="#3d3d3d" letter-spacing="-3">LLM</text>
+  <!-- official vLLM logo (https://vllm.ai/vLLM-Full-Logo.svg), scaled to fit -->
+  <g transform="translate(235,277) scale(1.416)">
+    <path fill="#434343" d="m172.66676 136.49417l-58.875 0l0 -93.0625l12.375 0l0 82.0625l46.5 0l0 11.0zm71.25 0l-58.875 0l0 -93.0625l12.375 0l0 82.0625l46.5 0l0 11.0zm95.249985 0l-12.375 0l0 -80.1875l-25.875 54.5625l-7.375 0l-25.6875 -54.5625l0 80.1875l-11.5625 0l0 -93.0625l16.875 0l24.8125 51.8125l24.0 -51.8125l17.1875 0l0 93.0625z" fill-rule="nonzero"/>
+    <path fill="#d9d9d9" d="m59.641495 83.01899l0 55.30709l-27.653543 -55.30709z" fill-rule="evenodd"/>
+    <path fill="#d9d9d9" d="m59.640358 138.32608l21.72966 0l18.653542 -70.38583l-25.574799 13.461945z" fill-rule="evenodd"/>
+    <path fill="#fdb515" d="m58.465023 81.84252l0 55.30709l-27.653543 -55.30709z" fill-rule="evenodd"/>
+    <path fill="#30a2ff" d="m58.46389 137.14961l21.72966 0l18.653542 -70.38583l-25.574806 13.461945z" fill-rule="evenodd"/>
   </g>
 
   <!-- × -->
