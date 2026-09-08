@@ -20,7 +20,7 @@ tags:
 
 **TL;DR:** Agentic workloads are becoming a major source of vLLM traffic. Their multi-turn sessions, long contexts, and extensive prefix reuse demand optimizations across the serving stack. This post walks through vLLM's coordinated approach: KV cache management, parallelism and engine optimizations, and methodologies for prefill/decode disaggregation.
 
-Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-does-cuda-moat), SemiAnalysis's public agentic benchmark, vLLM achieves up to 130K total tokens per GPU-second on DeepSeek V4 Pro, and an interactivity of up to 376 tokens per second on MiniMax M3. Across DeepSeek V4 Pro, MiniMax M3, and Kimi K3, vLLM delivers a 14.6×–106× serving-cost advantage over Opus 5 API pricing (Figure 1; see [Performance](#performance-agentic-first-and-openly-verifiable)).
+Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-does-cuda-moat), SemiAnalysis's public agentic benchmark, vLLM achieves up to 130K total tokens per GPU-second on DeepSeek V4 Pro, and an interactivity of up to 376 tokens per second on MiniMax M3. Across DeepSeek V4 Pro, MiniMax M3, and Kimi K3, vLLM delivers a 14.6×–106× serving-cost advantage over Opus 5 API pricing (see [Performance](#performance-agentic-first-and-openly-verifiable)).
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/agentx-pareto-summary.png" alt="vLLM on SemiAnalysis AgentX: cost efficiency vs. P90 interactivity for DeepSeek V4 Pro, MiniMax M3, and Kimi K3" width="100%">
