@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM x AgentX: Optimizing for Real-World Agentic Serving"
 author: "vLLM Team and Inferact"
+date: 2026-09-08 23:00:00 +0000
 summary: "How vLLM optimizes KV cache management, parallelism, scheduling, and P/D disaggregation for agentic workloads, validated on SemiAnalysis AgentX with up to 130K tokens per GPU-second and a 14.6x-106x serving-cost advantage over Opus 5."
 image: /assets/figures/2026-09-08-vllm-agentx/hero-vllm-agentx.png
 social_image: /assets/figures/2026-09-08-vllm-agentx/hero-vllm-agentx.png
@@ -25,7 +26,7 @@ Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-d
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/agentx-pareto-summary.png" alt="vLLM on SemiAnalysis AgentX: cost efficiency vs. P90 interactivity for DeepSeek V4 Pro, MiniMax M3, and Kimi K3" width="100%">
 <br>
-<em>Figure 1: vLLM on SemiAnalysis AgentX. Total tokens per $1 of TCO against P90 interactivity for the best vLLM configuration of DeepSeek V4 Pro, MiniMax M3, and Kimi K3, with DeepSeek V4 Pro on GB300 NVL72 as a case study. Data source: <a href="https://inferencex.semianalysis.com/inference">SemiAnalysis AgentX</a>.</em>
+<em>Figure 1: vLLM on SemiAnalysis AgentX. Total tokens per &#36;1 of TCO against P90 interactivity for the best vLLM configuration of DeepSeek V4 Pro, MiniMax M3, and Kimi K3, with DeepSeek V4 Pro on GB300 NVL72 as a case study. Data source: <a href="https://inferencex.semianalysis.com/inference">SemiAnalysis AgentX</a>.</em>
 </p>
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-agentx-pareto.html" title="vLLM on AgentX: cost efficiency vs. interactivity (interactive)" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 640px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
@@ -226,12 +227,12 @@ For DeepSeek V4, community contributions improved MXFP4 MoE and HCA compression 
 
 ## Performance: agentic-first and openly verifiable
 
-We demonstrate that vLLM is agentic-first through independent validation on [SemiAnalysis AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-does-cuda-moat), an open dataset built from $3M of real-world agentic coding traces with 1M context, run on a public benchmark infrastructure of more than 1,000 chips and roughly 2 MW of compute.
+We demonstrate that vLLM is agentic-first through independent validation on [SemiAnalysis AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-does-cuda-moat), an open dataset built from &#36;3M of real-world agentic coding traces with 1M context, run on a public benchmark infrastructure of more than 1,000 chips and roughly 2 MW of compute.
 
 <p align="center">
-<img src="/assets/figures/2026-09-08-vllm-agentx/k3-agentx-dashboard.png" alt="Kimi K3 AgentX dashboard: total tokens per $1 TCO vs. P90 interactivity across hardware" width="100%">
+<img src="/assets/figures/2026-09-08-vllm-agentx/k3-agentx-dashboard.png" alt="Kimi K3 AgentX dashboard: total tokens per &#36;1 TCO vs. P90 interactivity across hardware" width="100%">
 <br>
-<em>Figure 11: Total tokens per $1 under varying P90 interactivities with Kimi K3 running on various hardware. Source: <a href="https://inferencex.semianalysis.com/inference/kimi-k3?i_seq=agentic-traces&i_xmode=interactivity&g_model=Kimi-K3&i_best=0&i_active=b200_dynamo-vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm%2Cmi355x_vllm">Kimi K3 SemiAnalysis AgentX Dashboard</a>.</em>
+<em>Figure 11: Total tokens per &#36;1 under varying P90 interactivities with Kimi K3 running on various hardware. Source: <a href="https://inferencex.semianalysis.com/inference/kimi-k3?i_seq=agentic-traces&i_xmode=interactivity&g_model=Kimi-K3&i_best=0&i_active=b200_dynamo-vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm%2Cmi355x_vllm">Kimi K3 SemiAnalysis AgentX Dashboard</a>.</em>
 </p>
 
 Figure 11 shows the Kimi K3 dashboard as an example; the benchmark and all of its results are publicly accessible on the [AgentX Dashboard](https://inferencex.semianalysis.com/inference?i_seq=agentic-traces&i_xmode=interactivity&g_runid=33418433573&i_best=0&i_active=b200_vllm%2Cb300_vllm%2Cgb200_dynamo-vllm%2Cgb300_dynamo-vllm&i_hc=1&i_advlabel=0&i_label=0). We strongly recommend exploring the Pareto results for the other models and configurations.
@@ -256,15 +257,15 @@ Beyond performance, cost is the metric most relevant to users' daily use and to 
 
 | Model | GPU TCO/hour | Equivalent Opus 5 cost/hour<sup><a href="#note-opus">2</a></sup> | Cost advantage |
 | :---- | ----: | ----: | ----: |
-| [DeepSeek V4 Pro 1.6T](https://inferencex.semianalysis.com/inference/agentic/439873) | $27.72 | $2,926 | **106×** |
-| [MiniMax M3 428B](https://inferencex.semianalysis.com/inference/agentic/439907) | $4.52 | $384 | **85×** |
-| [Kimi K3 2.8T](https://inferencex.semianalysis.com/inference/agentic/441066) | $36.96 | $538 | **14.6×** |
+| [DeepSeek V4 Pro 1.6T](https://inferencex.semianalysis.com/inference/agentic/439873) | &#36;27.72 | &#36;2,926 | **106×** |
+| [MiniMax M3 428B](https://inferencex.semianalysis.com/inference/agentic/439907) | &#36;4.52 | &#36;384 | **85×** |
+| [Kimi K3 2.8T](https://inferencex.semianalysis.com/inference/agentic/441066) | &#36;36.96 | &#36;538 | **14.6×** |
 
-<p id="note-opus"><small><sup>2</sup> The Opus 5 calculation uses cached input × $0.50/M + uncached input × $5/M + output × $25/M. It assumes a perfect theoretical cache hit rate and excludes cache-write charges and long-context pricing premiums, which is conservative and favorable to Opus. The comparison is about serving cost, not model quality.</small></p>
+<p id="note-opus"><small><sup>2</sup> The Opus 5 calculation uses cached input × &#36;0.50/M + uncached input × &#36;5/M + output × &#36;25/M. It assumes a perfect theoretical cache hit rate and excludes cache-write charges and long-context pricing premiums, which is conservative and favorable to Opus. The comparison is about serving cost, not model quality.</small></p>
 
 The cost advantage comes from the defining property of agentic traffic: with a theoretical cache hit rate of more than 96%, vLLM reuses prefixes effectively and turns that reuse into serving efficiency across all three models, under the same settings as the table above.
 
-For DeepSeek V4 Pro, serving the measured workload costs approximately $28 per hour in GB300 infrastructure TCO. Processing the same token volume with Opus 5 would cost approximately $2,926, even after applying the cache-read price to every theoretically reusable token. MiniMax M3 on B300s shows an 85× cost advantage, while Kimi K3 on GB300s remains 14.6× cheaper despite its substantially larger model size.
+For DeepSeek V4 Pro, serving the measured workload costs approximately &#36;28 per hour in GB300 infrastructure TCO. Processing the same token volume with Opus 5 would cost approximately &#36;2,926, even after applying the cache-read price to every theoretically reusable token. MiniMax M3 on B300s shows an 85× cost advantage, while Kimi K3 on GB300s remains 14.6× cheaper despite its substantially larger model size.
 
 These are the numbers as of today; the dashboard is live and accessible to everyone. The AgentX harness is public at [SemiAnalysisAI/agentx-harness](https://github.com/SemiAnalysisAI/agentx-harness), and every result above links to its run on the InferenceX dashboard for easy reproduction.
 
