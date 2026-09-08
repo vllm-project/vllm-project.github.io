@@ -29,12 +29,6 @@ Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-d
 <em>Figure 1: vLLM on SemiAnalysis AgentX. Total tokens per &#36;1 of TCO against P90 interactivity for the best vLLM configuration of DeepSeek V4 Pro, MiniMax M3, and Kimi K3, with DeepSeek V4 Pro on GB300 NVL72 as a case study. Data source: <a href="https://inferencex.semianalysis.com/inference">SemiAnalysis AgentX</a>.</em>
 </p>
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/vllm-agentx-pareto.html" title="vLLM on AgentX: cost efficiency vs. interactivity (interactive)" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 640px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
-
-<p align="center">
-<em>Interactive version of Figure 1. Hover over a point to see its configuration, or <a href="/assets/interactive_pages/vllm-agentx-pareto.html">open it full-screen</a>.</em>
-</p>
-
 ## Characterizing agentic workloads: a second look
 
 Since our first post on [serving agentic workloads](https://vllm.ai/blog/2026-05-06-mooncake-store) in May, the share of agentic traffic has continued to grow. As of June 2026, [OpenAI reported](https://openai.com/signals/enterprise-data/) that Codex generated 64% of combined Codex and ChatGPT output tokens among enterprise customers.
@@ -252,6 +246,14 @@ DeepSeek V4 Pro represents the high-throughput, cost-efficient case. A 12-chip G
 MiniMax M3 pushes interactivity further. With only 2 B300s, it sustains 74.2 tokens/s/user at P90 and delivers 70K total TPGS.
 
 Kimi K3, one of the largest open frontier models, makes the case for frontier intelligence. At 2.8 trillion parameters, it is too large for a conventional single-server deployment, yet 16 GB300s sustain 62.7 tokens/s/user at P90 while processing 11.8K total TPGS.
+
+The table reports a single operating point per model. Figure 12 plots the full curve of the best vLLM configuration for each model, so you can see how cost efficiency trades against interactivity across the whole range, and where the points above sit on it.
+
+<iframe class="vllm-embed" src="/assets/interactive_pages/vllm-agentx-pareto.html" title="Agentic serving: cost efficiency vs. interactivity" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 640px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
+
+<p align="center">
+<em>Figure 12: Total tokens per &#36;1 of TCO against P90 interactivity for the best vLLM configuration of DeepSeek V4 Pro, MiniMax M3, and Kimi K3 on AgentX. Hover over a point to see its configuration, or <a href="/assets/interactive_pages/vllm-agentx-pareto.html">open it full-screen</a>.</em>
+</p>
 
 Beyond performance, cost is the metric most relevant to users' daily use and to tokenomics. The table below compares the serving cost of all three open models against Opus 5.
 
