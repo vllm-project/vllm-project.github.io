@@ -412,6 +412,7 @@ in the attention A/B above.
 | Base H3 + DLO + online FP8 | Supported, including the AllGather path through [#6279](https://github.com/vllm-project/vllm-omni/pull/6279); performance and quality still require local qualification |
 | Base H3 + disaggregated encoder | Merged single-node path |
 | FastH3 + DLO | **Unsupported**: FastH3 fusion occurs in `load_weights()`, while offload installs a different host-weight path |
+| FastH3 + VSA | Supported on CUDA with the matching VSA artifact, `fastvideo-kernel`, `FASTVIDEO_VSA`, and local or pure Ulysses attention; Ring and AllGather SP are rejected |
 | FastH3 + disaggregated encoder | **Not yet qualified**; it was not used for the reported FastH3 result |
 
 > **Step execution sidebar.** H3 can admit and abort requests between denoise
@@ -425,7 +426,8 @@ in the attention A/B above.
 [FastH3](https://haoailab.com/blogs/fasth3-preview/) is FastVideo's four-step
 DMD2 student of MiniMax H3. It reuses the H3 encoder, video VAE, audio VAE,
 tokenizers, and schedulers, but reduces the denoising loop to four transformer
-forwards over five sigma positions.
+forwards over five sigma positions. vLLM-Omni supports both the Dense/Data-Free
+artifact and the recommended VSA/Data-Free artifact.
 
 The integration is a collaboration across two layers:
 
@@ -448,17 +450,21 @@ sharding rather than activating it per request.
 sidecars. FastH3 fuses low-rank and full-rank changes into a dedicated student
 before sharding. Sources: Turbo [#6476](https://github.com/vllm-project/vllm-omni/pull/6476),
 DLO support [#6550](https://github.com/vllm-project/vllm-omni/pull/6550), and
-FastH3 integration [#6714](https://github.com/vllm-project/vllm-omni/pull/6714).*
+FastH3 integration [#6714](https://github.com/vllm-project/vllm-omni/pull/6714),
+with VSA and Ulysses support in
+[#6909](https://github.com/vllm-project/vllm-omni/pull/6909).*
 
 | Profile | Activation model | Task scope | When to choose it |
 |---|---|---|---|
 | Base H3 | Released checkpoint | T2VA, FL2VA, Ref2VA | Full task coverage and compatibility with the general scaling lane |
 | Turbo | Request-switchable adapter | T2VA and FL2VA | One service needs request-time switching or FL2VA |
-| FastH3 | Load-time-fused dedicated student | Dense/Data-Free T2VA | Lowest validated latency on a dedicated T2VA endpoint |
+| FastH3 | Load-time-fused dedicated student | Dense/Data-Free or VSA/Data-Free T2VA | Lowest validated latency on a dedicated T2VA endpoint; VSA optionally sparsifies the main DiT attention |
 
-FastH3 v1 rejects offload and VSA variants, accepts T2VA only, requires its
-four-forward schedule and checkpoint flow shifts, and cannot accept another
-request-time LoRA. These are serving contracts, not tuning suggestions.
+FastH3 v1 accepts T2VA only, requires its four-forward schedule and checkpoint
+flow shifts, rejects offload, and cannot accept another request-time LoRA. Its
+VSA variants additionally require CUDA, the external FastVideo kernel package,
+and local or pure Ulysses sequence parallelism. These are serving contracts,
+not tuning suggestions.
 
 ## 6. Real-time FastH3 serving on B300
 
@@ -547,6 +553,27 @@ durations to 124, 243, and 362 frames.
 All six measured requests satisfy `RTF_client <= 1.0`: complete-MP4 generation
 is faster than playback for every tested duration.
 
+#### FastH3 Dense versus VSA
+
+A separate matched study in
+[#6909](https://github.com/vllm-project/vllm-omni/pull/6909) compares the
+Dense/Data-Free artifact with the recommended VSA/Data-Free artifact on
+8×B300 at 1344×768 and 24 FPS. Both use four transformer forwards, pure
+Ulysses 8, and one discarded warmup; each result below is one measured request
+per backend and duration. Dense uses `TRTLLM_ATTN`; VSA uses
+`FASTVIDEO_VSA`, top-k 64, and the Triton kernel path.
+
+| Request | FastH3 Dense server E2E incl. MP4 | FastH3 VSA server E2E incl. MP4 | Speedup |
+|---|---:|---:|---:|
+| 10 s | 9.838 s | **7.278 s** | **1.35×** |
+| 15 s | 14.199 s | **10.800 s** | **1.31×** |
+
+These server-side measurements establish the matched VSA speedup; they use a
+different source revision and timing boundary from the client E2E duration
+sweep above. See the maintained
+[MiniMax H3 recipe](https://recipes.vllm.ai/MiniMaxAI/MiniMax-H3) for the VSA
+installation, launch command, and fallback checks.
+
 ### 6.5 Representative outputs and quality boundary
 
 These supplied FastH3 outputs cover the same 5/10/15-second duration classes.
@@ -610,11 +637,14 @@ The deployment choice is now concrete:
 | Full T2VA, FL2VA, and Ref2VA coverage | Base H3 with the system-wide stack |
 | Request-time adapter switching or FL2VA with four-forward Turbo | Separate Turbo service |
 | Lowest validated T2VA complete-response latency | Dedicated FastH3 service from Section 6 |
+| Matched sparse-attention acceleration for FastH3 T2VA | Dedicated VSA/Data-Free service with the constraints above |
 | Host-memory-driven fit or independently scaled encoder capacity | Base H3 DLO or disaggregated-encoder lane; qualify locally |
 
-Do not combine the reported FastH3 profile with DLO, VSA, quantization, cache
-policies, alternative Ulysses transports, or encoder disaggregation without a
-new correctness, quality, memory, and latency qualification. The living
+FastH3 VSA is supported only with its matching artifact, CUDA kernel package,
+`FASTVIDEO_VSA`, and local or pure Ulysses attention. Do not combine either
+FastH3 profile with DLO, quantization, cache policies, Ring/AllGather sparse
+attention, or encoder disaggregation without a new correctness, quality,
+memory, and latency qualification. The living
 [feature compatibility tracker](https://github.com/vllm-project/vllm-omni/issues/5700)
 records cross-feature work, but it can lag merged implementation. Verify the
 linked PRs and maintained recipes before selecting a production combination.
@@ -636,7 +666,8 @@ faster-than-playback complete-response generation on the measured B300 system.
 
 The remaining work follows directly from that progression:
 
-- integrate and qualify FastH3 VSA variants and native fused NVFP4 kernels;
+- qualify the native FastVideo SM100a VSA kernel across target Blackwell
+  systems and integrate native fused NVFP4 kernels;
 - integrate and qualify the [Sol-Attn](https://github.com/vllm-project/vllm-omni/pull/5851)
   on-the-fly sparse-attention backend across target Blackwell platforms and
   multi-seed workloads;
@@ -674,8 +705,9 @@ online-FP8 work; [@gcanlin](https://github.com/gcanlin) and
 [@MosCloud](https://github.com/MosCloud), and
 [@ultism](https://github.com/ultism) for attention, fused kernels,
 quantization, VAE, transport, and media paths;
-[@princepride](https://github.com/princepride) for FastH3 integration and B300
-validation; and [@NancyFyong](https://github.com/NancyFyong) and
+[@princepride](https://github.com/princepride) for FastH3 integration, B300
+validation, and VSA/Ulysses support; and
+[@NancyFyong](https://github.com/NancyFyong) and
 [@mengchengTang](https://github.com/mengchengTang) for VeRL-Omni integration.
 
 Special thanks to Hongsheng Liu and Roger Wang for general support and blog
@@ -724,9 +756,10 @@ sigma points, flow shift 12, audio flow shift 3, and a 10-second target.
 - [FastVideo repository](https://github.com/hao-ai-lab/FastVideo)
 - [FastH3 technical overview](https://haoailab.com/blogs/fasth3-preview/)
 - [FastH3 four-step adapter](https://huggingface.co/FastVideo/FastVideo-FastH3-4-step-Preview-v1-LoRA)
+- [FastH3 VSA and Ulysses integration](https://github.com/vllm-project/vllm-omni/pull/6909)
 - [MiniMax H3 model](https://huggingface.co/MiniMaxAI/MiniMax-H3)
 - [Diffusers MiniMax H3 pipeline](https://huggingface.co/docs/diffusers/v0.40.0/api/pipelines/minimax_h3)
-- [MiniMax H3 serving recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3.md)
+- [MiniMax H3 serving recipe](https://recipes.vllm.ai/MiniMaxAI/MiniMax-H3)
 - [Distributed Layerwise Offload](https://vllm.ai/blog/2026-08-17-distributed-layerwise-offload)
 - [Feature compatibility tracker](https://github.com/vllm-project/vllm-omni/issues/5700)
 - [Chunkwise output pipeline RFC](https://github.com/vllm-project/vllm-omni/issues/6872)
