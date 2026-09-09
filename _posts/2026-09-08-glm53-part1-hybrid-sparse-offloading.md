@@ -104,7 +104,7 @@ This is the first post in a series on serving GLM 5.3 with vLLM. Hybrid HiSparse
 
 ## Acknowledgements
 
-vLLM's Hybrid HiSparse implementation was developed by Matthew Bonanni (Red Hat), Lucas Wilkinson (Red Hat), and Fares Obeid (Prime Intellect). The design was shaped through close collaboration with Chao Lei (Huawei) and Nicolò Lucchesi (Mistral). Simon Veitner (Red Hat) contributed to the performance evaluation and development of this blog. We thank the [HiSparse](https://arxiv.org/abs/2608.07009) authors for developing the sparse offloading concept employed as part of this work.
+vLLM's Hybrid HiSparse implementation was developed by Matthew Bonanni (Red Hat), Lucas Wilkinson (Red Hat), and Fares Obeid (Prime Intellect). The design was shaped through close collaboration with Chao Lei (Ant Group) and Nicolò Lucchesi (Mistral). Simon Veitner (Red Hat) contributed to the performance evaluation and development of this blog. We thank the [HiSparse](https://arxiv.org/abs/2608.07009) authors for developing the sparse offloading concept employed as part of this work.
 
 ## Appendix: Reproducing our results
 
