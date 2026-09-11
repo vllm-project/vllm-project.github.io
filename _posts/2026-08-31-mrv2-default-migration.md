@@ -1,30 +1,28 @@
 ---
 layout: post
-title: "Making Model Runner V2 the Default in vLLM"
+title: "Model Runner V2 Is Now the Default in vLLM"
 author: "Wentao Ye, Nick Hill, Woosuk Kwon"
-summary: "How we rolled out Model Runner V2 across vLLM models and features while keeping known incompatibilities on Model Runner V1."
+summary: "Model Runner V2 rollout across vLLM models and features, with capability-based fallback to Model Runner V1."
 image: /assets/figures/2026-08-31-mrv2-default-migration/rollout.svg
 tags:
   - engineering
 ---
 
-In March, we [introduced Model Runner V2 (MRV2)](https://vllm.ai/blog/2026-03-24-mrv2), a ground-up rewrite of vLLM's execution core. That post covered its architecture and early performance. At the time, MRV2 was experimental and opt-in, with only part of vLLM's model and feature surface supported.
-
-As of August 31, 2026, MRV2 is the default model runner across vLLM's model families on `main`, with capability-aware fallbacks for configurations that still require MRV1. The change landed in [#53183](https://github.com/vllm-project/vllm/pull/53183) after several months of work tracked in [#41286](https://github.com/vllm-project/vllm/issues/41286).
+[Model Runner V2 (MRV2)](https://vllm.ai/blog/2026-03-24-mrv2), introduced as an experimental runner in March, is now the default across model families on `main`. Unsupported configurations still fall back to MRV1. Default switch in [#53183](https://github.com/vllm-project/vllm/pull/53183); migration tracked in [#41286](https://github.com/vllm-project/vllm/issues/41286).
 
 ![MRV2 rollout from opt-in to the default model runner](/assets/figures/2026-08-31-mrv2-default-migration/rollout.svg)
 
 ## Runner Selection and Fallback
 
-[#39337](https://github.com/vllm-project/vllm/pull/39337) introduced a three-state policy for `VLLM_USE_V2_MODEL_RUNNER`
+[#39337](https://github.com/vllm-project/vllm/pull/39337) added three-state selection through `VLLM_USE_V2_MODEL_RUNNER`: `1` for MRV2, `0` for MRV1, unset for capability-based selection.
 
 ![The capability-aware Model Runner selection oracle](/assets/figures/2026-08-31-mrv2-default-migration/oracle.svg)
 
-We called this policy the capability oracle. It let us enable model groups one at a time while keeping MRV1 available for comparison.
+The capability oracle enabled model groups one at a time, with MRV1 kept for unsupported configurations and A/B testing.
 
 ## Rollout Timeline
 
-We started with Qwen3 because Qwen3 and OPT-based tests covered much of the MRV1 suite without making CI prohibitively expensive. OPT itself initially remained on MRV1. One early gap was the per-request prompt-logprob count under chunked prefill and preemption, fixed in [#39937](https://github.com/vllm-project/vllm/pull/39937).
+Qwen3 first: broad Qwen3/OPT test coverage at manageable CI cost. OPT initially stayed on MRV1. The first gap, per-request prompt-logprob count under chunked prefill and preemption, was fixed in [#39937](https://github.com/vllm-project/vllm/pull/39937).
 
 | Date | Milestone | What it validated |
 | --- | --- | --- |
@@ -41,31 +39,29 @@ We started with Qwen3 because Qwen3 and OPT-based tests covered much of the MRV1
 
 ## Testing Both Runners
 
-We used the existing vLLM test suite rather than building a separate MRV2 suite. For each rollout step, we selected MRV2 to find assumptions inherited from MRV1, reran relevant tests on MRV1 to protect the old path, and added focused tests for new failures. The [migration tracker](https://github.com/vllm-project/vllm/issues/41286) records **47 completed PRs**: nine rollout milestones and 38 compatibility changes.
+Existing tests, run against both runners; focused regressions for each new failure. The [migration tracker](https://github.com/vllm-project/vllm/issues/41286) records **47 completed PRs**: nine rollout milestones and 38 compatibility changes.
 
 ### Request State Needs an Explicit Lifecycle
 
-The prompt-logprob bug in [#39937](https://github.com/vllm-project/vllm/pull/39937) was not about accumulating results across chunks; that already worked. MRV2 did not retain the requested top-k count for each request. The fix added per-request state and tested it with chunked prefill and preemption. A similar issue appeared in [#48132](https://github.com/vllm-project/vllm/pull/48132): when `MambaHybridModelState` reused a request slot, `num_accepted_tokens` could be left over from the previous request unless it was reset in `add_request`. GPU-resident request fields need explicit initialization and reuse semantics.
+[#39937](https://github.com/vllm-project/vllm/pull/39937): MRV2 did not retain the requested top-k prompt-logprob count per request. [#48132](https://github.com/vllm-project/vllm/pull/48132): a reused `MambaHybridModelState` slot could keep the previous request's `num_accepted_tokens`. Both needed explicit per-request initialization.
 
 ### Ordering Is Part of the Runner Contract
 
-In [#42676](https://github.com/vllm-project/vllm/pull/42676), MRV2 bound KV connector metadata before handling preemptions, reversing the expected lifecycle. [#43719](https://github.com/vllm-project/vllm/pull/43719) moved KV connector post-forward work until after sampling and draft-token proposal for speculative decoding. These were not model-output bugs: they showed that compatibility also includes the ordering of scheduler events, forward execution, sampling, and connector side effects.
+[#42676](https://github.com/vllm-project/vllm/pull/42676): bind KV connector metadata after preemption handling. [#43719](https://github.com/vllm-project/vllm/pull/43719): run connector post-forward work after sampling and draft-token proposal. Scheduler, forward, sampling, and connector order is part of the runner contract.
 
 ### Buffer Shapes Are Backend Contracts
 
-Several failures came from treating one model-level bound as correct for every execution path. [#39353](https://github.com/vllm-project/vllm/pull/39353) corrected a FlexAttention allocation that used `max_model_len` instead of the scheduled-token limit. [#46753](https://github.com/vllm-project/vllm/pull/46753) expanded cross-attention block tables for encoder inputs that can exceed the decoder's `max_model_len`. [#46746](https://github.com/vllm-project/vllm/pull/46746) bounded the top-k logprob kernel's working set rather than padding it to an arbitrarily large requested k. Buffer shapes need to follow the workload and the backend's physical layout, not a convenient global maximum.
+[#39353](https://github.com/vllm-project/vllm/pull/39353): size FlexAttention buffers by scheduled-token limit, not `max_model_len`. [#46753](https://github.com/vllm-project/vllm/pull/46753): larger cross-attention block tables when encoder inputs exceed decoder length. [#46746](https://github.com/vllm-project/vllm/pull/46746): bounded top-k logprob working set. Buffer shapes follow scheduled work and backend layout, not one global maximum.
 
----
+Presubmit gap: MRV2 silently ignored `--cpu-offload-gb`, reported in [#51396](https://github.com/vllm-project/vllm/issues/51396). Support in [#51413](https://github.com/vllm-project/vllm/pull/51413), regression coverage in [#51440](https://github.com/vllm-project/vllm/pull/51440).
 
-Not every gap appeared in presubmit. [#51396](https://github.com/vllm-project/vllm/issues/51396) reported that MRV2 silently ignored `--cpu-offload-gb`; [#51413](https://github.com/vllm-project/vllm/pull/51413) added support and [#51440](https://github.com/vllm-project/vllm/pull/51440) added regression coverage.
+[#39337](https://github.com/vllm-project/vllm/pull/39337) passed 94 checks but missed a P/D case. [#42846](https://github.com/vllm-project/vllm/issues/42846) later found a Qwen3/NIXL/FlashInfer KV-cache layout bug. Temporary MRV1 fallback in [#42955](https://github.com/vllm-project/vllm/pull/42955); `kernel_block_size` fix and fallback removal in [#42766](https://github.com/vllm-project/vllm/pull/42766).
 
-The number of passing checks was useful, but it was not a coverage metric. [#39337](https://github.com/vllm-project/vllm/pull/39337) had 94 passing checks and still missed a prefill/decode (P/D) issue. Later, [#42846](https://github.com/vllm-project/vllm/issues/42846) found a KV-cache layout problem with Qwen3, NIXL, and FlashInfer. [#42955](https://github.com/vllm-project/vllm/pull/42955) temporarily sent KV connector configurations to MRV1; [#42766](https://github.com/vllm-project/vllm/pull/42766) fixed the `kernel_block_size` handling and removed that fallback.
-
-Before merging the all-model change, [#53183](https://github.com/vllm-project/vllm/pull/53183), we ran the full NVIDIA CI and an AMD nightly. It had been on `main` for only four days when this post was drafted, so we are treating it as a **default-on-main milestone**, not claiming that every MRV1 fallback is ready to be removed.
+Before [#53183](https://github.com/vllm-project/vllm/pull/53183): full NVIDIA CI and one AMD nightly. Four days on `main` when drafted. A **default-on-main milestone**, with MRV1 fallbacks still in place.
 
 ## Remaining MRV1 Fallbacks
 
-MRV2 is now the default across model families, but known unsupported configurations still route to MRV1. As of August 31, 2026, the automatic fallback cases in this [fixed snapshot of `vllm/config/vllm.py`](https://github.com/vllm-project/vllm/blob/e0d27040ddcc5ac31cf01c5b04a7d764ccba656d/vllm/config/vllm.py) are:
+As of August 31, 2026, automatic MRV1 fallbacks in this [fixed `vllm/config/vllm.py` snapshot](https://github.com/vllm-project/vllm/blob/e0d27040ddcc5ac31cf01c5b04a7d764ccba656d/vllm/config/vllm.py):
 
 - Environments without Triton.
 - Some models on ROCm.
@@ -74,22 +70,20 @@ MRV2 is now the default across model families, but known unsupported configurati
 - Dual Batch Overlap and Elastic Expert Parallelism.
 - Custom logits processors, whether explicitly configured or registered as entry-point plugins, and KV-sharing fast prefill.
 
-The [MRV2 parity tracker](https://github.com/vllm-project/vllm/issues/47172) lists the remaining design and implementation work as of the date of this post.
-
-The [Q3 roadmap](https://github.com/vllm-project/vllm/issues/48168) calls for closing the remaining parity and backend gaps, expanding release-gating coverage, and supporting new day-zero models only on MRV2.
+Remaining work: [MRV2 parity tracker](https://github.com/vllm-project/vllm/issues/47172). Q3 goals: close parity and backend gaps, expand release gating, and put new day-zero models on MRV2 only ([roadmap](https://github.com/vllm-project/vllm/issues/48168)).
 
 ## For Users
 
-No API migration is required. Builds from `main` after commit [`4aab2b0`](https://github.com/vllm-project/vllm/commit/4aab2b0ebed20343efe543c633f71b3c1336d5b8) select MRV2 for supported configurations; the first tagged release with this default will be v0.29.0.
+No API migration. Builds after [`4aab2b0`](https://github.com/vllm-project/vllm/commit/4aab2b0ebed20343efe543c633f71b3c1336d5b8) select MRV2 for supported configurations. First tagged release: v0.29.0.
 
-At startup, MRV2 logs `Using V2 Model Runner`. If vLLM falls back, the warning names the blocker and says that MRV1 was selected. You can also select a runner explicitly while debugging:
+Startup log: `Using V2 Model Runner`. On fallback, the warning names the blocker. For debugging:
 
 ```bash
-export VLLM_USE_V2_MODEL_RUNNER=1 / 0
+export VLLM_USE_V2_MODEL_RUNNER=1  # MRV2
+# or
+export VLLM_USE_V2_MODEL_RUNNER=0  # MRV1
 ```
 
 ## Acknowledgments
 
-The original MRV2 architecture and implementation made this rollout possible. Thanks to [Woosuk Kwon](https://github.com/WoosukKwon) and the other contributors listed in the [MRV2 announcement](https://vllm.ai/blog/2026-03-24-mrv2).
-
-[Taneem Ibrahim](https://github.com/taneem-ibrahim) led the pooling-model migration, while [Michael Goin](https://github.com/mgoin) and [Giancarlo Delfin](https://github.com/gcanlin) contributed supporting features. Thanks also to [Kaichao You](https://github.com/youkaichao) for shepherding key default-boundary changes, to the model, platform, and CI contributors who tested the broader matrix, and to users such as [malaiwah](https://github.com/malaiwah), whose reports became regression tests.
+MRV2 architecture and implementation: [Woosuk Kwon](https://github.com/WoosukKwon) and contributors listed in the [original announcement](https://vllm.ai/blog/2026-03-24-mrv2). Pooling migration: [Taneem Ibrahim](https://github.com/taneem-ibrahim). Supporting features: [Michael Goin](https://github.com/mgoin) and [Giancarlo Delfin](https://github.com/gcanlin). Default-boundary changes: [Kaichao You](https://github.com/youkaichao). Regression reports: [malaiwah](https://github.com/malaiwah). Also thanks to the model, platform, and CI contributors who tested the broader matrix.
