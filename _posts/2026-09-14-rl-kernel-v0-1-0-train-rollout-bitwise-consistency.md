@@ -57,41 +57,41 @@ This post answers both questions from one perspective:
 The rollout engine generates token aₜ from prefix hₜ and records
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image14.png"
-style="width:1.25667in;height:0.25333in" />
+style="display:block;margin:0 auto;width:1.25667in;height:0.25333in" />
 
 Before training begins, the training engine scores the token again using the same weight version:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image21.png"
-style="width:1.23333in;height:0.25in" />
+style="display:block;margin:0 auto;width:1.23333in;height:0.25in" />
 
 If the policy has not yet been updated and both sides are evaluating the same logical object, the importance ratio should satisfy
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image27.png"
-style="width:1.89in;height:0.36667in" />
+style="display:block;margin:0 auto;width:1.89in;height:0.36667in" />
 
 Let δₜ = ℓₜᵀ − ℓₜᴿ. When δₜ is small, ρₜ ≈ 1 + δₜ. It also enters the PPO and GRPO clipped objective:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image28.png"
-style="width:2.84667in;height:0.34in" />
+style="display:block;margin:0 auto;width:2.84667in;height:0.34in" />
 
 Here, Âₜ is the advantage estimate. When δₜ exceeds log(1 + εhigh) or falls below log(1 − εlow), the mismatch may even change which clipping branch is selected. In effect, it creates another policy shift before any parameter update.
 
 The total error can be decomposed further. Let sₜᴾ and sₜᴰ denote the probabilities assigned to the same token by serving prefill and an independent decode replay:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image5.png"
-style="width:1.5in;height:0.45667in" />
+style="display:block;margin:0 auto;width:1.5in;height:0.45667in" />
 
 The first term compares training scoring with serving prefill; the second compares prefill with decode; and the third checks weight version, cache state, and record identity. This decomposition matters. Although the final system exposes only one ratio, that ratio spans three interfaces: arithmetic across engines, two internal inference paths, and system state. If any one of them is not fixed, the aggregate discrepancy should not be loosely attributed to a kernel error.
 
 The root cause can be reduced to one fact: floating-point addition is not associative. For example, in BF16 using round-to-nearest-even,
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image11.png"
-style="width:1.64in;height:0.26333in" />
+style="display:block;margin:0 auto;width:1.64in;height:0.26333in" />
 
 whereas
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image9.png"
-style="width:2.01in;height:0.26333in" />
+style="display:block;margin:0 auto;width:2.01in;height:0.26333in" />
 
 The two expressions differ only in their parenthesization over the reals, yet they produce different answers in BF16. Training is designed around packed sequences, backpropagation, and multi-GPU parallelism. Inference is designed around prefill, decode, dynamic batching, and the KV cache. Even with shared parameters, these systems may select different partitions, reduction orders, and intermediate precision because they optimize for different goals.
 
@@ -104,12 +104,12 @@ Two issues that are often conflated should also be separated. Reusing rollout lo
 Before discussing floating-point error, we must first determine whether the two engines are answering the same question. Write the ideal mathematical object as
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image24.png"
-style="width:1.09333in;height:0.22667in" />
+style="display:block;margin:0 auto;width:1.09333in;height:0.22667in" />
 
 where x is the input, θ the weights, s state such as the KV cache, and ξ the random state involved in the computation. What training and rollout actually execute is
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image19.png"
-style="width:3.42667in;height:0.26333in" />
+style="display:block;margin:0 auto;width:3.42667in;height:0.26333in" />
 
 where C is the numerical execution contract.
 
@@ -132,46 +132,46 @@ If any of these differ, the comparison should be marked comparable = false. Phys
 After this gate passes, we describe each computation node layer by layer. First, write
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image10.png"
-style="width:0.91667in;height:0.23333in" />
+style="display:block;margin:0 auto;width:0.91667in;height:0.23333in" />
 
 where Dᵢ is the set of input elements on which output yᵢ actually depends. If the node can also be written as
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image1.png"
-style="width:1.09333in;height:0.39in" />
+style="display:block;margin:0 auto;width:1.09333in;height:0.39in" />
 
 then Rᵢ is its reduction domain. The two sides must first satisfy
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image3.png"
-style="width:1.67in;height:0.25in" />
+style="display:block;margin:0 auto;width:1.67in;height:0.25in" />
 
 Next, partition the reduction domain:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image18.png"
-style="width:3.82667in;height:0.28in" />
+style="display:block;margin:0 auto;width:3.82667in;height:0.28in" />
 
 Πᵢ determines which partial summaries are produced first, while the cross-device reduction tree determines how values are combined within and across partitions. Even when Rᵢ is identical, a different cross-device reduction tree may produce different bits.
 
 We then record the node's precision tuple
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image22.png"
-style="width:2.82in;height:0.23667in" />
+style="display:block;margin:0 auto;width:2.82in;height:0.23667in" />
 
 and represent each rounding operation as
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image26.png"
-style="width:0.78333in;height:0.23667in" />
+style="display:block;margin:0 auto;width:0.78333in;height:0.23667in" />
 
 Collecting the quantities that can independently change a result, the minimal arithmetic contract can be written as
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image15.png"
-style="width:1.87333in;height:0.23in" />
+style="display:block;margin:0 auto;width:1.87333in;height:0.23in" />
 
 Here, Dᵥ summarizes the dependency sets and reduction domains for the node's outputs; Πᵥ and Tᵥ record the reduction partition and ordered merge tree; Pᵥ is the precision tuple; Rᵥ records where Qₚ occurs; and Aᵥ records the exact numerical primitives used for exp, log, rsqrt, SiLU, and related operations.
 
 Fusion, materialization, and recomputation boundaries are not listed separately in this arithmetic contract. They change the numerical result only when they alter Tᵥ, Pᵥ, Rᵥ, or Aᵥ, so they are better recorded as execution mechanisms. State and control are also kept out of the tuple: state such as the cache and RNG is checked by the comparability gate, while control conditions such as dispatch and CUDA Graph are trigger axes. This separation avoids describing the same cause at multiple levels.
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image29.png"
-style="width:1.44in;height:0.25333in" />
+style="display:block;margin:0 auto;width:1.44in;height:0.25333in" />
 
 The expression above denotes the set difference between the training and inference arithmetic contracts. That difference generates candidate root causes for mismatch.
 
@@ -180,7 +180,7 @@ The expression above denotes the set difference between the training and inferen
 RMSNorm, Attention, GEMM, linear logp, and collectives all perform reductions of the following form:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image25.png"
-style="width:1.18in;height:0.38in" />
+style="display:block;margin:0 auto;width:1.18in;height:0.38in" />
 
 The reduction domain R is partitioned, local Agg(R⁽ʲ⁾) values are computed, and the partial results are merged. Over the reals, different partitions and parenthesizations are normally treated as equivalent. Under finite-precision execution, they are not.
 
@@ -199,38 +199,38 @@ From this perspective, Split-K, Split-KV, vocabulary sharding, context paralleli
 Given scores sᵢ, define
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image6.png"
-style="width:1.96667in;height:0.37333in" />
+style="display:block;margin:0 auto;width:1.96667in;height:0.37333in" />
 
 Here, m is fixed to the maximum over the domain, while l records the exponential sum relative to m. For the final real-valued result, the two can be combined into a single log-sum-exp (LSE). In an actual kernel, however, they are updated and merged separately, so the bitwise contract must preserve both intermediate states.
 
 Linear logp only needs to retain (m, l) and the target logit:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image16.png"
-style="width:1.76in;height:0.26in" />.
+style="display:block;margin:0 auto;width:1.76in;height:0.26in" />.
 
 Attention carries one additional vector:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image30.png"
-style="width:2.57667in;height:0.28667in" />.
+style="display:block;margin:0 auto;width:2.57667in;height:0.28667in" />.
 
 The two operations therefore perform the same kind of LSE aggregation in different spaces. Attention normalizes over the context space to determine which tokens to attend to; logp normalizes over the vocabulary space to determine which token to select. Attention's Split-KV merge and logp's cross-TP vocabulary merge are two instances of the same mathematical problem.
 
 To merge two blocks (m₁, l₁, o₁) and (m₂, l₂, o₂), first set m = max(m₁, m₂), then compute
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image8.png"
-style="width:3.23333in;height:0.21333in" />.
+style="display:block;margin:0 auto;width:3.23333in;height:0.21333in" />.
 
 Over the reals, this merge operation is associative, so the same global result can be recovered from any partition. For an arbitrary number of blocks, the merged result can be written directly as
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image4.png"
-style="width:3.44333in;height:0.39333in" />
+style="display:block;margin:0 auto;width:3.44333in;height:0.39333in" />
 
 The right-hand side depends only on the set of all blocks, providing a short proof of associativity.
 
 Actual computation, however, uses the rounded and approximated merge ⊕̂. In general,
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image17.png"
-style="width:1.82667in;height:0.25in" />
+style="display:block;margin:0 auto;width:1.82667in;height:0.25in" />
 
 where σⱼ = (mⱼ, lⱼ, oⱼ). The partition Πᵢ, reduction tree Tᵢ, exponential primitive Aᵥ, and precision Pᵥ of m, l, and o are therefore part of the normalization itself.
 
@@ -241,14 +241,14 @@ RMSNorm computes Σᵢ xᵢ²; GEMM computes Σₖ aᵢₖbₖⱼ; and after a r
 Suppose the K dimension is divided among ranks into disjoint sets K₀, …, Kₚ₋₁:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image2.png"
-style="width:2.29667in;height:0.75in" />
+style="display:block;margin:0 auto;width:2.29667in;height:0.75in" />
 
 The inner Yᵢⱼ⁽ʳ⁾ is produced by a local GEMM, while the outer ΣᵣYᵢⱼ⁽ʳ⁾ is completed by AllReduce. Mathematically, both are parts of one summation; operationally, the kernel boundary splits that sum into two levels of reduction. The collective is therefore the portion of the same overall reduction tree that extends beyond one GPU.
 
 RMSNorm and softmax share another structural property. Both compress a domain into a small set of global statistics and then broadcast those statistics back to each local output. For RMSNorm,
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image13.png"
-style="width:2.68667in;height:0.53in" />
+style="display:block;margin:0 auto;width:2.68667in;height:0.53in" />
 
 Softmax applies the same (m, l) pair to every score. A one-bit difference in the reduction can therefore propagate through the shared scale and couple an entire hidden vector, Attention row, or vocabulary distribution. The three operations have different semantics, but the same numerical structure.
 
@@ -303,14 +303,14 @@ num_splits=1 and no Split-K are currently the easiest choices to audit. Other ch
 Rollout has no backward pass, so forward train–rollout parity cannot imply cross-engine backward parity. Backpropagation also introduces new reduction axes. For example,
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image7.png"
-style="width:1.17in;height:0.28667in" />ᵀ
+style="display:block;margin:0 auto;width:1.17in;height:0.28667in" />ᵀ
 
 The forward GEMM reduces over the hidden/K dimension, while this operation reduces over the token dimension. Microbatch partitioning, gradient accumulation order, saved values used for recomputation, atomics, and gradient collectives can all change the parenthesization again.
 
 Written as a vector–Jacobian product (VJP),
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image12.png"
-style="width:1.50667in;height:0.25in" />.
+style="display:block;margin:0 auto;width:1.50667in;height:0.25in" />.
 
 The precise claim is therefore that the evidence in this post validates cross-engine forward logprobs. Reproducibility of the training backward pass requires treating the VJP as a separate computation graph and checking its domain, partition, tree, saved precision, and communication. The deterministic_backward=true setting is one part of that contract.
 
@@ -339,7 +339,7 @@ Saying that batch size caused the mismatch describes only a correlation. Identif
 Let C be a fully aligned baseline contract, and change only its k-th field:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image23.png"
-style="width:2.90333in;height:0.26in" />.
+style="display:block;margin:0 auto;width:2.90333in;height:0.26in" />.
 
 First identify the earliest nonzero Δₖ, then trace how it propagates through the computation graph into the hidden states, logits, selected-token logprobs, and ρₜ. This is more informative than observing a difference in the final logp and then suspecting modules one by one.
 
@@ -409,10 +409,10 @@ Both runs use the same workload configuration, but their sampled trajectories di
 **Figure: G10 vs. Optimized G11 — Training and Bitwise Consistency (CUDA)**
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image35.png"
-style="width:6.5in;height:4.16667in" />
+style="display:block;margin:0 auto;width:6.5in;height:4.16667in" />
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image32.png"
-style="width:6.5in;height:3.31944in" />
+style="display:block;margin:0 auto;width:6.5in;height:3.31944in" />
 
 ## Progress on Bitwise Alignment for ROCm
 
@@ -455,12 +455,12 @@ The figure below shows G10's reward collapsing after step 75 because its generat
 **Figure: G10 vs. Optimized G11 — Training and Bitwise Consistency (ROCm)**
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image34.png"
-style="width:6.5in;height:4.08333in" /><img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image31.png"
-style="width:3.4208in;height:1.78969in" /><img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image20.png"
-style="width:3.40417in;height:1.81556in" />
+style="display:block;margin:0 auto;width:6.5in;height:4.08333in" /><img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image31.png"
+style="display:block;margin:0 auto;width:3.4208in;height:1.78969in" /><img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image20.png"
+style="display:block;margin:0 auto;width:3.40417in;height:1.81556in" />
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/image33.png"
-style="width:6.5in;height:3.25in" />
+style="display:block;margin:0 auto;width:6.5in;height:3.25in" />
 
 ## Connecting the Entire Path
 
@@ -510,8 +510,10 @@ Consistent execution and generalization across heterogeneous hardware platforms 
 
 We thank the vLLM community for its close collaboration with RL-Kernel. We especially thank Ao Shen, vime maintainer at Inferact, for the trust and support provided throughout the RL-Kernel and vime integration, community coordination, and ongoing maintenance. This work builds on the open-source ecosystem formed by vLLM Rollout, vime orchestration, and Megatron training.
 
-#### Core Contributors — v0.1.0
+#### Core Technical Contributors — Dense-Model Train–Rollout Consistency
 
-We thank everyone who designed, built, integrated, optimized, and validated this work: Chutian Wang, Jiajie Li, Siru He, Xiaosong Ma, Kaijie Lin, Jian Zhang, Huihong Lu, Yunxiang Cai, Vensen Mu, Bosong Yang, Zhewei Liu, Houhong Liang, and Ryan Huang.
+The following core contributors led the v0.1.0 work on operator-level train–rollout consistency for dense models, spanning architecture, kernel implementation, integration, optimization, and validation: Chutian Wang, Jiajie Li, Siru He, Xiaosong Ma, Kaijie Lin, Jian Zhang, Huihong Lu, Yunxiang Cai, Bosong Yang, Zhewei Liu, Houhong Liang, Ryan Huang, and Vensen Mu.
 
-Finally, we thank the community contributors Xiaopeng Du, Yuepeng Pan, Yiyang Fei, Ziying Tao, Zhifu Liu, Zhengtao Chen, Mengjie Li, Zien Liu, and GitHub users haoruilee, luoyueyuguang, hongleng, and smarslou.
+#### Additional v0.1.0 Contributors
+
+We also thank the contributors whose additional pull requests were merged into the main branch and included in the v0.1.0 release: Xiaopeng Du, Yuepeng Pan, Yiyang Fei, Ziying Tao, Zhifu Liu, Zhengtao Chen, Mengjie Li, Zien Liu, and GitHub users haoruilee, luoyueyuguang, hongleng, and smarslou.
