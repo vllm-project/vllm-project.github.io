@@ -1,8 +1,10 @@
 ---
 layout: post
 title: "Kimi K3 Performance Optimizations in vLLM: The Road to 2.8× Higher Throughput"
-author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Jee Jee Li"
+author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Michael Goin, Jee Jee Li"
 summary: "Kimi K3 serving optimizations across scheduling, KDA prefix caching, parallelism, memory movement, MoE, and GPU kernels."
+image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
+social_image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
 tags:
   - models
   - performance
@@ -15,6 +17,8 @@ After day-0 support: scheduler, KDA prefix caching, speculative decoding, parall
 ## Performance
 
 Measured with an 8K/1K workload with TP8, eight tokens DSpark speculation. Concurrency 1, 4, and 16. Comparison from v0.27.1 to commit `82a85dc1` (0913), tested on B300 node (CUDA 13.3).
+
+![Kimi K3 serving performance from vLLM v0.27.1 to main: 56%–60% lower latency, 2.2–2.8× higher throughput, and 72%–85% lower TTFT across concurrency 1, 4, and 16](/assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg)
 
 Start the server:
 
@@ -81,25 +85,7 @@ The Mamba-style prefix cache split prefill at the last cacheable block boundary,
 
 For an 8K input:
 
-Before
-
-```text
-Model forward (7,680 tokens)
-└─ each KDA layer: FlashKDA(7,680) -> export checkpoint state
-
-Model forward (320 tokens)
-└─ each KDA layer: FlashKDA(320)
-```
-
-After
-
-```text
-One model forward (8,000 tokens)
-└─ each KDA layer: FlashKDA recurrence
-   ├─ process the first 7,680 tokens
-   ├─ export checkpoint state
-   └─ continue over the remaining 320 tokens
-```
+![Before internal KDA checkpoints, an 8K prefill required two model forwards and two FlashKDA calls per KDA layer; after the change, one FlashKDA call processes all 8,000 tokens and exports checkpoint state at token 7,680 inside the same recurrence](/assets/figures/2026-09-13-kimi-k3-performance-optimization/internal-kda-checkpoints.svg)
 
 This PR helps us avoid a second full-model pass through attention, MoE, routing, and TP collectives.
 
@@ -107,77 +93,13 @@ This PR helps us avoid a second full-model pass through attention, MoE, routing,
 
 Mixed speculative and non-speculative batches used six `index_select` and two `index_copy_` operations per layer. [PR #56159](https://github.com/vllm-project/vllm/pull/56159): contiguous zero-copy slices and direct output writes. Throughput up 5.2%–7.7% at concurrency 4 and 16; batch size 1 flat.
 
-```text
-# Example packed batch:
-Token order: [N0, N1, S0, S1, S2]
-              └─ N ─┘  └──── S ────┘
-
-Packed QKV / gate / beta
-          |
-          +-- index_select(non-spec) × 3 --> non-spec KDA --+
-          |                                                  |
-          +-- index_select(spec)     × 3 --> spec KDA -------+
-                                                             |
-                              index_copy_(non-spec output) ---+
-                              index_copy_(spec output) -------+
-                                                             |
-```
-
-After
-
-```text
-Packed QKV / gate / beta: [N0, N1 | S0, S1, S2]
-                                  |
-                +-----------------+-----------------+
-                |                                   |
-       zero-copy slice [0:2]              zero-copy slice [2:5]
-                |                                   |
-        non-spec KDA                         spec KDA
-     out=final_output[0:2]              out=final_output[2:5]
-                |                                   |
-                +-----------------+-----------------+
-                                  |
-                    Final output already assembled
-```
-
-Six `index_select` calls and two `index_copy_` calls removed per KDA layer.
+![Before the zero-copy mixed-batch path, each KDA layer gathered non-speculative and speculative inputs with six index_select calls and scattered the results with two index_copy calls; after the change, contiguous views feed both KDA paths and write directly into slices of the final output](/assets/figures/2026-09-13-kimi-k3-performance-optimization/zero-copy-mixed-kda.svg)
 
 ### Deferred MXFP4 finalization
 
 [PR #53152](https://github.com/vllm-project/vllm/pull/53152): MXFP4 top-k finalization inside the latent-tail kernel; one launch and one intermediate tensor write/read removed. End-to-end latency down roughly 5%. [PR #53327](https://github.com/vllm-project/vllm/pull/53327): initialization-order fix, enabling the deferred path before weight loading.
 
-Before
-
-```text
-MXFP4 MoE kernel
-    │
-    ├─ GEMM2
-    │
-    └─ finalize kernel
-         ├─ unpermute
-         ├─ apply router weights
-         ├─ top-k reduction
-         └─ write [M, 3584] tensor
-                    │
-                    ▼
-latent tail reads the tensor
-    └─ AllReduce + RMSNorm + Up Projection + shared expert
-```
-
-After
-
-```text
-MXFP4 MoE kernel (do_finalize=False)
-    │
-    └─ return:
-         ├─ GEMM2 output
-         ├─ router weights
-         └─ permutation map
-                    │
-latent tail consumes the deferred outputs
-    ├─ unpermute + apply router weights + top-k reduction
-    └─ AllReduce + RMSNorm + Up Projection + shared expert
-```
+![MXFP4 top-k finalization before and after fusion into the latent tail](/assets/figures/2026-09-13-kimi-k3-performance-optimization/deferred-mxfp4-finalization.svg)
 
 This removes one kernel launch and avoids writing and rereading the finalized intermediate tensor.
 
