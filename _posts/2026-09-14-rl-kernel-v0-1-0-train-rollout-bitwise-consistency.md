@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "RL-Kernel × vime × AMD: Bitwise-Consistent Training and Rollout"
-author: "RL-Kernel Team"
+author: "RL-Kernel Team, vime Contributors, and AMD Contributors"
 date: 2026-09-14
 summary: "RL-Kernel and vime align selected-token logprobs bit for bit across training and rollout on CUDA and ROCm, with 200-step comparisons against native execution paths."
 image: /assets/figures/2026-09-14-rl-kernel-v0-1-0/image35.png
@@ -492,8 +492,6 @@ From this perspective, train–rollout mismatch is an abstraction leak: the uppe
 
 - Continue adapting RL-Kernel to MUSA, Ascend, and additional hardware platforms.
 
-- Advance integrations with Miles and AReaL.
-
 Models, hardware, and execution frameworks for RL post-training will continue to evolve. RL-Kernel aims to preserve the correctness boundary inside the system so that every kernel replacement, framework upgrade, or hardware migration can answer two questions explicitly: whether the numerical semantics were preserved and where any divergence began.
 
 ## Acknowledgements
@@ -514,96 +512,6 @@ We thank the vLLM community for its close collaboration with RL-Kernel. We espec
 
 #### Core Contributors — v0.1.0
 
-We especially thank the RL-Kernel core contributors for their work on the v0.1.0 architecture, kernel implementation, operator-level train–rollout consistency for dense models, distributed validation, and community development.
-
-Chutian Wang:
-
-- Developed cross-node and inter-GPU communication modules for CUDA.
-
-- Built the cross-platform ablation-matrix infrastructure.
-
-Jiajie Li:
-
-- Led the evaluation of the vime framework, roadmap planning for the fork, and PR delivery.
-
-- Led the integration of vime and RL-Kernel on both CUDA and ROCm.
-
-- Led Distributed Attention development.
-
-- Completed the linear_logp replacement experiments, including TP parallelization and technical blog writing.
-
-- Led end-to-end training-and-rollout testing and performance tuning of native vime and RL-Kernel + vime on both CUDA and ROCm.
-
-Siru He:
-
-- Led development of the WS1 GTest unit-testing framework.
-
-- Led distributed adaptation and PR delivery for GEMM operators on CUDA and ROCm.
-
-Xiaosong Ma:
-
-- Developed the WS1 Attention operator.
-
-- Led end-to-end development and testing of individual WS1 operators and construction of the GTest framework.
-
-- Optimized GEMM performance for end-to-end training-and-rollout tests on CUDA.
-
-- Delivered the communication PR for ROCm.
-
-- Participated in reviews and assisted with end-to-end training-and-rollout testing and performance tuning of native vime and RL-Kernel + vime on ROCm.
-
-Kaijie Lin:
-
-- Led development of the standalone and distributed Logprob operator PRs.
-
-- Implemented a deterministic fused Linear-Logp operator in Triton for ROCm.
-
-- Implemented Logprob TP parallelization for the vime integration experiments.
-
-Jian Zhang:
-
-- Developed the RoPE operator.
-
-- Contributed to Distributed Attention development.
-
-- Led operator adaptation and PR delivery for Ascend.
-
-Huihong Lu:
-
-- Developed the Triton Logprob operator, including ROCm support.
-
-- Contributed to distributed Logprob adaptation.
-
-Yunxiang Cai:
-
-- Developed the standalone RMSNorm operator.
-
-- Implemented the standalone Attention operator for the Triton path.
-
-Vensen Mu:
-
-- Developed the standalone GEMM operator and optimized its performance in CUDA training-and-rollout tests.
-
-- Led deep adaptation for ROCm.
-
-- Delivered the communication PR for ROCm.
-
-- Led end-to-end training-and-rollout benchmarking and performance tuning of native vime and RL-Kernel + vime on ROCm.
-
-Bosong Yang:
-
-- Contributed to Distributed Attention development.
-
-Zhewei Liu:
-
-- Contributed to Distributed Attention development.
-
-Houhong Liang:
-
-- Profiled and tuned the end-to-end training-and-rollout path on CUDA.
-
-Ryan Huang:
-
-- Contributed to development of the standalone and distributed Logprob operator PRs.
+We thank everyone who designed, built, integrated, optimized, and validated this work: Chutian Wang, Jiajie Li, Siru He, Xiaosong Ma, Kaijie Lin, Jian Zhang, Huihong Lu, Yunxiang Cai, Vensen Mu, Bosong Yang, Zhewei Liu, Houhong Liang, and Ryan Huang.
 
 Finally, we thank the community contributors Xiaopeng Du, Yuepeng Pan, Yiyang Fei, Ziying Tao, Zhifu Liu, Zhengtao Chen, Mengjie Li, Zien Liu, and GitHub users haoruilee, luoyueyuguang, hongleng, and smarslou.
