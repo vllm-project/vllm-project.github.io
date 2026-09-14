@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Kimi K3 Performance Optimizations in vLLM, 2.2–2.8× Higher Throughput"
+title: "Kimi K3 Performance Optimizations in vLLM: The Road to 2.8× Higher Throughput"
 author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Jee Jee Li"
 summary: "Kimi K3 serving optimizations across scheduling, KDA prefix caching, parallelism, memory movement, MoE, and GPU kernels."
 tags:
