@@ -52,11 +52,11 @@ guidellm run \
   --output 'kind=json,path=guidellm-results/output_vllm_kimik3_8k1k.json'
 ```
 
-| Concurrency | 0.27.1 Avg Latency | 0913 main Avg Latency | 0.27.1 Throughput | 0913 main Throughput | 0.27.1 Avg TTFT(Base) | 0913 main Avg TTFT |
+| Concurrency | 0.27.1 Avg Latency (s) | 0913 main Avg Latency (s) | 0.27.1 Throughput (tok/s) | 0913 main Throughput (tok/s) | 0.27.1 Avg TTFT (ms) | 0913 main Avg TTFT (ms) |
 |---:|---:|---:|---:|---:|---:|---:|
-| 1 | 12.37 s | **5.30 s(−57.2%)** 🚀 | 83.3 tok/s | **183.3 tok/s(+120.0%)** 🚀 | 2262.9 ms | **376.3 ms(−83.4%)** 🚀 |
-| 4 | 23.67 s | **10.50 s(−55.6%)** 🚀 | 166.7 tok/s | **416.7 tok/s(+150.0%)** 🚀 | 2314.9 ms | **640.5 ms(−72.3%)** 🚀 |
-| 16 | 55.90 s | **22.17 s(−60.3%)** 🚀 | 258.3 tok/s | **725.0 tok/s(+180.6%)** 🚀 | 7601.1 ms | **1121.0 ms(−85.3%)** 🚀 |
+| 1 | 12.37 | **5.30 (−57.2%)** 🚀 | 83.3 | **183.3 (+120.0%)** 🚀 | 2262.9 | **376.3 (−83.4%)** 🚀 |
+| 4 | 23.67 | **10.50 (−55.6%)** 🚀 | 166.7 | **416.7 (+150.0%)** 🚀 | 2314.9 | **640.5 (−72.3%)** 🚀 |
+| 16 | 55.90 | **22.17 (−60.3%)** 🚀 | 258.3 | **725.0 (+180.6%)** 🚀 | 7601.1 | **1121.0 (−85.3%)** 🚀 |
 
 ## Optimization across the stack
 
