@@ -58,33 +58,7 @@ guidellm run \
 | 4 | 23.67 | **10.50 (−55.6%)** | 166.7 | **416.7 (+150.0%)** | 2314.9 | **640.5 (−72.3%)** |
 | 16 | 55.90 | **22.17 (−60.3%)** | 258.3 | **725.0 (+180.6%)** | 7601.1 | **1121.0 (−85.3%)** |
 
-## Optimization across the stack
-
-Hybrid KDA/MLA, Stable LatentMoE, native MXFP4, and speculative decoding. Bottlenecks across prefill, recurrent state, routing, collectives, and mixed verification batches.
-
-### Memory layout and parallelism
-
-Memory: latent up-projection sharding in [PR #50383](https://github.com/vllm-project/vllm/pull/50383); shared-expert sharding in [PR #50656](https://github.com/vllm-project/vllm/pull/50656); a K3-specific path in [PR #50912](https://github.com/vllm-project/vllm/pull/50912), saving 16.98 GiB per GPU in the tested configuration.
-
-Parallelism: combined SP AllGather operations in [PR #51070](https://github.com/vllm-project/vllm/pull/51070), 1.5×–3× faster at kernel level; SP with pipeline parallelism in [PR #54347](https://github.com/vllm-project/vllm/pull/54347); overlapped low-M TP8 KDA projections in [PR #54697](https://github.com/vllm-project/vllm/pull/54697).
-
-Distributed paths: DeepEPv2 with DeepGEMM MXFP4 in [PR #50478](https://github.com/vllm-project/vllm/pull/50478); decode context parallelism in [PR #50484](https://github.com/vllm-project/vllm/pull/50484); a shorter MLA decode concat/cache epilogue in [PR #54896](https://github.com/vllm-project/vllm/pull/54896).
-
-### KDA and attention
-
-Prefill: D-Spark fused KV in [PR #50585](https://github.com/vllm-project/vllm/pull/50585), 4.5×–4.6× faster; FlashKDA output in [PR #51311](https://github.com/vllm-project/vllm/pull/51311); Mamba metadata preparation in [PR #52388](https://github.com/vllm-project/vllm/pull/52388), 6.6×–7.6× faster at kernel level.
-
-State and decode: faster SSM recovery in [PR #52993](https://github.com/vllm-project/vllm/pull/52993); DS conv-state layout in [PR #53396](https://github.com/vllm-project/vllm/pull/53396); single-token KDA PDL in [PR #53525](https://github.com/vllm-project/vllm/pull/53525)
-
-MLA and vision: fused MoonViT Q/K complex RoPE in [PR #53168](https://github.com/vllm-project/vllm/pull/53168); grouped FP8 MLA cache insertion in [PR #55356](https://github.com/vllm-project/vllm/pull/55356), 4×–6× faster for small batches.
-
-### MoE and GEMM
-
-MoE: removed a MegaMoE add in [PR #51146](https://github.com/vllm-project/vllm/pull/51146); prefetched BF16 router weights for M=1 in [PR #53524](https://github.com/vllm-project/vllm/pull/53524); fused BF16 shared experts into the latent tail in [PR #53556](https://github.com/vllm-project/vllm/pull/53556).
-
-GEMM and projections: `eh_proj` in [PR #53942](https://github.com/vllm-project/vllm/pull/53942); Hopper low-latency GEMMs in [PR #54088](https://github.com/vllm-project/vllm/pull/54088); residual skinny GEMM on SM100 in [PR #54447](https://github.com/vllm-project/vllm/pull/54447); DSV3 GEMM for inner-contiguous and row-strided tensors in [PR #54565](https://github.com/vllm-project/vllm/pull/54565); aligned NVFP4 input-projection weights in [PR #55242](https://github.com/vllm-project/vllm/pull/55242), removing an elementwise copy.
-
-## Four end-to-end examples
+## End-to-end optimization examples
 
 ### Adaptive scheduling budget
 
@@ -206,6 +180,12 @@ latent tail consumes the deferred outputs
 ```
 
 This removes one kernel launch and avoids writing and rereading the finalized intermediate tensor.
+
+## Beyond the examples
+
+The wider effort covered memory layout, sequence and pipeline parallelism, KDA prefill and recurrent state, MLA, MoE, and GEMM. It sharded large projections and shared experts, reduced collectives and data movement, and tightened small-batch GPU paths. The complete PR list is tracked in [issue #50587](https://github.com/vllm-project/vllm/issues/50587).
+
+Selected community PRs broadened the work: [Robert Shaw](https://github.com/robertgshaw2-redhat) and [Summer Yang](https://github.com/GirasoleY) added [DeepEPv2 with DeepGEMM MXFP4](https://github.com/vllm-project/vllm/pull/50478) and [decode context parallelism](https://github.com/vllm-project/vllm/pull/50484), while [Thien Tran](https://github.com/gau-nernst) developed [sequence-parallel GEMM paths](https://github.com/vllm-project/vllm/pull/52079). [Nick Hill](https://github.com/njhill) and [Xiaolong Xu](https://github.com/BabyDrangoner) tightened KDA prefill in [PR #51540](https://github.com/vllm-project/vllm/pull/51540) and [PR #52458](https://github.com/vllm-project/vllm/pull/52458). [Rebecca Lee](https://github.com/rebklee) and [Duncan Moss](https://github.com/djmmoss) extended KDA to [ROCm](https://github.com/vllm-project/vllm/pull/54254) and a [FlashInfer speculative backend](https://github.com/vllm-project/vllm/pull/54255). The full contributor group is credited below.
 
 ## Acknowledgments
 
