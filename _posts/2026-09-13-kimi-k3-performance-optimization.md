@@ -12,7 +12,9 @@ tags:
   - speculative-decoding
 ---
 
-After day-0 support: scheduler, KDA prefix caching, speculative decoding, parallelism, LatentMoE, quantized GEMMs, and data movement. Tracked in [Kimi K3 Performance Optimization #50587](https://github.com/vllm-project/vllm/issues/50587).
+Day-0 support got Kimi K3 running in vLLM. Efficient serving required another pass across the stack. KDA recurrent state, LatentMoE, MXFP4 expert kernels, speculative decoding, and TP/PP each exposed different bottlenecks; scheduler limits and small tensor copies could matter as much as a large GEMM.
+
+This post starts with the end-to-end result, then looks at four representative changes: adaptive speculative-token budgets, internal KDA prefix checkpoints, zero-copy mixed KDA batches, and deferred MXFP4 finalization. The wider effort across parallelism, memory layout, and GPU kernels is tracked in [Kimi K3 Performance Optimization #50587](https://github.com/vllm-project/vllm/issues/50587).
 
 ## Performance
 
