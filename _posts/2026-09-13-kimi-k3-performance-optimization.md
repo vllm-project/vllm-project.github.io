@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Kimi K3 Performance Optimizations in vLLM: The Road to 2.8× Higher Throughput"
+title: "Kimi K3 Performance Optimizations in vLLM: The Road to 2.8× Throughput"
 author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Michael Goin, Jee Jee Li"
 summary: "Kimi K3 serving optimizations across scheduling, KDA prefix caching, ReplaySSM state recovery, PD disaggregation and state offload, parallelism, MoE, and GPU kernels."
 image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
@@ -135,4 +135,4 @@ Selected community PRs broadened the work: [Robert Shaw](https://github.com/robe
 
 ## Acknowledgments
 
-[Bolin Sun](https://github.com/BolinSNLHM), [Duncan Moss](https://github.com/djmmoss), [Harris Nover](https://github.com/hnover-nv), [Julian Huang](https://github.com/huangzhilin-hzl), [Ming](https://github.com/mingg26), [Nick Hill](https://github.com/njhill), [Rebecca Lee](https://github.com/rebklee), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Summer Yang](https://github.com/GirasoleY), [Thien Tran](https://github.com/gau-nernst), [Tyler Michael Smith](https://github.com/tlrmchlsmth), [Xiaolong Xu](https://github.com/BabyDrangoner), and [Yifan Qiao](https://github.com/ivanium) for their Kimi K3 PRs. Thanks also to the reviewers, CI maintainers, benchmark owners, and hardware teams.
+[Benjamin Chislett](https://github.com/benchislett), [Bolin Sun](https://github.com/BolinSNLHM), [Dao Le](https://github.com/Dao007forever), [Duncan Moss](https://github.com/djmmoss), [Harris Nover](https://github.com/hnover-nv), [Julian Huang](https://github.com/huangzhilin-hzl), [Ming](https://github.com/mingg26), [Nick Hill](https://github.com/njhill), [Rebecca Lee](https://github.com/rebklee), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Summer Yang](https://github.com/GirasoleY), [Thien Tran](https://github.com/gau-nernst), [Tyler Michael Smith](https://github.com/tlrmchlsmth), [Xiaolong Xu](https://github.com/BabyDrangoner), and [Yifan Qiao](https://github.com/ivanium) for their Kimi K3 PRs. Thanks also to the reviewers, CI maintainers, benchmark owners, and hardware teams.
