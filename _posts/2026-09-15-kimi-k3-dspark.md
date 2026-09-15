@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Large scale draft model training with Speculators"
+title: "How we trained the fastest DSpark for Kimi-K3"
 author: "Helen Zhao, Fynn Schmitt-Ulms, Yuchen Fama, and Antonio Javier Fernandez Dominguez"
 summary: "How Speculators and Mooncake enabled multi-node DSpark training for Kimi K3."
 image: /assets/figures/2026-09-15-kimi-k3-dspark/throughput-vs-interactivity.png
@@ -11,8 +11,6 @@ tags:
   - performance
   - distributed
 ---
-
-*How we trained the fastest DSpark for Kimi-K3*
 
 In June, DeepSeek shipped [DSpark](https://arxiv.org/abs/2607.05147), an extension to the DFlash block-level speculative decoding algorithm. The new algorithm promised stronger intertoken coherence and therefore better acceptance lengths. But the real question for the open-source community is always the same: can you train it, package it, and deploy it without a PhD student babysitting the checkpoint?
 
