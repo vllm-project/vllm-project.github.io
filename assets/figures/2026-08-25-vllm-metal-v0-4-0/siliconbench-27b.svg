@@ -752,7 +752,7 @@ L 885.253889 249.782723
    <text style="font-weight: 700; font-size: 13px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #1a1a2e" x="512.07" y="17.077969" transform="rotate(-0 512.07 17.077969)">SiliconBench agent split · Qwen3.8-27B 4-bit · 100 requests · Apple M5 Pro 64 GB</text>
   </g>
   <g id="text_49">
-   <text style="font-size: 10.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #5a5a72" x="512.07" y="378.72" transform="rotate(-0 512.07 378.72)">oMLX SSD offload spills KV cache to disk without eviction. The split averages 4.6K input and 70 output tokens per request.</text>
+   <text style="font-size: 10.5px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle; fill: #5a5a72" x="512.07" y="378.72" transform="rotate(-0 512.07 378.72)">Completed at each concurrency: vllm-metal and oMLX 100/100; llama.cpp 99/100.</text>
   </g>
   <g id="legend_1">
    <g id="line2d_74">

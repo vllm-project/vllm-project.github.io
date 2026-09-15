@@ -20,7 +20,7 @@
   <rect x="370" y="10" width="270" height="330" rx="14" fill="#eaf2fd" stroke="#a9c9ef" stroke-width="1.5"/>
   <text x="505" y="48" text-anchor="middle" font-size="20" font-weight="700" fill="#12263a">Upstream vLLM V1</text>
   <rect x="388" y="70" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
-  <text x="505" y="95" text-anchor="middle" font-size="15.5" fill="#2b3a4a">OpenAI frontend · Rust</text>
+  <text x="505" y="95" text-anchor="middle" font-size="15.5" fill="#2b3a4a">OpenAI-compatible frontend</text>
   <rect x="388" y="116" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
   <text x="505" y="141" text-anchor="middle" font-size="15.5" fill="#2b3a4a">V1 scheduler</text>
   <rect x="388" y="162" width="234" height="38" rx="8" fill="#ffffff" stroke="#d5dbe3"/>
@@ -48,7 +48,7 @@
   <text x="836" y="184" text-anchor="middle" font-size="14" fill="#2b3a4a">RMSNorm · linear</text>
   <rect x="758" y="204" width="156" height="34" rx="8" fill="#f6f7f9" stroke="#d5dbe3"/>
   <text x="836" y="226" text-anchor="middle" font-size="14" fill="#2b3a4a">MLP · MoE</text>
-  <text x="836" y="272" text-anchor="middle" font-size="13.5" fill="#5a6472">M5 NAX for free</text>
+  <text x="836" y="272" text-anchor="middle" font-size="13.5" fill="#5a6472">M5 acceleration</text>
   <text x="836" y="291" text-anchor="middle" font-size="13.5" fill="#5a6472">via MLX matmuls</text>
 
   <!-- custom sub-panel -->
