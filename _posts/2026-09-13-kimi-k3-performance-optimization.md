@@ -2,7 +2,7 @@
 layout: post
 title: "Kimi K3 Performance Optimizations in vLLM: The Road to 2.8× Higher Throughput"
 author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Michael Goin, Jee Jee Li"
-summary: "Kimi K3 serving optimizations across scheduling, KDA prefix caching, parallelism, memory movement, MoE, and GPU kernels."
+summary: "Kimi K3 serving optimizations across scheduling, KDA prefix caching, ReplaySSM state recovery, PD disaggregation and state offload, parallelism, MoE, and GPU kernels."
 image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
 social_image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
 tags:
@@ -14,7 +14,7 @@ tags:
 
 Day-0 support got Kimi K3 running in vLLM. Efficient serving required another pass across the stack. KDA recurrent state, LatentMoE, MXFP4 expert kernels, speculative decoding, and TP/PP each exposed different bottlenecks; scheduler limits and small tensor copies could matter as much as a large GEMM.
 
-This post starts with the end-to-end result, then looks at four representative changes: adaptive speculative-token budgets, internal KDA prefix checkpoints, zero-copy mixed KDA batches, and deferred MXFP4 finalization. The wider effort across parallelism, memory layout, and GPU kernels is tracked in [Kimi K3 Performance Optimization #50587](https://github.com/vllm-project/vllm/issues/50587).
+This post starts with the end-to-end result, then looks at four representative changes: adaptive speculative-token budgets, internal KDA prefix checkpoints, zero-copy mixed KDA batches, and deferred MXFP4 finalization. It then turns to production deployment: ReplaySSM state recovery, prefill/decode disaggregation and hybrid state offload, and decode context parallelism. The wider effort across parallelism, memory layout, and GPU kernels is tracked in [Kimi K3 Performance Optimization #50587](https://github.com/vllm-project/vllm/issues/50587).
 
 ## Performance
 
@@ -105,12 +105,34 @@ Mixed speculative and non-speculative batches used six `index_select` and two `i
 
 This removes one kernel launch and avoids writing and rereading the finalized intermediate tensor.
 
+## ReplaySSM: reconstruct the KDA state instead of storing it
+
+Speculative decoding is where the KDA recurrence hurts most: the baseline path materializes a full recurrent state for every speculative position so it can roll back rejected drafts — T extra state writes per step on an already memory-bound kernel. [ReplaySSM](https://dao-lab.ai/blog/2026/replayssm/) instead caches the recent SSM *inputs*, computes outputs directly from one checkpoint plus a small buffer, and rebuilds the state only when needed. Rollback becomes a buffer pointer move, with no state restore.
+
+[PR #51855](https://github.com/vllm-project/vllm/pull/51855) brings ReplaySSM to Kimi K3 on Model Runner V2: verify keeps a compact per-token record, and one Triton commit kernel reconstructs the state at the accepted position — including the next prefix-cache boundary in align mode. At the same 46.48 GiB cache budget, effective cache capacity rises 10.97% under TP8, with accuracy parity on GSM8K and MRCR.
+
+## Prefill/decode disaggregation and hybrid state offload
+
+At production scale, Kimi K3 serves behind disaggregated prefill/decode and tiered cache offload — Mooncake Store, CPU DRAM — to keep TTFT low and cache capacity high. Both paths have to move the full hybrid state, and that is harder for K3 than for pure-attention models. MLA KV is replicated across TP ranks, but KDA recurrent state is head/dim-sharded, and Mamba `align` block tables are sparse and mutable rather than append-only — assumptions that hold for pure-attention models break here.
+
+Making PD and offloading correct for K3 meant fixing what broke: Mooncake now saves the exact boundary states selected by the scheduler and pins them until every rank's asynchronous store completes ([PR #51358](https://github.com/vllm-project/vllm/pull/51358)), and divergent per-group prefix hits are served only by connectors that can actually restore KDA state ([PR #50344](https://github.com/vllm-project/vllm/pull/50344)).
+
+## Decode context parallelism
+
+Plain TP hits a wall on long context: MLA's latent KV behaves like a single KV head, so it is replicated on every rank and per-GPU capacity stops growing. [Decode context parallelism](https://vllm.ai/blog/2026-08-07-decode-context-parallelism) instead shards the KV cache along the sequence dimension — the regime that dominates [agentic workloads](https://vllm.ai/blog/2026-09-08-vllm-agentx), where long shared prefixes make the replicated cache the binding constraint. [PR #50484](https://github.com/vllm-project/vllm/pull/50484) brings DCP to Kimi K3's fused MLA path: direct symmetric-memory A2A output/LSE reduction with empty-shard masking, NVLS-multicast query gather, and multimem chunked-context KV gather, with query shards published straight into the consumer's final buffer — cutting query-exchange latency by 10.4%–29.9% on 4×GB200.
+
+<p align="center">
+<img src="/assets/figures/2026-09-08-vllm-agentx/k3-dcp-symmem.gif" alt="MLA decode path under DCP4 using symmetric memory: each GPU multicasts its query shard directly into peers' attention-kernel buffers, computes partial attention over its KV slice, and writes outputs and LSE statistics into peers' receive slots, replacing the NCCL all-gather, staging copy, all-to-all, and unpack steps" width="80%">
+</p>
+
+On a 120k-token workload (114k shared prefix, 6k suffix, 400 output tokens), KV cache capacity grows from 1.93M to 19.75M tokens, and TPOT p50 drops from 13.8 ms to 10.5 ms at concurrency 1 and from 16.2 ms to 11.8 ms at concurrency 2. Accuracy holds: GSM8K 96.97% with DCP8 vs. 96.21% with TP8, with zero request errors.
+
 ## Beyond the examples
 
 The wider effort covered memory layout, sequence and pipeline parallelism, KDA prefill and recurrent state, MLA, MoE, and GEMM. It sharded large projections and shared experts, reduced collectives and data movement, and tightened small-batch GPU paths. The complete PR list is tracked in [issue #50587](https://github.com/vllm-project/vllm/issues/50587).
 
-Selected community PRs broadened the work: [Robert Shaw](https://github.com/robertgshaw2-redhat) and [Summer Yang](https://github.com/GirasoleY) added [DeepEPv2 with DeepGEMM MXFP4](https://github.com/vllm-project/vllm/pull/50478) and [decode context parallelism](https://github.com/vllm-project/vllm/pull/50484), while [Thien Tran](https://github.com/gau-nernst) developed [sequence-parallel GEMM paths](https://github.com/vllm-project/vllm/pull/52079). [Nick Hill](https://github.com/njhill) and [Xiaolong Xu](https://github.com/BabyDrangoner) tightened KDA prefill in [PR #51540](https://github.com/vllm-project/vllm/pull/51540) and [PR #52458](https://github.com/vllm-project/vllm/pull/52458). [Rebecca Lee](https://github.com/rebklee) and [Duncan Moss](https://github.com/djmmoss) extended KDA to [ROCm](https://github.com/vllm-project/vllm/pull/54254) and a [FlashInfer speculative backend](https://github.com/vllm-project/vllm/pull/54255). The full contributor group is credited below.
+Selected community PRs broadened the work: [Robert Shaw](https://github.com/robertgshaw2-redhat) and [Summer Yang](https://github.com/GirasoleY) added [DeepEPv2 with DeepGEMM MXFP4](https://github.com/vllm-project/vllm/pull/50478) and the [DCP support](#decode-context-parallelism) described above, while [Thien Tran](https://github.com/gau-nernst) developed [sequence-parallel GEMM paths](https://github.com/vllm-project/vllm/pull/52079). [Nick Hill](https://github.com/njhill) and [Xiaolong Xu](https://github.com/BabyDrangoner) tightened KDA prefill in [PR #51540](https://github.com/vllm-project/vllm/pull/51540) and [PR #52458](https://github.com/vllm-project/vllm/pull/52458). [Rebecca Lee](https://github.com/rebklee) and [Duncan Moss](https://github.com/djmmoss) extended KDA to [ROCm](https://github.com/vllm-project/vllm/pull/54254) and a [FlashInfer speculative backend](https://github.com/vllm-project/vllm/pull/54255). The full contributor group is credited below.
 
 ## Acknowledgments
 
-[Bolin Sun](https://github.com/BolinSNLHM), [Duncan Moss](https://github.com/djmmoss), [Harris Nover](https://github.com/hnover-nv), [Julian Huang](https://github.com/huangzhilin-hzl), [Ming](https://github.com/mingg26), [Nick Hill](https://github.com/njhill), [Rebecca Lee](https://github.com/rebklee), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Summer Yang](https://github.com/GirasoleY), [Thien Tran](https://github.com/gau-nernst), [Tyler Michael Smith](https://github.com/tlrmchlsmth), and [Xiaolong Xu](https://github.com/BabyDrangoner) for their Kimi K3 PRs. Thanks also to the reviewers, CI maintainers, benchmark owners, and hardware teams.
+[Bolin Sun](https://github.com/BolinSNLHM), [Duncan Moss](https://github.com/djmmoss), [Harris Nover](https://github.com/hnover-nv), [Julian Huang](https://github.com/huangzhilin-hzl), [Ming](https://github.com/mingg26), [Nick Hill](https://github.com/njhill), [Rebecca Lee](https://github.com/rebklee), [Robert Shaw](https://github.com/robertgshaw2-redhat), [Summer Yang](https://github.com/GirasoleY), [Thien Tran](https://github.com/gau-nernst), [Tyler Michael Smith](https://github.com/tlrmchlsmth), [Xiaolong Xu](https://github.com/BabyDrangoner), and [Yifan Qiao](https://github.com/ivanium) for their Kimi K3 PRs. Thanks also to the reviewers, CI maintainers, benchmark owners, and hardware teams.
