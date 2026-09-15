@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Kimi K3 Performance Optimizations in vLLM: The Road to 2.8× Throughput"
-author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Michael Goin, Jee Jee Li"
+author: "Wentao Ye, Canlin Guo, Yongye Zhu, Jiangyun Zhu, Ziming Huang, Wei Zhao, Michael Goin, Jie Li"
 summary: "Kimi K3 serving optimizations across scheduling, KDA prefix caching, ReplaySSM state recovery, PD disaggregation and state offload, parallelism, MoE, and GPU kernels."
 image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
 social_image: /assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg
