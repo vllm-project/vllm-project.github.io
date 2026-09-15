@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "How we trained the fastest DSpark for Kimi-K3 using GB300 NVL72"
-author: "Helen Zhao, Fynn Schmitt-Ulms, Yuchen Fama, and Antonio Javier Fernandez Dominguez"
+author: "Helen Zhao, Fynn Schmitt-Ulms, Yuchen Fama, Antonio J. Dominguez, and Kevin Li"
 summary: "How Speculators and Mooncake enabled multi-node DSpark training for Kimi K3."
 image: /assets/figures/2026-09-15-kimi-k3-dspark/throughput-vs-interactivity.png
 social_image: /assets/figures/2026-09-15-kimi-k3-dspark/throughput-vs-interactivity.png
