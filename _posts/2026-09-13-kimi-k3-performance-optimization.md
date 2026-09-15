@@ -14,7 +14,7 @@ tags:
 
 Day-0 support got Kimi K3 running in vLLM. Efficient serving required another pass across the stack. KDA recurrent state, LatentMoE, MXFP4 expert kernels, speculative decoding, and TP/PP each exposed different bottlenecks; scheduler limits and small tensor copies could matter as much as a large GEMM.
 
-This post starts with the end-to-end result, then looks at four representative changes: adaptive speculative-token budgets, internal KDA prefix checkpoints, zero-copy mixed KDA batches, and deferred MXFP4 finalization. It then turns to production deployment: ReplaySSM state recovery, prefill/decode disaggregation and hybrid state offload, and decode context parallelism. The wider effort across parallelism, memory layout, and GPU kernels is tracked in [Kimi K3 Performance Optimization #50587](https://github.com/vllm-project/vllm/issues/50587).
+This post starts with the end-to-end result, then looks at four representative changes: adaptive speculative-token budgets, internal KDA prefix checkpoints, zero-copy mixed KDA batches, and deferred MXFP4 finalization. Also covered: ReplaySSM, prefill/decode disaggregation and cache offload, and decode context parallelism. The wider effort is tracked in [Kimi K3 Performance Optimization #50587](https://github.com/vllm-project/vllm/issues/50587).
 
 ## Performance
 
@@ -107,25 +107,27 @@ This removes one kernel launch and avoids writing and rereading the finalized in
 
 ## ReplaySSM: reconstruct the KDA state instead of storing it
 
-Speculative decoding is where the KDA recurrence hurts most: the baseline path materializes a full recurrent state for every speculative position so it can roll back rejected drafts — T extra state writes per step on an already memory-bound kernel. [ReplaySSM](https://dao-lab.ai/blog/2026/replayssm/) instead caches the recent SSM *inputs*, computes outputs directly from one checkpoint plus a small buffer, and rebuilds the state only when needed. Rollback becomes a buffer pointer move, with no state restore.
+Speculative decoding writes a KDA recurrent state at every draft position so rejected tokens can be rolled back. For T draft positions, that means T extra state writes per step. [ReplaySSM](https://dao-lab.ai/blog/2026/replayssm/) buffers recent SSM inputs instead and reconstructs the accepted state at commit. Rollback only moves a buffer pointer.
 
-[PR #51855](https://github.com/vllm-project/vllm/pull/51855) brings ReplaySSM to Kimi K3 on Model Runner V2: verify keeps a compact per-token record, and one Triton commit kernel reconstructs the state at the accepted position — including the next prefix-cache boundary in align mode. At the same 46.48 GiB cache budget, effective cache capacity rises 10.97% under TP8, with accuracy parity on GSM8K and MRCR.
+[PR #51855](https://github.com/vllm-project/vllm/pull/51855): ReplaySSM for Kimi K3 on Model Runner V2. One Triton kernel commits the accepted state and the next prefix-cache boundary in `align` mode. At the same 46.48 GiB cache budget, effective capacity rises 10.97% under TP8. GSM8K and MRCR accuracy unchanged.
 
 ## Prefill/decode disaggregation and hybrid state offload
 
-At production scale, Kimi K3 serves behind disaggregated prefill/decode and tiered cache offload — Mooncake Store, CPU DRAM — to keep TTFT low and cache capacity high. Both paths have to move the full hybrid state, and that is harder for K3 than for pure-attention models. MLA KV is replicated across TP ranks, but KDA recurrent state is head/dim-sharded, and Mamba `align` block tables are sparse and mutable rather than append-only — assumptions that hold for pure-attention models break here.
+PD disaggregation and cache offload must transfer both MLA KV and KDA state. MLA KV is replicated across TP ranks; KDA state is sharded by head and dimension. Mamba `align` block tables can also be sparse and mutable. Pure-attention transfer assumptions do not apply.
 
-Making PD and offloading correct for K3 meant fixing what broke: Mooncake now saves the exact boundary states selected by the scheduler and pins them until every rank's asynchronous store completes ([PR #51358](https://github.com/vllm-project/vllm/pull/51358)), and divergent per-group prefix hits are served only by connectors that can actually restore KDA state ([PR #50344](https://github.com/vllm-project/vllm/pull/50344)).
+[PR #51358](https://github.com/vllm-project/vllm/pull/51358): Mooncake stores the boundary states selected by the scheduler and pins them until asynchronous writes finish on every rank. [PR #50344](https://github.com/vllm-project/vllm/pull/50344): only connectors that can restore KDA state may serve divergent per-group prefix hits.
 
 ## Decode context parallelism
 
-Plain TP hits a wall on long context: MLA's latent KV behaves like a single KV head, so it is replicated on every rank and per-GPU capacity stops growing. [Decode context parallelism](https://vllm.ai/blog/2026-08-07-decode-context-parallelism) instead shards the KV cache along the sequence dimension — the regime that dominates [agentic workloads](https://vllm.ai/blog/2026-09-08-vllm-agentx), where long shared prefixes make the replicated cache the binding constraint. [PR #50484](https://github.com/vllm-project/vllm/pull/50484) brings DCP to Kimi K3's fused MLA path: direct symmetric-memory A2A output/LSE reduction with empty-shard masking, NVLS-multicast query gather, and multimem chunked-context KV gather, with query shards published straight into the consumer's final buffer — cutting query-exchange latency by 10.4%–29.9% on 4×GB200.
+TP replicates MLA latent KV on every rank, so adding TP ranks does not increase KV-cache capacity. [Decode context parallelism](https://vllm.ai/blog/2026-08-07-decode-context-parallelism) shards it along the sequence dimension, useful for long shared-prefix [agentic workloads](https://vllm.ai/blog/2026-09-08-vllm-agentx).
+
+[PR #50484](https://github.com/vllm-project/vllm/pull/50484): DCP for Kimi K3's fused MLA path. Symmetric-memory A2A handles output/LSE reduction; NVLS multicast gathers queries; multimem gathers chunked-context KV. Query shards write directly into the consumer's final buffer. Query-exchange latency drops 10.4%–29.9% on 4×GB200.
 
 <p align="center">
 <img src="/assets/figures/2026-09-08-vllm-agentx/k3-dcp-symmem.gif" alt="MLA decode path under DCP4 using symmetric memory: each GPU multicasts its query shard directly into peers' attention-kernel buffers, computes partial attention over its KV slice, and writes outputs and LSE statistics into peers' receive slots, replacing the NCCL all-gather, staging copy, all-to-all, and unpack steps" width="80%">
 </p>
 
-On a 120k-token workload (114k shared prefix, 6k suffix, 400 output tokens), KV cache capacity grows from 1.93M to 19.75M tokens, and TPOT p50 drops from 13.8 ms to 10.5 ms at concurrency 1 and from 16.2 ms to 11.8 ms at concurrency 2. Accuracy holds: GSM8K 96.97% with DCP8 vs. 96.21% with TP8, with zero request errors.
+On a 120k-token workload (114k shared prefix, 6k suffix, 400 output tokens), KV-cache capacity rises from 1.93M to 19.75M tokens. TPOT p50 drops from 13.8 ms to 10.5 ms at concurrency 1, and from 16.2 ms to 11.8 ms at concurrency 2. GSM8K: 96.97% with DCP8 vs. 96.21% with TP8; zero request errors.
 
 ## Beyond the examples
 
