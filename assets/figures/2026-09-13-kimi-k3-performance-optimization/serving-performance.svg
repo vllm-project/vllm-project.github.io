@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="870" viewBox="0 0 1600 870" role="img" aria-labelledby="title desc">
   <title id="title">Kimi K3 serving performance from vLLM v0.27.1 to main on September 13</title>
-  <desc id="desc">Three grouped bar charts compare average latency, throughput, and time to first token at concurrency 1, 4, and 16. Main is 55.6 to 60.3 percent lower in latency, 2.2 to 2.8 times higher in throughput, and 72.3 to 85.3 percent lower in time to first token.</desc>
+  <desc id="desc">Three grouped bar charts compare average latency, throughput, and time to first token at concurrency 1, 4, and 16. Main has 55.6 to 60.3 percent lower latency, 2.2 to 2.8 times the throughput, and 72.3 to 85.3 percent lower time to first token.</desc>
   <defs>
     <linearGradient id="page-bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#f5f9ff"/>
@@ -46,7 +46,7 @@
       <rect x="1280" y="37" width="260" height="100" rx="20" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
     </g>
     <text x="1410" y="80" text-anchor="middle" font-size="35" font-weight="850" fill="#1d4ed8">2.2–2.8×</text>
-    <text x="1410" y="111" text-anchor="middle" font-size="18" font-weight="720" fill="#3b5f9b">higher throughput</text>
+    <text x="1410" y="111" text-anchor="middle" font-size="18" font-weight="720" fill="#3b5f9b">baseline throughput</text>
 
     <g filter="url(#shadow)">
       <rect x="55" y="205" width="480" height="630" rx="23" fill="#ffffff" stroke="#dbe3ee" stroke-width="1.5"/>
@@ -147,7 +147,7 @@
         <text x="820" y="755" class="gain" fill="#1d4ed8">2.5×</text>
         <text x="930" y="755" class="gain" fill="#1d4ed8">2.8×</text>
       </g>
-      <text x="800" y="805" text-anchor="middle" class="foot" fill="#1d4ed8">2.2–2.8× higher</text>
+      <text x="800" y="805" text-anchor="middle" class="foot" fill="#1d4ed8">2.2–2.8× throughput</text>
     </g>
 
     <!-- TTFT -->

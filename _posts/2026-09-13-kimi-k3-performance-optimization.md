@@ -20,7 +20,7 @@ This post starts with the end-to-end result, then looks at four representative c
 
 Measured with an 8K/1K workload with TP8, eight tokens DSpark speculation. Concurrency 1, 4, and 16. Comparison from v0.27.1 to commit `82a85dc1` (0913), tested on B300 node (CUDA 13.3).
 
-![Kimi K3 serving performance from vLLM v0.27.1 to main: 56%–60% lower latency, 2.2–2.8× higher throughput, and 72%–85% lower TTFT across concurrency 1, 4, and 16](/assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg)
+![Kimi K3 serving performance from vLLM v0.27.1 to main: 56%–60% lower latency, 2.2–2.8× throughput, and 72%–85% lower TTFT across concurrency 1, 4, and 16](/assets/figures/2026-09-13-kimi-k3-performance-optimization/serving-performance.svg)
 
 Start the server:
 
@@ -70,14 +70,14 @@ guidellm run \
 
 Low request counts left much of `max_num_batched_tokens` unused. [PR #51725](https://github.com/vllm-project/vllm/pull/51725): adaptive scheduled-token budget. [PR #51726](https://github.com/vllm-project/vllm/pull/51726): default limit from 8,192 to 16,384 for the high-memory GPU tier. On the reported 8K/1K workload: TTFT down 55%–65%, throughput up to 41.5%.
 
-Let's consider `max_num_seqs=1024` and `max_num_batched_tokens=8192`, K=7
+Let's consider `max_num_seqs=1024`, `max_num_batched_tokens=8192`, and `K=8`:
 
 Actual Request num | Old logic scheduled tokens | Now
 -- | -- | --
-1 | 2048 | 8186
-32 | 2048 | 8000
-128 | 2048 | 7424
-1024 | 2048 | 2048
+1 | 1024 (8192 - 1024 * (8-1)) | 8185 (8192 - 7)
+32 | 1024 | 7968
+128 | 1024 | 7296
+1024 | 1024 | 1024
 
 The PR makes the scheduled tokens much larger when request count is small by using an adaptive strategy, so one request won't be split to multiple forward calls.
 
@@ -109,7 +109,7 @@ This removes one kernel launch and avoids writing and rereading the finalized in
 
 Speculative decoding writes a KDA recurrent state at every draft position so rejected tokens can be rolled back. For T draft positions, that means T extra state writes per step. [ReplaySSM](https://dao-lab.ai/blog/2026/replayssm/) buffers recent SSM inputs instead and reconstructs the accepted state at commit. Rollback only moves a buffer pointer.
 
-[PR #51855](https://github.com/vllm-project/vllm/pull/51855): ReplaySSM for Kimi K3 on Model Runner V2. One Triton kernel commits the accepted state and the next prefix-cache boundary in `align` mode. At the same 46.48 GiB cache budget, effective capacity rises 10.97% under TP8. GSM8K and MRCR accuracy unchanged.
+[PR #51855](https://github.com/vllm-project/vllm/pull/51855): ReplaySSM for Kimi K3 on Model Runner V2. One Triton kernel commits the accepted state and the next prefix-cache boundary in `align` mode. At the same 46.48 GiB cache budget, effective capacity rises 10.97% under TP8. GSM8K accuracy unchanged.
 
 ## Prefill/decode disaggregation and hybrid state offload
 
