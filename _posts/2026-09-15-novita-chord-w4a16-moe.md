@@ -178,7 +178,9 @@ The summary below adds the gate/up and down call times from the full tables. Its
 | H200 EP8 grouped prefill | 128 rows/expert | 1204.0 µs | 917.5 µs | 1.31x |
 | H200 EP8 grouped decode | 32 tokens/expert | 666.3 µs | 493.4 µs | 1.35x |
 
-The B300 comparison is intentionally qualified: public Humming has no SM100/SM103 tuning table, so its default time is an untuned reference. H200 indexed ratios are the tuned-to-tuned comparison. Grouped rows compare against Humming's own `grouped_contiguous`/`grouped_masked` interfaces, with matched per-expert row counts and no padding advantage given to either side.
+The B300 comparison is intentionally qualified: public Humming has no SM100/SM103 tuning table, so its default time is an untuned reference. H200 indexed ratios are the tuned-to-tuned comparison.
+
+Both families are measured against the same public Humming revision, [`4351af3`](https://github.com/inclusionAI/humming/commit/4351af3a8fcdce1a8dee50104ba49566af2427fb). Grouped rows compare against Humming's own `grouped_contiguous`/`grouped_masked` paths rather than its indexed one, since that is the contract this backend replaces. Humming exposes both as [`GemmType`](https://github.com/inclusionAI/humming/blob/4351af3a8fcdce1a8dee50104ba49566af2427fb/humming/config/enum.py) values dispatched through its generic kernel rather than as separate CUDA files, and [`benchmarks/bench_humming.py`](https://github.com/inclusionAI/humming/blob/4351af3a8fcdce1a8dee50104ba49566af2427fb/benchmarks/bench_humming.py) selects them with `--gemm_type grouped_contiguous` or `--gemm_type grouped_masked`. Per-expert row counts are matched on both sides at multiples of the 128-row tile boundary — `--balanced` on the Humming side and the aligned cases in `tests/test_w4a16_grouped.py` — so each row is the same GEMM shape for both implementations and no tile is spent on padding.
 
 ### End-to-end serving
 
