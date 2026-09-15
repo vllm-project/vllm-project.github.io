@@ -109,7 +109,7 @@ This removes one kernel launch and avoids writing and rereading the finalized in
 
 Speculative decoding writes a KDA recurrent state at every draft position so rejected tokens can be rolled back. For T draft positions, that means T extra state writes per step. [ReplaySSM](https://dao-lab.ai/blog/2026/replayssm/) buffers recent SSM inputs instead and reconstructs the accepted state at commit. Rollback only moves a buffer pointer.
 
-[PR #51855](https://github.com/vllm-project/vllm/pull/51855): ReplaySSM for Kimi K3 on Model Runner V2. One Triton kernel commits the accepted state and the next prefix-cache boundary in `align` mode. At the same 46.48 GiB cache budget, effective capacity rises 10.97% under TP8. GSM8K accuracy unchanged.
+[PR #51855](https://github.com/vllm-project/vllm/pull/51855): ReplaySSM for Kimi K3 on Model Runner V2. One Triton kernel commits the accepted state and the next prefix-cache boundary in `align` mode. At the same 46.48 GiB cache budget, effective capacity rises 10.97% under TP8 without accuracy hurt.
 
 ## Prefill/decode disaggregation and hybrid state offload
 
@@ -133,7 +133,7 @@ On a 120k-token workload (114k shared prefix, 6k suffix, 400 output tokens), KV-
 
 The wider effort covered memory layout, sequence and pipeline parallelism, KDA prefill and recurrent state, MLA, MoE, and GEMM. It sharded large projections and shared experts, reduced collectives and data movement, and tightened small-batch GPU paths. The complete PR list is tracked in [issue #50587](https://github.com/vllm-project/vllm/issues/50587).
 
-Selected community PRs broadened the work: [Robert Shaw](https://github.com/robertgshaw2-redhat) and [Summer Yang](https://github.com/GirasoleY) added [DeepEPv2 with DeepGEMM MXFP4](https://github.com/vllm-project/vllm/pull/50478) and the [DCP support](#decode-context-parallelism) described above, while [Thien Tran](https://github.com/gau-nernst) developed [sequence-parallel GEMM paths](https://github.com/vllm-project/vllm/pull/52079). [Nick Hill](https://github.com/njhill) and [Xiaolong Xu](https://github.com/BabyDrangoner) tightened KDA prefill in [PR #51540](https://github.com/vllm-project/vllm/pull/51540) and [PR #52458](https://github.com/vllm-project/vllm/pull/52458). [Rebecca Lee](https://github.com/rebklee) and [Duncan Moss](https://github.com/djmmoss) extended KDA to [ROCm](https://github.com/vllm-project/vllm/pull/54254) and a [FlashInfer speculative backend](https://github.com/vllm-project/vllm/pull/54255). The full contributor group is credited below.
+Selected community PRs broadened the work: [Robert Shaw](https://github.com/robertgshaw2-redhat) and [Summer Yang](https://github.com/GirasoleY) added [DeepEPv2 with DeepGEMM MXFP4](https://github.com/vllm-project/vllm/pull/50478) and the [DCP support](#decode-context-parallelism) described above, while [Thien Tran](https://github.com/gau-nernst) developed [sequence-parallel GEMM paths](https://github.com/vllm-project/vllm/pull/52079). [Nick Hill](https://github.com/njhill) and [Xiaolong Xu](https://github.com/BabyDrangoner) tightened KDA prefill in [PR #51540](https://github.com/vllm-project/vllm/pull/51540) and [PR #52458](https://github.com/vllm-project/vllm/pull/52458). The full contributor group is credited below.
 
 ## Acknowledgments
 
