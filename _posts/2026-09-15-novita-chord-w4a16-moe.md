@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "vLLM x Novita AI: Chord, Up to 2.15x Faster INT4 MoE for Kimi K2.x"
+title: "vLLM x Novita AI: Chord, Faster INT4 MoE for Kimi K2.x. Up to 1.3x on H200, 2.15x on Untuned B300"
 author: "Novita AI and the vLLM Team"
 summary: "Novita AI has open-sourced Chord, a high-performance W4A16 MoE CUDA kernel for Kimi K2.x serving shapes, with a Humming-compatible indexed path and grouped SM90 operators."
 image: /assets/figures/2026-09-15-novita-chord-w4a16-moe/cover.png
@@ -172,7 +172,7 @@ The summary below adds the gate/up and down call times from the full tables. Its
 | Scenario | Shape point | Humming gate_up + down | Chord gate_up + down | Layer speedup |
 | --- | --- | --- | --- | --- |
 | H200 EP8 indexed prefill | 2048 tokens | 701.4 µs | 587.9 µs | 1.19x |
-| H200 TP8 indexed mix | 8196 tokens | 2483.4 µs | 1862.3 µs | 1.33x |
+| H200 TP8 indexed mix | 8192 tokens | 2483.4 µs | 1862.3 µs | 1.33x |
 | H200 EP8 indexed decode | 20 tok/GPU | 413.8 µs | 333.8 µs | 1.24x |
 | B300 EP8 indexed decode | 20 tok/GPU | 493.9 µs | 229.8 µs | 2.15x |
 | H200 EP8 grouped prefill | 128 rows/expert | 1204.0 µs | 917.5 µs | 1.31x |
