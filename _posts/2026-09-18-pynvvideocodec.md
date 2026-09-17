@@ -3,14 +3,14 @@ layout: post
 title: "Scaling Multi-GPU Video Captioning with PyNvVideoCodec and vLLM"
 author: "NVIDIA Computer Vision Team (NVCV)"
 summary: "How to leverage NVIDIA Hardware Video Decoders to Achieve Multi-GPU Scaling in Video Captioning and Description tasks."
-image: /assets/figures/2026-09-16-pynvvideocodec/1x-8x-comparison.png
+image: /assets/figures/2026-09-18-pynvvideocodec/1x-8x-comparison.png
 tags:
   - performance
   - multimodal
   - hardware
 ---
 
-![](/assets/figures/2026-09-16-pynvvideocodec/1x-8x-comparison.png)
+![](/assets/figures/2026-09-18-pynvvideocodec/1x-8x-comparison.png)
 
 We are excited to announce support for hardware video decoding built into NVIDIA GPUs, allowing video captioning and labeling tasks previously bottlenecked by CPU to scale their throughput on datacenter-grade multi-GPU nodes.
 
@@ -65,13 +65,13 @@ Scaling to multiple GPUs, we typically recommend running one container per vLLM 
 
 ## Multi-GPU Scaling in Video Captioning Tasks
 
-![](/assets/figures/2026-09-16-pynvvideocodec/1x-2x-4x-8x-comparison.png)
+![](/assets/figures/2026-09-18-pynvvideocodec/1x-2x-4x-8x-comparison.png)
 
 Figure 1: Improved Multi-GPU Scaling with H100 GPUs. At 8xH100, GPU-based video decoding provides more than double the throughput compared to the CPU-based video decoder. 8 vLLM replicas, each with a single GPU.
 
 As an example of the benefits of this method, we look at the task of video captioning utilized within NVIDIA AV organizations. These systems are responsible for captioning hundreds of thousands of hours of video clips, comprising hundreds of millions of video captioning requests. These tasks often require relatively lightweight models (e.g. `Qwen/Qwen3-VL-8B-Instruct`), have an input prompt specifying the type of desired description, and have outputs on the order of 100-200 tokens.
 
-![](/assets/figures/2026-09-16-pynvvideocodec/cpu-nvdec-utilization.png)
+![](/assets/figures/2026-09-18-pynvvideocodec/cpu-nvdec-utilization.png)
 
 Figure 2\. Large workloads utilizing up to 8 GPUs previously would bottleneck on CPU utilization before 4 GPUs. Now, with hardware-based video decoding support the CPU bottleneck has been removed. Data captured during benchmark steady-state.
 
