@@ -3,7 +3,7 @@ layout: post
 title: "Audio-Video Reinforcement Learning Post-Training for MiniMax-H3 with VeRL-Omni and vLLM-Omni"
 author: "VeRL-Omni Team"
 summary: "How DiffusionNFT, VeRL-Omni, and vLLM-Omni enable online RL post-training for MiniMax-H3 T2VA and FL2VA while addressing rollout performance and train-inference consistency."
-image: /assets/logos/vllm-logo-text-light.png
+image: /assets/figures/2026-09-18-minimax-rl/cover.png
 tags:
   - multimodal
   - rlhf
