@@ -91,7 +91,7 @@ Here, *C<sub>v</sub>* is the node's numerical execution contract:
 - **T<sub>v</sub>:** The order in which partial results are merged.
 - **P<sub>v</sub>:** The precision of inputs, accumulators, intermediate states, and outputs.
 - **Q<sub>v</sub>:** Where rounding or downcasting occurs.
-- **A<sub>v</sub>:** The numerical primitives used for `exp`, `log`, `rsqrt`, SiLU, FMA, and related operations.
+- **A<sub>v</sub>:** The numerical primitives used for exp, log, rsqrt, SiLU, FMA, and related operations.
 
 The candidate numerical divergence between training and rollout can be written as:
 
@@ -119,7 +119,7 @@ Before comparing floating-point results, we verify that the following match:
 - sequence, head, and vocabulary ownership;
 - the true vocabulary range and any random state relevant to the comparison.
 
-If any condition differs, the sample should be marked `comparable = false`; the final difference cannot be attributed directly to a kernel.
+If any condition differs, the sample should be marked comparable = false; the final difference cannot be attributed directly to a kernel.
 
 ## Why Numerical Divergence Must Be Addressed End to End
 
@@ -127,7 +127,7 @@ RMSNorm, GEMM, Attention, linear logp, and distributed collectives may appear to
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/equation-nested-reduction.png" alt="Nested reductions across Transformer operations" style="display:block;margin:0 auto;width:4.42361in;max-width:100%;" />
 
-Under finite precision, block size, Split-K or Split-KV, reduction trees, collective trees, `exp` and `log` implementations, intermediate precision, and fusion can all change the merge order and rounding boundaries of partial results. Attention's Split-KV merge, linear logprob's cross-TP vocabulary merge, GEMM's K-dimension reduction, and ROCm collectives are all part of the same numerical chain.
+Under finite precision, block size, Split-K or Split-KV, reduction trees, collective trees, exp and log implementations, intermediate precision, and fusion can all change the merge order and rounding boundaries of partial results. Attention's Split-KV merge, linear logprob's cross-TP vocabulary merge, GEMM's K-dimension reduction, and ROCm collectives are all part of the same numerical chain.
 
 The RL-Kernel strict path therefore fixes the reduction domain, partition and merge order, intermediate precision, numerical primitives, and fallback behavior together. Fixing only one kernel or collective is not sufficient to guarantee bitwise-consistent logprobs in vime.
 
@@ -182,7 +182,7 @@ We completed a strict 200-step validation in a full vime workflow composed of Me
 | KL loss | Enabled, coefficient 0.001 |
 | Validation requirement | Frozen inputs and sources remain identical before and after the run; every step passes runtime-provenance and mismatch validation |
 
-Across all 200 steps of the strict path, `mismatch_count` and `max_abs_diff` are both zero.
+Across all 200 steps of the strict path, mismatch_count and max_abs_diff are both zero.
 
 ### 200-Step Training Trajectory
 
@@ -190,7 +190,7 @@ Figure 1 plots the train–rollout mismatch count and maximum absolute Δlogp on
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-bitwise-consistency.png" alt="Training and bitwise consistency across 200 ROCm steps" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
-*Figure 1: Consistency comparison between native vime and vime + RL-Kernel.*
+<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 1: Consistency comparison between native vime and vime + RL-Kernel.</em></p>
 
 These signals emerge over the same interval and are consistent with persistent train–rollout mismatch. Together, they provide end-to-end evidence for strict alignment. The experiment directly shows that vime + RL-Kernel can maintain verifiable bitwise consistency and a more stable training trajectory throughout the 200-step run.
 
@@ -198,13 +198,13 @@ Figure 2 shows the mean absolute train–rollout logprob difference over 200 ste
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-mean-abs-logprob-diff.png" alt="Mean absolute train-rollout logprob difference across 200 ROCm steps" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
-*Figure 2: Mean absolute train–rollout logprob difference across 200 steps.*
+<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 2: Mean absolute train–rollout logprob difference across 200 steps.</em></p>
 
 Figure 3 compares the performance of native vime and vime + RL-Kernel across the 200-step run.
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-performance-matrix.png" alt="Performance comparison between native vime and vime plus RL-Kernel" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
-*Figure 3: Performance matrix for native vime and the strict vime + RL-Kernel path.*
+<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 3: Performance matrix for native vime and the strict vime + RL-Kernel path.</em></p>
 
 ## What This Integration Adds to vime
 
