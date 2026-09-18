@@ -48,7 +48,7 @@ DiffusionNFT does not require recording every transition's log-prob on the rollo
 
 The following diagram combines both task paths. The upper section shows the conditional inputs and H3 rollout for T2VA / FL2VA; the middle shows the audio-visual rewards and training-data format; and the lower section shows DiffusionNFT forward-process optimization and old-policy refresh. Two data flows must be distinguished: **decoded video/audio used for scoring flows to CLAP and ImageBind, while clean latents, timestep, and condition metadata used for actor updates flow to FSDP2.**
 
-![System architecture and main data flows](/assets/figures/2026-09-18-minimax-h3-rl/image.png)
+![System architecture and main data flows](/assets/figures/2026-09-18-minimax-rl/image.png)
 
 The diagram shows the system layers and main data flows. DiffusionNFT currently uses **global-standard-deviation reward normalization** by default. Section 4.2 describes the rollout-policy update details.
 
@@ -268,23 +268,23 @@ The following curves come from an online T2VA training run. Their purpose is to 
 
 The mean training reward rises steadily from about 0.27 to above 0.4, showing that under the current prompt distribution, the joint CLAP + ImageBind signal can create learnable within-group preferences. This metric only indicates that the direction preferred by the reward model has been optimized. On its own, it cannot be interpreted as improved visual aesthetics or long-range consistency.
 
-![Training reward curve](/assets/figures/2026-09-18-minimax-h3-rl/train-reward.png)
+![Training reward curve](/assets/figures/2026-09-18-minimax-rl/train-reward.png)
 
 Actor dynamics must be read together with reward. In particular, monitor gradient norm (grad norm), reward probability, and reference KL (ref KL). If reward rises while gradient norms remain abnormal, reward probability saturates, or ref KL suddenly becomes ineffective, the curve may still converge to the wrong objective.
 
-![Actor training dynamics](/assets/figures/2026-09-18-minimax-h3-rl/actor-training-dynamics.png)
+![Actor training dynamics](/assets/figures/2026-09-18-minimax-rl/actor-training-dynamics.png)
 
 ### 7.2 Validation Reward Breakdown
 
 CLAP, ImageBind, and weighted reward are recorded separately on the validation set. **Combined reward is interpretable only when both component rewards change in a direction consistent with the fixed-sample videos.** For example, if an increase in combined reward comes only from CLAP, the audio may align better with the text, but this does not prove that the audio-visual relationship or visual quality also improved.
 
-![Evaluation reward curve](/assets/figures/2026-09-18-minimax-h3-rl/eval-reward.png)
+![Evaluation reward curve](/assets/figures/2026-09-18-minimax-rl/eval-reward.png)
 
 ### 7.3 Training-Time Analysis: Rollout and Reward Throughput Bottlenecks
 
 End-to-end time is divided into rollout, reward, actor update, and checkpoint.
 
-![Time consumed by each stage](/assets/figures/2026-09-18-minimax-h3-rl/time-consumption.png)
+![Time consumed by each stage](/assets/figures/2026-09-18-minimax-rl/time-consumption.png)
 
 The breakdown shows that rollout and reward together account for most end-to-end time, while actor update and checkpoint account for relatively little. End-to-end optimization should therefore reduce per-rollout time, increase rollout throughput, and match reward throughput to it.
 
@@ -300,10 +300,10 @@ The left column is the base model, and the right column is the DiffusionNFT-fine
 
 | ID | Prompt | MiniMax H3 (base) | MiniMax H3 + DiffusionNFT |
 |---:|---|---|---|
-| 1 | stickman monigote shooting a energy sphere from his hands | [01-stickman-base.mp4](/assets/figures/2026-09-18-minimax-h3-rl/01-stickman-base.mp4) | [01-stickman-DiffusionNFT.mp4](/assets/figures/2026-09-18-minimax-h3-rl/01-stickman-DiffusionNFT.mp4) |
-| 2 | a husky dog with sunglasses riding on santas sled | [02-husky-base.mp4](/assets/figures/2026-09-18-minimax-h3-rl/02-husky-base.mp4) | [02-husky-DiffusionNFT.mp4](/assets/figures/2026-09-18-minimax-h3-rl/02-husky-DiffusionNFT.mp4) |
-| 3 | minimalist polygonal human skull in green flames with strong movement, uhd | [03-skull-base.mp4](/assets/figures/2026-09-18-minimax-h3-rl/03-skull-base.mp4) | [03-skull-DiffusionNFT.mp4](/assets/figures/2026-09-18-minimax-h3-rl/03-skull-DiffusionNFT.mp4) |
-| 4 | 17th century sailing ship making a path through the waves during a storm | [04-ship-base.mp4](/assets/figures/2026-09-18-minimax-h3-rl/04-ship-base.mp4) | [04-ship-DiffusionNFT.mp4](/assets/figures/2026-09-18-minimax-h3-rl/04-ship-DiffusionNFT.mp4) |
+| 1 | stickman monigote shooting a energy sphere from his hands | ![01-stickman-base](/assets/figures/2026-09-18-minimax-rl/01-stickman-base.gif) | ![01-stickman-DiffusionNFT](/assets/figures/2026-09-18-minimax-rl/01-stickman-DiffusionNFT.gif) |
+| 2 | a husky dog with sunglasses riding on santas sled | ![02-husky-base](/assets/figures/2026-09-18-minimax-rl/02-husky-base.gif) | ![02-husky-DiffusionNFT](/assets/figures/2026-09-18-minimax-rl/02-husky-DiffusionNFT.gif) |
+| 3 | minimalist polygonal human skull in green flames with strong movement, uhd | ![03-skull-base](/assets/figures/2026-09-18-minimax-rl/03-skull-base.gif) | ![03-skull-DiffusionNFT](/assets/figures/2026-09-18-minimax-rl/03-skull-DiffusionNFT.gif) |
+| 4 | 17th century sailing ship making a path through the waves during a storm | ![04-ship-base](/assets/figures/2026-09-18-minimax-rl/04-ship-base.gif) | ![04-ship-DiffusionNFT](/assets/figures/2026-09-18-minimax-rl/04-ship-DiffusionNFT.gif) |
 
 ### 7.5 Video Comparison: Base vs. DiffusionNFT Under FL2VA First-Frame Conditioning
 
@@ -317,8 +317,8 @@ The second column shows the conditional first frame, and the two middle output c
 
 | ID | Conditional First Frame | Prompt | MiniMax H3 (base) | MiniMax H3 + FL2VA DiffusionNFT |
 |---:|---|---|---|---|
-| 23 | ![Conditional first frame showing a red bottle](/assets/figures/2026-09-18-minimax-h3-rl/fl2va-23-bottle-condition.jpg) | Shows a close-up of a woman holding a red bottle with a blue substance dripping from it.<br />A close-up of a woman holding a red bottle, with blue liquid dripping from it. | [fl2va-23-bottle-base.mp4](/assets/figures/2026-09-18-minimax-h3-rl/fl2va-23-bottle-base.mp4) | [fl2va-23-bottle-DiffusionNFT.mp4](/assets/figures/2026-09-18-minimax-h3-rl/fl2va-23-bottle-DiffusionNFT.mp4) |
-| 56 | ![Conditional first frame showing a pool](/assets/figures/2026-09-18-minimax-h3-rl/fl2va-56-pool-condition.jpg) | Shows a man wearing a white shirt, brown apron, and a white hat standing in a pool filled with water.<br />A man wearing a white shirt, brown apron, and white hat stands in a pool filled with water. | [fl2va-56-pool-base.mp4](/assets/figures/2026-09-18-minimax-h3-rl/fl2va-56-pool-base.mp4) | [fl2va-56-pool-DiffusionNFT.mp4](/assets/figures/2026-09-18-minimax-h3-rl/fl2va-56-pool-DiffusionNFT.mp4) |
+| 23 | ![Conditional first frame showing a red bottle](/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-condition.jpg) | Shows a close-up of a woman holding a red bottle with a blue substance dripping from it.<br />A close-up of a woman holding a red bottle, with blue liquid dripping from it. | ![fl2va-23-bottle-base](/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-base.gif) | ![fl2va-23-bottle-DiffusionNFT](/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-DiffusionNFT.gif) |
+| 56 | ![Conditional first frame showing a pool](/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-condition.jpg) | Shows a man wearing a white shirt, brown apron, and a white hat standing in a pool filled with water.<br />A man wearing a white shirt, brown apron, and white hat stands in a pool filled with water. | ![fl2va-56-pool-base](/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-base.gif) | ![fl2va-56-pool-DiffusionNFT](/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-DiffusionNFT.gif) |
 
 These are qualitative comparisons from the FL2VA integration-validation stage, and the sample size is limited. They show only that the conditional-frame pipeline and post-training updates produce visible differences in generated results; they are not a comprehensive benchmark of conditional-generation quality.
 
