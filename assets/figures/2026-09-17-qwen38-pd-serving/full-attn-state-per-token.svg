@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 250" width="760" height="250">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .term   { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 26px; font-weight: 600; }
+    .punct  { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 26px; fill: #94a3b8; }
+    .result { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 22px; font-weight: 600; fill: #111827; }
+    .label  { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 15px; }
+    .leader { fill: none; stroke-width: 1.4; }
+  </style>
+
+  <rect width="760" height="250" fill="#ffffff"/>
+
+  <text x="32" y="34" font-size="14" font-weight="600" fill="#64748b">Full-Attn state, per token</text>
+
+  <!-- formula -->
+  <text class="punct" x="32"  y="84">(</text>
+  <text class="term"  x="56"  y="84" fill="#7c3aed">4</text>
+  <text class="punct" x="86"  y="84">&#215;</text>
+  <text class="term"  x="116" y="84" fill="#2563eb">256</text>
+  <text class="punct" x="176" y="84">&#215;</text>
+  <text class="term"  x="206" y="84" fill="#475569">1</text>
+  <text class="punct" x="230" y="84">)</text>
+  <text class="punct" x="256" y="84">&#215;</text>
+  <text class="term"  x="286" y="84" fill="#16a34a">2</text>
+
+  <text class="result" x="330" y="83">=  2048 B  =  2 KiB</text>
+
+  <!-- leader lines: rightmost term is shallowest, leftmost deepest (no crossings) -->
+  <path class="leader" stroke="#16a34a" d="M 293 98 L 293 128 L 318 128"/>
+  <path class="leader" stroke="#475569" d="M 211 98 L 211 158 L 318 158"/>
+  <path class="leader" stroke="#2563eb" d="M 131 98 L 131 188 L 318 188"/>
+  <path class="leader" stroke="#7c3aed" d="M 61  98 L 61  218 L 318 218"/>
+
+  <!-- labels -->
+  <text class="label" x="328" y="133" fill="#16a34a">K and V</text>
+  <text class="label" x="328" y="163" fill="#475569">sizeof(float8_e4m3fn)</text>
+  <text class="label" x="328" y="193" fill="#2563eb">head_dim</text>
+  <text class="label" x="328" y="223" fill="#7c3aed">num_key_value_heads</text>
+</svg>
