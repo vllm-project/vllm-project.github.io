@@ -209,12 +209,12 @@ Figure 3 compares the performance of native vime and vime + RL-Kernel across the
 ## What vime × RL-Kernel Achieves on ROCm
 
 - **Bitwise correctness:** Training and rollout logprobs match exactly on ROCm. Across all 200 steps, mismatch_count remains zero and the maximum logprob difference is also zero.
-- **Controlled end-to-end overhead:** The mean end-to-end step time is 110.76 seconds for RL-Kernel + vime, compared with 94.66 seconds for native vime—an overhead of approximately 17% for the strict consistency path.
+- **Controlled end-to-end overhead:** The mean end-to-end step time is 110.76 seconds for RL-Kernel + vime, compared with 94.66 seconds for native vime, representing an overhead of approximately 17% for the strict consistency path.
 - **Stable consistency guarantees:** Zero mismatch is maintained throughout the 200-step end-to-end training run, making results easier to verify and reproduce.
 - **Complete ROCm execution evidence:** The validation records the kernels, HIP Graph execution, paged KV, collectives, and fallback paths actually used at runtime.
 - **Fast failure localization:** Operator ablations identify the specific operator or system boundary where train–rollout divergence begins.
 
-On 8× AMD Instinct MI300X, RL-Kernel + vime maintained zero mismatch across all 200 steps with approximately 17% end-to-end overhead. The result moves strict train–rollout consistency beyond correctness validation toward a ROCm implementation with quantifiable performance cost, traceable execution paths, and reproducible experimental results—providing a foundation for production deployment and further optimization.
+On 8× AMD Instinct MI300X, RL-Kernel + vime maintained zero mismatch across all 200 steps with approximately 17% end-to-end overhead. The result moves strict train–rollout consistency beyond correctness validation toward a ROCm implementation with quantifiable performance cost, traceable execution paths, and reproducible experimental results. This provides a foundation for production deployment and further optimization.
 
 ## Current Scope and Next Steps
 
