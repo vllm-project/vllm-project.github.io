@@ -239,3 +239,6 @@ In this blog post we showed how such a complex task as building a pareto curve f
 ## Acknowledgements
 
 Artem Perevedentsev (NVIDIA), Vadim Gimpelson (NVIDIA), Xin Li (NVIDIA)
+
+We would also like to thank vLLM community members for contributing and reviewing some optimization efforts mentioned in this blog post.
+
