@@ -4,8 +4,8 @@ math: true
 title: "PD Serving of Qwen3.8-2.4T"
 author: "vLLM Team"
 summary: "How vLLM reaches 5K throughput and 180 interactivity on Qwen3.8-2.4T with GB300 NVL72 PD serving and how to reproduce results yourself."
-image: /assets/figures/2026-09-17-qwen38-pd-serving/pareto-frontier.png
-social_image: /assets/figures/2026-09-17-qwen38-pd-serving/pareto-frontier.png
+image: /assets/figures/2026-09-21-qwen38-pd-serving/pareto-frontier.png
+social_image: /assets/figures/2026-09-21-qwen38-pd-serving/pareto-frontier.png
 tags:
   - performance
   - qwen3.8
@@ -40,17 +40,17 @@ Since Qwen3.8-2.4T is a hybrid model, its state comes in two parts that are acco
 
 Full-Attn state is stored per token. One token needs 2 KiB per layer:
 
-![Full-Attn state per token: num_key_value_heads 4 × head_dim 256 × 1 byte for float8_e4m3fn, times 2 for K and V, giving 2048 B = 2 KiB.](/assets/figures/2026-09-17-qwen38-pd-serving/full-attn-state-per-token.svg)
+![Full-Attn state per token: num_key_value_heads 4 × head_dim 256 × 1 byte for float8_e4m3fn, times 2 for K and V, giving 2048 B = 2 KiB.](/assets/figures/2026-09-21-qwen38-pd-serving/full-attn-state-per-token.svg)
 
 GDN state is stored **per request** not per token, this is important. It consists of two parts.
 
 * Conv state — the last kernel-1 inputs of the causal conv, one filter per channel, where the channels are q, k and v concatenated:
 
-![GDN conv state per request: for q and k, linear_key_head_dim 128 × linear_num_key_heads 16 × 2 for both q and k, plus for v, linear_value_head_dim 128 × linear_num_value_heads 128; all times linear_conv_kernel_dim minus 1, which is 3, times 2 bytes for bfloat16, giving 122,880 B = 120 KiB.](/assets/figures/2026-09-17-qwen38-pd-serving/gdn-conv-state-per-request.svg)
+![GDN conv state per request: for q and k, linear_key_head_dim 128 × linear_num_key_heads 16 × 2 for both q and k, plus for v, linear_value_head_dim 128 × linear_num_value_heads 128; all times linear_conv_kernel_dim minus 1, which is 3, times 2 bytes for bfloat16, giving 122,880 B = 120 KiB.](/assets/figures/2026-09-21-qwen38-pd-serving/gdn-conv-state-per-request.svg)
 
 * SSM state — recurrent matrix that holds whole context:
 
-![GDN SSM state per request: linear_num_value_heads 128 × linear_value_head_dim 128 × linear_key_head_dim 128, times 2 bytes for bfloat16, giving 4,194,304 B = 4 MiB.](/assets/figures/2026-09-17-qwen38-pd-serving/gdn-ssm-state-per-request.svg)
+![GDN SSM state per request: linear_num_value_heads 128 × linear_value_head_dim 128 × linear_key_head_dim 128, times 2 bytes for bfloat16, giving 4,194,304 B = 4 MiB.](/assets/figures/2026-09-21-qwen38-pd-serving/gdn-ssm-state-per-request.svg)
 
 Summing it up, GDN state needs 4 MiB + 120 KiB = 4216 KiB.
 
@@ -178,7 +178,7 @@ The next important step towards our goal is to measure prefill performance separ
 
 Here are our measurement results:
 
-![Figure 1: Prefill total token throughput per GPU vs concurrency, ISL/OSL 8192/2 on GB300.](/assets/figures/2026-09-17-qwen38-pd-serving/prefill-throughput-vs-concurrency.png)
+![Figure 1: Prefill total token throughput per GPU vs concurrency, ISL/OSL 8192/2 on GB300.](/assets/figures/2026-09-21-qwen38-pd-serving/prefill-throughput-vs-concurrency.png)
 
 As we can see, for low concurrencies $\le 16$ the **TP4DP2+EP** topology shows the best performance. For larger concurrencies **TP2DP4+EP** starts to dominate.
 
@@ -195,7 +195,7 @@ Also, we tried to enable MTP with 3 speculative tokens, as it should help to get
 
 Here are our measurement results:
 
-![Figure 2: Decode total token throughput per GPU vs concurrency, ISL/OSL 1/1000 on GB300.](/assets/figures/2026-09-17-qwen38-pd-serving/decode-throughput-vs-concurrency.png)
+![Figure 2: Decode total token throughput per GPU vs concurrency, ISL/OSL 1/1000 on GB300.](/assets/figures/2026-09-21-qwen38-pd-serving/decode-throughput-vs-concurrency.png)
 
 As we can see, firstly MTP drastically improves performance until there is enough available space for KV cache. As well, for concurrencies $\le 256$ the best topology is **TEP8 with MTP**, then for concurrencies 512 and 1024 the **TEP8** topology dominates, and on high concurrencies $\ge 2048$ **TP4DP4+EP** outperforms every other because it has more space for KV cache compared to the TEP8 topology.
 
@@ -226,11 +226,11 @@ The first thing we did was accuracy verification for all the selected configurat
 
 Pareto curves for the individual configurations are shown below. Every curve is a single deployment swept over concurrencies, so each point is reachable only by the configuration whose curve it sits on.
 
-![Figure 3: pareto curves for the individual disaggregated configurations, ISL/OSL 8192/1024 on GB300.](/assets/figures/2026-09-17-qwen38-pd-serving/pareto-curves-by-configuration.png)
+![Figure 3: pareto curves for the individual disaggregated configurations, ISL/OSL 8192/1024 on GB300.](/assets/figures/2026-09-21-qwen38-pd-serving/pareto-curves-by-configuration.png)
 
 Combining all of them gives the final pareto frontier:
 
-![Figure 4: Final pareto frontier for disaggregated serving, ISL/OSL 8192/1024 on GB300.](/assets/figures/2026-09-17-qwen38-pd-serving/pareto-frontier.png)
+![Figure 4: Final pareto frontier for disaggregated serving, ISL/OSL 8192/1024 on GB300.](/assets/figures/2026-09-21-qwen38-pd-serving/pareto-frontier.png)
 
 ## Conclusion
 
