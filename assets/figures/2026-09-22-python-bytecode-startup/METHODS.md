@@ -1,6 +1,6 @@
 # Measurement supplement
 
-This accompanies the bytecode article. Times below are recorded observations, not new benchmarks. MB and GB use decimal units. Plot data is in [measurements.csv](measurements.csv); the complete numerical extract is in [supplementary-measurements.json](supplementary-measurements.json). The full original harnesses and raw logs remain in the author's research ledger and have not been published.
+This accompanies the bytecode article. Times below are recorded observations, not new benchmarks. MB and GB use decimal units. Serving and import plot data is in [measurements.csv](measurements.csv). The image-delivery plot data, including per-run pull and container-start times, and the complete numerical extract are in [supplementary-measurements.json](supplementary-measurements.json). The full original harnesses and raw logs remain in the author's research ledger and have not been published.
 
 ## Native serving
 
@@ -45,6 +45,10 @@ One observation per condition, separately instrumented through the source loader
 
 The import difference is 7.192437639 s; compiler-call wall time is 6.987958802 s. Their difference is 0.204478837 s. Compiler-call time is part of the import clock. This is not an accounting partition of the full serving runs, and the diagnostic can include instrumentation/GC effects.
 
+The September 15 diagnostic used the direct-compile installation: CPython 3.12.3 (August 31, 2026 build, GCC 13.3.0). The September 9 instrumented trace quoted in the PR used the June 19 CPython 3.12.3 build. It measured 13.855056 s uncached and 5.744176 s cached, an 8.110880 s import difference, with 8.196185 s inside 5,118 source-compiler calls. Compiler-call wall time exceeded that difference by 0.085305 s. The later trace's compiler-call time was 0.204479 s below its import difference. These are separate observations, not pooled samples. The effects of interpreter build and run conditions were not isolated; the earlier 8.623 s CPU figure measures process CPU, not compiler-thread CPU.
+
+Receipts: September 9 `trace-B.json` and `trace-C.json`; September 15 `import-original.json` and `import-cached.json`.
+
 ## Independent import measurements
 
 Fresh child process; clock begins immediately before import and excludes interpreter launch/preparation; common Python/native-library pages 100% resident; no compiler hook in the 24 primary observations.
@@ -58,6 +62,8 @@ The CSV supplies three observations per condition per root. Each root includes i
 | `vllm` | 6.71 | 2.11 |
 | `vllm.entrypoints.cli.serve` | 12.27 | 5.02 |
 
+The repeated import-root study used the August 31 CPython 3.12.3 build. All six processes per root had the same recorded module-presence result: bare Torch and bare Transformers loaded none of `torch._dynamo`, `torch._inductor` or `sympy`; vLLM and the serving CLI loaded all three. In installed vLLM 0.28.0, the package initializer imports `vllm.env_override`, whose fallback-list patch imports Inductor lowering. This identifies one eager path, not the exclusive cause of the incremental import time or current-main behavior. Receipt: September 15 package study `ANALYSIS.json` and its saved source context.
+
 ## Image delivery
 
 Matched CUDA images from separate empty classic-overlay2 Docker stores through loopback pull/unpack to first correct response; model already local; gzip export in both arms; host/source page cache warm or uncontrolled.
@@ -68,7 +74,11 @@ Matched CUDA images from separate empty classic-overlay2 Docker stores through l
 | 2 | 155.726505630 | 144.513727492 | 11.212778138 |
 | 3 | 162.384975863 | 146.280619865 | 16.104355998 |
 
-Median paired saving: 15.360636506 s. Encoded layer bytes: 8,511,741,380 control versus 8,664,824,384 candidate; +153,083,004 bytes (+1.798492191%). The loopback registry was uncapped; image stores were empty, model files local, host pages warm or uncontrolled. The full historical run also included a zstd condition; its cells are excluded from this bytecode comparison. Build timings were not a matched experiment and are not used to infer build overhead.
+Median paired saving: 15.360636506 s. Subtracting condition medians instead gives 11.212778138 s; that is a different statistic. The preregistered order was three rotated triples: A1 B1 C1, C2 A2 B2, B3 C3 A3, where A is the control, B the bytecode image and C the excluded zstd condition. Pairs 1 and 2 ran the control first; pair 3 ran bytecode first. Complete clocks rose through the session in both arms; CPU frequency, thermal state and registry state were not fixed. Three pairs establish the observed range, not a precise fleet-wide effect.
+
+The harness recorded pull/unpack and container launch to first correct response within the same monotonic clock. The precompiled image's pull/unpack took 3.434 s less, 2.465 s more and 1.169 s more in pairs 1–3. Its launch-to-response interval took 11.925 s, 13.673 s and 17.276 s less. Pull time varied in both directions; every pair improved in the launch interval. The experiment did not isolate a bytecode-induced pull cost or test bandwidth-limited delivery.
+
+Encoded layer bytes: 8,511,741,380 control versus 8,664,824,384 candidate; +153,083,004 bytes (+1.798492191%). The loopback registry was uncapped; image stores were empty, model files local, host pages warm or uncontrolled. The full historical run also included a zstd condition; its cells are excluded from this bytecode comparison. Build timings were not a matched experiment and are not used to infer build overhead.
 
 Environment: vLLM source `470fe3942ecdb889b2f3c0b57ace4b09d61dd103`, Docker 29.1.3, Intel Core i9-13900HX, RTX 4090 Laptop GPU, four-logical-CPU daemon affinity and a four-CPU server quota. These hardware records belong to the image-delivery study; the native serving receipt did not independently record the CPU model.
 
@@ -90,7 +100,19 @@ The source-compilation probes ran in fresh read-only containers, with network di
 
 Every measured activation passed the saved CPU/Transformers next-token checks. Four additional 16-token request bursts per activation matched generated choices and usage across arms. These checks cover this pinned model and environment.
 
-The machine-readable extract includes these checks under `image_cache_identity`. The original receipts are `identity-gate.json`, `inventory-A.json`, `inventory-B.json`, `import-A.json`, `import-B.json` and `import-bypass-B.json` in the September 7 image study. They have not been uploaded with the draft.
+The machine-readable extract includes these checks under `image_cache_identity`. The original receipts are `identity-gate.json`, `inventory-A.json`, `inventory-B.json`, `import-A.json`, `import-B.json` and `import-bypass-B.json` in the September 7 image study. Their SHA-256 hashes are listed under `image_cache_identity.source_receipts` in the JSON; the original files have not been published with this post.
+
+## Official image probe
+
+On September 3, 2026, the inspected `vllm/vllm-openai:latest` image (digest `sha256:61fc8a896b0a4fbbbdc063bc4b0dbc25ce98e02b5050c24aeb7830ac02039b14`, vLLM 0.28.0, Torch 2.13.0+cu130) contained 408 `.pyc` files and 27,753 `.py` files under `/usr/local/lib/python3.12/dist-packages`. These are raw file counts, not per-source validity checks. That published image differs from the matched test images, and this is a dated inventory rather than a claim about today's `latest` tag. Receipt: September 3 image-bytecode probe and its recorded image inspection.
+
+## Final-image diagnostic
+
+The article's missing-cache command was run on September 22 with CPython 3.12.3 in the retained official image identified above, using a read-only root, no network and no GPU access. Across all three directories returned by `site.getsitepackages()`, it reported **27,345 of 28,088 installed `.py` files with no `.pyc`**. This is wider than the September 3 `/usr/local/lib/python3.12/dist-packages` inventory, and checks file existence rather than header validity. A separate two-source fixture reported two missing caches before compilation and zero afterward using the same code and interpreter. `-B` kept the diagnostic itself from writing caches.
+
+The diagnostic source, interpreter details and observations are in [cache-coverage-check.json](cache-coverage-check.json).
+
+These are diagnostic checks, not new startup measurements or a repeat of the matched-image validity inventory.
 
 ## The three cache layers
 
