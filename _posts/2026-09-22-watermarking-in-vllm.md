@@ -197,8 +197,6 @@ We thank Wassim Bouaziz, Andy Lo, Nicolò Lucchesi, Victor Paltz, Leila Saidi, a
 
 ## Appendix
 
-### References
-
 <a id="ref-1"></a>1. Ingemar J. Cox, Matthew L. Miller, Jeffrey A. Bloom, Jessica Fridrich, and Ton Kalker. “[Digital Watermarking and Steganography](https://www.sciencedirect.com/book/9780123725851/digital-watermarking-and-steganography).” 2nd ed., Morgan Kaufmann (2008).
 
 <a id="ref-2"></a>2. Sumanth Dathathri et al. “[Scalable watermarking for identifying large language model outputs](https://www.nature.com/articles/s41586-024-08025-4).” *Nature* 634, 818–823 (2024). [Supplementary information, §G.3](https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-024-08025-4/MediaObjects/41586_2024_8025_MOESM1_ESM.pdf).
