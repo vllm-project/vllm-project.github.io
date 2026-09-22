@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="720" viewBox="0 0 1600 720" role="img" aria-labelledby="title desc">
+  <title id="title">Two MiniMax M3 prefill-decode operating profiles</title>
+  <desc id="desc">A white-background diagram compares the topology and performance envelope of two independently tuned MiniMax M3 prefill-decode profiles. The top half shows one TP8 prefill plus one TP8 decode worker versus two TP4 prefill plus one TP4 decode workers. The bottom half uses paired bars to compare throughput per GPU, median time to first token, and mean time per output token. Each metric has its own scale.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .title { font-size: 40px; font-weight: 760; fill: #111827; }
+      .subtitle { font-size: 19px; fill: #64748b; }
+      .profile { font-size: 27px; font-weight: 760; }
+      .topology { font-size: 19px; font-weight: 680; fill: #1f2937; }
+      .meta { font-size: 16px; fill: #64748b; }
+      .worker { font-size: 18px; font-weight: 700; fill: #1f2937; }
+      .worker-meta { font-size: 14px; fill: #64748b; }
+      .section { font-size: 24px; font-weight: 750; fill: #111827; }
+      .legend { font-size: 15px; font-weight: 650; fill: #475569; }
+      .metric-title { font-size: 19px; font-weight: 730; fill: #1f2937; }
+      .metric-hint { font-size: 14px; fill: #64748b; }
+      .row-label { font-size: 14px; font-weight: 650; fill: #475569; }
+      .value { font-size: 18px; font-weight: 760; fill: #111827; }
+      .footnote { font-size: 16px; font-weight: 620; fill: #7c2d12; }
+    </style>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#111827" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto">
+      <path d="M0,0 L11,5.5 L0,11 Z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="720" fill="#ffffff"/>
+
+  <g class="sans" transform="translate(0,-115)">
+
+    <!-- Topology cards -->
+    <g filter="url(#shadow)">
+      <rect x="72" y="145" width="690" height="315" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <rect x="838" y="145" width="690" height="315" rx="20" fill="#ffffff" stroke="#fecaca" stroke-width="2"/>
+    </g>
+    <rect x="72" y="145" width="690" height="11" rx="5.5" fill="#64748b"/>
+    <rect x="838" y="145" width="690" height="11" rx="5.5" fill="#ef3340"/>
+
+    <!-- Initial topology -->
+    <text x="112" y="205" class="profile" fill="#475569">Initial profile</text>
+    <text x="112" y="242" class="topology">1 prefill TP8 + 1 decode TP8</text>
+    <text x="112" y="273" class="meta">16 GPUs · concurrency 1024 · InferenceX #1762</text>
+
+    <rect x="112" y="318" width="235" height="86" rx="13" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <rect x="487" y="318" width="235" height="86" rx="13" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/>
+    <text x="229.5" y="353" class="worker" text-anchor="middle">Prefill</text>
+    <text x="229.5" y="382" class="worker-meta" text-anchor="middle">TP8 · 8 GPUs</text>
+    <text x="604.5" y="353" class="worker" text-anchor="middle">Decode</text>
+    <text x="604.5" y="382" class="worker-meta" text-anchor="middle">TP8 · 8 GPUs</text>
+    <line x1="347" y1="361" x2="474" y2="361" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <!-- Retuned topology -->
+    <text x="878" y="205" class="profile" fill="#dc2626">Retuned profile</text>
+    <text x="878" y="242" class="topology">2 prefill TP4 + 1 decode TP4</text>
+    <text x="878" y="273" class="meta">12 GPUs · concurrency 512 · InferenceX #2144</text>
+
+    <rect x="878" y="300" width="205" height="62" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <rect x="878" y="378" width="205" height="62" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+    <rect x="1263" y="331" width="225" height="78" rx="13" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/>
+    <text x="980.5" y="326" class="worker" text-anchor="middle">Prefill A</text>
+    <text x="980.5" y="348" class="worker-meta" text-anchor="middle">TP4 · 4 GPUs</text>
+    <text x="980.5" y="404" class="worker" text-anchor="middle">Prefill B</text>
+    <text x="980.5" y="426" class="worker-meta" text-anchor="middle">TP4 · 4 GPUs</text>
+    <text x="1375.5" y="365" class="worker" text-anchor="middle">Decode</text>
+    <text x="1375.5" y="391" class="worker-meta" text-anchor="middle">TP4 · 4 GPUs</text>
+    <path d="M1083 331 H1165 V370" fill="none" stroke="#64748b" stroke-width="3"/>
+    <path d="M1083 409 H1165 V370" fill="none" stroke="#64748b" stroke-width="3"/>
+    <line x1="1165" y1="370" x2="1250" y2="370" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+    <circle cx="1165" cy="370" r="5" fill="#64748b"/>
+
+    <!-- Performance envelope -->
+    <text x="72" y="516" class="section">Performance envelope</text>
+    <circle cx="1240" cy="509" r="7" fill="#64748b"/>
+    <text x="1255" y="515" class="legend">Initial</text>
+    <circle cx="1350" cy="509" r="7" fill="#ef3340"/>
+    <text x="1365" y="515" class="legend">Retuned</text>
+
+    <g filter="url(#shadow)">
+      <rect x="72" y="545" width="456" height="238" rx="17" fill="#ffffff" stroke="#dbe3ed" stroke-width="1.5"/>
+      <rect x="572" y="545" width="456" height="238" rx="17" fill="#ffffff" stroke="#dbe3ed" stroke-width="1.5"/>
+      <rect x="1072" y="545" width="456" height="238" rx="17" fill="#ffffff" stroke="#dbe3ed" stroke-width="1.5"/>
+    </g>
+
+    <!-- Throughput -->
+    <text x="100" y="588" class="metric-title">Throughput / GPU</text>
+    <text x="100" y="613" class="metric-hint">total tok/s · higher →</text>
+    <text x="100" y="664" class="row-label">Initial</text>
+    <rect x="170" y="648" width="200" height="18" rx="9" fill="#eef2f7"/>
+    <rect x="170" y="648" width="60" height="18" rx="9" fill="#64748b"/>
+    <circle cx="230" cy="657" r="7" fill="#475569"/>
+    <text x="394" y="665" class="value">2,084.6</text>
+    <text x="100" y="726" class="row-label">Retuned</text>
+    <rect x="170" y="710" width="200" height="18" rx="9" fill="#eef2f7"/>
+    <rect x="170" y="710" width="182" height="18" rx="9" fill="#ef3340"/>
+    <circle cx="352" cy="719" r="7" fill="#dc2626"/>
+    <text x="394" y="727" class="value">6,370.5</text>
+
+    <!-- TTFT -->
+    <text x="600" y="588" class="metric-title">Median TTFT</text>
+    <text x="600" y="613" class="metric-hint">seconds · lower ←</text>
+    <text x="600" y="664" class="row-label">Initial</text>
+    <rect x="670" y="648" width="200" height="18" rx="9" fill="#eef2f7"/>
+    <rect x="670" y="648" width="186" height="18" rx="9" fill="#64748b"/>
+    <circle cx="856" cy="657" r="7" fill="#475569"/>
+    <text x="894" y="665" class="value">223.20 s</text>
+    <text x="600" y="726" class="row-label">Retuned</text>
+    <rect x="670" y="710" width="200" height="18" rx="9" fill="#eef2f7"/>
+    <rect x="670" y="710" width="6" height="18" rx="3" fill="#ef3340"/>
+    <circle cx="676" cy="719" r="7" fill="#dc2626"/>
+    <text x="894" y="727" class="value">1.32 s</text>
+
+    <!-- TPOT -->
+    <text x="1100" y="588" class="metric-title">Mean TPOT</text>
+    <text x="1100" y="613" class="metric-hint">milliseconds · lower ←</text>
+    <text x="1100" y="664" class="row-label">Initial</text>
+    <rect x="1170" y="648" width="200" height="18" rx="9" fill="#eef2f7"/>
+    <rect x="1170" y="648" width="104" height="18" rx="9" fill="#64748b"/>
+    <circle cx="1274" cy="657" r="7" fill="#475569"/>
+    <text x="1394" y="665" class="value">31.26 ms</text>
+    <text x="1100" y="726" class="row-label">Retuned</text>
+    <rect x="1170" y="710" width="200" height="18" rx="9" fill="#eef2f7"/>
+    <rect x="1170" y="710" width="182" height="18" rx="9" fill="#ef3340"/>
+    <circle cx="1352" cy="719" r="7" fill="#dc2626"/>
+    <text x="1394" y="727" class="value">54.60 ms</text>
+
+  </g>
+</svg>

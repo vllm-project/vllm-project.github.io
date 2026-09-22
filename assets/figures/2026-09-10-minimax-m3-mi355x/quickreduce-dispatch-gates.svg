@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="390" viewBox="0 0 1600 390" role="img" aria-labelledby="title desc">
+  <title id="title">QuickReduce configuration, eligibility, codec, and execution gates</title>
+  <desc id="desc">The recipe configures INT4 and a 256 kilobyte codec threshold. QuickReduce first applies a separate eligibility threshold. For BF16 at TP4 with the pinned built-in table, a roughly 1.5 megabyte collective is below the 16 megabyte minimum, so it does not reach codec selection and QuickReduce execution is not proven.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .step { font-size: 17px; font-weight: 800; letter-spacing: .055em; fill: #64748b; }
+      .title { font-size: 25px; font-weight: 780; fill: #172033; }
+      .label { font-size: 18px; font-weight: 720; fill: #334155; }
+      .note { font-size: 16px; font-weight: 620; fill: #64748b; }
+      .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 17px; font-weight: 730; fill: #334155; }
+      .callout { font-size: 18px; font-weight: 780; }
+    </style>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.07"/>
+    </filter>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7.7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="red-arrow" markerWidth="9" markerHeight="9" refX="7.7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#ef4444"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="390" fill="#ffffff"/>
+  <g class="sans">
+    <!-- configured -->
+    <g filter="url(#shadow)">
+      <rect x="55" y="55" width="320" height="205" rx="20" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+    </g>
+    <rect x="55" y="55" width="320" height="7" rx="3.5" fill="#2563eb"/>
+    <text x="85" y="98" class="step">1 · CONFIGURED</text>
+    <text x="85" y="136" class="title">Recipe requests INT4</text>
+    <rect x="85" y="161" width="260" height="39" rx="10" fill="#eff6ff"/>
+    <text x="215" y="187" class="mono" text-anchor="middle" fill="#1d4ed8">codec = INT4</text>
+    <text x="85" y="229" class="note">codec threshold = 256 KB</text>
+
+    <!-- eligible -->
+    <line x1="395" y1="157" x2="445" y2="157" stroke="#94a3b8" stroke-width="4" marker-end="url(#arrow)"/>
+    <g filter="url(#shadow)">
+      <rect x="460" y="55" width="350" height="205" rx="20" fill="#ffffff" stroke="#fecaca" stroke-width="2"/>
+    </g>
+    <rect x="460" y="55" width="350" height="7" rx="3.5" fill="#ef4444"/>
+    <text x="490" y="98" class="step">2 · ELIGIBLE?</text>
+    <text x="490" y="136" class="title">Check QuickReduce first</text>
+    <rect x="490" y="161" width="290" height="39" rx="10" fill="#fff1f2"/>
+    <text x="635" y="187" class="mono" text-anchor="middle" fill="#b91c1c">≈1.5 MB &lt; 16 MB</text>
+    <text x="490" y="229" class="note">BF16 · TP4 · INT4 built-in minimum</text>
+
+    <!-- codec -->
+    <line x1="830" y1="157" x2="880" y2="157" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+    <g opacity="0.48">
+      <g filter="url(#shadow)">
+        <rect x="895" y="55" width="300" height="205" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      </g>
+      <rect x="895" y="55" width="300" height="7" rx="3.5" fill="#94a3b8"/>
+      <text x="925" y="98" class="step">3 · CODEC</text>
+      <text x="925" y="136" class="title">Choose FP or INT4</text>
+      <text x="925" y="178" class="mono">size ≥ 256 KB?</text>
+      <text x="925" y="212" class="note">consulted only after eligibility</text>
+    </g>
+
+    <!-- execute -->
+    <line x1="1215" y1="157" x2="1265" y2="157" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+    <g opacity="0.48">
+      <g filter="url(#shadow)">
+        <rect x="1280" y="55" width="265" height="205" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      </g>
+      <rect x="1280" y="55" width="265" height="7" rx="3.5" fill="#94a3b8"/>
+      <text x="1310" y="98" class="step">4 · EXECUTED</text>
+      <text x="1310" y="136" class="title">Verify the kernel</text>
+      <text x="1310" y="178" class="note">dispatch trace</text>
+      <text x="1310" y="205" class="note">or profiler evidence</text>
+    </g>
+
+    <!-- failed branch -->
+    <path d="M635 260 V302 H785" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round" marker-end="url(#red-arrow)"/>
+    <rect x="800" y="280" width="500" height="48" rx="24" fill="#fff1f2"/>
+    <text x="1050" y="311" class="callout" text-anchor="middle" fill="#b91c1c">Stops here: INT4 QuickReduce execution is not proven</text>
+
+    <rect x="485" y="350" width="630" height="34" rx="17" fill="#f8fafc"/>
+    <text x="800" y="373" class="callout" text-anchor="middle" fill="#475569">configured  ≠  eligible  ≠  executed</text>
+  </g>
+</svg>

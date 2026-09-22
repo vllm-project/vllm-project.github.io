@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax M3 standard serving progress at concurrency 32 and 128</title>
+  <desc id="desc">Two white-background panels compare the first and best published standard-decoding checkpoints for MXFP8 and MXFP4 at concurrency 32 and 128. Both panels use a shared zero-to-1200 output-tokens-per-second-per-GPU axis. The MXFP4 row includes its prior TP4 best and its new TP2 best.</desc>
+  <defs>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .panel-title { font-size: 34px; font-weight: 780; fill: #111827; }
+      .panel-subtitle { font-size: 19px; fill: #64748b; }
+      .row-label { font-size: 23px; font-weight: 740; fill: #1f2937; }
+      .contract { font-size: 17px; font-weight: 650; fill: #64748b; }
+      .gain { font-size: 18px; font-weight: 800; }
+      .value { font-size: 18px; font-weight: 760; fill: #374151; }
+      .tick { font-size: 17px; fill: #64748b; }
+      .axis-title { font-size: 21px; font-weight: 730; fill: #1f2937; }
+      .legend { font-size: 18px; font-weight: 680; fill: #475569; }
+    </style>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#111827" flood-opacity="0.07"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="650" fill="#ffffff"/>
+
+  <g class="sans">
+    <g transform="translate(448,35)">
+      <circle cx="0" cy="0" r="9" fill="#ffffff" stroke="#64748b" stroke-width="3.5"/>
+      <text x="21" y="7" class="legend">First checkpoint</text>
+      <rect x="205" y="-7" width="14" height="14" fill="#f97316" transform="rotate(45 212 0)"/>
+      <text x="234" y="7" class="legend">Prior TP4 best</text>
+      <circle cx="450" cy="0" r="9" fill="#64748b"/>
+      <text x="471" y="7" class="legend">Best published</text>
+    </g>
+
+    <g filter="url(#shadow)">
+      <rect x="60" y="72" width="720" height="510" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.7"/>
+      <rect x="820" y="72" width="720" height="510" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.7"/>
+    </g>
+
+    <text x="100" y="122" class="panel-title">Concurrency 32</text>
+    <text x="100" y="153" class="panel-subtitle">First → best published · compare within each row</text>
+    <text x="860" y="122" class="panel-title">Concurrency 128</text>
+    <text x="860" y="153" class="panel-subtitle">First → best published · compare within each row</text>
+
+    <g stroke="#eef2f7" stroke-width="1.4">
+      <line x1="270" y1="174" x2="270" y2="530"/>
+      <line x1="385" y1="174" x2="385" y2="530"/>
+      <line x1="500" y1="174" x2="500" y2="530"/>
+      <line x1="615" y1="174" x2="615" y2="530"/>
+      <line x1="730" y1="174" x2="730" y2="530"/>
+      <line x1="1030" y1="174" x2="1030" y2="530"/>
+      <line x1="1145" y1="174" x2="1145" y2="530"/>
+      <line x1="1260" y1="174" x2="1260" y2="530"/>
+      <line x1="1375" y1="174" x2="1375" y2="530"/>
+      <line x1="1490" y1="174" x2="1490" y2="530"/>
+    </g>
+
+    <g stroke="#e5e7eb" stroke-width="1.4">
+      <line x1="100" y1="364" x2="740" y2="364"/>
+      <line x1="860" y1="364" x2="1500" y2="364"/>
+    </g>
+
+    <text x="100" y="208" class="row-label">MXFP8 standard</text>
+    <rect x="100" y="225" width="76" height="31" rx="15.5" fill="#eff6ff"/>
+    <text x="138" y="247" class="gain" fill="#1d4ed8" text-anchor="middle">3.14×</text>
+    <text x="190" y="247" class="contract">TP4/EP1 · 4 GPUs</text>
+    <line x1="311.8" y1="298" x2="401.3" y2="298" stroke="#2563eb" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="311.8" cy="298" r="11" fill="#ffffff" stroke="#2563eb" stroke-width="4.5"/>
+    <circle cx="401.3" cy="298" r="11" fill="#2563eb" stroke="#ffffff" stroke-width="3"/>
+    <text x="311.8" y="335" class="value" text-anchor="middle">109.1</text>
+    <text x="401.3" y="335" class="value" text-anchor="middle">342.4</text>
+
+    <text x="100" y="402" class="row-label">MXFP4 standard</text>
+    <rect x="100" y="419" width="76" height="31" rx="15.5" fill="#fff7ed"/>
+    <text x="138" y="441" class="gain" fill="#c2410c" text-anchor="middle">2.33×</text>
+    <text x="190" y="441" class="contract">TP4 history → TP2/EP1 · 2 GPUs</text>
+    <line x1="368.1" y1="492" x2="498.5" y2="492" stroke="#f97316" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="368.1" cy="492" r="11" fill="#ffffff" stroke="#f97316" stroke-width="4.5"/>
+    <rect x="423.7" y="484" width="16" height="16" fill="#f97316" stroke="#ffffff" stroke-width="2.5" transform="rotate(45 431.7 492)"/>
+    <circle cx="498.5" cy="492" r="11" fill="#f97316" stroke="#ffffff" stroke-width="3"/>
+    <text x="368.1" y="529" class="value" text-anchor="middle">255.9</text>
+    <text x="431.7" y="529" class="value" text-anchor="middle">421.8</text>
+    <text x="498.5" y="529" class="value" text-anchor="middle">596.2</text>
+
+    <text x="860" y="208" class="row-label">MXFP8 standard</text>
+    <rect x="860" y="225" width="76" height="31" rx="15.5" fill="#eff6ff"/>
+    <text x="898" y="247" class="gain" fill="#1d4ed8" text-anchor="middle">2.09×</text>
+    <text x="950" y="247" class="contract">TP4/EP1 · 4 GPUs</text>
+    <line x1="1144.2" y1="298" x2="1269.1" y2="298" stroke="#2563eb" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="1144.2" cy="298" r="11" fill="#ffffff" stroke="#2563eb" stroke-width="4.5"/>
+    <circle cx="1269.1" cy="298" r="11" fill="#2563eb" stroke="#ffffff" stroke-width="3"/>
+    <text x="1144.2" y="335" class="value" text-anchor="middle">297.8</text>
+    <text x="1269.1" y="335" class="value" text-anchor="middle">623.7</text>
+
+    <text x="860" y="402" class="row-label">MXFP4 standard</text>
+    <rect x="860" y="419" width="76" height="31" rx="15.5" fill="#fff7ed"/>
+    <text x="898" y="441" class="gain" fill="#c2410c" text-anchor="middle">4.45×</text>
+    <text x="950" y="441" class="contract">TP4 history → TP2/EP1 · 2 GPUs</text>
+    <line x1="1111.3" y1="492" x2="1391.7" y2="492" stroke="#f97316" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="1111.3" cy="492" r="11" fill="#ffffff" stroke="#f97316" stroke-width="4.5"/>
+    <rect x="1296.8" y="484" width="16" height="16" fill="#f97316" stroke="#ffffff" stroke-width="2.5" transform="rotate(45 1304.8 492)"/>
+    <circle cx="1391.7" cy="492" r="11" fill="#f97316" stroke="#ffffff" stroke-width="3"/>
+    <text x="1111.3" y="529" class="value" text-anchor="middle">212.1</text>
+    <text x="1304.8" y="529" class="value" text-anchor="middle">716.8</text>
+    <text x="1391.7" y="529" class="value" text-anchor="middle">943.5</text>
+
+    <g class="tick" text-anchor="middle">
+      <text x="270" y="560">0</text><text x="385" y="560">300</text><text x="500" y="560">600</text><text x="615" y="560">900</text><text x="730" y="560">1,200</text>
+      <text x="1030" y="560">0</text><text x="1145" y="560">300</text><text x="1260" y="560">600</text><text x="1375" y="560">900</text><text x="1490" y="560">1,200</text>
+    </g>
+    <text x="800" y="628" class="axis-title" text-anchor="middle">Output tokens / second / GPU · shared scale</text>
+  </g>
+</svg>

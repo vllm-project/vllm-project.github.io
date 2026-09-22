@@ -109,7 +109,7 @@ Our initial release is optimized for and available on systems running the x86_64
 
 This launch is just the beginning. Our vLLM roadmap is focused on two key areas: expanding platform access and continuous performance tuning.
 
-- **WSL2/Docker Desktop compatibility**: We know that a seamless "inner loop" is critical for developers. We are actively working to bring the vLLM backend to Windows via WSL2. This will allow you to build, test, and prototype high-throughput AI applications Docker Desktop with the same workflow you use in Linux environments, starting with Nvidia Windows machines.
+- **WSL2/Docker Desktop compatibility**: We know that a seamless "inner loop" is critical for developers. We are actively working to bring the vLLM backend to Windows via WSL2. This will allow you to build, test, and prototype high-throughput AI applications on Docker Desktop with the same workflow you use in Linux environments, starting with Nvidia Windows machines.
 - **DGX Spark compatibility**: We are optimizing Docker Model Runner for different kinds of hardware. We are working to add compatibility for Nvidia DGX systems.
 - **Performance Optimization**: We're also actively tracking areas for improvement. While vLLM offers incredible throughput, we recognize that its startup time is currently slower than llama.cpp's. This is a key area we are looking to optimize in future enhancements to improve the "time-to-first-token" for rapid development cycles.
 

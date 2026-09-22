@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">DLO latency-memory Pareto frontier on eight B300 GPUs</title>
+  <desc id="desc">Steady-state latency versus engine-reported peak memory for MiniMax H3 BF16 with SP8 and AllGather DLO. Filled blue points are the Pareto frontier; open gray points are dominated configurations.</desc>
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; fill: #111111; }
+    .axis { stroke: #111111; stroke-width: 1.2; } .grid { stroke: #d9d9d9; stroke-width: 0.8; }
+    .tick { font-size: 13px; } .label { font-size: 14px; } .annotation { font-size: 12px; }
+    .frontier { fill: none; stroke: #0072b2; stroke-width: 1.8; } .frontier-dot { fill: #0072b2; stroke: #ffffff; stroke-width: 1.5; }
+    .dominated-dot { fill: #ffffff; stroke: #8c8c8c; stroke-width: 1.8; }
+  </style>
+  <rect width="800" height="500" fill="#ffffff" />
+  <g class="grid">
+    <line x1="105" y1="390" x2="750" y2="390" /><line x1="105" y1="297" x2="750" y2="297" /><line x1="105" y1="203" x2="750" y2="203" /><line x1="105" y1="110" x2="750" y2="110" />
+    <line x1="157" y1="40" x2="157" y2="390" /><line x1="329" y1="40" x2="329" y2="390" /><line x1="501" y1="40" x2="501" y2="390" /><line x1="673" y1="40" x2="673" y2="390" />
+  </g>
+  <rect x="105" y="40" width="645" height="350" fill="none" class="axis" />
+  <g class="tick" text-anchor="end"><text x="96" y="394">10</text><text x="96" y="301">30</text><text x="96" y="207">50</text><text x="96" y="114">70</text></g>
+  <g class="tick" text-anchor="middle"><text x="157" y="412">26</text><text x="329" y="412">27</text><text x="501" y="412">28</text><text x="673" y="412">29</text></g>
+  <text class="label" x="428" y="458" text-anchor="middle">Steady-state latency (s)</text>
+  <text class="label" transform="translate(28 215) rotate(-90)" text-anchor="middle">Engine-reported peak memory (GiB)</text>
+  <polyline class="frontier" points="137,53 283,118 364,196 444,226 688,364" />
+  <g>
+    <circle class="frontier-dot" cx="137" cy="53" r="5.8" /><text class="annotation" x="146" y="49">baseline</text>
+    <circle class="frontier-dot" cx="283" cy="118" r="5.8" /><text class="annotation" x="292" y="113">r = 50</text>
+    <circle class="frontier-dot" cx="364" cy="196" r="5.8" /><text class="annotation" x="373" y="191">r = 35</text>
+    <circle class="frontier-dot" cx="444" cy="226" r="5.8" /><text class="annotation" x="453" y="243">r = 30</text>
+    <circle class="frontier-dot" cx="688" cy="364" r="5.8" /><text class="annotation" x="678" y="382" text-anchor="end">r = 0</text>
+  </g>
+  <g>
+    <circle class="dominated-dot" cx="425" cy="169" r="5.4" /><text class="annotation" x="434" y="159">r = 40</text>
+    <circle class="dominated-dot" cx="698" cy="281" r="5.4" /><text class="annotation" x="708" y="272">r = 20</text>
+    <circle class="dominated-dot" cx="720" cy="337" r="5.4" /><text class="annotation" x="729" y="332">r = 10</text>
+  </g>
+  <g transform="translate(500 64)">
+    <rect x="0" y="0" width="220" height="48" fill="#ffffff" stroke="#bfbfbf" stroke-width="0.8" />
+    <circle class="frontier-dot" cx="15" cy="15" r="5" /><text class="annotation" x="28" y="19">Pareto-optimal</text>
+    <circle class="dominated-dot" cx="15" cy="34" r="5" /><text class="annotation" x="28" y="38">Dominated</text>
+  </g>
+</svg>
