@@ -2,7 +2,7 @@
 layout: post
 math: true
 title: "Watermarking in vLLM"
-author: "TBD"
+author: "Raphaël Rialland (Mistral AI), Simon Veitner (Red Hat), and Tomas Ruiz (Red Hat)"
 summary: "How vLLM implements distribution-preserving Gumbel-max text watermarking with efficient GPU kernels, statistical detection, speculative decoding, and repeated-context safeguards."
 image: /assets/figures/2026-09-22-watermarking-in-vllm/gumbel-max-sampling.png
 social_image: /assets/figures/2026-09-22-watermarking-in-vllm/gumbel-max-sampling.png
@@ -193,7 +193,7 @@ vLLM now supports distribution-preserving Gumbel-max text watermarking with effi
 
 ## Acknowledgements
 
-This work was made possible through close collaboration with members of the vLLM community. We are grateful for their contributions to the design, implementation, evaluation, and review of these features. In particular, we would like to thank Raphaël Rialland, Wassim Bouaziz, Nicolò Lucchesi, and the team at Mistral AI, as well as Simon Veitner, Tomas Ruiz, and Lucas Wilkinson from Red Hat.
+We thank Wassim Bouaziz, Andy Lo, Nicolò Lucchesi, Victor Paltz, Leila Saidi, and Mickaël Seznec for their thoughtful review and feedback on the article, and Lucas Wilkinson for his contributions to the implementation and review.
 
 ## Appendix
 
@@ -208,4 +208,3 @@ This work was made possible through close collaboration with members of the vLLM
 <a id="ref-4"></a>4. Scott Aaronson and Hendrik Kirchner. “[Watermarking GPT outputs](https://scottaaronson.blog/?m=202302),” 2023.
 
 <a id="ref-5"></a>5. Tom Sander et al. “[TextSeal: A Localized LLM Watermark for Provenance & Distillation Protection](https://arxiv.org/abs/2605.12456).” arXiv:2605.12456 (2026).
-
