@@ -70,7 +70,7 @@ $$
 The sampled token is then:
 
 $$
-v^\star = \argmax_{v \in \mathcal{V}}\ (\log\ p_v + G_v)
+v^\star = \operatorname*{argmax}_{v \in \mathcal{V}}\ (\log\ p_v + G_v)
 $$
 
 A remarkable result of this transformation is that:
