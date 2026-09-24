@@ -155,12 +155,16 @@ The current end-to-end validation covers Qwen3-8B Dense, vime, vLLM, Megatron-LM
 
 ## Acknowledgments
 
-This integration of vime, RL-Kernel, and AMD would not have been possible without the support of our hardware partners, open-source ecosystem collaborators, and development teams. We thank the vLLM community for its close collaboration with RL-Kernel, and especially Ao Shen, vime maintainer at Inferact, for his trust and support in the vime integration, community coordination, and ongoing maintenance.
+This integration of vime, RL-Kernel, and AMD was made possible by the support of our partner organizations and the open-source community.
 
-We sincerely thank Liz Li and Yuhan Yang of AMD for providing AMD Instinct GPU compute resources, in-depth technical collaboration, and long-term support for RL-Kernel. Their support made the end-to-end validation of vime + RL-Kernel on ROCm possible. We also thank Lei Ding of Moore Threads for advancing RL-Kernel's MUSA support, Yang Chen of Huawei for advancing its Ascend support, and Embedded LLM for supporting the project's development and community collaboration.
+- **AMD:** Liz Li and Yuhan Yang, for providing AMD Instinct GPU compute resources, in-depth technical collaboration, and long-term support that enabled the end-to-end validation of vime + RL-Kernel on ROCm.
+- **Inferact:** Ao Shen, vime maintainer, for his trust and support in the vime integration, community coordination, and ongoing maintenance.
+- **Moore Threads:** Lei Ding, for advancing RL-Kernel's MUSA support.
+- **Huawei:** Yang Chen, for advancing RL-Kernel's Ascend support.
+- **Embedded LLM:** For supporting the project's development and community collaboration.
+- **vLLM community:** For its close collaboration with RL-Kernel.
 
-Core contributors to dense-model train–rollout consistency in RL-Kernel v0.1.0: Chutian Wang, Jiajie Li, Siru He, Xiaosong Ma, Kaijie Lin, Jian Zhang, Huihong Lu, Yunxiang Cai, Bosong Yang, Zhewei Liu, Houhong Liang, Ryan Huang, and Vensen Mu.
-
-We also thank contributors whose PRs were merged into v0.1.0: Xiaopeng Du, Yuepeng Pan, Yiyang Fei, Ziying Tao, Zhifu Liu, Zhengtao Chen, Mengjie Li, Zien Liu, and GitHub users haoruilee, luoyueyuguang, hongleng, and smarslou.
+- **RL-Kernel v0.1.0 core contributors:** Chutian Wang, Jiajie Li, Siru He, Xiaosong Ma, Kaijie Lin, Jian Zhang, Huihong Lu, Yunxiang Cai, Bosong Yang, Zhewei Liu, Houhong Liang, Ryan Huang, and Vensen Mu.
+- **Community contributors whose PRs were merged into v0.1.0:** Xiaopeng Du, Yuepeng Pan, Yiyang Fei, Ziying Tao, Zhifu Liu, Zhengtao Chen, Mengjie Li, Zien Liu, and GitHub users haoruilee, luoyueyuguang, hongleng, and smarslou.
 
 The implementation is open source in the [RL-Kernel](https://github.com/RL-Align/RL-Kernel) repository. We welcome feedback and discussion through GitHub Issues and Pull Requests, as well as contributions that extend train–rollout consistency support to more models, hardware platforms, and RL post-training workloads.
