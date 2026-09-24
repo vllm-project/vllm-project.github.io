@@ -2,7 +2,7 @@
 layout: post
 title: "vime × RL-Kernel × AMD: Bitwise Train–Rollout Consistency on ROCm"
 author: "RL-Kernel Team, vime Team, and AMD Team"
-date: 2026-09-14
+date: 2026-09-24
 summary: "vime and RL-Kernel align selected-token logprobs bit for bit across Megatron training and vLLM rollout on AMD Instinct MI300X, with zero mismatches across 200 GRPO steps."
 image: /assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-bitwise-consistency.png
 social_image: /assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-bitwise-consistency.png
