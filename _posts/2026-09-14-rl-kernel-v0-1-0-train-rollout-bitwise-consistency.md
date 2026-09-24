@@ -27,8 +27,6 @@ In an end-to-end GRPO experiment with Qwen3-8B on AMD Instinct MI300X, the vime 
 
 This post focuses on three questions: why mismatches occur, which part of the problem vime and RL-Kernel each solve, and how we verified bitwise consistency while preserving ROCm's native execution path.
 
----
-
 ## Why RL Training Needs Train–Rollout Numerical Consistency
 
 Training and rollout usually run on different execution engines and operators. Even with the same model, weights, and inputs, differences in kernels, parallelism, and reduction order can produce different logprobs.
@@ -87,11 +85,9 @@ As a result, train–rollout mismatch can make the training objective observe an
 
 This integration goes further and sets a stricter target: driving the logprob difference all the way to bitwise equality.
 
----
-
 ## Why the Same Model Produces Different Results
 
-GPUs compute with finite-precision floating point, and rounding can occur at every step. So even with identical inputs, a different computation order can yield a different final result. A simple example: let $a = 100000000$, $b = -100000000$, $c = 1$. Computing $(a + b) + c$ gives 1; but computing $a + (b + c)$, since $|b|$ is far larger than $c$, $b + c$ may round to $-100000000$ in finite precision, and the final result may become 0.
+GPUs perform finite-precision floating-point arithmetic, so rounding can occur at every step. As a simple example, let a = 100000000, b = −100000000, and c = 1. Computing (a + b) + c gives 1. Computing a + (b + c) may instead give 0 because b + c can round back to −100000000 in finite precision.
 
 Training and inference face exactly the same problem. The training side is built for packed sequences, backpropagation, and multi-GPU parallelism; the inference side is built for prefill, decode, dynamic batching, and paged KV cache. Even with identical model, weights, and inputs, the two sides may use different block sizes, Split-K / Split-KV, reduction orders, fusion, and intermediate precision.
 
@@ -114,7 +110,7 @@ $$
 - $T_v$: the order in which partial results are merged.
 - $P_v$: the precision of inputs, accumulators, intermediate states, and outputs.
 - $Q_v$: where rounding or downcasting happens.
-- $A_v$: the numerical primitives actually used: exp, log, rsqrt, SiLU, FMA, etc.
+- $A_v$: the numerical primitives actually used — exp, log, rsqrt, SiLU, FMA, etc.
 
 The candidate numerical divergence between training and rollout can be written as:
 
@@ -124,8 +120,6 @@ $$
 
 Bitwise consistency means making both sides follow the same observable numerical contract along the forward path being compared.
 
----
-
 ## vime Aligns the Timeline, RL-Kernel Aligns Numerical Execution
 
 The division of labor can be summarized as:
@@ -133,9 +127,9 @@ The division of labor can be summarized as:
 - **vime aligns the training timeline:** which batch of tokens belongs to which step, which weight version generated them, which rollout record feeds which update, and when new weights are synced to vLLM.
 - **RL-Kernel aligns numerical execution:** which values participate in the computation, how they are tiled and merged, what intermediate precision is used, and at which boundary rounding occurs.
 
-This division of labor is the same on CUDA and ROCm, but the numerical rules ultimately have to be realized in each platform's operators, compilers, and communication implementations. Paths already validated on CUDA therefore need to be adapted and re-verified item by item on ROCm. To do so, we added deterministic AMD MFMA GEMM, vocabulary reduction, and HIP IPC communication; fixed the compute schedule of AITER/CK Attention; handled last-bit differences caused by math functions and compiler fusion; and fixed state issues in paged KV layout and HIP Graph replay. Only after these adaptations can the weights and tokens aligned by vime flow through training and inference along a consistent numerical path, ultimately keeping logprobs bitwise identical for 200 consecutive training and rollout steps on the 8×MI300X, Qwen3-8B validation configuration.
+This division of labor is the same on CUDA and ROCm, but the numerical rules ultimately have to be realized in each platform's operators, compilers, and communication implementations. Paths already validated on CUDA therefore need to be adapted and re-verified item by item on ROCm. To do so, we added deterministic AMD MFMA GEMM, vocabulary reduction, and HIP IPC communication; fixed the compute schedule of AITER/CK Attention; handled last-bit differences caused by math functions and compiler fusion; and fixed state issues in paged KV layout and HIP Graph replay. Only after these adaptations can the weights and tokens aligned by vime flow through training and inference along a consistent numerical path — ultimately keeping logprobs bitwise identical for 200 consecutive training and rollout steps on the 8×MI300X, Qwen3-8B validation configuration.
 
-## Confirming Both Sides Compute the Same Object
+### Confirming Both Sides Compute the Same Object
 
 Before comparing floating-point results, check:
 
@@ -148,7 +142,7 @@ Before comparing floating-point results, check:
 
 If any of the above is inconsistent, the sample should be marked comparable = false, and the final difference must not be attributed directly to kernels.
 
-## Why Numerical Divergences in a Transformer Must Be Handled Together
+### Why Numerical Divergences in a Transformer Must Be Handled Together
 
 RMSNorm, GEMM, Attention, linear logp, and distributed collectives look like separate modules, but they all contain reductions:
 
@@ -159,8 +153,6 @@ $$
 Under finite precision, block size, Split-K/Split-KV, reduction tree, collective tree, exp/log implementation, intermediate precision, and fusion all change the merge order and rounding boundaries of partial results. Attention's Split-KV merge, linear logprob's cross-TP vocabulary merge, GEMM's K-dimension reduction, and ROCm collectives are essentially one numerical chain.
 
 The RL-Kernel strict path therefore pins down, all at once, the reduction domain, tiling and merge order, intermediate precision, numerical primitives, and fallback behavior. Pinning down a single kernel or collective alone is still not enough to guarantee bitwise-consistent logprobs in vime.
-
----
 
 ## Which Boundaries RL-Kernel Pins Down in vime
 
@@ -176,8 +168,6 @@ The RL-Kernel strict path covers the main forward boundaries that determine logp
 
 This contract does not require training and rollout to share all memory layouts and scheduling policies. The two engines can still optimize independently, as long as those optimizations do not change the numerical semantics of the compared results.
 
----
-
 ## Locating the First Divergence with Ablations
 
 In operator ablations, P denotes the production path and R denotes the RL-Kernel strict path. The left of the slash is training; the right is rollout:
@@ -190,8 +180,6 @@ In operator ablations, P denotes the production path and R denotes the RL-Kernel
 | R/R | RL-Kernel | RL-Kernel | Fully aligned strict control path |
 
 When localizing Attention, FFN, logprob, and collectives should remain at the same baseline; the same principle applies when localizing FFN. Only by changing one boundary at a time can the final logprob difference be traced back to the first non-zero output.
-
----
 
 ## 200-Step Alignment Experiment with vime on ROCm
 
@@ -225,7 +213,7 @@ Figure 1 places the train/rollout mismatch count and maximum absolute Δlogp on 
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-bitwise-consistency.png" alt="Consistency comparison between native vime and vime plus RL-Kernel" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
-<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 1: Consistency comparison between native vime and vime + RL-Kernel.</em></p>
+<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 1: Consistency comparison between native vime and vime + RL-Kernel (Qwen3-8B · TP4/CP2 · temperature 0.7 · top_p 0.95 · max response 6912 · ROCm MI300X).</em></p>
 
 These signals appear together over the same period, consistent with the continued accumulation of train–rollout mismatch, providing end-to-end evidence for strict alignment. What it directly demonstrates is that vime + RL-Kernel can maintain both verifiable bitwise consistency and a more stable training trajectory over the full 200 steps.
 
@@ -233,38 +221,13 @@ Figure 2 shows the mean absolute train/rollout logprob difference over 200 steps
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-mean-abs-logprob-diff.png" alt="Mean absolute train-rollout logprob difference across 200 ROCm steps" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
-<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 2: Mean absolute train–rollout logprob difference across 200 steps.</em></p>
+<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 2: Mean absolute train/rollout logprob difference over 200 steps (vime vs RL-Kernel + vime · Qwen3-8B · ROCm MI300X).</em></p>
 
 Figure 3 compares the performance of native vime and vime + RL-Kernel over 200 steps.
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-performance-matrix.png" alt="VIME Qwen3-8B 200-step performance matrix" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
-<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 3: Performance matrix for native vime and the strict vime + RL-Kernel path.</em></p>
-
-**Mean performance over 200 paired steps**
-
-| Metric | Unit | vime | RL-Kernel + vime | RL-Kernel + vime vs vime | Finding |
-|---|---|---:|---:|---:|---|
-| Rollout time | s / step | 81.47 | 68.02 | +16.5% | RL-Kernel + vime faster |
-| Rollout throughput | tok/GPU/s | 76.8 | 86.4 | +12.5% | RL-Kernel + vime higher |
-| Reference logp | s / step | 2.60 | 6.36 | -144.4% | vime faster |
-| Actor train | s / step | 8.95 | 14.91 | -66.6% | vime faster |
-| Actor throughput | tok/s | 5,694 | 3,209 | -43.7% | vime higher |
-| Total train | s / step | 14.78 | 27.66 | -87.2% | vime faster |
-| End-to-end step | s / step | 99.24 | 99.04 | +0.2% | Parity |
-
-**Quality and strict train/rollout consistency**
-
-| Metric | Unit | vime | RL-Kernel + vime | RL-Kernel + vime vs vime | Finding |
-|---|---|---:|---:|---:|---|
-| Mean raw reward | score | 0.321875 | 0.385625 | +0.063750 | RL-Kernel + vime higher |
-| Mean KL loss | loss | 0.007687 | 0.001091 | +85.8% | RL-Kernel + vime lower |
-| Mismatch count | mean / step | 3,829.2 | 0.0 | exactly zero | RL-Kernel + vime PASS |
-| Max \|Delta logp\| | max / 200 | 13.872876 | 0.0 | exactly zero | RL-Kernel + vime PASS |
-
-*Arithmetic means over all 200 logged steps; positive percentages mean RL-Kernel + vime is better. temperature 0.7 · top_p 0.95 · max response 6912 · learning rate 5e-7 · KL coefficient 0.01*
-
----
+<p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 3: Aligned configuration · 1 node · 8× AMD Instinct MI300X 192GB · TP4/CP2 · global batch 8 · seed 1234.</em></p>
 
 ## What vime × RL-Kernel Achieves on ROCm
 
@@ -274,15 +237,11 @@ Figure 3 compares the performance of native vime and vime + RL-Kernel over 200 s
 - **Complete ROCm execution evidence:** The kernels, HIP Graph, paged KV, collectives, and fallback paths actually executed are recorded, ensuring results come from the intended ROCm backend.
 - **Fast fault localization:** Ablations pinpoint the specific operators and system boundaries involved in train–rollout inconsistency.
 
-On 8 AMD Instinct MI300X GPUs, RL-Kernel + vime achieves zero mismatches across all 200 steps at roughly 0.2% end-to-end performance overhead. The results show that strict train–rollout consistency has progressed from correctness validation to a ROCm implementation with quantifiable performance overhead, traceable execution paths, and reproducible results, laying the groundwork for production deployment and further performance optimization.
-
----
+On 8 AMD Instinct MI300X GPUs, RL-Kernel + vime achieves zero mismatches across all 200 steps at roughly 0.2% end-to-end performance overhead. The results show that strict train–rollout consistency has progressed from correctness validation to a ROCm implementation with quantifiable performance overhead, traceable execution paths, and reproducible results — laying the groundwork for production deployment and further performance optimization.
 
 ## Current Scope and Next Steps
 
 The current end-to-end validation covers Qwen3-8B Dense, vime, vLLM, Megatron-LM, and AMD Instinct MI300X. Next, we will extend to more MoE and multimodal models and AMD GPU architectures, and continue optimizing the performance of the ROCm strict path.
-
----
 
 ## Acknowledgments
 
