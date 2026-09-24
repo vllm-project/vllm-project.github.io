@@ -15,12 +15,6 @@ tags:
   - ecosystem
 ---
 
-## TL;DR
-
-- vime connects Megatron training, vLLM rollout, and a Data Buffer into a complete RL post-training workflow. RL-Kernel makes Megatron and vLLM follow the same numerical execution contract when computing logprobs.
-- In an end-to-end Qwen3-8B GRPO experiment on AMD Instinct MI300X, the vime + RL-Kernel strict path ran for 200 consecutive steps with `mismatch_count = 0` and `max_abs_diff = 0` throughout.
-- This post explains why train–rollout mismatches occur, how vime and RL-Kernel divide the work, and how we implemented and validated bitwise consistency while preserving native ROCm execution paths.
-
 ## Why RL Training Needs Train–Rollout Numerical Consistency
 
 Training and rollout usually use different execution engines and operators. Even with the same model, weights, and inputs, differences in kernels, parallelism, and reduction order can produce different logprobs.
@@ -139,7 +133,7 @@ We completed a strict 200-step validation on ROCm within the full vime workflow 
 | KL loss | Enabled, coefficient 0.001 |
 | Validation | Inputs and source values were frozen before and after the run; every step had to pass provenance and mismatch checks |
 
-Across all 200 steps of the strict path, both `mismatch_count` and `max_abs_diff` remained zero.
+Across all 200 steps of the strict path, both mismatch_count and max_abs_diff remained zero.
 
 ### 200-Step Training Trajectory
 
@@ -159,7 +153,7 @@ Figure 2 shows the mean absolute train–rollout logprob difference over 200 ste
 
 ## What vime × RL-Kernel Achieves on ROCm
 
-- **Bitwise correctness:** Training and rollout logprobs match exactly on ROCm. Across all 200 steps, `mismatch_count` remains zero and the maximum logprob difference is also zero.
+- **Bitwise correctness:** Training and rollout logprobs match exactly on ROCm. Across all 200 steps, mismatch_count remains zero and the maximum logprob difference is also zero.
 - **Stable consistency guarantees:** Zero mismatch is maintained throughout the 200-step end-to-end training run, making results easier to verify and reproduce.
 - **Complete ROCm execution evidence:** The validation records the kernels, HIP Graph execution, paged KV, collectives, and fallback paths actually used at runtime.
 - **Fast failure localization:** Operator ablations identify the specific operator or system boundary where train–rollout divergence begins.
