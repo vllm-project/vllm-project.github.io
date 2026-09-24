@@ -130,7 +130,7 @@ We completed a strict 200-step validation on ROCm within the full vime workflow 
 | Dataset | dapo-math-17k |
 | Seeds | Training 1234, rollout 1234 |
 | Sampling | 1 prompt × 8 samples per step, global batch 8 |
-| Response limit | 7,168 tokens |
+| Response limit | 6,912 tokens |
 | Dynamic batching | Maximum 4,096 tokens/GPU |
 | vLLM memory utilization | 0.38 |
 | HIP Graph | FULL_AND_PIECEWISE, preserving the production graph execution path |
@@ -162,7 +162,7 @@ Figure 2 shows the mean absolute train–rollout logprob difference over 200 ste
 - **Complete ROCm execution evidence:** The validation records the kernels, HIP Graph execution, paged KV, collectives, and fallback paths actually used at runtime.
 - **Fast failure localization:** Operator ablations identify the specific operator or system boundary where train–rollout divergence begins.
 
-On 8× AMD Instinct MI300X, RL-Kernel + vime maintained zero mismatch across all 200 steps. This result moves strict train–rollout consistency beyond correctness validation toward a ROCm implementation with quantifiable performance cost, traceable execution paths, and reproducible experimental results, providing a foundation for production deployment and further optimization.
+On 8× AMD Instinct MI300X, RL-Kernel + vime maintained zero mismatch across all 200 steps.
 
 ## Current Scope and Next Steps
 
