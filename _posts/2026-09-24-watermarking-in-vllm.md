@@ -2,7 +2,7 @@
 layout: post
 math: true
 title: "Watermarking in vLLM"
-author: "Raphaël Rialland (Mistral AI), Simon Veitner (Red Hat), and Tomas Ruiz (Red Hat)"
+author: "Raphaël Rialland (Mistral), Simon Veitner (Red Hat), and Tomas Ruiz (Red Hat)"
 summary: "How vLLM implements distribution-preserving Gumbel-max text watermarking with efficient GPU kernels, statistical detection, speculative decoding, and repeated-context safeguards."
 image: /assets/figures/2026-09-24-watermarking-in-vllm/gumbel-max-sampling.png
 social_image: /assets/figures/2026-09-24-watermarking-in-vllm/gumbel-max-sampling.png
