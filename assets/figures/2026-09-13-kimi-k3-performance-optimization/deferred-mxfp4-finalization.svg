@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="760" viewBox="0 0 1600 760" role="img" aria-labelledby="title desc">
+  <title id="title">Deferred MXFP4 finalization</title>
+  <desc id="desc">Before, the MXFP4 MoE path used a separate finalize kernel and wrote an intermediate tensor. After, deferred outputs are finalized inside the latent tail.</desc>
+  <defs>
+    <linearGradient id="page-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5f9ff"/>
+      <stop offset="0.42" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#1687ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+      .title { font-size: 42px; font-weight: 800; fill: #0f172a; letter-spacing: -0.6px; }
+      .panel-title { font-size: 18px; font-weight: 820; letter-spacing: 1.5px; }
+      .box-title { font-size: 21px; font-weight: 780; }
+      .box-sub { font-size: 16px; font-weight: 620; }
+      .chip { font-size: 16px; font-weight: 740; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="760" fill="url(#page-bg)"/>
+
+  <g class="sans">
+    <text x="60" y="72" class="title">Deferred MXFP4 finalization</text>
+
+    <g filter="url(#shadow)">
+      <rect x="55" y="115" width="710" height="590" rx="24" fill="#ffffff" stroke="#dbe3ee" stroke-width="1.5"/>
+      <rect x="795" y="115" width="750" height="590" rx="24" fill="#fafdff" stroke="#93c5fd" stroke-width="2"/>
+    </g>
+
+    <!-- Before -->
+    <g>
+      <text x="90" y="160" class="panel-title" fill="#64748b">BEFORE</text>
+
+      <rect x="180" y="190" width="460" height="64" rx="15" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+      <text x="410" y="217" text-anchor="middle" class="box-title" fill="#1d4ed8">MXFP4 MoE</text>
+      <text x="410" y="240" text-anchor="middle" class="box-sub" fill="#64748b">GEMM2</text>
+
+      <line x1="410" y1="256" x2="410" y2="287" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+      <rect x="165" y="295" width="490" height="115" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+      <text x="410" y="327" text-anchor="middle" class="box-title" fill="#c2410c">Finalize kernel</text>
+      <text x="410" y="359" text-anchor="middle" class="box-sub" fill="#7c2d12">Unpermute · router weights</text>
+      <text x="410" y="385" text-anchor="middle" class="box-sub" fill="#7c2d12">Top-k reduction</text>
+
+      <line x1="410" y1="412" x2="410" y2="443" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+      <rect x="210" y="451" width="400" height="54" rx="13" fill="#fff1f2" stroke="#fda4af" stroke-width="1.5"/>
+      <text x="410" y="485" text-anchor="middle" class="box-title" fill="#be123c">Write [M, 3584]</text>
+
+      <line x1="410" y1="507" x2="410" y2="538" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+      <rect x="145" y="546" width="530" height="90" rx="15" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.3"/>
+      <text x="410" y="578" text-anchor="middle" class="box-title" fill="#475569">Latent tail reads tensor</text>
+      <text x="410" y="609" text-anchor="middle" class="box-sub" fill="#64748b">AllReduce + RMSNorm · Up Projection · shared expert</text>
+    </g>
+
+    <!-- After -->
+    <g>
+      <text x="835" y="160" class="panel-title" fill="#1d4ed8">AFTER</text>
+
+      <rect x="900" y="190" width="540" height="64" rx="15" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+      <text x="1170" y="217" text-anchor="middle" class="box-title" fill="#1d4ed8">MXFP4 MoE · do_finalize=False</text>
+      <text x="1170" y="240" text-anchor="middle" class="box-sub" fill="#64748b">GEMM2</text>
+
+      <line x1="1170" y1="256" x2="1170" y2="287" stroke="#60a5fa" stroke-width="2.7" marker-end="url(#arrow)"/>
+
+      <g>
+        <rect x="830" y="295" width="210" height="50" rx="12" fill="#dbeafe"/>
+        <rect x="1065" y="295" width="210" height="50" rx="12" fill="#ede9fe"/>
+        <rect x="1300" y="295" width="210" height="50" rx="12" fill="#ecfdf5"/>
+        <text x="935" y="326" text-anchor="middle" class="chip" fill="#1d4ed8">GEMM2 output</text>
+        <text x="1170" y="326" text-anchor="middle" class="chip" fill="#6d28d9">Router weights</text>
+        <text x="1405" y="326" text-anchor="middle" class="chip" fill="#047857">Permutation map</text>
+      </g>
+
+      <path d="M 935 347 L 935 381 L 1170 381 L 1170 414" fill="none" stroke="#60a5fa" stroke-width="2.5" marker-end="url(#arrow)"/>
+      <path d="M 1170 347 L 1170 414" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arrow)"/>
+      <path d="M 1405 347 L 1405 381 L 1170 381" fill="none" stroke="#34d399" stroke-width="2.5"/>
+
+      <rect x="845" y="422" width="650" height="214" rx="18" fill="url(#blue)"/>
+      <text x="1170" y="458" text-anchor="middle" class="box-title" fill="#ffffff">Latent tail</text>
+
+      <rect x="885" y="482" width="570" height="64" rx="13" fill="#ffffff" fill-opacity="0.16" stroke="#ffffff" stroke-opacity="0.38"/>
+      <text x="1170" y="509" text-anchor="middle" class="box-sub" fill="#ffffff">Unpermute · router weights · top-k reduction</text>
+
+      <line x1="1170" y1="548" x2="1170" y2="569" stroke="#bfdbfe" stroke-width="2.2" marker-end="url(#arrow)"/>
+      <text x="1170" y="599" text-anchor="middle" class="box-sub" fill="#ffffff">AllReduce + RMSNorm · Up Projection · shared expert</text>
+    </g>
+  </g>
+</svg>
