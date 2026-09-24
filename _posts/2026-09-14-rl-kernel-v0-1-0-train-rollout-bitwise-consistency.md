@@ -98,19 +98,6 @@ The RL-Kernel strict path covers the main forward boundaries that determine logp
 
 This contract does not require training and rollout to share every memory layout or scheduling policy. The two engines can still optimize independently as long as those optimizations do not change the numerical semantics of the compared results.
 
-## Locating the First Divergence with Ablations
-
-In operator ablations, P denotes the production path and R denotes the RL-Kernel strict path. The left side of the slash is training; the right side is rollout:
-
-| Combination | Training | Rollout | Purpose |
-|---|---|---|---|
-| P/P | Production | Production | Observe native vime behavior |
-| P/R | Production | RL-Kernel | Replace only the rollout side |
-| R/P | RL-Kernel | Production | Replace only the training side |
-| R/R | RL-Kernel | RL-Kernel | Run the fully aligned strict control path |
-
-When localizing Attention, FFN, logprob, or collectives, all other boundaries remain on the same baseline. Changing one boundary at a time lets us trace the final logprob difference back to the first non-zero output.
-
 ## 200-Step Alignment Experiment with vime on ROCm
 
 We completed a strict 200-step validation on ROCm within the full vime workflow of Megatron training and vLLM rollout, with zero mismatches throughout. vime handled rollout, training, weight synchronization, and the sample lifecycle, while RL-Kernel aligned the numerical execution path used to compute logprobs in the same pipeline.
