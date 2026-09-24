@@ -22,7 +22,7 @@ RL-Kernel adds an optional strict execution path to vime. vime continues to mana
 
 In an end-to-end Qwen3-8B GRPO experiment on AMD Instinct MI300X, the strict vime + RL-Kernel path ran for 200 consecutive steps. At every step, the logprobs recomputed by the training engine and those recorded by the rollout engine satisfied:
 
-**200 steps · mismatch_count = 0 · max_abs_diff = 0**
+<p style="text-align:center;"><strong>200 steps · mismatch_count = 0 · max_abs_diff = 0</strong></p>
 
 This post focuses on three questions: why mismatch occurs, which parts are handled by vime and RL-Kernel, and how we verify bitwise consistency while preserving native ROCm execution paths.
 
