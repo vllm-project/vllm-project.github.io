@@ -23,7 +23,7 @@ tags:
 
 Training and rollout usually use different execution engines and operators. Even with the same model, weights, and inputs, differences in kernels, parallelism, and reduction order can produce different logprobs.
 
-This is a long-standing issue in RL systems because it affects the importance ratio, KL, and clipping. Existing work has focused mainly on NVIDIA platforms, while systematic exploration on ROCm has been more limited.
+This is a long-standing issue in RL systems because it affects the importance ratio, rollout–training KL diagnostics, and clipping. Existing work has focused mainly on NVIDIA platforms, while systematic exploration on ROCm has been more limited.
 
 Building on vime × RL-Kernel, this work aligns the Attention, FFN, logprob, and communication paths on AMD Instinct MI300X to achieve bitwise train–rollout consistency.
 
@@ -61,7 +61,7 @@ Their respective roles are:
 - **vime aligns the training timeline:** which token batch belongs to which step, which weight version generated it, which rollout record enters an update, and when new weights are synchronized to vLLM.
 - **RL-Kernel aligns numerical execution:** which values participate in a computation, how they are partitioned and merged, which intermediate precision is used, and where rounding occurs.
 
-This division of labor is the same on CUDA and ROCm, but the numerical rules must ultimately be implemented in each platform's operators, compiler, and communication stack. Paths already validated on CUDA therefore had to be adapted and revalidated on ROCm. We added deterministic AMD MFMA GEMM, vocabulary reduction, and HIP IPC communication; fixed the execution schedule of AITER/CK Attention; addressed last-bit differences caused by math functions and compiler fusion; and fixed state issues in paged KV layout and HIP Graph replay.
+This division of labor is the same on CUDA and ROCm, but the numerical rules must ultimately be implemented in each platform's operators, compiler, and communication stack. Paths already validated on CUDA therefore had to be adapted and revalidated on ROCm. We added deterministic MFMA-based GEMM kernels, vocabulary reduction, and HIP IPC communication; fixed the execution schedule of AITER/CK Attention; addressed last-bit differences caused by math functions and compiler fusion; and fixed state issues in paged KV layout and HIP Graph replay.
 
 After these adaptations, the weights and tokens aligned by vime could pass through training and inference along the same numerical path. On an 8× MI300X Qwen3-8B configuration, the resulting logprobs remained bitwise identical for 200 consecutive training and rollout steps.
 
@@ -73,7 +73,7 @@ Before comparing floating-point results, we verify that the following match:
 - prefix, token, and active mask;
 - position, RoPE, causal mask, and padding mask;
 - logical K/V after paged KV cache mapping;
-- sequence, head, and vocabulary ownership;
+- global sequence/head/vocabulary indexing and shard-to-global mapping;
 - the true vocabulary range and any random state relevant to the comparison.
 
 If any condition differs, the sample is marked $\mathrm{comparable} = \mathrm{false}$, and the final difference is not attributed to kernels.
@@ -142,7 +142,7 @@ Figure 2 shows the mean absolute train–rollout logprob difference over 200 ste
 
 ## What vime × RL-Kernel Achieves on ROCm
 
-- **Bitwise correctness:** Training and rollout logprobs match exactly on ROCm. Across all 200 steps, mismatch_count remains zero and the maximum logprob difference is also zero.
+- **Bitwise consistency:** Training and rollout logprobs match exactly on ROCm. Across all 200 steps, mismatch_count remains zero and the maximum logprob difference is also zero.
 - **Stable consistency guarantees:** Zero mismatch is maintained throughout the 200-step end-to-end training run, making results easier to verify and reproduce.
 - **Complete ROCm execution evidence:** The validation records the kernels, HIP Graph execution, paged KV, collectives, and fallback paths actually used at runtime.
 - **Fast failure localization:** Operator ablations identify the specific operator or system boundary where train–rollout divergence begins.
