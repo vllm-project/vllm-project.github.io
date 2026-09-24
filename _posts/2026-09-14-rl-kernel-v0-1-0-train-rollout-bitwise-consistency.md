@@ -15,6 +15,10 @@ tags:
   - ecosystem
 ---
 
+- vime connects Megatron training, vLLM rollout, and a Data Buffer into a complete RL post-training workflow. RL-Kernel makes Megatron and vLLM follow the same numerical execution contract when computing logprobs.
+- In an end-to-end Qwen3-8B GRPO experiment on AMD Instinct MI300X, the vime + RL-Kernel strict path ran for 200 consecutive steps with mismatch_count = 0 and max_abs_diff = 0 throughout.
+- This post explains why train–rollout mismatches occur, how vime and RL-Kernel divide the work, and how we implemented and validated bitwise consistency while preserving native ROCm execution paths.
+
 ## Why RL Training Needs Train–Rollout Numerical Consistency
 
 Training and rollout usually use different execution engines and operators. Even with the same model, weights, and inputs, differences in kernels, parallelism, and reduction order can produce different logprobs.
