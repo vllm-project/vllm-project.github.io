@@ -26,15 +26,13 @@ In an end-to-end Qwen3-8B GRPO experiment on AMD Instinct MI300X, the strict vim
 
 This post focuses on three questions: why mismatch occurs, which parts are handled by vime and RL-Kernel, and how we verify bitwise consistency while preserving native ROCm execution paths.
 
-## Why vime Needs Stricter Train–Rollout Alignment
+## Why RL Training Requires Train–Rollout Numerical Consistency
 
-vime uses a disaggregated training-and-rollout architecture:
+Training and rollout typically use different execution engines and operators. Even with the same model, weights, and inputs, different kernels, parallelization strategies, and reduction orders can still produce different logprobs.
 
-- **Training (Megatron):** Executes forward, backward, and optimizer steps, then synchronizes updated weights to the rollout side.
-- **Rollout (vLLM + Router):** Executes sampling, prefill, decode, and KV-cache management, producing training samples and their rollout logprobs.
-- **Data Buffer:** Connects training and rollout while managing prompts, responses, rewards, and custom rollout logic.
+This is a long-standing problem in RL systems because it affects importance ratios, KL divergence, and clipping. Systematic end-to-end investigation of this issue on ROCm remains comparatively limited.
 
-This architecture allows training and generation to use the execution engines best suited to their workloads. However, the two engines optimize for different goals and therefore form different numerical paths.
+Building on vime × RL-Kernel, we align the Attention, FFN, logprob, and communication paths on AMD Instinct MI300X to achieve bitwise-consistent training and rollout.
 
 The rollout engine generates token *a<sub>t</sub>* from prefix *h<sub>t</sub>* and records:
 
@@ -108,6 +106,8 @@ Their respective roles are:
 
 Without vime's timeline synchronization, even deterministic kernels may compare different weight versions or different tokens. Without RL-Kernel's numerical alignment, two engines may interpret the same model through different floating-point paths even when the weight version is identical.
 
+On ROCm, these numerical rules must ultimately be implemented in the operators, compiler, and communication stack. To complete that work, we added deterministic GEMM using AMD MFMA, aligned vocabulary reduction and HIP IPC communication, fixed the execution schedule for AITER/CK Attention, addressed last-bit differences introduced by math functions and compiler fusion, and corrected state issues in paged-KV layout and HIP Graph replay. With these adaptations, the weights and tokens aligned by vime follow a consistent numerical path through training and rollout. On 8× AMD Instinct MI300X with Qwen3-8B, logprobs remained bitwise identical for 200 consecutive training and rollout steps.
+
 ## Confirming That Both Sides Compute the Same Object
 
 Before comparing floating-point results, we verify that the following match:
@@ -121,7 +121,7 @@ Before comparing floating-point results, we verify that the following match:
 
 If any condition differs, the sample should be marked comparable = false; the final difference cannot be attributed directly to a kernel.
 
-## Why Numerical Divergence Must Be Addressed End to End
+## Why Numerical Divergence Across the Transformer Must Be Addressed Together
 
 RMSNorm, GEMM, Attention, linear logp, and distributed collectives may appear to be separate modules, but all of them contain reductions:
 
@@ -206,12 +206,15 @@ Figure 3 compares the performance of native vime and vime + RL-Kernel across the
 
 <p style="text-align:center;opacity:0.7;font-size:0.95em;"><em>Figure 3: Performance matrix for native vime and the strict vime + RL-Kernel path.</em></p>
 
-## What This Integration Adds to vime
+## What vime × RL-Kernel Achieves on ROCm
 
-- **Bitwise correctness mode:** Directly verifies whether independently computed logprobs are exactly equal.
-- **Failure localization:** Uses ablation experiments to identify the specific boundary where divergence begins.
-- **Backend evidence:** Records kernels, Graph execution, paged KV, collectives, and fallback state to verify the actual runtime path.
-- **Stability:** Supports stable, exactly reproducible vime training runs under demanding workloads.
+- **Bitwise correctness:** Training and rollout logprobs match exactly on ROCm. Across all 200 steps, mismatch_count remains zero and the maximum logprob difference is also zero.
+- **Controlled end-to-end overhead:** The mean end-to-end step time is 110.76 seconds for RL-Kernel + vime, compared with 94.66 seconds for native vime—an overhead of approximately 17% for the strict consistency path.
+- **Stable consistency guarantees:** Zero mismatch is maintained throughout the 200-step end-to-end training run, making results easier to verify and reproduce.
+- **Complete ROCm execution evidence:** The validation records the kernels, HIP Graph execution, paged KV, collectives, and fallback paths actually used at runtime.
+- **Fast failure localization:** Operator ablations identify the specific operator or system boundary where train–rollout divergence begins.
+
+On 8× AMD Instinct MI300X, RL-Kernel + vime maintained zero mismatch across all 200 steps with approximately 17% end-to-end overhead. The result moves strict train–rollout consistency beyond correctness validation toward a ROCm implementation with quantifiable performance cost, traceable execution paths, and reproducible experimental results—providing a foundation for production deployment and further optimization.
 
 ## Current Scope and Next Steps
 
