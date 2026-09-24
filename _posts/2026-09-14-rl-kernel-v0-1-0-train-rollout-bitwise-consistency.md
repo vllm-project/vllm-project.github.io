@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "vime × RL-Kernel × AMD: Bitwise-Consistent Training and Rollout on ROCm"
-author: "RL-Kernel Team, vime Contributors, and AMD Contributors"
+title: "vime × RL-Kernel × AMD: Achieving Bitwise-Consistent Training and Rollout on ROCm"
+author: "RL-Kernel Team, vime Team, and AMD Team"
 date: 2026-09-14
 summary: "vime and RL-Kernel align selected-token logprobs bit for bit across Megatron training and vLLM rollout on AMD Instinct MI300X, with zero mismatch across 200 GRPO steps."
 image: /assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-bitwise-consistency.png
@@ -14,9 +14,9 @@ tags:
   - ecosystem
 ---
 
-vime connects Megatron training, vLLM rollout, and the Data Buffer into a complete RL post-training workflow. It coordinates sample generation, training, weight updates, and the next rollout so that both engines advance along the same policy timeline.
+vime brings Megatron training, vLLM rollout, and the Data Buffer together in a complete RL post-training workflow. It coordinates sample generation, training, weight updates, and subsequent rollouts so that both engines advance along the same policy timeline.
 
-In a real system, however, the same weight version does not necessarily produce the same logprob. Training and rollout serve different workloads and may select different kernels, partitions, reduction orders, and intermediate precision. Even when the model, weights, inputs, and tokens are identical, the two sides can still produce different floating-point results.
+In a real system, however, the same set of weights does not necessarily produce the same logprob. Training and rollout serve different workloads and may select different kernels, partitioning strategies, reduction orders, and intermediate precision. Even when the model, weights, inputs, and tokens are identical, the two sides can still produce different floating-point results.
 
 RL-Kernel adds an optional strict execution path to vime. vime continues to manage the complete training-and-rollout workflow and weight lifecycle, while RL-Kernel makes Megatron and vLLM follow the same numerical execution contract when computing logprobs.
 
@@ -48,7 +48,7 @@ On-policy RL uses the two values to construct the importance ratio:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/equation-importance-ratio.png" alt="Importance ratio" style="display:block;margin:0 auto;width:2.00417in;max-width:100%;" />
 
-If the policy has not yet been updated and both sides are evaluating the same logical object, ideally:
+If the policy has not yet changed and both sides are evaluating the same logical object, then ideally:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/equation-ideal-ratio.png" alt="Ideal equality before a policy update" style="display:block;margin:0 auto;width:2.01139in;max-width:100%;" />
 
@@ -60,7 +60,7 @@ When δ<sub>t</sub> is small, ρ<sub>t</sub> ≈ 1 + δ<sub>t</sub>. This error 
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/equation-clipped-objective.png" alt="Clipped policy objective" style="display:block;margin:0 auto;width:4.39472in;max-width:100%;" />
 
-The total error can be decomposed further. Let *q<sub>t</sub> = exp(ℓ<sub>t</sub><sup>T</sup>)* be the probability from training scoring and *μ<sub>t</sub> = exp(ℓ<sub>t</sub><sup>R</sup>)* be the probability recorded by rollout. Let *s<sub>t</sub><sup>P</sup>* and *s<sub>t</sub><sup>D</sup>* be the probabilities assigned to the same token by serving prefill and an independent decode replay:
+The total discrepancy can be decomposed further. Let *q<sub>t</sub> = exp(ℓ<sub>t</sub><sup>T</sup>)* be the probability from training scoring and *μ<sub>t</sub> = exp(ℓ<sub>t</sub><sup>R</sup>)* be the probability recorded by rollout. Let *s<sub>t</sub><sup>P</sup>* and *s<sub>t</sub><sup>D</sup>* be the probabilities assigned to the same token by serving prefill and an independent decode replay:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/equation-error-decomposition.png" alt="Train-rollout error decomposition" style="display:block;margin:0 auto;width:1.67194in;max-width:100%;" />
 
@@ -68,17 +68,15 @@ The first term compares training scoring with serving prefill, the second compar
 
 Train–rollout mismatch can therefore make the training objective observe an extra policy shift before the parameters are actually updated. If the error is large enough, it may also change which clipping branch is selected.
 
-vime's `--use-rollout-logprobs` mode reuses the rollout logprob directly on the Megatron side. This can reduce the mismatch's direct impact on the loss, but it cannot answer a more fundamental question: when Megatron and vLLM independently recompute the probability of the same token, do they obtain exactly the same result?
-
 This integration establishes a stricter target: bit-for-bit equality of independently computed logprobs.
 
 ## Why the Same Model Can Produce Different Results
 
-GPUs use finite-precision floating-point arithmetic, and rounding can occur at every step. As a simple example, let *a = 100000000*, *b = −100000000*, and *c = 1*. Computing *(a + b) + c* gives 1. Computing *a + (b + c)* may instead give 0 because *b + c* can round back to −100000000 in finite precision.
+GPUs perform finite-precision floating-point arithmetic, so rounding can occur at every step. As a simple example, let *a = 100000000*, *b = −100000000*, and *c = 1*. Computing *(a + b) + c* gives 1. Computing *a + (b + c)* may instead give 0 because *b + c* can round back to −100000000 in finite precision.
 
 Training and inference face the same issue. Training is optimized for packed sequences, backward propagation, and cross-device parallelism. Inference is optimized for prefill, decode, dynamic batching, and paged KV cache. Even with identical models, weights, and inputs, the two sides may choose different block sizes, Split-K or Split-KV strategies, reduction orders, fusion boundaries, and intermediate precision.
 
-The same model therefore does not imply that training and rollout execute the same floating-point program, nor does it guarantee identical logprobs.
+The same model therefore does not imply that training and rollout execute the same floating-point program, and it does not guarantee identical logprobs.
 
 We can write the actual execution of a computation node *v* as:
 
@@ -103,7 +101,7 @@ Bitwise consistency means that both sides follow the same observable numerical c
 
 ## vime Aligns the Timeline; RL-Kernel Aligns Numerical Execution
 
-Their responsibilities can be summarized as follows:
+Their respective roles are:
 
 - **vime aligns the training timeline:** which token batch belongs to which step, which weight version generated it, which rollout record enters an update, and when new weights are synchronized to vLLM.
 - **RL-Kernel aligns numerical execution:** which values participate in a computation, how they are partitioned and merged, which intermediate precision is used, and where rounding occurs.
@@ -112,7 +110,7 @@ Without vime's timeline synchronization, even deterministic kernels may compare 
 
 ## Confirming That Both Sides Compute the Same Object
 
-Before comparing floating-point results, we check:
+Before comparing floating-point results, we verify that the following match:
 
 - checkpoint and weight version;
 - prefix, token, and active mask;
@@ -123,9 +121,9 @@ Before comparing floating-point results, we check:
 
 If any condition differs, the sample should be marked `comparable = false`; the final difference cannot be attributed directly to a kernel.
 
-## Why Transformer Numerical Divergences Must Be Treated Together
+## Why Numerical Divergence Must Be Addressed End to End
 
-RMSNorm, GEMM, Attention, linear logp, and distributed collectives appear to be separate modules, but all of them contain reductions:
+RMSNorm, GEMM, Attention, linear logp, and distributed collectives may appear to be separate modules, but all of them contain reductions:
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/equation-nested-reduction.png" alt="Nested reductions across Transformer operations" style="display:block;margin:0 auto;width:4.42361in;max-width:100%;" />
 
@@ -147,22 +145,22 @@ The RL-Kernel strict path covers the main forward boundaries that determine logp
 
 This contract does not require training and rollout to share every memory layout or scheduling policy. The two engines may still optimize independently as long as those optimizations do not change the numerical semantics of the compared result.
 
-## Locating the First Divergence with Ablations
+## Using Ablations to Locate the First Divergence
 
 In operator-ablation experiments, **P** denotes the production path and **R** denotes the RL-Kernel strict path. The left side of the slash is training and the right side is rollout:
 
 | **Combination** | **Training** | **Rollout** | **Purpose** |
 |---|---|---|---|
-| P/P | Production | Production | Observe the native vime path |
-| P/R | Production | RL-Kernel | Replace only rollout and check where divergence appears |
-| R/P | RL-Kernel | Production | Replace only training and check where divergence appears |
+| P/P | Production | Production | Observe native vime execution |
+| P/R | Production | RL-Kernel | Replace only the rollout path and check for divergence |
+| R/P | RL-Kernel | Production | Replace only the training path and check for divergence |
 | R/R | RL-Kernel | RL-Kernel | Fully aligned strict control path |
 
 When isolating Attention, the remaining FFN, logprob, and collective paths must stay on the same baseline. The same principle applies when isolating FFN. Changing one boundary at a time makes it possible to trace the final logprob difference back to the first nonzero output.
 
 ## A 200-Step vime Alignment Experiment on ROCm
 
-We completed a 200-step strict validation in a full vime workflow composed of Megatron training and vLLM rollout, with zero mismatch throughout. This is an end-to-end validation of vime + RL-Kernel. vime manages rollout, training, weight synchronization, and the sample lifecycle; RL-Kernel aligns the numerical execution path for logprob inside the same workflow.
+We completed a strict 200-step validation in a full vime workflow composed of Megatron training and vLLM rollout, with zero mismatch throughout. This is an end-to-end validation of vime + RL-Kernel. vime manages rollout, training, weight synchronization, and the sample lifecycle; RL-Kernel aligns the numerical execution path for logprob within the same workflow.
 
 ### Experimental Configuration
 
@@ -188,13 +186,13 @@ Across all 200 steps of the strict path, `mismatch_count` and `max_abs_diff` are
 
 ### 200-Step Training Trajectory
 
-Figure 1 places the train–rollout mismatch count and maximum absolute Δlogp on the same 200-step timeline. The RL-Kernel strict path remains at zero mismatch throughout, while the native vime path shows mismatch at every step.
+Figure 1 plots the train–rollout mismatch count and maximum absolute Δlogp on the same 200-step timeline. The RL-Kernel strict path remains at zero mismatch throughout, while the native vime path shows a mismatch at every step.
 
 <img src="/assets/figures/2026-09-14-rl-kernel-v0-1-0/rocm-bitwise-consistency.png" alt="Training and bitwise consistency across 200 ROCm steps" style="display:block;margin:0 auto;width:6.5in;max-width:100%;" />
 
 *Figure 1: Consistency comparison between native vime and vime + RL-Kernel.*
 
-These signals appear together across the same phase and are consistent with the sustained accumulation of train–rollout mismatch, providing end-to-end evidence for strict alignment. The experiment directly demonstrates that vime + RL-Kernel can preserve verifiable bitwise consistency and a more stable training trajectory across the complete 200-step run.
+These signals emerge over the same interval and are consistent with persistent train–rollout mismatch. Together, they provide end-to-end evidence for strict alignment. The experiment directly shows that vime + RL-Kernel can maintain verifiable bitwise consistency and a more stable training trajectory throughout the 200-step run.
 
 Figure 2 shows the mean absolute train–rollout logprob difference over 200 steps. vime + RL-Kernel remains at zero throughout.
 
@@ -208,12 +206,12 @@ Figure 3 compares the performance of native vime and vime + RL-Kernel across the
 
 *Figure 3: Performance matrix for native vime and the strict vime + RL-Kernel path.*
 
-## What This Integration Brings to vime
+## What This Integration Adds to vime
 
 - **Bitwise correctness mode:** Directly verifies whether independently computed logprobs are exactly equal.
 - **Failure localization:** Uses ablation experiments to identify the specific boundary where divergence begins.
 - **Backend evidence:** Records kernels, Graph execution, paged KV, collectives, and fallback state to verify the actual runtime path.
-- **Stability:** Keeps vime training stable under demanding workloads and makes runs fully reproducible.
+- **Stability:** Supports stable, exactly reproducible vime training runs under demanding workloads.
 
 ## Current Scope and Next Steps
 
@@ -221,7 +219,7 @@ The current end-to-end validation covers Qwen3-8B Dense, vime, vLLM, Megatron-LM
 
 ## Acknowledgements
 
-This integration among vime, RL-Kernel, and AMD would not have been possible without the support of our hardware partners, open-source ecosystem collaborators, and development teams. We thank the vLLM community for its close collaboration with RL-Kernel. We especially thank Ao Shen, vime maintainer at Inferact, for the trust and support provided throughout the vime integration, community coordination, and ongoing maintenance.
+This collaboration between vime, RL-Kernel, and AMD would not have been possible without the support of our hardware partners, open-source ecosystem collaborators, and development teams. We thank the vLLM community for working closely with RL-Kernel. We especially thank Ao Shen, a vime maintainer at Inferact, for supporting the vime integration, community coordination, and ongoing maintenance.
 
 We sincerely thank Liz Li and Yuhan Yang from AMD for providing AMD Instinct GPU compute resources, deep technical collaboration, and long-term support, enabling vime + RL-Kernel to complete end-to-end train–rollout consistency validation on ROCm. We also thank Lei Ding from Moore Threads for advancing RL-Kernel support for MUSA, Yang Chen from Huawei for advancing RL-Kernel support for Ascend, and Embedded LLM for supporting project development and community collaboration.
 
