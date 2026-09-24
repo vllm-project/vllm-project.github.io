@@ -27,7 +27,7 @@ This is a long-standing issue in RL systems because it affects the importance ra
 
 Building on vime × RL-Kernel, this work aligns the Attention, FFN, logprob, and communication paths on AMD Instinct MI300X to achieve bitwise train–rollout consistency.
 
-Concretely, the rollout engine generates token $a_t$ from prefix $h_t$ and records logprob $\ell_t^R$. The training engine then recomputes the same token under the same weight version to obtain $\ell_t^T$. We track the difference $\delta_t = \ell_t^T - \ell_t^R$ and the corresponding importance ratio $\rho_t = \exp(\delta_t)$.
+Concretely, the rollout engine generates token $a_t$ from prefix $h_t$ and records the rollout-side logprob $\ell_t^R$. The training engine then recomputes the same token under the same weight version to obtain $\ell_t^T$. We track the difference $\delta_t = \ell_t^T - \ell_t^R$ and the corresponding importance ratio $\rho_t = \exp(\delta_t)$.
 
 Before the policy update, both sides should be scoring the same token with the same weights. The ideal target is therefore $\delta_t = 0$ and $\rho_t = 1$. Any non-zero difference introduces an additional numerical policy shift, which can propagate into KL and clipping. The strict target of this integration is to make the logprob difference bitwise zero.
 
@@ -162,3 +162,5 @@ We sincerely thank Liz Li and Yuhan Yang of AMD for providing AMD Instinct GPU c
 Core contributors to dense-model train–rollout consistency in RL-Kernel v0.1.0: Chutian Wang, Jiajie Li, Siru He, Xiaosong Ma, Kaijie Lin, Jian Zhang, Huihong Lu, Yunxiang Cai, Bosong Yang, Zhewei Liu, Houhong Liang, Ryan Huang, and Vensen Mu.
 
 We also thank contributors whose PRs were merged into v0.1.0: Xiaopeng Du, Yuepeng Pan, Yiyang Fei, Ziying Tao, Zhifu Liu, Zhengtao Chen, Mengjie Li, Zien Liu, and GitHub users haoruilee, luoyueyuguang, hongleng, and smarslou.
+
+The implementation is open source in the [RL-Kernel](https://github.com/RL-Align/RL-Kernel) repository. We welcome feedback and discussion through GitHub Issues and Pull Requests, as well as contributions that extend train–rollout consistency support to more models, hardware platforms, and RL post-training workloads.
