@@ -29,9 +29,9 @@ vLLM offers several points where work can be split and they can be combined.
 
 **Prefill and decode** run as two instances. What passes between them is the KV cache: the attention keys and values for every prompt token which decode needs before it can emit anything. It's big. Llama-3.1-70B in BF16 stores 320 KiB per token, so a 10k-token prompt hands decode about 3 GB. That's roughly 65 ms at a 400 Gb/s line rate before any overhead and all of it lands on TTFT. A [KV connector](https://docs.vllm.ai/en/latest/features/disagg_prefill/) moves it, usually over RDMA. There are more than a dozen connectors upstream now, including NIXL, LMCache, Mooncake, FlexKV and AMD's MoRI-IO, plus a `MultiConnector` that chains them.
 
-**The frontend** comes off the GPU box entirely. `/render` turns an OpenAI request into token IDs, the engine runs token-in / token-out and `/derender` turns the output token IDs back into a proper OpenAI response with `content`, `reasoning` and `tool_calls` split out. That last leg only landed recently and it's what closes the loop.
+**The frontend** comes off the GPU box entirely. `/render` turns an OpenAI request into token IDs, the engine runs token-in / token-out and `/derender` turns the output token IDs back into a proper OpenAI response with `content`, `reasoning` and `tool_calls` split out. That last leg only landed recently and it completes the round trip.
 
-**Beyond P/D**, there's [encoder disaggregation](https://vllm.ai/blog/2025-12-15-vllm-epd) for multimodal and the [AFD plugin](https://vllm.ai/blog/2026-07-23-vllm-afd-plugin) for splitting attention from FFN in MoE models. Both apply the same disaggregation principle but at different points in the model pipeline. P/D itself now also covers [hybrid SSM models](https://vllm.ai/blog/2026-04-21-hybrid-ssm-disagg) with Mamba state transfer included.
+**Beyond P/D**, there's [encoder disaggregation](https://vllm.ai/blog/2025-12-15-vllm-epd) for multimodal and the [AFD plugin](https://vllm.ai/blog/2026-07-23-vllm-afd-plugin) for splitting attention from FFN in MoE models. Both use the same idea at a different point in the model. P/D itself now also covers [hybrid SSM models](https://vllm.ai/blog/2026-04-21-hybrid-ssm-disagg) with Mamba state transfer included.
 
 <p align="center">
 <picture>
@@ -43,23 +43,23 @@ vLLM offers several points where work can be split and they can be combined.
 
 ## What It Buys You and What It Costs
 
-The pitch isn't raw throughput. The [disaggregated prefill docs](https://docs.vllm.ai/en/latest/features/disagg_prefill/) say it outright: **disaggregated prefill does not improve throughput.** What it buys you is control and control is what you're actually selling when you sign an SLA.
+The pitch isn't raw throughput. The [disaggregated prefill docs](https://docs.vllm.ai/en/latest/features/disagg_prefill/) say it outright: **disaggregated prefill does not improve throughput.** What you get is control over latency which is what an SLA is really about.
 
 **You can tune TTFT and ITL independently.** Different parallelism on each tier, sized for the phase it's running. Prefill can be TP-heavy, decode can be sized for batch. Neither change drags the other one with it.
 
-**Tail latency gets boring.** A decode instance that only ever runs decode batches produces stable per-token latency no matter what's arriving at the front door. Chunked prefill gets you partway there but only if you guess the chunk size right and that guess moves with the traffic.
+**Tail latency stays low as load climbs.** A decode instance that only runs decode batches never has a long prefill stall its streams. Chunked prefill gets you partway there, but the right chunk size depends on the traffic, so you end up retuning it.
 
 This was measured on one box with two NVIDIA L40S GPUs (48 GB, PCIe, no NVLink): Qwen2.5-7B-Instruct, ~8k-token prompts, 256 output tokens, 100 Poisson-arrival requests per rate, prefix caching off. Collocated is one `vllm serve --data-parallel-size 2`, so both setups get the same two GPUs. P/D is one prefiller and one decoder over NIXL behind the example proxy.
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-09-20-disaggregated-serving-guide/itl-tail.svg" width="95%" alt="p99 inter-token latency: collocated 23, 169 and 182 ms versus P/D 25, 29 and 30 ms at 0.2, 0.4 and 0.6 req/s">
+<img src="/assets/figures/2026-09-20-disaggregated-serving-guide/itl-tail.svg" width="95%" alt="p99 and median inter-token latency against offered load from 0.2 to 2 req/s. Collocated p99 jumps from 23 ms to 169 ms at 0.4 req/s and reaches 263 ms at 2 req/s. P/D p99 stays between 25 and 52 ms.">
 </picture>
 <br>
-<em>Figure 2. Median ITL is 21–24 ms in both setups. At 0.4 req/s, collocated p99 jumps to 169 ms while P/D holds at 29 ms.</em>
+<em>Figure 2. Median ITL is 21–24 ms in both setups up to 1 req/s. At 0.4 req/s, collocated p99 jumps to 169 ms while P/D holds at 29 ms and never exceeds 52 ms.</em>
 </p>
 
-Same median, about six times the tail. That's 8k-token prefills landing on a GPU that's also decoding and stalling every stream on it until they finish. P/D keeps them off the decode GPU entirely.
+At 0.4–0.6 req/s the medians match and the collocated p99 is about six times higher. That's 8k-token prefills landing on a GPU that's also decoding and stalling every stream on it until they finish. P/D keeps them off the decode GPU entirely.
 
 **Every first token pays for the transfer.** On this box it paid a lot. At 0.2 req/s, where nothing should queue, P/D median TTFT is 2.2 s against 0.7 s collocated. Almost all of that extra 1.5 s is the KV transfer: each 8k prompt hands decode about 470 MB of KV cache (56 KiB per token for Qwen2.5-7B) and each pull takes about 1.3 s. The GPUs can't do peer-to-peer copies (`nvidia-smi topo -p2p r` reports `NS`), so every block detours through host memory.
 
@@ -71,11 +71,11 @@ Same median, about six times the tail. That's 8k-token prefills landing on a GPU
 <em>Figure 3. P/D throughput flattens at about 182 tok/s (≈0.7 req/s), and its goodput stays near zero. Goodput counts requests that meet TTFT under 2 s and TPOT under 30 ms.</em>
 </p>
 
-That slow transfer caps throughput too and it sinks goodput. Goodput is the request rate you can sustain while requests still meet both latency targets which is what an SLA actually cares about. P/D fails on TTFT at every rate, even though its decode speed passes TPOT easily. Collocated fails the other way: prefill interference pushes more and more requests past 30 ms per token, so its goodput peaks at 0.43 req/s and falls to zero by 2 req/s.
+That slow transfer caps throughput too and it sinks goodput. Goodput is the request rate you can sustain while requests still meet both latency targets which is what an SLA cares about. P/D fails on TTFT at every rate, even though its decode speed passes TPOT easily. Collocated fails the other way: prefill interference pushes more and more requests past 30 ms per token, so its goodput peaks at 0.43 req/s and falls to zero by 2 req/s.
 
-This is less a P/D trade-off than a slow wire. With a transfer in the tens of milliseconds, P/D's TTFT would sit close to collocated's and its flat tail would start winning goodput wherever collocated's falls apart. So check the transfer before you benchmark anything else. On one box, `nvidia-smi topo -p2p r` should say `OK` between your prefill and decode GPUs. Then send a few long prompts one at a time and read decode's `KV Transfer metrics` line. If `Avg xfer time` is in the hundreds of milliseconds, fix that first.
+So the problem here is the slow wire, not P/D itself. With a transfer in the tens of milliseconds, P/D's TTFT would sit close to collocated's and its flat tail would start winning goodput wherever collocated's falls apart. So check the transfer before you benchmark anything else. On one box, `nvidia-smi topo -p2p r` should say `OK` between your prefill and decode GPUs. Then send a few long prompts one at a time and read decode's `KV Transfer metrics` line. If `Avg xfer time` is in the hundreds of milliseconds, fix that first.
 
-**Goodput goes up when the transfer is fast.** AMD's single-node [MoRI-IO benchmark](https://vllm.ai/blog/2026-04-07-moriio-kv-connector) ran Qwen3-235B-A22B-FP8 at 8 req/s on one 8-GPU MI300X node. 73 of 100 requests met both a 1 s TTFT and a 50 ms ITL target, against 30 of 100 for collocated serving. That's about 2.4× the goodput, with no extra hardware, just a different arrangement of it. At cluster scale, [llm-d's P/D guide](https://github.com/llm-d/llm-d/tree/main/guides/pd-disaggregation) reports about 59% lower mean end-to-end latency and 67% lower P95 for gpt-oss-120b on 16 H200s, compared with the same GPUs run as aggregated replicas.
+**Goodput goes up when the transfer is fast.** AMD's single-node [MoRI-IO benchmark](https://vllm.ai/blog/2026-04-07-moriio-kv-connector) ran Qwen3-235B-A22B-FP8 at 8 req/s on one 8-GPU MI300X node. 73 of 100 requests met both a 1 s TTFT and a 50 ms ITL target, against 30 of 100 for collocated serving. That's about 2.4× the goodput on the same hardware. At cluster scale, [llm-d's P/D guide](https://github.com/llm-d/llm-d/tree/main/guides/pd-disaggregation) reports about 59% lower mean end-to-end latency and 67% lower P95 for gpt-oss-120b on 16 H200s, compared with the same GPUs run as aggregated replicas.
 
 **The CPU tier is cheap.** Once tokenization and parsing move off the GPU box, you scale them against CPU load instead of buying accelerator time to run a tokenizer. Long prompts, multimodal preprocessing and reasoning or tool parsing are where the render tier does real work and none of it needs a GPU. On the same box, templating and tokenizing a 9k-token chat prompt for Qwen2.5-7B cost about 15 ms of CPU. One render server with default settings topped out at 73 req/s using just over one core. At the 0.4 req/s where collocated's tail fell apart, rendering is under 1% of one core.
 
@@ -116,7 +116,7 @@ python tests/v1/kv_connector/nixl_integration/toy_proxy_server.py --port 8192 \
 
 The proxy is what ties them together. For each request it calls prefill first, with `max_tokens=1` and `kv_transfer_params: {"do_remote_decode": true}`. Prefill computes the KV cache, holds the blocks and returns `kv_transfer_params` that point at them. The proxy then forwards the original request to decode with those params attached and decode pulls the blocks over NIXL before it generates.
 
-Point your client at 8192 and it looks like any other OpenAI endpoint. The proxy in `tests/` is an example that's fine for development but not for production. Check out llm-d and Dynamo for production level capability.
+Point your client at 8192 and it looks like any other OpenAI endpoint. The proxy in `tests/` is an example that's fine for development but not for production. For production, look at llm-d or Dynamo.
 
 Three settings worth knowing early. `VLLM_NIXL_SIDE_CHANNEL_PORT` must be unique per worker on a host. `kv_lease_duration` (set in `kv_connector_extra_config`, default 30s) controls how long the prefiller holds blocks waiting for the decoder to collect them. Under load, that's the timeout you'll be tuning. And `kv_load_failure_policy` decides what happens when a transfer fails: `fail`, the default, errors the request, while `recompute` has decode recompute the missing KV itself. Slower, but the request survives.
 
@@ -311,7 +311,7 @@ Long prompts dominate the wire. The parser path resends `prompt_token_ids` in fu
 
 Some small correctness gaps are being worked on. Batch derender doesn't always return `finish_reason: "tool_calls"` when it parses tool calls (fix pending in [#47931](https://github.com/vllm-project/vllm/pull/47931)) and it mints its own tool call IDs instead of keeping the parser's. Logprobs come back from the tokenizer free engine as `"token_id:N"` placeholder strings which works but isn't ideal. [#57574](https://github.com/vllm-project/vllm/issues/57574) proposes returning real integer token IDs. 
 
-There is one open design piece of work in progress. [#56851](https://github.com/vllm-project/vllm/issues/56851) asks whether `/inference/v1/generate` should just return text or derendered output directly, skipping the third hop for callers who don't need it. 
+One design question is still open. [#56851](https://github.com/vllm-project/vllm/issues/56851) asks whether `/inference/v1/generate` should just return text or derendered output directly, skipping the third hop for callers who don't need it.
 
 The umbrella RFCs are [#42729](https://github.com/vllm-project/vllm/issues/42729) (detokenization batch), [#47161](https://github.com/vllm-project/vllm/issues/47161) (detokenization streaming), [#22817](https://github.com/vllm-project/vllm/issues/22817) (tokens-in, tokens-out) and [#34407](https://github.com/vllm-project/vllm/issues/34407) (disaggregated frontend). Please weigh in on the RFCs and let us know what you think.
 
