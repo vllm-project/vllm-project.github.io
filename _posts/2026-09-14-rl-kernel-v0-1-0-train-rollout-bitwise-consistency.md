@@ -61,8 +61,6 @@ Their respective roles are:
 - **vime aligns the training timeline:** which token batch belongs to which step, which weight version generated it, which rollout record enters an update, and when new weights are synchronized to vLLM.
 - **RL-Kernel aligns numerical execution:** which values participate in a computation, how they are partitioned and merged, which intermediate precision is used, and where rounding occurs.
 
-Without vime's timeline synchronization, even deterministic kernels may compare different weight versions or different tokens. Without RL-Kernel's numerical alignment, two engines may interpret the same model through different floating-point paths even when the weight version is identical.
-
 This division of labor is the same on CUDA and ROCm, but the numerical rules must ultimately be implemented in each platform's operators, compiler, and communication stack. Paths already validated on CUDA therefore had to be adapted and revalidated on ROCm. We added deterministic AMD MFMA GEMM, vocabulary reduction, and HIP IPC communication; fixed the execution schedule of AITER/CK Attention; addressed last-bit differences caused by math functions and compiler fusion; and fixed state issues in paged KV layout and HIP Graph replay.
 
 After these adaptations, the weights and tokens aligned by vime could pass through training and inference along the same numerical path. On an 8× MI300X Qwen3-8B configuration, the resulting logprobs remained bitwise identical for 200 consecutive training and rollout steps.
