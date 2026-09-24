@@ -4,8 +4,8 @@ math: true
 title: "Watermarking in vLLM"
 author: "Raphaël Rialland (Mistral AI), Simon Veitner (Red Hat), and Tomas Ruiz (Red Hat)"
 summary: "How vLLM implements distribution-preserving Gumbel-max text watermarking with efficient GPU kernels, statistical detection, speculative decoding, and repeated-context safeguards."
-image: /assets/figures/2026-09-22-watermarking-in-vllm/gumbel-max-sampling.png
-social_image: /assets/figures/2026-09-22-watermarking-in-vllm/gumbel-max-sampling.png
+image: /assets/figures/2026-09-24-watermarking-in-vllm/gumbel-max-sampling.png
+social_image: /assets/figures/2026-09-24-watermarking-in-vllm/gumbel-max-sampling.png
 tags:
   - watermarking
   - sampling
@@ -77,7 +77,7 @@ $$
 
 In other words, adding Gumbel noise to the token log-probabilities and taking their argmax produces the exact same categorical distribution as ordinary random sampling: in fact, [Model Runner v2’s standard sampling path](https://github.com/vllm-project/vllm/blob/f92b78f6ef9c9b28f60668da77af5b65645b1a45/vllm/v1/worker/gpu/sample/sampler.py#L341-L352) already uses this process. In practice, we can apply Gumbel noise directly to the logits, avoiding a softmax and making the computation more parallelizable.
 
-![Gumbel-max sampling example: model probabilities for table, mat, and chair are combined with Gumbel noise. “mat” wins one draw, while 20,000 repetitions come close to recovering the original 18%, 57%, and 25% distribution.](/assets/figures/2026-09-22-watermarking-in-vllm/gumbel-max-sampling.png)
+![Gumbel-max sampling example: model probabilities for table, mat, and chair are combined with Gumbel noise. “mat” wins one draw, while 20,000 repetitions come close to recovering the original 18%, 57%, and 25% distribution.](/assets/figures/2026-09-24-watermarking-in-vllm/gumbel-max-sampling.png)
 
 To make these random draws reproducible, we use a pseudorandom function (PRF) [[4]](#ref-4). A PRF deterministically maps a key and an input to a value that behaves like a random uniform draw: since the same inputs always produce the same output, a detector can reconstruct the values used during generation. We replace each independent uniform draw $U_v$ with:
 
@@ -91,7 +91,7 @@ Including the token ID is important as it allows every token to receive differen
 
 The generator computes these keyed values for each candidate token, and selects the token with the largest noised log-probability. Given the same key and context this choice can be reproduced, but without the key it looks like an ordinary random sample.
 
-![Bar chart comparing Qwen3.5-27B quality with and without dual-key watermarking: GSM8K 93.0% versus 94.2%, MBPP 79.2% versus 77.2%, and IFEval 90.7% versus 91.9%, with overlapping error bars.](/assets/figures/2026-09-22-watermarking-in-vllm/quality.svg)
+![Bar chart comparing Qwen3.5-27B quality with and without dual-key watermarking: GSM8K 93.0% versus 94.2%, MBPP 79.2% versus 77.2%, and IFEval 90.7% versus 91.9%, with overlapping error bars.](/assets/figures/2026-09-24-watermarking-in-vllm/quality.svg)
 
 This gives the method a precise guarantee of non-distortion: in expectation over keys, the probability of selecting token $v$ remains exactly $p_v$. However, this alone does not guarantee that complete sequences will be distortion-free. We discuss this limitation and its solutions further in “Maintaining output diversity”.
 
@@ -119,11 +119,11 @@ $$
 
 therefore follows a Gamma distribution with shape $n$ and scale $1$. This lets us compute a one-sided p-value: the probability that unwatermarked text would produce a score at least as large as $S$. A small p-value is evidence that the text is consistent with the watermark.
 
-![Animation of watermark detection: each token's key and preceding context reconstruct keyed noise, which becomes a token score. Scores are summed and compared with the unwatermarked Gamma distribution to obtain a p-value.](/assets/figures/2026-09-22-watermarking-in-vllm/watermark-detection-animation.gif)
+![Animation of watermark detection: each token's key and preceding context reconstruct keyed noise, which becomes a token score. Scores are summed and compared with the unwatermarked Gamma distribution to obtain a p-value.](/assets/figures/2026-09-24-watermarking-in-vllm/watermark-detection-animation.gif)
 
 Choosing a threshold trades false positives against false negatives. For a calibrated test, $p \leq 0.01$ will flag approximately 1% of unwatermarked sequences as positives. In practice, we might also test against several keys, tokenizers, or watermarking configurations. This increases the chance of finding a large score by accident, requiring us to apply a multiple-testing correction. As the number of candidates grows, the threshold becomes smaller and our detection power falls.
 
-![Watermark detection power at 1% FPR versus distinct scored tokens for 1, 10, and 100 candidate tests. Creative writing approaches 100% TPR by about 100 tokens; MBPP rises more slowly and reaches about 69%, 49%, and 43% at 400 tokens.](/assets/figures/2026-09-22-watermarking-in-vllm/detection-power.svg)
+![Watermark detection power at 1% FPR versus distinct scored tokens for 1, 10, and 100 candidate tests. Creative writing approaches 100% TPR by about 100 tokens; MBPP rises more slowly and reaches about 69%, 49%, and 43% at 400 tokens.](/assets/figures/2026-09-24-watermarking-in-vllm/detection-power.svg)
 
 Detection becomes stronger as independent evidence accumulates: long outputs provide more tokens to score, and high entropy steps give the watermark more opportunities to influence token selection. Short or predictable outputs therefore provide less signal.
 
@@ -137,7 +137,7 @@ A naïve implementation would materialize a `[batch, vocabulary]` noise tensor, 
 
 A per-row mask lets the same fused sampler use keyed noise for watermarked requests and ordinary randomness for unwatermarked requests or repeated contexts.
 
-![Decode throughput for Qwen3.5-27B with MTP-3 across batch sizes 1–256. The watermarked and unwatermarked curves closely overlap throughout, showing no consistent throughput change.](/assets/figures/2026-09-22-watermarking-in-vllm/decode-throughput.svg)
+![Decode throughput for Qwen3.5-27B with MTP-3 across batch sizes 1–256. The watermarked and unwatermarked curves closely overlap throughout, showing no consistent throughput change.](/assets/figures/2026-09-24-watermarking-in-vllm/decode-throughput.svg)
 
 Across eight keys, mean matched throughput changes ranged from −1.1% to +2.0% across batch sizes, with no significant slowdown.
 
@@ -177,7 +177,7 @@ After generating `1` again, the context `(1, +, 1, +)` has repeated. The fixed k
 
 This is a worst-case scenario, but the impact of this correlation across contexts may generally lead to lower diversity within a sequence, increased rates of degenerate behaviour, longer generations, and reduced output quality.
 
-![Output-length survival on Qwen3.5-2B math prompts: plain watermarking produces many capped long outputs, dual-key reduces the excess, and context deduplication matches unwatermarked decoding.](/assets/figures/2026-09-22-watermarking-in-vllm/output-length-survival.svg)
+![Output-length survival on Qwen3.5-2B math prompts: plain watermarking produces many capped long outputs, dual-key reduces the excess, and context deduplication matches unwatermarked decoding.](/assets/figures/2026-09-24-watermarking-in-vllm/output-length-survival.svg)
 
 vLLM addresses this with [generation-time context deduplication (PR #56233)](https://github.com/vllm-project/vllm/pull/56233), which skips watermarking whenever a context repeats and preserves single-sequence non-distortion. Despite checking the preceding generation for repeated contexts at every step, it reduced end-to-end throughput by at most 0.19% on Qwen3.5-27B.
 
