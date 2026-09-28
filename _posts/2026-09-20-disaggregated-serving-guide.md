@@ -9,7 +9,7 @@ tags:
   - disaggregation
 ---
 
-**TL;DR:** vLLM can now be split across two dimensions. Prefill and decode run on separate instances with the KV cache transferred through a connector. Tokenization, detokenization, tool-call parsing and reasoning parsing run on a CPU-only frontend via `/render` and `/derender`. This leaves the GPU focused on token generation while everything else runs on lower cost CPUs. For chat and agent workflows, prefill can reuse conversation state from decode instead of recomputing it. In this post, we will show how to run each piece on vLLM v0.30.0 or later, how they fit together, who's running it in production and what's still missing.
+**TL;DR:** A single `vllm serve` process does three jobs that get in each other's way: processing prompts (prefill), generating tokens (decode) and a pile of CPU work around them. vLLM can now pull all three apart. Splitting prefill from decode stops long prompts stalling everyone else's output, as long as the KV cache moves between them fast. Moving tokenization and parsing to a CPU-only frontend (`/render`, `/derender`) takes that work off your GPU nodes and leaves the engine working purely in token IDs. This post covers when each split is worth it and how to run it on vLLM v0.30.0 or later.
 
 ---
 
@@ -17,7 +17,7 @@ tags:
 
 Start a plain `vllm serve` and you get one process handling three workloads that have nothing in common.
 
-Prefill chews through the whole prompt in parallel. Big GEMMs, compute bound, cost scales with input length and it sets your time to first token (TTFT). Decode emits one token at a time, dragging model weights out of HBM on every step. It's memory bandwidth bound and it sets your inter-token latency (ITL). Put them on the same GPU and they fight. One long prompt lands mid-batch and dozens of decode streams stutter while it clears. That's the ITL spike everyone sees the moment concurrency goes up.
+One long prompt arrives while dozens of requests are mid-response and every one of those streams stutters until it's processed. It's the spike you see the moment concurrency goes up. The cause is two phases with little in common sharing one GPU. Prefill reads the whole prompt in one pass, is limited by compute and sets your time to first token (TTFT). Decode is the opposite. It produces one token at a time and what holds it back is how fast the GPU can read the model weights from memory which sets your inter-token latency (ITL). Put them on the same GPU and every decode stream waits while a long prefill runs.
 
 The third job however is quieter and easier to miss. Chat templating, tokenization, detokenization, reasoning parsing, tool call parsing. All pure CPU work running on a box you're renting for its accelerators.
 
