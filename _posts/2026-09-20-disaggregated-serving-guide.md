@@ -43,7 +43,7 @@ vLLM offers several points where work can be split and they can be combined.
 
 ## What It Buys You and What It Costs
 
-The pitch isn't peak throughput. With no latency target, splitting the same GPUs into prefill and decode pools won't necessarily move more tokens per second. What it buys is **goodput**: the request rate you can sustain while requests still meet both their TTFT and ITL targets. This is what an SLA is really about.
+The pitch isn't peak throughput. With no latency target, splitting the same GPUs into prefill and decode pools won't necessarily move more tokens per second. What it buys is **goodput**: the request rate you can sustain while requests still meet both their TTFT and ITL targets.
 
 **You can tune TTFT and ITL independently.** Different parallelism on each tier, sized for the phase it's running. Prefill can be TP-heavy, decode can be sized for batch. Neither change drags the other one with it.
 
@@ -140,6 +140,10 @@ One warning for reasoning models. Decode's blocks include the thinking traces it
 
 ## Running the GPU-Less Frontend
 
+Taking CPU work off the GPU box is only part of it. Once the engine takes token IDs in and gives token IDs out, it doesn't need the chat template or the parsers any more, and the caller gets to see and use the token IDs. A router can render a request, then pick a replica on prefix cache hits for the real prompt tokens rather than guessing from text. RL and eval pipelines get the exact IDs the model saw and produced, which matters because decoded text doesn't always re-tokenize the same way.
+
+Multimodal preprocessing moves too. Image decoding and the model's processor run on the render tier and with [encoder disaggregation](https://vllm.ai/blog/2025-12-15-vllm-epd), render sends the processed tensors to the encoder and just the metadata to prefill. The processed payload can be much bigger than the source image, so size your request limits for it.
+
 Two servers: a render tier with no GPU and an engine that speaks tokens only. The parsers go on the render server since that's where derender runs them.
 
 ```bash
@@ -186,11 +190,51 @@ print(message["reasoning"], message["content"], sep="\n---\n")
 
 Pass `chat_request` back into the derender step. The parsers need the original context (tools, `tool_choice`, `include_reasoning`) to produce the same `content` / `reasoning` / `tool_calls` split a normal `vllm serve` would. On a model with a parser configured, leaving it out gets you a 400 rather than a silent fallback that leaks `<tool_call>` markup into `content`.
 
-Both endpoints also take `stream: true`. Streaming derender is stateless which means each call returns `{chunk, stream_state}` and the client echoes the state back on the next one. No sessions on the render tier.
+### Streaming
+
+Both endpoints also take `stream: true`. `/render` keeps `stream` on the request it returns, so generate streams too, and each generate chunk goes through derender on its own. Continuing the example above:
+
+```python
+import json
+
+chat_request = {**chat_request, "stream": True}
+
+with httpx.Client(timeout=60.0) as client:
+    generate_request = client.post(f"{RENDER}/v1/chat/completions/render", json=chat_request).json()
+    prompt_token_ids = generate_request["token_ids"]
+
+    stream_state = None  # one per choice index if n > 1
+    with client.stream("POST", f"{ENGINE}/inference/v1/generate", json=generate_request) as stream:
+        for line in stream.iter_lines():
+            if not line.startswith("data: ") or line == "data: [DONE]":
+                continue
+            derendered = client.post(f"{RENDER}/v1/chat/completions/derender", json={
+                "stream": True,
+                "model": MODEL,
+                "generate_chunk": json.loads(line[len("data: "):]),
+                "stream_state": stream_state,
+                "prompt_tokens": len(prompt_token_ids),
+                "prompt_token_ids": prompt_token_ids,
+                "chat_request": chat_request,
+            }).json()
+            stream_state = derendered["stream_state"]
+            for choice in derendered["chunk"]["choices"]:
+                print(choice["delta"].get("content") or "", end="", flush=True)
+```
+
+Send `stream_state` as `null` on the first call and echo back whatever the last response gave you. `chat_request` and `prompt_token_ids` go with every chunk because the server keeps nothing between calls. Because of that, any render replica can handle any chunk. It's also where the cost comes from once a parser is involved (see [What's still left](#whats-still-left-to-do)).
+
+### Deploying the Render Tier
+
+The render tier holds no per-request state, even when streaming, so it scales like any stateless web service. Put replicas behind an ordinary load balancer and scale them on CPU, independently of the GPU pool.
+
+Keep the config in sync. Render, derender and the engine have to agree on the model, tokenizer, chat template and parser flags (`--chat-template`, `--default-chat-template-kwargs`, `--reasoning-parser`, `--tool-call-parser`, `--enable-auto-tool-choice`). A mismatch doesn't raise an error. You just get a different `content` / `reasoning` / `tool_calls` split from what `vllm serve` would return.
+
+Then size the thread pool. Templating, tokenization, multimodal preprocessing and streaming parser replay all run on the renderer's workers, set by `--renderer-num-workers`, which defaults to **1**. Plain rendering is cheap (about 15 ms of CPU for the 9k-token prompt above). Streaming a reasoning or tool-calling model through a parser costs a lot more, so raise the worker count or add replicas to match your concurrent parsed streams.
 
 ## Putting Both Splits Together
 
-Figure 1 shows both splits at once. That's four tiers but only three servers since one `vllm launch render` server handles both `/render` and `/derender`. Nothing upstream drives the four hops for you yet but the pieces combine because `/inference/v1/generate` accepts `kv_transfer_params` just like `/v1/chat/completions` does.
+Figure 1 shows both splits at once: four tiers, but only three servers since one `vllm launch render` server handles both `/render` and `/derender`. Nothing upstream drives the four hops for you yet but the pieces combine because `/inference/v1/generate` accepts `kv_transfer_params` just like `/v1/chat/completions` does.
 
 ```bash
 # Render and derender, no GPU
@@ -261,9 +305,7 @@ The [vLLM production stack](https://github.com/vllm-project/production-stack) sh
 
 ## What's Still Left To Do?
 
-Substantial progress has been made but a few things are worth knowing about before you start.
-
-Streaming derender with a parser is expensive. Reasoning and tool parsers hold state that can't be serialized, so each chunk rebuilds a fresh parser and replays the token history through it. Transport is O(n) per chunk, replay is O(n) parse calls per chunk and `parse_delta` itself rescans accumulated text for parsers like Hermes and DeepSeek-R1. That's O(n³) character work over a long generation. A benchmark on multi-thousand-token reasoning output measured roughly 9× the in-process CPU at matched load and +15% on E2E p50. A caching layer is scheduled ([#57571](https://github.com/vllm-project/vllm/issues/57571)). Also, replay runs on the renderer's executor, `renderer_num_workers` defaults to **1** and the tier saturates under concurrent parsed streams. Size it for your concurrent parsed stream load.
+Streaming derender with a parser is expensive. Reasoning and tool parsers hold state that can't be serialized, so each chunk rebuilds a fresh parser and replays the token history through it. Transport is O(n) per chunk, replay is O(n) parse calls per chunk and `parse_delta` itself rescans accumulated text for parsers like Hermes and DeepSeek-R1. That's O(n³) character work over a long generation. A benchmark on multi-thousand-token reasoning output measured roughly 9× the in-process CPU at matched load and +15% on E2E p50. A caching layer is scheduled ([#57571](https://github.com/vllm-project/vllm/issues/57571)). Until it lands, a render tier left at one worker saturates under concurrent parsed streams, so size it as described above.
 
 Long prompts dominate the wire. The parser path resends `prompt_token_ids` in full on every chunk. A 100k-token prompt with 1k tokens of output means the prompt is ~99% of each request body. Plain detokenization without a parser doesn't have this problem.
 
