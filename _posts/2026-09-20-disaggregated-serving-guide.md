@@ -43,13 +43,13 @@ vLLM offers several points where work can be split and they can be combined.
 
 ## What It Buys You and What It Costs
 
-The pitch isn't raw throughput. The [disaggregated prefill docs](https://docs.vllm.ai/en/latest/features/disagg_prefill/) say it outright: **disaggregated prefill does not improve throughput.** What you get is control over latency which is what an SLA is really about.
+The pitch isn't peak throughput. With no latency target, splitting the same GPUs into prefill and decode pools won't necessarily move more tokens per second. What it buys is **goodput**: the request rate you can sustain while requests still meet both their TTFT and ITL targets. This is what an SLA is really about.
 
 **You can tune TTFT and ITL independently.** Different parallelism on each tier, sized for the phase it's running. Prefill can be TP-heavy, decode can be sized for batch. Neither change drags the other one with it.
 
 **Tail latency stays low as load climbs.** A decode instance that only runs decode batches never has a long prefill stall its streams. Chunked prefill gets you partway there, but the right chunk size depends on the traffic, so you end up retuning it.
 
-This was measured on one box with two NVIDIA L40S GPUs (48 GB, PCIe, no NVLink): Qwen2.5-7B-Instruct, ~8k-token prompts, 256 output tokens, 100 Poisson-arrival requests per rate, prefix caching off. Collocated is one `vllm serve --data-parallel-size 2`, so both setups get the same two GPUs. P/D is one prefiller and one decoder over NIXL behind the example proxy.
+This was measured on one box with two NVIDIA L40S GPUs (48 GB, PCIe, no NVLink): Qwen2.5-7B-Instruct, ~8k-token prompts, 256 output tokens, 100 Poisson-arrival requests per rate, prefix caching off. Collocated is one `vllm serve --data-parallel-size 2`, so both setups get the same two GPUs. That isn't the strongest collocated baseline because DP ranks can hold each other up and two independent replicas behind a load balancer might do a little better. P/D is one prefiller and one decoder over NIXL behind the example proxy.
 
 <p align="center">
 <picture>
@@ -61,21 +61,11 @@ This was measured on one box with two NVIDIA L40S GPUs (48 GB, PCIe, no NVLink):
 
 At 0.4–0.6 req/s the medians match and the collocated p99 is about six times higher. That's 8k-token prefills landing on a GPU that's also decoding and stalling every stream on it until they finish. P/D keeps them off the decode GPU entirely.
 
-**Every first token pays for the transfer.** On this box it paid a lot. At 0.2 req/s, where nothing should queue, P/D median TTFT is 2.2 s against 0.7 s collocated. Almost all of that extra 1.5 s is the KV transfer: each 8k prompt hands decode about 470 MB of KV cache (56 KiB per token for Qwen2.5-7B) and each pull takes about 1.3 s. The GPUs can't do peer-to-peer copies (`nvidia-smi topo -p2p r` reports `NS`), so every block detours through host memory.
-
-<p align="center">
-<picture>
-<img src="/assets/figures/2026-09-20-disaggregated-serving-guide/transfer-cost.svg" width="95%" alt="Output throughput and goodput versus offered load. P/D throughput flattens at about 182 tok/s; its goodput never exceeds 0.04 req/s, while collocated goodput peaks at 0.43 req/s">
-</picture>
-<br>
-<em>Figure 3. P/D throughput flattens at about 182 tok/s (≈0.7 req/s), and its goodput stays near zero. Goodput counts requests that meet TTFT under 2 s and TPOT under 30 ms.</em>
-</p>
-
-That slow transfer caps throughput too and it sinks goodput. Goodput is the request rate you can sustain while requests still meet both latency targets which is what an SLA cares about. P/D fails on TTFT at every rate, even though its decode speed passes TPOT easily. Collocated fails the other way: prefill interference pushes more and more requests past 30 ms per token, so its goodput peaks at 0.43 req/s and falls to zero by 2 req/s.
-
-So the problem here is the slow wire, not P/D itself. With a transfer in the tens of milliseconds, P/D's TTFT would sit close to collocated's and its flat tail would start winning goodput wherever collocated's falls apart. So check the transfer before you benchmark anything else. On one box, `nvidia-smi topo -p2p r` should say `OK` between your prefill and decode GPUs. Then send a few long prompts one at a time and read decode's `KV Transfer metrics` line. If `Avg xfer time` is in the hundreds of milliseconds, fix that first.
-
 **Goodput goes up when the transfer is fast.** AMD's single-node [MoRI-IO benchmark](https://vllm.ai/blog/2026-04-07-moriio-kv-connector) ran Qwen3-235B-A22B-FP8 at 8 req/s on one 8-GPU MI300X node. 73 of 100 requests met both a 1 s TTFT and a 50 ms ITL target, against 30 of 100 for collocated serving. That's about 2.4× the goodput on the same hardware. At cluster scale, [llm-d's P/D guide](https://github.com/llm-d/llm-d/tree/main/guides/pd-disaggregation) reports about 59% lower mean end-to-end latency and 67% lower P95 for gpt-oss-120b on 16 H200s, compared with the same GPUs run as aggregated replicas.
+
+**Every first token pays for the transfer.** Those results assume the KV cache moves fast: RDMA over InfiniBand or RoCE between nodes, NVLink or GPU peer-to-peer within one. Our test box had neither. The L40S pair can't do peer-to-peer copies (`nvidia-smi topo -p2p r` reports `NS`) and each 8k prompt's ~470 MB of KV cache (56 KiB per token for Qwen2.5-7B) took about 1.3 s to reach decode. At 0.2 req/s, P/D median TTFT was 2.2 s against 0.7 s collocated, so it missed a 2 s TTFT target at every rate even though its ITL tail stayed flat. Bandwidth alone doesn't explain 1.3 s. Even staged through host memory, PCIe 4.0 should move that in tens of milliseconds. Most of it is overhead around the copy, including decode only noticing a finished transfer when it polls between its own forward steps.
+
+So check the transfer before you benchmark anything else. On one box, `nvidia-smi topo -p2p r` should say `OK` between your prefill and decode GPUs. Then send a few long prompts one at a time and read decode's `KV Transfer metrics` line. If `Avg xfer time` is in the hundreds of milliseconds, fix that first.
 
 **The CPU tier is cheap.** Once tokenization and parsing move off the GPU box, you scale them against CPU load instead of buying accelerator time to run a tokenizer. Long prompts, multimodal preprocessing and reasoning or tool parsing are where the render tier does real work and none of it needs a GPU. On the same box, templating and tokenizing a 9k-token chat prompt for Qwen2.5-7B cost about 15 ms of CPU. One render server with default settings topped out at 73 req/s using just over one core. At the 0.4 req/s where collocated's tail fell apart, rendering is under 1% of one core.
 
@@ -85,10 +75,10 @@ So the problem here is the slow wire, not P/D itself. With a transfer in the ten
 | -------------- | -------------- |
 | ITL p99 misses your SLO under production load | Disaggregate. This is the main use case. |
 | Long prompts at high concurrency | Disaggregate, if your KV transfer is fast. Prefill interference is worst here. |
-| Chat or agent loops over a growing context | Disaggregate, with bidirectional transfer (below). |
+| Chat or agent loops over a growing context | Disaggregate, with bidirectional transfer (below). Pair it with KV offloading or a shared KV cache such as LMCache or Mooncake. |
 | Templating, tokenizing or parsing shows up in your GPU nodes' CPU profile | Split off the render tier. |
 | TTFT is the binding constraint | Stay collocated or measure first. The transfer lands on every first token. |
-| Your KV transfer is slow (check decode's `KV Transfer metrics`) | Fix it or stay collocated. It lands on TTFT and caps throughput. |
+| Your KV transfer is slow (check decode's `KV Transfer metrics`) | Fix it or stay collocated. It lands on TTFT and caps throughput. Check the fabric too, since a misconfigured network usually slows collectives as well. |
 | Low, bursty or latency-insensitive traffic | Stay collocated. |
 
 ## Running Prefill/Decode
@@ -101,12 +91,12 @@ Three processes: prefiller, decoder, proxy.
 # Prefiller on GPU 0
 CUDA_VISIBLE_DEVICES=0 UCX_NET_DEVICES=all VLLM_NIXL_SIDE_CHANNEL_PORT=5600 \
 vllm serve Qwen/Qwen3-0.6B --port 8100 \
-  --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_producer","kv_load_failure_policy":"fail"}'
+  --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_producer"}'
 
 # Decoder on GPU 1
 CUDA_VISIBLE_DEVICES=1 UCX_NET_DEVICES=all VLLM_NIXL_SIDE_CHANNEL_PORT=5601 \
 vllm serve Qwen/Qwen3-0.6B --port 8200 \
-  --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_consumer","kv_load_failure_policy":"fail"}'
+  --kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_consumer"}'
 
 # Proxy
 python tests/v1/kv_connector/nixl_integration/toy_proxy_server.py --port 8192 \
@@ -144,41 +134,9 @@ Once it works, sizing it is the hard part. The [Qwen3.8-2.4T PD post](https://vl
 
 ## Multi-Turn: Stop Recomputing the Conversation
 
-Standard P/D moves the cache one way. Prefill computes and decode reads. Fine for one-shot requests but wasteful for chat. On turn two of chat, decode still holds KV for everything it just generated and prefill has never computed those tokens. Prefill's own prefix cache usually still covers the turn-one prompt, so what it recomputes is the previous answer. It recomputes the whole conversation if its cache was evicted under load or the turn lands on a different prefill instance. The longer the answers, the more that costs. Agent loops make it worse because every tool call is another turn over a transcript that keeps growing.
+Standard P/D moves the cache one way which is wasteful for chat and agent loops. On turn two, decode still holds KV for the answer it just generated but prefill has never computed it, so prefill recomputes it. With `bidirectional_kv_xfer` set on both instances, prefill pulls those blocks back from decode instead and computes only the new tokens. A proxy tracks which blocks belong to which conversation, keyed by a `conversation_id` the client sends. The [bidirectional KV transfer post](https://vllm.ai/blog/2026-09-21-bidirectional-kvxfer-multiturn-agentic-workload) covers setup, tuning and benchmarking in depth.
 
-Bidirectional transfer flips the arrow on a cache hit. Prefill pulls the blocks it doesn't already have back from decode over RDMA and computes only the new tokens.
-
-<p align="center">
-<picture>
-<img src="/assets/figures/2026-09-20-disaggregated-serving-guide/multiturn.svg" width="95%" alt="Turn 1 cache miss versus turn 2 cache hit with bidirectional KV transfer">
-</picture>
-<br>
-<em>Figure 4. On a cache hit, prefill reads the conversation back from decode instead of recomputing it.</em>
-</p>
-
-Switch it on with `bidirectional_kv_xfer` on **both** instances:
-
-```bash
---kv-transfer-config '{"kv_connector":"NixlConnector","kv_role":"kv_producer",
-  "kv_connector_extra_config":{"bidirectional_kv_xfer":true}}'
-```
-
-Something has to remember the conversation and vLLM doesn't. That's the proxy's job: it caches the `kv_transfer_params` decode returns at the end of each turn and attaches them to the next request, keyed by a `conversation_id` the client sends.
-
-```bash
-python examples/disaggregated/disaggregated_serving/disagg_proxy_multiturn.py \
-  --host 0.0.0.0 --port 8000 \
-  --prefiller-host <P_IP> --prefiller-port 8100 \
-  --decoder-host <D_IP> --decoder-port 8200
-```
-
-`conversation_id` is a non-standard field that identifies the conversation. The proxy consumes it and never forwards it to the engine. Leave it out and nothing links the turns, so every request is a full recompute.
-
-Two defaults worth knowing. `kv_recompute_threshold` (64 tokens) is the point below which prefill recomputes locally rather than pulling because the transfer isn't worth the round trip. `decoder_kv_blocks_ttl` (480s) is how long decode holds blocks for reuse and unlike the prefiller's lease it isn't renewed by heartbeats. So a conversation that goes quiet for longer pays full price on its next turn.
-
-Benchmarking this has one trap. `benchmarks/multi_turn/benchmark_serving_multi_turn.py` needs `--send-conversation-id` which is off by default so the benchmark stays compatible with frontends that reject unknown fields. Forget it and every turn is a miss and you measure exactly the thing you were trying to avoid.
-
-The gotcha is reasoning models. Decode's blocks cover every token it generated, thinking traces included. If the next turn's prompt drops those traces, it's missing tokens from the middle of what decode produced. Clients can do that and so can chat templates. Qwen3's template drops `<think>` blocks from earlier assistant turns on its own, however the client sends the history. Block alignment assumes prefill's prompt is a prefix of decode's sequence, so the pull hands over cache computed for the wrong positions and you get wrong output, not just slow output. Nothing in vLLM catches that mismatch today. The NIXL docs leave it to the router and the tracking issue ([#43094](https://github.com/vllm-project/vllm/issues/43094)) was closed as stale without a fix. Check your model's chat template before you turn this on. If it or your clients strip thinking traces, either make your router detect the mismatch or keep bidirectional transfer off for that model. The feature is also CUDA-only with device buffer KV for now. Host-buffer support for XPU and similar is still to come.
+One warning for reasoning models. Decode's blocks include the thinking traces it generated. If the next turn's prompt drops them, as Qwen3's chat template does on its own, prefill's prompt no longer lines up with decode's blocks and you get wrong output, not just slow output. Nothing in vLLM catches that mismatch today ([#43094](https://github.com/vllm-project/vllm/issues/43094)), so check your chat template before you turn this on.
 
 ## Running the GPU-Less Frontend
 
@@ -327,16 +285,7 @@ vllm bench serve --model Qwen/Qwen2.5-7B-Instruct --port 8192 \
   --goodput ttft:2000 tpot:30
 ```
 
-Serving chat or agents? Turn on `bidirectional_kv_xfer` and measure TTFT on turn five, not turn one. Point the multi-turn benchmark at the multi-turn proxy and don't forget the flag:
-
-```bash
-python benchmarks/multi_turn/benchmark_serving_multi_turn.py \
-  --model Qwen/Qwen3-0.6B --served-model-name Qwen/Qwen3-0.6B \
-  --url http://localhost:8000 \
-  --input-file benchmarks/multi_turn/generate_multi_turn.json \
-  --num-clients 2 --max-active-conversations 6 \
-  --send-conversation-id
-```
+Serving chat or agents? Turn on `bidirectional_kv_xfer` and measure TTFT on turn five, not turn one.
 
 If you're already on Kubernetes, start from llm-d or Dynamo rather than building a proxy yourself. And if you're running a reasoning or tool-calling model through streaming derender, benchmark the render tier before you size it — that's the part most likely to surprise you.
 
