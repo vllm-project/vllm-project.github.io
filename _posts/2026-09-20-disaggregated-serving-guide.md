@@ -9,9 +9,7 @@ tags:
   - disaggregation
 ---
 
-**TL;DR:** A single `vllm serve` process does three jobs that get in each other's way: processing prompts (prefill), generating tokens (decode) and a pile of CPU work around them. vLLM can now pull all three apart. Splitting prefill from decode stops long prompts stalling everyone else's output, as long as the KV cache moves between them fast. Moving tokenization and parsing to a CPU-only frontend (`/render`, `/derender`) takes that work off your GPU nodes and leaves the engine working purely in token IDs. This post covers when each split is worth it and how to run it on vLLM v0.30.0 or later.
-
----
+A single `vllm serve` process does three jobs that get in each other's way: processing prompts (prefill), generating tokens (decode) and a pile of CPU work around them. Disaggregated serving in vLLM separates the different stages of LLM inference. Splitting prefill from decode stops long prompts stalling everyone else's output, as long as the KV cache moves between them fast. Moving tokenization and parsing to a CPU-only frontend (`/render`, `/derender`) takes that work off your GPU nodes and leaves the engine working purely in token IDs. This post covers when each split or separation is worth using, how to run it with vLLM v0.30.0 or later, and the key gaps and improvements still ahead.
 
 ## One Server Doing Three Unrelated Jobs
 
