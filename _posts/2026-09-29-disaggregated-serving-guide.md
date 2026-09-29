@@ -3,8 +3,8 @@ layout: post
 title: "Taking vLLM Apart: A Practical Guide to Disaggregated Serving"
 author: "Martin Hickey (IBM Research)"
 summary: "What disaggregated serving actually buys you, how to run it end to end in vLLM today with prefill/decode plus the new GPU-less frontend and the things we're still working on."
-image: /assets/figures/2026-09-20-disaggregated-serving-guide/pipeline.svg
-social_image: /assets/figures/2026-09-20-disaggregated-serving-guide/pipeline.png
+image: /assets/figures/2026-09-29-disaggregated-serving-guide/pipeline.svg
+social_image: /assets/figures/2026-09-29-disaggregated-serving-guide/pipeline.png
 tags:
   - disaggregation
 ---
@@ -33,7 +33,7 @@ vLLM offers several points where work can be split and they can be combined.
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-09-20-disaggregated-serving-guide/pipeline.svg" width="95%" alt="Collocated vLLM serving versus a four-tier disaggregated pipeline">
+<img src="/assets/figures/2026-09-29-disaggregated-serving-guide/pipeline.svg" width="95%" alt="Collocated vLLM serving versus a four-tier disaggregated pipeline">
 </picture>
 <br>
 <em>Figure 1. One process doing everything, versus the same pipeline cut into four tiers.</em>
@@ -51,7 +51,7 @@ This was measured on one box with two NVIDIA L40S GPUs (48 GB, PCIe, no NVLink):
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-09-20-disaggregated-serving-guide/itl-tail.svg" width="95%" alt="p99 and median inter-token latency against offered load from 0.2 to 2 req/s. Collocated p99 jumps from 23 ms to 169 ms at 0.4 req/s and reaches 263 ms at 2 req/s. P/D p99 stays between 25 and 52 ms.">
+<img src="/assets/figures/2026-09-29-disaggregated-serving-guide/itl-tail.svg" width="95%" alt="p99 and median inter-token latency against offered load from 0.2 to 2 req/s. Collocated p99 jumps from 23 ms to 169 ms at 0.4 req/s and reaches 263 ms at 2 req/s. P/D p99 stays between 25 and 52 ms.">
 </picture>
 <br>
 <em>Figure 2. Median ITL is 21–24 ms in both setups up to 1 req/s. At 0.4 req/s, collocated p99 jumps to 169 ms while P/D holds at 29 ms and never exceeds 52 ms.</em>
@@ -132,7 +132,7 @@ Once it works, sizing it is the hard part. The [Qwen3.8-2.4T PD post](https://vl
 
 ## Multi-Turn: Stop Recomputing the Conversation
 
-Standard P/D moves the cache one way which is wasteful for chat and agent loops. On turn two, decode still holds KV for the answer it just generated but prefill has never computed it, so prefill recomputes it. With `bidirectional_kv_xfer` set on both instances, prefill pulls those blocks back from decode instead and computes only the new tokens. A proxy tracks which blocks belong to which conversation, keyed by a `conversation_id` the client sends. The [bidirectional KV transfer post](https://vllm.ai/blog/2026-09-21-bidirectional-kvxfer-multiturn-agentic-workload) covers setup, tuning and benchmarking in depth.
+Standard P/D moves the cache one way which is wasteful for chat and agent loops. On turn two, decode still holds KV for the answer it just generated but prefill has never computed it, so prefill recomputes it. With `bidirectional_kv_xfer` set on both instances, prefill pulls those blocks back from decode instead and computes only the new tokens. A proxy tracks which blocks belong to which conversation, keyed by a `conversation_id` the client sends. The [bidirectional KV transfer post](https://vllm.ai/blog/2026-09-30-bidirectional-kvxfer-multiturn-agentic-workload) covers setup, tuning and benchmarking in depth.
 
 One warning for reasoning models. Decode's blocks include the thinking traces it generated. If the next turn's prompt drops them, as Qwen3's chat template does on its own, prefill's prompt no longer lines up with decode's blocks and you get wrong output, not just slow output. Nothing in vLLM catches that mismatch today ([#43094](https://github.com/vllm-project/vllm/issues/43094)), so check your chat template before you turn this on.
 
