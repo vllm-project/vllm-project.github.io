@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" width="960" height="420" role="img" aria-labelledby="tailt taild" font-family="ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif">
+<title id="tailt">p99 inter-token latency against offered load, collocated versus P/D</title>
+<desc id="taild">Lines of p99 and median ITL in milliseconds against offered load from 0.2 to 2 req/s. Collocated p99 is 23 ms at 0.2 req/s, jumps to 169 ms at 0.4 req/s and climbs to 263 ms at 2 req/s. P/D p99 is 25 ms at 0.2 req/s, 29 ms at 0.4 req/s and stays under 52 ms across the sweep. Median ITL is 21 to 24 ms for both setups up to 1 req/s. Above that collocated rises to 41 ms and P/D to 30 ms at 2 req/s.</desc>
+
+  <style>
+    .bg     { fill: #ffffff; }
+    .t      { fill: #16162a; }
+    .t-mut  { fill: #5c5c78; }
+    .grid   { stroke: #e6e6f0; fill: none; }
+    .axis   { stroke: #9a9ab4; fill: none; }
+    .ref    { stroke: #9a9ab4; fill: none; stroke-dasharray: 5 4; }
+    .c-f    { fill: #6C5CE7; }
+    .c-s    { stroke: #6C5CE7; fill: none; }
+    .p-f    { fill: #0D9488; }
+    .p-s    { stroke: #0D9488; fill: none; }
+    .ring   { stroke: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      .bg     { fill: #161622; }
+      .t      { fill: #e9e9f2; }
+      .t-mut  { fill: #a2a2bd; }
+      .grid   { stroke: #2a2a3e; }
+      .axis   { stroke: #6a6a86; }
+      .ref    { stroke: #6a6a86; }
+      .c-f    { fill: #8B82F0; }
+      .c-s    { stroke: #8B82F0; }
+      .p-f    { fill: #1FA89C; }
+      .p-s    { stroke: #1FA89C; }
+      .ring   { stroke: #161622; }
+    }
+  </style>
+  <rect width="960" height="420" class="bg"/>
+  <text x="20.0" y="34.0" class="t" font-size="18" text-anchor="start" font-weight="700">Similar median, very different tail</text>
+  <text x="20.0" y="58.0" class="t-mut" font-size="14" text-anchor="start">Inter-token latency (ms) · Qwen2.5-7B-Instruct, 8K-token prompts, 256 output tokens, 2× L40S</text>
+  <rect x="20" y="78" width="12" height="12" rx="2" class="c-f"/>
+  <text x="38.0" y="88.0" class="t-mut" font-size="14" text-anchor="start">Collocated (DP=2)</text>
+  <rect x="180" y="78" width="12" height="12" rx="2" class="p-f"/>
+  <text x="198.0" y="88.0" class="t-mut" font-size="14" text-anchor="start">P/D (1P + 1D, NIXL)</text>
+  <line x1="380" y1="83" x2="404" y2="83" class="axis" stroke-width="2"/>
+  <text x="410.0" y="88.0" class="t-mut" font-size="14" text-anchor="start">p99</text>
+  <line x1="460" y1="83" x2="484" y2="83" class="ref" stroke-width="2"/>
+  <text x="490.0" y="88.0" class="t-mut" font-size="14" text-anchor="start">median</text>
+  <line x1="80" y1="340.0" x2="890" y2="340.0" class="axis"/>
+  <text x="70.0" y="345.0" class="t-mut" font-size="13" text-anchor="end">0</text>
+  <line x1="80" y1="263.3" x2="890" y2="263.3" class="grid"/>
+  <text x="70.0" y="268.3" class="t-mut" font-size="13" text-anchor="end">100</text>
+  <line x1="80" y1="186.7" x2="890" y2="186.7" class="grid"/>
+  <text x="70.0" y="191.7" class="t-mut" font-size="13" text-anchor="end">200</text>
+  <line x1="80" y1="110.0" x2="890" y2="110.0" class="grid"/>
+  <text x="70.0" y="115.0" class="t-mut" font-size="13" text-anchor="end">300</text>
+  <text x="282.5" y="362.0" class="t-mut" font-size="13" text-anchor="middle">0.5</text>
+  <text x="485.0" y="362.0" class="t-mut" font-size="13" text-anchor="middle">1</text>
+  <text x="687.5" y="362.0" class="t-mut" font-size="13" text-anchor="middle">1.5</text>
+  <text x="890.0" y="362.0" class="t-mut" font-size="13" text-anchor="middle">2</text>
+  <text x="485.0" y="384.0" class="t-mut" font-size="13" text-anchor="middle">offered load (req/s)</text>
+  <polyline points="161.0,324.1 242.0,323.1 323.0,322.4 404.0,322.1 485.0,321.7 566.0,320.8 647.0,318.8 728.0,317.2 890.0,308.6" class="c-s" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>
+  <polyline points="161.0,323.1 242.0,322.3 323.0,321.9 404.0,321.7 485.0,321.5 566.0,321.6 647.0,321.1 728.0,317.6 890.0,317.2" class="p-s" stroke-width="1.5" stroke-dasharray="5 4" stroke-linejoin="round"/>
+  <polyline points="161.0,322.4 242.0,210.7 323.0,200.8 404.0,198.2 485.0,194.4 566.0,190.4 647.0,185.3 728.0,171.5 890.0,138.1" class="c-s" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="161.0" cy="322.4" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="242.0" cy="210.7" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="323.0" cy="200.8" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="404.0" cy="198.2" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="485.0" cy="194.4" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="566.0" cy="190.4" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="647.0" cy="185.3" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="728.0" cy="171.5" r="4" class="c-f ring" stroke-width="2"/>
+  <circle cx="890.0" cy="138.1" r="4" class="c-f ring" stroke-width="2"/>
+  <polyline points="161.0,321.0 242.0,317.5 323.0,317.4 404.0,311.9 485.0,306.3 566.0,301.4 647.0,300.3 728.0,302.2 890.0,302.1" class="p-s" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="161.0" cy="321.0" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="242.0" cy="317.5" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="323.0" cy="317.4" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="404.0" cy="311.9" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="485.0" cy="306.3" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="566.0" cy="301.4" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="647.0" cy="300.3" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="728.0" cy="302.2" r="4" class="p-f ring" stroke-width="2"/>
+  <circle cx="890.0" cy="302.1" r="4" class="p-f ring" stroke-width="2"/>
+  <text x="242.0" y="200.7" class="t" font-size="14" text-anchor="middle" font-weight="600">169</text>
+  <text x="242.0" y="307.5" class="t" font-size="14" text-anchor="middle" font-weight="600">29</text>
+  <text x="902.0" y="143.1" class="t" font-size="14" text-anchor="start" font-weight="600">263</text>
+  <text x="902.0" y="307.1" class="t" font-size="14" text-anchor="start" font-weight="600">50</text>
+</svg>
