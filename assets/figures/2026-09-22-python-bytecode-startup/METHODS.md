@@ -108,7 +108,24 @@ On September 3, 2026, the inspected `vllm/vllm-openai:latest` image (digest `sha
 
 ## Final-image diagnostic
 
-The article's missing-cache command was run on September 22 with CPython 3.12.3 in the retained official image identified above, using a read-only root, no network and no GPU access. Across all three directories returned by `site.getsitepackages()`, it reported **27,345 of 28,088 installed `.py` files with no `.pyc`**. This is wider than the September 3 `/usr/local/lib/python3.12/dist-packages` inventory, and checks file existence rather than header validity. A separate two-source fixture reported two missing caches before compilation and zero afterward using the same code and interpreter. `-B` kept the diagnostic itself from writing caches.
+For default Python optimization and cache-path settings, this command checks for missing cache files in the final image. It checks existence, not validity; `-B` prevents the check from writing new caches.
+
+```sh
+docker run --rm -i --read-only --network none --entrypoint python3 your-image -B - <<'PY'
+import importlib.util
+from pathlib import Path
+import site
+
+sources = {p for d in site.getsitepackages() for p in Path(d).rglob("*.py")}
+missing = sum(
+    not Path(importlib.util.cache_from_source(str(p))).is_file()
+    for p in sources
+)
+print(f"{missing} of {len(sources)} installed .py files have no .pyc")
+PY
+```
+
+The missing-cache command above was run on September 22 with CPython 3.12.3 in the retained official image identified above, using a read-only root, no network and no GPU access. Across all three directories returned by `site.getsitepackages()`, it reported **27,345 of 28,088 installed `.py` files with no `.pyc`**. This is wider than the September 3 `/usr/local/lib/python3.12/dist-packages` inventory, and checks file existence rather than header validity. A separate two-source fixture reported two missing caches before compilation and zero afterward using the same code and interpreter. `-B` kept the diagnostic itself from writing caches.
 
 The diagnostic source, interpreter details and observations are in [cache-coverage-check.json](cache-coverage-check.json).
 
