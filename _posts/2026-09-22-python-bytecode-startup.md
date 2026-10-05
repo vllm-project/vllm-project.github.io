@@ -3,8 +3,8 @@ layout: post
 title: "Saving 15 seconds of vLLM startup with one uv flag"
 author: "Nils Matteson"
 summary: "Precompiling Python bytecode saved about 15 seconds in a three-pair vLLM startup test, including a local image pull. One build flag, a 1.8% larger image."
-image: /assets/figures/2026-09-22-python-bytecode-startup/image-delivery-pairs.png
-social_image: /assets/figures/2026-09-22-python-bytecode-startup/image-delivery-pairs.png
+image: /assets/figures/2026-09-22-python-bytecode-startup/bytecode-startup.png
+social_image: /assets/figures/2026-09-22-python-bytecode-startup/bytecode-startup.png
 tags:
   - performance
   - deployment
@@ -18,9 +18,9 @@ ENV UV_COMPILE_BYTECODE=1
 
 This is uv's `--compile-bytecode` flag in environment-variable form. It compiles Python source when packages are installed, so new containers can use the bytecode from their first launch. The question was how much this would save once image delivery and the rest of vLLM startup were included.
 
-![Three matched image-delivery pairs, split into pull/unpack and post-pull time. Precompiled bytecode saves 15.4, 11.2 and 16.1 seconds.](/assets/figures/2026-09-22-python-bytecode-startup/image-delivery-pairs.png)
+![Three matched image-delivery pairs compare the default build with precompiled Python bytecode. Paired savings are 15.4, 11.2 and 16.1 seconds.](/assets/figures/2026-09-22-python-bytecode-startup/bytecode-startup.png)
 
-*Three pairs from empty Docker stores. Qwen3-0.6B weights were already local; both images used gzip and an uncapped loopback registry. Intel i9-13900HX, RTX 4090 Laptop GPU, four-CPU server quota. Host file-cache state was not controlled. Blue includes everything after pull through the first correct response. Savings use unrounded timings.*
+*Three pairs from empty Docker stores. Qwen3-0.6B weights were already local; both images used gzip and an uncapped loopback registry. Intel i9-13900HX, RTX 4090 Laptop GPU, four-CPU server quota. Host file-cache state was not controlled. Gray is the default build; orange has precompiled bytecode. Savings use unrounded timings.*
 
 The paired savings were 15.36, 11.21 and 16.10 seconds, a median of 15.36. The precompiled image grew by 153 MB compressed, or 1.8%. Pull time varied in both directions, but container start to first response improved in every pair, by 11.9–17.3 seconds. All six launches returned the expected tokens.
 

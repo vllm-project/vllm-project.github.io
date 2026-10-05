@@ -66,6 +66,10 @@ The repeated import-root study used the August 31 CPython 3.12.3 build. All six 
 
 ## Image delivery
 
+![Three matched startup pairs split into image pull/unpack and post-pull time through the first correct response.](image-delivery-pairs.png)
+
+Gray shows pull/unpack; blue shows everything after pull through the first correct response.
+
 Matched CUDA images from separate empty classic-overlay2 Docker stores through loopback pull/unpack to first correct response; model already local; gzip export in both arms; host/source page cache warm or uncontrolled.
 
 | Pair | Control gzip (s) | Bytecode gzip (s) | Paired saving (s) |
