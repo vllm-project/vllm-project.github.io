@@ -1468,8 +1468,8 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
     ["wk", "D", 480, "Indexer W_K"],
     ["knorm", "D", 532, "K RMSNorm + RoPE", "+ quant + insert"],
     ["kcache", "D", 584, "Indexer K cache", "FP8 or MXFP4", null, "kc"],
-    ["logits", "C", 636, "Indexer logits", null, "L24/28/32/36"],
-    ["cand", "C", 688, "Candidate blocks", "16K from L20"],
+    ["logits", "C", 636, "Indexer QK GEMM", null, "L24/28/32/36"],
+    ["cand", "C", 688, "Candidate select", "16K from L20"],
     ["topk", "C", 740, "Top-k select", "512 positions"],
     ["qrope", "B", 740, "Q RoPE"],
     ["attn", "B", 792, "Sparse attention"],
@@ -1550,12 +1550,12 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
     { id: "mhc", name: "Mega-mHC", pr: "56962", members: [["post1", "norm1"], ["post2", "norm2"]], off: 6,
       tags: [[COL.C, 214], [COL.C, 1240]],
       what: "DeepGEMM's Mega-mHC fuses the mHC chain — the post step, the delayed pre step (with its coefficient GEMM and Sinkhorn) and RMSNorm — into one kernel at each seam.",
-      when: "Default path. At ≤16 tokens in FULL CUDA graphs, the coefficient GEMM and Sinkhorn move to the side stream instead (right column).", gain: "1.14–1.51× faster than the TileLang version on GB200." },
+      when: "Default path. At ≤16 tokens in FULL CUDA graphs, the coefficient GEMM and Sinkhorn move to the side stream instead (right column).", gain: "1.14–1.51× faster than the TileLang version on NVIDIA GB200." },
     { id: "side", name: "mHC multistream", pr: "57603", members: [["coef1", "sink1"], ["coef2", "sink2"]], off: 6,
       tags: [[COL.E, 384], [COL.E, 1396]],
       what: "V4.1 shifts the mHC coefficients by one sublayer, so the next seam's coefficient GEMM and Sinkhorn run on a side CUDA stream, in parallel with attention and the FFN.",
       when: "≤16 tokens per step, FULL CUDA graph (low-latency TP4).", gain: "About 4% lower latency at TP4." },
-    { id: "sparse", name: "Sparse MQA logits", pr: "56254", members: [["logits", "logits"]], off: 6,
+    { id: "sparse", name: "Sparse MQA logits", pr: "56254", members: [["logits", "cand"]], off: 6,
       tags: [[COL.D, 656]],
       what: "Later indexer layers (24, 28, 32, 36) pick top-k from a fixed set of 16K candidates; DeepGEMM's sparse kernel scores only those, so cost stops growing with context.",
       when: "Indexer layers 24, 28, 32 and 36; MXFP4 indexer cache.", gain: "1.2× faster per layer at 8K, 14–23× at 512K; decode 3–6% faster end to end." },
@@ -1799,9 +1799,10 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       kdef("rope", ["RoPE +", "KV insert"], "Q/KV RoPE, FP8 quant, SWA KV insert", s => vis("a0", ["RoPE +", "KV insert"], 1.6)),
       kdef("idxwqb", ["idx W_Q_B"], "indexer Q projection", s => vis("a0", ["idx W_Q_B"], 3)),
       kdef("idxqrope", ["idx Q RoPE", "+ quant"], null, s => vis("a0", ["idx Q RoPE", "+ quant"], 1.6)),
-      kdef("idxlogits", ["idx logits"], "indexer MQA logits over the whole context", s => s < 3
-        ? vis("a1", ["idx logits"], 3.5, null, "indexer MQA logits over the whole context")
-        : vis("a1", ["sparse logits"], 1.6, "m-accent", "DeepGEMM sparse logits over 16K candidates")),
+      kdef("idxlogits", ["idx QK", "GEMM"], "indexer QK GEMM over the whole context", s => s < 3
+        ? vis("a1", ["idx QK", "GEMM"], 3.5, null, "indexer QK GEMM over the whole context")
+        : vis("a1", ["sparse idx", "QK GEMM"], 1.6, "m-accent", "DeepGEMM sparse indexer QK GEMM over 16K candidates")),
+      kdef("cand", ["cand", "select"], "select the 16K candidate positions", s => s < 3 ? vis("a1", ["cand", "select"], 1.6) : hid("idxlogits", "into")),
       kdef("topk", ["top-k"], null, s => vis("a1", ["top-k"], 1.6)),
       kdef("sparse", ["sparse", "attention"], null, s => vis("a1", ["sparse", "attention"], 4)),
       kdef("invrope", ["inv RoPE +", "FP8 quant"], null, s => s < 1 ? vis("a1", ["inv RoPE +", "FP8 quant"], 1.6) : hid("fwoa", "into")),
@@ -1821,27 +1822,27 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
     return {
       kernels,
       lanes: true,
-      maxSegs: 23,
+      maxSegs: 24,
       rows: s => s < 2 ? ["r0", "a0", "a1", "rF", "moe"] : ["r0", "a0", "a1", "laneA", "rF", "moe", "laneB"],
       rowOrder: {
         r0: ["post1", "coeff1", "sink1"],
         a0: ["wqa", "qkvn", "wqb", "rope", "idxwqb", "idxqrope"],
-        a1: ["idxlogits", "topk", "sparse", "invrope", "woa", "mxfp8", "fwoa", "wob"],
+        a1: ["idxlogits", "cand", "topk", "sparse", "invrope", "woa", "mxfp8", "fwoa", "wob"],
         laneA: ["coeff2", "sink2b"],
         rF: ["post2", "coeff2", "sink2"],
         moe: ["gate", "moetopk", "routed", "shared"],
         laneB: ["coeff1", "sink1b"],
       },
       launchOrder: ["post1", "coeff1", "sink1", "wqa", "qkvn", "wqb", "rope", "idxwqb", "idxqrope",
-        "idxlogits", "topk", "sparse", "invrope", "woa", "mxfp8", "fwoa", "wob",
+        "idxlogits", "cand", "topk", "sparse", "invrope", "woa", "mxfp8", "fwoa", "wob",
         "post2", "coeff2", "sink2", "gate", "moetopk", "routed", "shared"],
       focus: { 1: ["fwoa"], 2: ["coeff1", "sink1b", "coeff2", "sink2b"], 3: ["idxlogits"] },
       steps: [
-        { label: "Baseline", title: "Low latency: one decode layer, kernel by kernel", text: "At small batch, every launch and every round trip through HBM sits on the critical path. This is the layer's main stream in launch order, simplified to <b>23 launches</b>." },
+        { label: "Baseline", title: "Low latency: one decode layer, kernel by kernel", text: "At small batch, every launch and every round trip through HBM sits on the critical path. This is the layer's main stream in launch order, simplified to <b>24 launches</b>." },
         { label: "Fused WO-A", title: "Fused WO-A: three kernels become one", text: "One <span class=\"gold\">CuTe-DSL kernel</span> does inverse RoPE, FP8 quantization, the WO-A batch GEMM and MXFP8 requantization, keeping activations on chip: up to ~2.1× faster, and up to ~6–7% lower inter-token latency at low concurrency (#58634)." },
         { label: "mHC stream", title: "mHC coefficients move to a side stream", text: "V4.1 shifts the mHC coefficients by one sublayer, so the next seam's coefficient GEMM needs only residual streams that already exist. At ≤16 tokens, it runs on a <span class=\"gold\">side CUDA stream</span> in parallel with attention and the FFN: ~4% lower latency (#57603)." },
         { label: "Sparse logits", title: "Sparse MQA logits score only the candidates", text: "In later indexer layers (24, 28, 32, 36), top-k picks from a fixed set of 16K candidates. DeepGEMM's sparse kernel scores only those, so cost stops growing with context: 14–23× faster per layer at 512K (#56254)." },
-        { label: "Together", title: "A shorter critical path", text: "In this simplified view the main stream drops from 23 to 19 launches, and the indexer no longer scales with context. Next: the high-throughput path, where large batches change which fusions pay off." },
+        { label: "Together", title: "A shorter critical path", text: "In this simplified view the main stream drops from 24 to 19 launches, and the indexer no longer scales with context. Next: the high-throughput path, where large batches change which fusions pay off." },
       ],
     };
   }
@@ -1855,18 +1856,18 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       kdef("wqa", ["W_Q_A+W_KV"], null, s => vis("a0", ["W_Q_A+W_KV"], 3)),
       kdef("qkvn", ["Q/KV RMSNorm"], null, s => vis("a0", ["Q/KV RMSNorm"], 1.6)),
       kdef("wqb", ["W_Q_B"], null, s => vis("a0", ["W_Q_B"], 3)),
-      kdef("rope", ["RoPE +", "KV insert"], "Q/KV RoPE, FP8 quant, SWA KV insert", s => s < 2
-        ? vis("a0", ["RoPE +", "KV insert"], 1.6, null, "Q/KV RoPE, FP8 quant, SWA KV insert")
-        : vis("a0", ["KV RoPE +", "insert"], 1.6, null, "K RoPE, FP8 quant, SWA KV insert")),
+      kdef("rope", ["KV RoPE +", "insert"], "K RoPE, FP8 quant, SWA KV insert", s => vis("a0", ["KV RoPE +", "insert"], 1.6)),
       kdef("idxwqb", ["idx W_Q_B"], "indexer Q projection", s => vis("a0", ["idx W_Q_B"], 3)),
       kdef("idxqrope", ["idx Q RoPE", "+ quant"], null, s => vis("a0", ["idx Q RoPE", "+ quant"], 1.6)),
-      kdef("idxlogits", ["idx logits"], "indexer MQA logits over the whole context", s => s < 4
-        ? vis("a1", ["idx logits"], 3.5, null, "indexer MQA logits over the whole context")
-        : vis("a1", ["sparse logits"], 1.6, "m-accent", "DeepGEMM sparse logits over 16K candidates")),
+      kdef("idxlogits", ["idx QK", "GEMM"], "indexer QK GEMM over the whole context", s => s < 4
+        ? vis("a1", ["idx QK", "GEMM"], 3.5, null, "indexer QK GEMM over the whole context")
+        : vis("a1", ["sparse idx", "QK GEMM"], 1.6, "m-accent", "DeepGEMM sparse indexer QK GEMM over 16K candidates")),
+      kdef("cand", ["cand", "select"], "select the 16K candidate positions", s => s < 4 ? vis("a1", ["cand", "select"], 1.6) : hid("idxlogits", "into")),
       kdef("topk", ["top-k"], null, s => vis("a1", ["top-k"], 1.6)),
+      kdef("qrope", ["Q RoPE"], "query RoPE", s => s < 2 ? vis("a1", ["Q RoPE"], 1.6) : hid("mega", "into")),
       kdef("sparse", ["sparse", "attention"], null, s => s < 2 ? vis("a1", ["sparse", "attention"], 4) : hid("mega", "into")),
       kdef("invrope", ["inv RoPE +", "FP8 quant"], null, s => s < 2 ? vis("a1", ["inv RoPE +", "FP8 quant"], 1.6) : hid("mega", "into")),
-      kdef("mega", ["mega-attention"], "FlashMLA mega-attention: Q RoPE + sparse attention + inverse RoPE + FP8 cast", s => s < 2 ? hid("sparse", "from", "m-accent") : vis("a1", ["mega-attention"], 4, "m-accent")),
+      kdef("mega", ["mega-attention"], "FlashMLA mega-attention: Q RoPE + sparse attention + inverse RoPE + FP8 cast", s => s < 2 ? hid("qrope", "from", "m-accent") : vis("a1", ["mega-attention"], 4, "m-accent")),
       kdef("woa", ["W_O_A"], null, s => vis("a1", ["W_O_A"], 3)),
       kdef("wob", ["W_O_B"], null, s => vis("a1", ["W_O_B"], 3)),
       kdef("post2", ["post"], "mHC post step", s => s < 1 ? vis("rF", ["post"], 1.6) : hid("mhc2", "into")),
@@ -1882,26 +1883,26 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
     return {
       kernels,
       lanes: false,
-      maxSegs: 22,
+      maxSegs: 24,
       rows: () => ["r0", "a0", "a1", "rF", "moe"],
       rowOrder: {
         r0: ["post1", "coeff1", "sink1", "mhc1"],
         a0: ["wqa", "qkvn", "wqb", "rope", "idxwqb", "idxqrope"],
-        a1: ["idxlogits", "topk", "sparse", "invrope", "mega", "woa", "wob"],
+        a1: ["idxlogits", "cand", "topk", "qrope", "sparse", "invrope", "mega", "woa", "wob"],
         rF: ["post2", "coeff2", "sink2", "mhc2"],
         moe: ["gate", "moetopk", "ggate", "routed", "shared"],
       },
       launchOrder: ["post1", "coeff1", "sink1", "mhc1", "wqa", "qkvn", "wqb", "rope", "idxwqb", "idxqrope",
-        "idxlogits", "topk", "sparse", "invrope", "mega", "woa", "wob",
+        "idxlogits", "cand", "topk", "qrope", "sparse", "invrope", "mega", "woa", "wob",
         "post2", "coeff2", "sink2", "mhc2", "gate", "moetopk", "ggate", "routed", "shared"],
-      focus: { 1: ["mhc1", "mhc2"], 2: ["rope", "mega"], 3: ["ggate"], 4: ["idxlogits"] },
+      focus: { 1: ["mhc1", "mhc2"], 2: ["mega"], 3: ["ggate"], 4: ["idxlogits"] },
       steps: [
-        { label: "Baseline", title: "High throughput: the same layer at large batch", text: "At large batch the GEMMs run longer and launch gaps matter less; what pays off is removing HBM round trips and shrinking the KV cache. This is the layer's main stream in launch order, simplified to <b>22 launches</b>." },
-        { label: "Mega-mHC", title: "Mega-mHC: one kernel per seam", text: "DeepGEMM's <span class=\"gold\">Mega-mHC</span> fuses the post step, the delayed pre step and RMSNorm into one kernel at each seam: 1.14–1.51× faster than the TileLang version on GB200 (#56962)." },
+        { label: "Baseline", title: "High throughput: the same layer at large batch", text: "At large batch the GEMMs run longer and launch gaps matter less; what pays off is removing HBM round trips and shrinking the KV cache. This is the layer's main stream in launch order, simplified to <b>24 launches</b>." },
+        { label: "Mega-mHC", title: "Mega-mHC: one kernel per seam", text: "DeepGEMM's <span class=\"gold\">Mega-mHC</span> fuses the post step, the delayed pre step and RMSNorm into one kernel at each seam: 1.14–1.51× faster than the TileLang version on NVIDIA GB200 (#56962)." },
         { label: "Mega-attn", title: "FlashMLA mega-attention: one launch", text: "<span class=\"gold\">Mega-attention</span> does query RoPE, sparse attention, inverse RoPE and the FP8 cast in one launch, writing straight into WO-A's input. It reads the new NVFP4 global KV, 45% smaller than FP8 (#56935)." },
         { label: "Mega-Gate", title: "Mega-Gate: the router in one kernel", text: "<span class=\"gold\">Mega-Gate</span> fuses the gate GEMM, expert scoring, bias and top-k, removing a launch and a round trip of the scores through memory: 1.18–1.31× faster at medium batch sizes (#56266)." },
         { label: "Sparse logits", title: "Sparse MQA logits score only the candidates", text: "In later indexer layers (24, 28, 32, 36), top-k picks from a fixed set of 16K candidates. DeepGEMM's sparse kernel scores only those, so cost stops growing with context: 14–23× faster per layer at 512K (#56254)." },
-        { label: "Together", title: "A shorter critical path", text: "In this simplified view the main stream drops from 22 to 16 launches. The measured gains are in the text." },
+        { label: "Together", title: "A shorter critical path", text: "In this simplified view the main stream drops from 24 to 16 launches. The measured gains are in the text." },
       ],
     };
   }
