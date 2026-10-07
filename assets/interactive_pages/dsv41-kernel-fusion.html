@@ -1562,9 +1562,9 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
     { id: "wo", name: "Fused W_O_A", pr: "58634", members: [["irope", "req"]], off: 11,
       tags: [[COL.C, 960]],
       what: "One CuTe-DSL kernel does inverse RoPE, FP8 quantization, the W_O_A batch GEMM and MXFP8 requantization, keeping activations on chip.",
-      when: "Small decode batches (≤96 tokens) on Blackwell, FlashMLA or FlashInfer attention. An alternative to mega-attention: the two never stack.",
+      when: "Small decode batches (≤96 tokens) on Blackwell, FlashMLA or FlashInfer attention. An alternative to MegaAttention: the two never stack.",
       gain: "Up to ~2.1× on the fused path; up to ~6–7% lower inter-token latency at low concurrency." },
-    { id: "mega", name: "FlashMLA mega-attention", tag: "Mega-attention", pr: "56935", members: [["qrope", "fp8"]], off: 6,
+    { id: "mega", name: "MegaAttention", tag: "MegaAttention", pr: "56935", members: [["qrope", "fp8"]], off: 6,
       tags: [[COL.A, 760]],
       what: "Query RoPE, sparse attention, inverse RoPE on the output and the FP8 cast in one launch, writing straight into W_O_A's input. It reads the new NVFP4 global KV, 45% smaller than FP8.",
       when: "Default on SM100 (high-throughput DEP2). An alternative to fused W_O_A: the two never stack.", gain: "1.45× kernel efficiency." },
@@ -1612,7 +1612,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       "aria-label": "The full DeepSeek-V4.1-Flash decode layer with every fusion group and the mHC side stream." }, frame);
     const note = document.createElement("p");
     note.className = "fig-note";
-    note.textContent = "Layer ids and sizes from the DeepSeek-V4.1-Flash config and the post. NVFP4 global KV with mega-attention, MXFP8 otherwise. Aux streams and communication omitted.";
+    note.textContent = "Layer ids and sizes from the DeepSeek-V4.1-Flash config and the post. NVFP4 global KV with MegaAttention, MXFP8 otherwise. Aux streams and communication omitted.";
     frame.appendChild(note);
     FK.defs(S);
 
@@ -1693,7 +1693,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       info.querySelector("h3").innerHTML = g ? `${g.name} · <a href="https://github.com/vllm-project/vllm/pull/${g.pr}" target="_blank" rel="noopener">#${g.pr}</a>`
         : "The whole layer, with every fusion";
       info.querySelector("p").innerHTML = g ? `${g.what} <b>When:</b> ${g.when} <b>Measured:</b> ${g.gain}`
-        : "Click a gold outline or its name to see what it fuses. Outlines that overlap (mega-attention, fused W_O_A) are alternatives for different batch sizes.";
+        : "Click a gold outline or its name to see what it fuses. Outlines that overlap (MegaAttention, fused W_O_A) are alternatives for different batch sizes.";
     };
     const hl = MO.highlight(S, { onChange: show });
     show(null);
@@ -1867,7 +1867,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       kdef("qrope", ["Q RoPE"], "query RoPE", s => s < 2 ? vis("a1", ["Q RoPE"], 1.6) : hid("mega", "into")),
       kdef("sparse", ["sparse", "attention"], null, s => s < 2 ? vis("a1", ["sparse", "attention"], 4) : hid("mega", "into")),
       kdef("invrope", ["inv RoPE +", "FP8 quant"], null, s => s < 2 ? vis("a1", ["inv RoPE +", "FP8 quant"], 1.6) : hid("mega", "into")),
-      kdef("mega", ["mega-attention"], "FlashMLA mega-attention: Q RoPE + sparse attention + inverse RoPE + FP8 cast", s => s < 2 ? hid("qrope", "from", "m-accent") : vis("a1", ["mega-attention"], 4, "m-accent")),
+      kdef("mega", ["MegaAttention"], "MegaAttention: Q RoPE + sparse attention + inverse RoPE + FP8 cast", s => s < 2 ? hid("qrope", "from", "m-accent") : vis("a1", ["MegaAttention"], 4, "m-accent")),
       kdef("woa", ["W_O_A"], null, s => vis("a1", ["W_O_A"], 3)),
       kdef("wob", ["W_O_B"], null, s => vis("a1", ["W_O_B"], 3)),
       kdef("post2", ["post"], "mHC post step", s => s < 1 ? vis("rF", ["post"], 1.6) : hid("mhc2", "into")),
@@ -1899,7 +1899,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       steps: [
         { label: "Baseline", title: "High throughput: the same layer at large batch", text: "At large batch the GEMMs run longer and launch gaps matter less; what pays off is removing HBM round trips and shrinking the KV cache. This is the layer's main stream in launch order, simplified to <b>24 launches</b>." },
         { label: "Mega-mHC", title: "Mega-mHC: one kernel per seam", text: "DeepGEMM's <span class=\"gold\">Mega-mHC</span> fuses the post step, the delayed pre step and RMSNorm into one kernel at each seam: 1.14–1.51× faster than the TileLang version on NVIDIA GB200 (#56962)." },
-        { label: "Mega-attn", title: "FlashMLA mega-attention: one launch", text: "<span class=\"gold\">Mega-attention</span> does query RoPE, sparse attention, inverse RoPE and the FP8 cast in one launch, writing straight into WO-A's input. It reads the new NVFP4 global KV, 45% smaller than FP8 (#56935)." },
+        { label: "MegaAttention", title: "MegaAttention: one launch", text: "<span class=\"gold\">MegaAttention</span> does query RoPE, sparse attention, inverse RoPE and the FP8 cast in one launch, writing straight into WO-A's input. It reads the new NVFP4 global KV, 45% smaller than FP8 (#56935)." },
         { label: "Mega-Gate", title: "Mega-Gate: the router in one kernel", text: "<span class=\"gold\">Mega-Gate</span> fuses the gate GEMM, expert scoring, bias and top-k, removing a launch and a round trip of the scores through memory: 1.18–1.31× faster at medium batch sizes (#56266)." },
         { label: "Sparse logits", title: "Sparse MQA logits score only the candidates", text: "In later indexer layers (24, 28, 32, 36), top-k picks from a fixed set of 16K candidates. DeepGEMM's sparse kernel scores only those, so cost stops growing with context: 14–23× faster per layer at 512K (#56254)." },
         { label: "Together", title: "A shorter critical path", text: "In this simplified view the main stream drops from 24 to 16 launches. The measured gains are in the text." },
