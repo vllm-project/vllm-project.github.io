@@ -1,0 +1,1645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefill TTFT with SWA bounded replay</title>
+<style>
+/* figkit.css — shared look for the DeepSeek-V4.1 vLLM blog figures.
+   Every figure page links this file; build.py inlines it. Do not restyle these
+   tokens in a page: add a role here so all figures change together.
+
+   Design: Swiss-style grid and type (flush left, one grotesk, uppercase mono
+   for meta labels), a Morandi palette in the vLLM logo hues (greyed sky blue,
+   greyed amber), 1.2px hairlines, square corners, no shadows (cf. zero-to-vllm). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+
+  /* surfaces and text: warm greys */
+  --bg: #ffffff;
+  --card: #f7f5f2;          /* player panel */
+  --ink: #23201e;
+  --muted: #605b56;
+  --faint: #8e8881;   /* still >= 3:1 on white: faint text must stay readable */
+  --rule: #e6e1da;          /* hairlines, gridlines */
+  --line: #8f8a84;          /* arrows, connectors */
+
+  /* Morandi line colors in the vLLM hues; fills are tints of the same line */
+  --blue-line: #4d7ba6;     /* vLLM sky blue, greyed: global KV, long-lived state */
+  --gold-line: #b5873a;     /* vLLM amber, greyed: the concept the figure introduces */
+  --green-line: #6a8a5e;    /* sage: third category (side stream) */
+  --stone-line: #9a958f;    /* ordinary work */
+  --blue-text: #3e6890;
+  --gold-text: #8a6420;
+  --green-text: #4f6b45;
+
+  /* data-chart series (dataviz validator: CVD + normal-vision separation pass) */
+  --series-blue: #5a87b3;
+  --series-gold: #c99a45;
+
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --dur: 520ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+    --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+    --series-blue: #6b93bb; --series-gold: #b08a45;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+  --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+  --series-blue: #6b93bb; --series-gold: #b08a45;
+}
+
+/* derived tints: soft (-t) for areas, main (-m) for emphasis, stroke (-ts) half strength */
+:root {
+  --blue-t: color-mix(in srgb, var(--blue-line) 13%, var(--bg));
+  --blue-ts: color-mix(in srgb, var(--blue-line) 50%, var(--bg));
+  --blue-m: color-mix(in srgb, var(--blue-line) 30%, var(--bg));
+  --blue-ms: var(--blue-line);
+  --gold-t: color-mix(in srgb, var(--gold-line) 14%, var(--bg));
+  --gold-ts: color-mix(in srgb, var(--gold-line) 50%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 34%, var(--bg));
+  --gold-ms: var(--gold-line);
+  --green-t: color-mix(in srgb, var(--green-line) 15%, var(--bg));
+  --green-ts: color-mix(in srgb, var(--green-line) 55%, var(--bg));
+  --green-m: color-mix(in srgb, var(--green-line) 32%, var(--bg));
+  --green-ms: var(--green-line);
+  --slate-t: color-mix(in srgb, var(--stone-line) 11%, var(--bg));
+  --slate: color-mix(in srgb, var(--stone-line) 60%, var(--bg));
+  --hatch-bg: var(--bg);
+  --hatch-line: color-mix(in srgb, var(--stone-line) 30%, var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+    --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+    --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+    --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+  }
+}
+:root[data-theme="dark"] {
+  --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+  --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+  --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body {
+  font: 400 15px/1.5 var(--font);
+  /* no global "tnum": in Inter it also widens hyphens ("V4.1-Flash"); numbers opt in via .tnum / .t-num */
+  -webkit-font-smoothing: antialiased;
+  padding: 4px 0 8px;
+}
+.fig { max-width: 760px; margin: 0 auto; }
+
+/* header: an uppercase mono kicker (optional), a sentence-case title, a muted subtitle */
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+.fig-head-row { display: flex; gap: 12px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+
+/* the drawing; SVG text uses these classes, never inline font sizes */
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-lab { font-size: 13px; fill: var(--ink); }
+.t-lab-b { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-head { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted) !important; }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-blue { font-size: 13px; fill: var(--blue-text); font-weight: 500; }
+.t-gold { font-size: 13px; fill: var(--gold-text); font-weight: 600; }
+.t-mono { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; }
+/* ellipses: draw them with FK.dots (filled circles); a text "…" / "⋮" glyph is too thin to see */
+.fk-dots { fill: var(--muted); stroke: none; }
+.t-num { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-num, .tnum, /* grouped steps: a mono group label over its segments; step labels move to the explanation */
+.fig-pills.grouped { gap: 12px; }
+.fig-pgroup { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.fig-pglabel { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint);
+  background: none; border: 0; padding: 0; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pgroup.on .fig-pglabel { color: var(--ink); }
+.fig-pgpills { display: flex; gap: 4px; }
+.fig-pills.grouped .fig-pill { height: 10px; }
+.fig-pills.grouped .fig-pill .lbl { display: none; }
+.fig-count { font-variant-numeric: tabular-nums; }
+
+/* marks by role (fill + hairline stroke). Square corners everywhere. */
+.fig-stage rect { rx: 0; ry: 0; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage polyline { stroke-width: var(--hair); }
+.m-global     { fill: var(--blue-t);  stroke: var(--blue-ts); }
+.m-global-new { fill: var(--blue-m);  stroke: var(--blue-ms); }
+.m-window     { fill: var(--gold-t);  stroke: var(--gold-ts); }
+.m-accent     { fill: var(--gold-m);  stroke: var(--gold-ms); }
+.m-green      { fill: var(--green-t); stroke: var(--green-ts); }
+.m-green-strong { fill: var(--green-m); stroke: var(--green-ms); }
+.m-computed   { fill: var(--slate-t); stroke: var(--slate); }
+.m-skipped    { fill: url(#fk-hatch); stroke: var(--rule); }
+.m-empty      { fill: var(--bg); stroke: var(--slate); stroke-dasharray: 3 2; }
+.m-ghost      { fill: none; stroke: var(--faint); stroke-dasharray: 4 3; }
+.m-focus      { fill: none; stroke: var(--gold-ms); stroke-width: 2 !important; }
+.m-rule       { stroke: var(--rule); fill: none; }
+.m-line       { stroke: var(--line); fill: none; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage text, .fig-stage g {
+  transition: opacity var(--dur) var(--ease), fill var(--dur) var(--ease), stroke var(--dur) var(--ease);
+}
+.fade-out { opacity: 0; }
+.dim { opacity: .28; }
+
+/* legend: square swatches, sentence case */
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span, .fig-legend button { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend i { width: 14px; height: 10px; border: var(--hair) solid; display: inline-block; }
+.fig-legend i.m-global     { background: var(--blue-t);  border-color: var(--blue-ts); }
+.fig-legend i.m-global-new { background: var(--blue-m);  border-color: var(--blue-ms); }
+.fig-legend i.m-window     { background: var(--gold-t);  border-color: var(--gold-ts); }
+.fig-legend i.m-accent     { background: var(--gold-m);  border-color: var(--gold-ms); }
+.fig-legend i.m-green      { background: var(--green-t); border-color: var(--green-ts); }
+.fig-legend i.m-green-strong { background: var(--green-m); border-color: var(--green-ms); }
+.fig-legend i.m-computed   { background: var(--slate-t); border-color: var(--slate); }
+.fig-legend i.m-empty      { background: var(--bg); border: var(--hair) dashed var(--slate); }
+.fig-legend i.m-ghost      { background: none; border: var(--hair) dashed var(--faint); }
+.fig-legend i.m-skipped    { border-color: var(--rule);
+  background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--hatch-line) 3px 4.5px); }
+.fig-legend i.s-blue { background: var(--series-blue); border-color: transparent; }
+.fig-legend i.s-gold { background: var(--series-gold); border-color: transparent; }
+.fig-legend i.ref-line { width: 18px; height: 0; border: 0; border-top: var(--hair) dashed var(--line); }
+
+/* step player: hairline panel, square controls, segmented progress */
+.fig-player { background: var(--card); border: var(--hair) solid var(--rule); padding: 14px 16px 16px; margin-top: 14px; }
+.fig-controls { display: flex; align-items: center; gap: 6px; }
+.fig-btn {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0;
+  height: 28px; min-width: 28px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+}
+.fig-btn:hover { border-color: var(--line); }
+.fig-btn:focus-visible, .fig-pill:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-btn svg { width: 10px; height: 10px; fill: currentColor; }
+.fig-btn.play { min-width: 84px; }
+.fig-pills { display: flex; gap: 4px; flex: 1; min-width: 0; margin-left: 8px; }
+.fig-pill {
+  flex: 1; min-width: 0; position: relative; height: 28px; border: 0; padding: 0; background: none; cursor: pointer;
+  font: 500 12.5px/1 var(--font); color: var(--muted); text-align: left;
+}
+.fig-pill::before {  /* progress segment */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--rule);
+}
+.fig-pill .fill { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--gold-line); }
+.fig-pill.done .fill { width: 100%; }
+.fig-pill .lbl { position: absolute; left: 0; right: 2px; top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pill.on .lbl { color: var(--ink); font-weight: 600; }
+.fig-count { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; color: var(--muted); min-width: 44px; text-align: right; }
+.fig-explain { margin-top: 14px; min-height: 66px; }
+.fig-explain h3 { font-size: 15px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.005em; }
+.fig-explain p { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+.fig-explain b, .fig-explain strong { color: var(--ink); font-weight: 600; }
+.fig-explain .gold { color: var(--gold-text); font-weight: 600; }
+.fig-explain code, .fig-sub code { font-family: var(--mono); font-size: 12.5px; }
+
+/* segmented toggle */
+.fig-seg { display: inline-flex; border: var(--hair) solid var(--rule); }
+.fig-seg button {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 28px; padding: 0 12px; cursor: pointer;
+}
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* text button (e.g. "Show table") */
+.fig-link { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: none; border: var(--hair) solid var(--rule); border-radius: 0; height: 28px; padding: 0 10px; cursor: pointer; }
+
+/* tooltip */
+.fig-tip {
+  position: fixed; pointer-events: none; z-index: 10; background: var(--bg); color: var(--ink);
+  border: var(--hair) solid var(--line); padding: 8px 10px; font-size: 12.5px; line-height: 1.45;
+  opacity: 0; transition: opacity 120ms;
+}
+.fig-tip.show { opacity: 1; }
+
+@media (max-width: 560px) {
+  .fig-pill .lbl { display: none; }
+  .fig-pill { height: 12px; }
+  .fig-explain { min-height: 88px; }
+  .fig-btn.play { min-width: 28px; }
+  .fig-btn.play .t { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; }
+}
+
+/* ---- motion.js (zero-to-vllm) support ---------------------------------- */
+/* tone classes that motion.js creates (merge/split/ripple/glow/flow), mapped to our roles */
+.tone-gold, .tone-oat  { fill: var(--gold-m);  stroke: var(--gold-ms); }
+.tone-mist, .tone-blue { fill: var(--blue-t);  stroke: var(--blue-ts); }
+.tone-sage, .tone-green { fill: var(--green-t); stroke: var(--green-ts); }
+.tone-stone { fill: var(--slate-t); stroke: var(--slate); }
+.line-gold, .line-oat { stroke: var(--gold-ms); fill: none; }
+.line-mist, .line-blue { stroke: var(--blue-ms); fill: none; }
+.line-sage, .line-green { stroke: var(--green-ms); fill: none; }
+.line-rose { stroke: var(--gold-ms); fill: none; }
+.fill-gold { fill: var(--gold-ms); } .fill-mist, .fill-blue { fill: var(--blue-ms); } .fill-sage { fill: var(--green-ms); }
+/* highlight(): hovering a [data-link] mark lights its group and dims the rest */
+[data-link] { cursor: pointer; transition: opacity 320ms cubic-bezier(.16, 1, .3, 1); }
+[data-link]:focus { outline: none; }
+.mo-dim { opacity: .2; }
+.mo-flow, .mo-flow-guide, .mo-ripple { pointer-events: none; }
+
+/* ---- canvas frame: L-shaped corner marks around the drawing (cf. zero-to-vllm) ---- */
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none;
+}
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--muted); margin: 8px 0 0; }   /* footnote inside the frame */
+</style>
+<script>
+/* figkit.js — shared helpers for the DeepSeek-V4.1 vLLM blog figures.
+   FK.svg / FK.text   build SVG nodes with role classes from figkit.css
+   FK.defs            hatch pattern (#fk-hatch) and arrow marker (#fk-arrow)
+   FK.tween           animate numeric SVG attributes (x, y, width, ...)
+   FK.player          step player: autoplay when visible, Play/Pause, prev/next,
+                      clickable step pills, per-step title + explanation
+   Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function svg(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) {
+      if (attrs[k] == null) continue;
+      if (k === "class") n.setAttribute("class", attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    }
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  function text(parent, x, y, str, cls, attrs) {
+    const t = svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+    t.textContent = str;
+    return t;
+  }
+
+  /* Three dots for an ellipsis ("…" when horizontal, "⋮" when vertical), centered on
+     (cx, cy). Glyph ellipses render too thin at 13px; dots stay visible. */
+  function dots(parent, cx, cy, vertical, gap) {
+    gap = gap || 6;
+    const g = svg("g", { class: "fk-dots" }, parent);
+    for (let k = -1; k <= 1; k++)
+      svg("circle", { cx: vertical ? cx : cx + k * gap, cy: vertical ? cy + k * gap : cy, r: 1.7 }, g);
+    return g;
+  }
+
+  function defs(root) {
+    const d = svg("defs", {}, root);
+    const p = svg("pattern", { id: "fk-hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse",
+      patternTransform: "rotate(45)" }, d);
+    svg("rect", { width: 6, height: 6, style: "fill: var(--hatch-bg)" }, p);
+    svg("line", { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke: var(--hatch-line); stroke-width: 2" }, p);
+    const m = svg("marker", { id: "fk-arrow", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7,
+      markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--line)" }, m);
+    const g = svg("marker", { id: "fk-arrow-gold", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7,
+      markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--gold-ms)" }, g);
+    return d;
+  }
+
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  /* Animate numeric attributes of one element; resolves when done. A new tween on
+     the same element cancels the old one, so rapid step clicks never fight. */
+  function tween(el, to, ms) {
+    ms = reduced() ? 0 : ms == null ? 520 : ms;
+    if (el._fkRaf) cancelAnimationFrame(el._fkRaf);
+    const from = {};
+    for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
+    return new Promise((res) => {
+      if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
+      const t0 = performance.now();
+      const tick = (now) => {
+        const t = Math.min(1, (now - t0) / ms), e = ease(t);
+        for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
+        if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
+      };
+      el._fkRaf = requestAnimationFrame(tick);
+    });
+  }
+
+  function measure(str, cls) {
+    measure.svg = measure.svg || svg("svg", { width: 0, height: 0, style: "position:absolute;visibility:hidden" }, document.body);
+    measure.svg.setAttribute("class", "fig-stage");
+    const t = text(measure.svg, 0, 0, str, cls);
+    const w = t.getComputedTextLength();
+    t.remove();
+    return w;
+  }
+
+  const ICON_PLAY = '<svg viewBox="0 0 12 12"><path d="M2 1.2v9.6L10.4 6z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 12 12"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>';
+  const ICON_PREV = '<svg viewBox="0 0 12 12"><path d="M8.5 1.5 3.5 6l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const ICON_NEXT = '<svg viewBox="0 0 12 12"><path d="M3.5 1.5 8.5 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+
+  /* steps: [{label, title, text (HTML), ms?}]; render(i, prev) draws step i.
+     opts.autoplay=false builds a paused player (e.g. after a regime toggle).
+     Autoplay starts when the figure is half visible and stops for good once the
+     reader takes control (prev/next/pill); Play resumes it. */
+  function player(host, opts) {
+    const steps = opts.steps, n = steps.length;
+    const dwell = (i) => steps[i].ms || opts.ms || 4200;
+    host.classList.add("fig-player");
+    host.innerHTML =
+      '<div class="fig-controls">' +
+      '<button class="fig-btn play" type="button"></button>' +
+      '<button class="fig-btn prev" type="button" aria-label="Previous step">' + ICON_PREV + "</button>" +
+      '<button class="fig-btn next" type="button" aria-label="Next step">' + ICON_NEXT + "</button>" +
+      '<div class="fig-pills" role="tablist"></div><span class="fig-count"></span></div>' +
+      '<div class="fig-explain" aria-live="polite"><h3></h3><p></p></div>';
+    const $ = (s) => host.querySelector(s);
+    // Steps may carry a `group` (e.g. a regime). Grouped pills sit under a visible group
+    // label, so every group is in view even while another one plays.
+    const grouped = steps.some((s) => s.group);
+    const groups = {};
+    if (grouped) $(".fig-pills").classList.add("grouped");
+    const pills = steps.map((s, i) => {
+      const b = document.createElement("button");
+      b.className = "fig-pill"; b.type = "button"; b.setAttribute("role", "tab");
+      b.setAttribute("aria-label", (s.group ? s.group + ", " : "") + "step " + (i + 1) + ": " + s.label);
+      b.innerHTML = '<span class="fill"></span><span class="lbl">' + s.label + "</span>";
+      b.onclick = () => { stop(); go(i); };
+      let parent = $(".fig-pills");
+      if (grouped) {
+        const key = s.group || "";
+        if (!groups[key]) {
+          const g = document.createElement("div");
+          g.className = "fig-pgroup";
+          g.innerHTML = '<button type="button" class="fig-pglabel"></button><div class="fig-pgpills"></div>';
+          g.querySelector(".fig-pglabel").textContent = key;
+          g.querySelector(".fig-pglabel").onclick = () => { stop(); go(i); };
+          $(".fig-pills").appendChild(g);
+          groups[key] = { el: g, n: 0 };
+        }
+        groups[key].n++;
+        groups[key].el.style.flex = String(groups[key].n);
+        parent = groups[key].el.querySelector(".fig-pgpills");
+      }
+      parent.appendChild(b);
+      return b;
+    });
+    let cur = -1, playing = false, timer = 0, visible = false, started = false, io = null;
+
+    function setPlayBtn() {
+      $(".play").innerHTML = playing ? ICON_PAUSE + '<span class="t">Pause</span>'
+        : ICON_PLAY + '<span class="t">' + (cur === n - 1 ? "Replay" : "Play") + "</span>";
+      $(".play").setAttribute("aria-label", playing ? "Pause" : "Play");
+    }
+    function go(i) {
+      const prev = cur;
+      cur = (i + n) % n;
+      pills.forEach((p, k) => {
+        p.classList.toggle("on", k === cur);
+        p.classList.toggle("done", k < cur);
+        p.setAttribute("aria-selected", k === cur);
+        const f = p.querySelector(".fill");
+        f.style.transition = "none";
+        f.style.width = k < cur ? "100%" : "0";
+      });
+      if (grouped) for (const k in groups) groups[k].el.classList.toggle("on", k === (steps[cur].group || ""));
+      $(".fig-explain h3").innerHTML = steps[cur].title;
+      $(".fig-explain p").innerHTML = steps[cur].text;
+      const pad = (k) => String(k).padStart(2, "0");
+      $(".fig-count").textContent = pad(cur + 1) + " / " + pad(n);
+      opts.render(cur, prev);
+      if (playing) schedule();
+      setPlayBtn();
+    }
+    function schedule() {
+      clearTimeout(timer);
+      const f = pills[cur].querySelector(".fill");
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        f.style.transition = "width " + dwell(cur) + "ms linear";
+        f.style.width = "100%";
+      }));
+      timer = setTimeout(() => {
+        if (cur === n - 1) { playing = false; setPlayBtn(); return; }  // stop on the last step
+        go(cur + 1);
+      }, dwell(cur));
+    }
+    function play() {
+      playing = true; started = true;
+      if (cur === n - 1) go(0); else { schedule(); setPlayBtn(); }
+    }
+    function stop() {
+      playing = false; clearTimeout(timer);
+      const f = pills[cur] && pills[cur].querySelector(".fill");
+      if (f) { f.style.transition = "none"; f.style.width = "0"; }
+      setPlayBtn();
+    }
+    $(".play").onclick = () => (playing ? stop() : play());
+    $(".prev").onclick = () => { stop(); go(Math.max(0, cur - 1)); };
+    $(".next").onclick = () => { stop(); go(Math.min(n - 1, cur + 1)); };
+    host.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { stop(); go(Math.min(n - 1, cur + 1)); }
+      if (e.key === "ArrowLeft") { stop(); go(Math.max(0, cur - 1)); }
+    });
+
+    go(0);
+    const auto = opts.autoplay !== false && !reduced() && !/[?&]static\b/.test(location.search);
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver((es) => {
+        visible = es[0].isIntersecting;
+        if (visible && auto && !started) play();
+        if (!visible && playing) { stop(); started = false; }
+      }, { threshold: 0.5 });
+      io.observe(host.parentElement || host);
+    } else if (auto) play();
+    // ?step=N opens a given step (for screenshots and deep links)
+    const m = /[?&]step=(\d+)/.exec(location.search);
+    if (m) { stop(); go(Math.min(n - 1, +m[1])); started = true; }
+    // dispose() before building a new player in the same host (e.g. a regime toggle)
+    const dispose = () => { stop(); if (io) io.disconnect(); };
+    return { go, play, stop, dispose, get step() { return cur; } };
+  }
+
+  function reportHeight() {
+    if (window.self === window.top) return;
+    document.documentElement.style.overflow = "hidden";
+    let last = 0;
+    const report = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+    };
+    if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+    window.addEventListener("load", report);
+    window.addEventListener("resize", report);
+    setTimeout(report, 300); setTimeout(report, 1500);
+    report();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", reportHeight);
+  else reportHeight();
+
+  window.FK = { svg, text, dots, defs, tween, measure, player, reduced };
+})();
+</script>
+<script>
+/* motion.js from zero-to-vllm (https://github.com/Inferact/zero-to-vllm, branch
+   site/internal-preview @ 29afa18, site/assets/motion.js), Apache-2.0.
+   Vendored with two changes: `export` removed and the API exposed as window.MO,
+   and a ticker fix (no clock reset inside a frame; dt >= 0) so staggers keep time under load,
+   so the figure pages can stay classic scripts and inline into one file.
+   API docs: site/assets/MOTION.md in that repo. */
+(function () {
+// motion.js — 章节舞台的 SVG 动画库（零依赖 ES module）。
+//
+// 设计原则（配合 AGENTS.md 的写作规则）：
+//   - 动画表达因果：位移 = 数据/请求移动，增长 = 累积，淡出 = 释放，描边扩散 = 事件发生。
+//   - 全部动画跑在一个共享 rAF ticker 上（单 rAF，60fps 友好；空闲时自动停表）。
+//   - 尊重 prefers-reduced-motion：所有原语直接落到终态，不动。
+//   - 全部可中断：spring/camera 可随时 .to() 改目标（从当前值与当前速度继续，不跳变）；
+//     其余原语 cancel() 后重发即可。每个 handle 都有 cancel() 与 done（Promise）。
+//   - 检查/截图钩子：freezeMotion() 停表后 tickMotion(dt) 手动推帧（00-motion 的
+//     window.__motionSeek 就是用这对钩子实现的）。
+//
+// 原语一览（详见 site/assets/MOTION.md）：
+//   spring / drawPath / countTo / flow / morph / split / merge / camera /
+//   highlight / stagger / typewriter / ripple / glow / timeline / scope
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const reducedMotion = () =>
+  !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+// ---------- 缓动 ----------
+
+/** cubic-bezier(x1,y1,x2,y2) 求值器（Newton 迭代）。 */
+function cubicBezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const X = (t) => ((ax * t + bx) * t + cx) * t;
+  const Y = (t) => ((ay * t + by) * t + cy) * t;
+  return (x) => {
+    let t = x;
+    for (let i = 0; i < 6; i++) {
+      const dx = X(t) - x;
+      const d = (3 * ax * t + 2 * bx) * t + cx;
+      if (Math.abs(dx) < 1e-5 || Math.abs(d) < 1e-6) break;
+      t -= dx / d;
+    }
+    return Y(Math.max(0, Math.min(1, t)));
+  };
+}
+
+const EASE = {
+  out: cubicBezier(0.16, 1, 0.3, 1),     // 出场/落位：快入缓出（Apple 式克制）
+  inOut: cubicBezier(0.65, 0, 0.35, 1),  // 镜头推拉、路径描绘
+  soft: cubicBezier(0.4, 0, 0.2, 1),     // 与 style.css --ease 一致
+  linear: (t) => t,
+};
+
+// ---------- 共享 ticker ----------
+// 所有 updater 收 dt(ms)。空闲时 rAF 停止；freezeMotion/tickMotion 供调试与截图。
+
+const updaters = new Set();
+let rafId = 0;
+let clock = 0;
+let frozen = false;
+
+let inFrame = false;
+function frame(now) {
+  rafId = 0;
+  inFrame = true;
+  // dt >= 0: a clock set by performance.now() can be later than the next frame's timestamp
+  const dt = Math.max(0, Math.min(64, clock ? now - clock : 16.7)); // 掉帧时最多补 64ms，避免大步长穿模
+  clock = now;
+  runUpdaters(dt);
+  inFrame = false;
+  if (updaters.size && !frozen) rafId = requestAnimationFrame(frame);
+}
+function runUpdaters(dt) {
+  for (const u of [...updaters]) u(dt);
+}
+function addUpdater(u) {
+  updaters.add(u);
+  // inside a frame the loop re-arms itself; resetting the clock here made the next dt
+  // negative under load (staggers stalled in embedded iframes)
+  if (!rafId && !frozen && !inFrame) {
+    clock = performance.now();
+    rafId = requestAnimationFrame(frame);
+  }
+}
+function removeUpdater(u) {
+  updaters.delete(u);
+}
+
+/** 停表：之后所有动画不再随真实时间前进（WAAPI 不受影响，本库不用 WAAPI）。 */
+function freezeMotion() {
+  frozen = true;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = 0;
+}
+/** 恢复真实时间驱动。 */
+function unfreezeMotion() {
+  if (!frozen) return;
+  frozen = false;
+  clock = performance.now();
+  if (updaters.size && !rafId) rafId = requestAnimationFrame(frame);
+}
+/** 冻结（或运行）中手动推 dt 毫秒。seek 请切成 16.7ms 小步多次调用。 */
+function tickMotion(dt = 16.7) {
+  runUpdaters(dt);
+}
+
+// ---------- 小工具 ----------
+
+function svgEl(tag, attrs = {}, parent = null) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
+    el.setAttribute(k === "class" ? "class" : k, String(v));
+  }
+  if (parent) parent.appendChild(el);
+  return el;
+}
+
+const num = (el, attr, dflt = 0) => {
+  const v = parseFloat(el.getAttribute(attr));
+  return Number.isFinite(v) ? v : dflt;
+};
+
+/** 千分位整数（countTo 默认格式）。 */
+function fmtInt(v) {
+  return Math.round(v).toLocaleString("en-US");
+}
+
+/**
+ * 生命周期容器：把一批 handle 收在一起，dispose() 一次性取消。
+ * 章节 render 开头 dispose 上一个 scope，就能保证翻步时一次性动画全部停下。
+ */
+function scope() {
+  const hs = new Set();
+  return {
+    add(h) { if (h) hs.add(h); return h; },
+    dispose() {
+      for (const h of hs) {
+        const f = h && (h.cancel || h.stop || h.dispose);
+        if (f) f.call(h);
+      }
+      hs.clear();
+    },
+    get size() { return hs.size; },
+  };
+}
+
+// ---------- 1. spring：弹簧插值 ----------
+//
+// spring(el, targets, { stiffness, damping, mass, precision, instant })
+//   targets 支持数值属性：x y width height cx cy r opacity
+//   以及 transform 分量：tx ty scale rotate（弹簧独占该元素的 transform 属性，
+//   内部存 el.__moT = {tx,ty,scale,rotate}，写出 translate/rotate/scale 组合）。
+// 返回 handle：
+//   .to(next, opts?)   改目标——从当前值与当前速度继续积分，绝不跳变（可中途打断）
+//   .cancel()          停在当前位置
+//   .done              Promise，静止（或取消）时 resolve
+//   .value(prop)       当前值
+//
+// 默认 stiffness 170 / damping 22（mass 1）：阻尼比 ≈ 0.84，落位带一点回稳不晃。
+
+const T_PROPS = new Set(["tx", "ty", "scale", "rotate"]);
+
+function readT(el) {
+  if (!el.__moT) el.__moT = { tx: 0, ty: 0, scale: 1, rotate: 0 };
+  return el.__moT;
+}
+function writeT(el) {
+  const t = readT(el);
+  el.setAttribute(
+    "transform",
+    `translate(${t.tx} ${t.ty}) rotate(${t.rotate}) scale(${t.scale})`
+  );
+}
+function readProp(el, p) {
+  if (T_PROPS.has(p)) return readT(el)[p];
+  return num(el, p, p === "opacity" ? 1 : 0);
+}
+function writeProp(el, p, v) {
+  if (T_PROPS.has(p)) { readT(el)[p] = v; writeT(el); return; }
+  el.setAttribute(p, String(Math.round(v * 1000) / 1000));
+}
+
+function spring(el, targets = {}, opts = {}) {
+  let k = opts.stiffness ?? 170;
+  let c = opts.damping ?? 22;
+  const eps = opts.precision ?? 0.05;
+  const veps = opts.velEps ?? 0.5;
+  const st = new Map(); // prop -> { v, vel, target }
+  let running = false;
+  let resolveDone;
+  const done = new Promise((r) => (resolveDone = r));
+
+  const ensure = (p, target) => {
+    let s = st.get(p);
+    if (!s) {
+      s = { v: readProp(el, p), vel: 0, target };
+      st.set(p, s);
+    } else s.target = target;
+    return s;
+  };
+
+  const applyAll = () => { for (const [p, s] of st) writeProp(el, p, s.v); };
+  const settle = () => {
+    running = false;
+    el.__moRunning = false;
+    removeUpdater(tick);
+    for (const [p, s] of st) { s.v = s.target; s.vel = 0; writeProp(el, p, s.v); }
+    resolveDone();
+  };
+
+  const tick = (dtMs) => {
+    let dt = Math.min(dtMs, 64) / 1000;
+    let allRest = true;
+    // 子步积分，大步长也稳定
+    while (dt > 1e-6) {
+      const h = Math.min(dt, 1 / 120);
+      dt -= h;
+      for (const s of st.values()) {
+        const f = -k * (s.v - s.target) - c * s.vel;
+        s.vel += f * h;
+        s.v += s.vel * h;
+      }
+    }
+    applyAll();
+    for (const s of st.values()) {
+      if (Math.abs(s.v - s.target) > eps || Math.abs(s.vel) > veps) { allRest = false; break; }
+    }
+    if (allRest) settle();
+  };
+
+  const api = {
+    done,
+    to(next = {}, o = {}) {
+      if (o.stiffness != null) k = o.stiffness;
+      if (o.damping != null) c = o.damping;
+      for (const [p, t] of Object.entries(next)) if (t != null && Number.isFinite(t)) ensure(p, t);
+      if (reducedMotion() || o.instant) { settle(); return api; }
+      if (!running) { running = true; el.__moRunning = true; addUpdater(tick); }
+      return api;
+    },
+    cancel() {
+      if (running) { running = false; el.__moRunning = false; removeUpdater(tick); }
+      resolveDone();
+    },
+    value(p) { const s = st.get(p); return s ? s.v : readProp(el, p); },
+    get resting() { return !running; },
+  };
+
+  return api.to(targets, opts);
+}
+
+// ---------- 2. drawPath：描边生长 ----------
+//
+// drawPath(pathEl, { duration, ease, delay, instant }) — 描边从无到有。
+// handle: { cancel, finish, done }。cancel 停在当前描到的位置。
+
+function drawPath(pathEl, { duration = 640, ease = EASE.inOut, delay = 0, instant } = {}) {
+  let len = 0;
+  try { len = pathEl.getTotalLength(); } catch (_) { len = 0; }
+  let resolveDone;
+  const done = new Promise((r) => (resolveDone = r));
+  let t = -delay;
+  let active = false;
+  const tick = (dt) => {
+    t += dt;
+    if (t < 0) return;
+    const p = Math.min(1, t / duration);
+    pathEl.setAttribute("stroke-dashoffset", String(len * (1 - ease(p))));
+    if (p >= 1) finish();
+  };
+  const finish = () => {
+    if (active) { active = false; removeUpdater(tick); }
+    if (len) {
+      pathEl.setAttribute("stroke-dasharray", String(len));
+      pathEl.setAttribute("stroke-dashoffset", "0");
+    }
+    resolveDone();
+  };
+
+  if (!len || reducedMotion() || instant) {
+    finish();
+    return { cancel: () => resolveDone(), finish, done };
+  }
+  pathEl.setAttribute("stroke-dasharray", String(len));
+  pathEl.setAttribute("stroke-dashoffset", String(len));
+  active = true;
+  addUpdater(tick);
+  return {
+    cancel() { if (active) { active = false; removeUpdater(tick); } resolveDone(); },
+    finish,
+    done,
+  };
+}
+
+// ---------- 3. countTo：数字滚动 ----------
+//
+// countTo(textEl, from, to, { duration, format, ease, instant })
+//   format(v) → 字符串；默认 fmtInt（千分位整数）。单位/小数位由 format 给。
+// handle: { cancel, done, value() }
+
+function countTo(textEl, from, to, { duration = 900, format, ease = EASE.out, instant } = {}) {
+  const fmt = format || fmtInt;
+  let resolveDone;
+  const done = new Promise((r) => (resolveDone = r));
+  let cur = from;
+  const render = (v) => { cur = v; textEl.textContent = fmt(v); };
+
+  if (reducedMotion() || instant || duration <= 0 || from === to) {
+    render(to);
+    resolveDone();
+    return { cancel() {}, done, value: () => cur };
+  }
+  let t = 0;
+  const tick = (dt) => {
+    t += dt;
+    const p = Math.min(1, t / duration);
+    render(from + (to - from) * ease(p));
+    if (p >= 1) { removeUpdater(tick); resolveDone(); }
+  };
+  addUpdater(tick);
+  return {
+    cancel() { removeUpdater(tick); resolveDone(); },
+    done,
+    value: () => cur,
+  };
+}
+
+// ---------- 4. flow：沿路径的粒子流 ----------
+//
+// flow(pathOrPoints, { count, speed, tone, size, parent, opacity, fade })
+//   pathOrPoints：SVGPathElement（已画在画布上的路径），或 [{x,y}…]（库内生成平滑路径，
+//   需要 parent）。speed 单位 px/s。粒子在首尾 12% 行程内淡入淡出，表达「数据在流」。
+// handle: { stop(fadeMs?), cancel, pause, resume, setSpeed, done }（done 在 stop 后 resolve）
+
+function flow(pathOrPoints, {
+  count = 5, speed = 90, tone = "mist", size = 3.5, parent, opacity = 0.9,
+} = {}) {
+  let pathEl = null;
+  let ownPath = null;
+  if (pathOrPoints && typeof pathOrPoints.getTotalLength === "function") {
+    pathEl = pathOrPoints;
+    parent = parent || pathEl.parentNode;
+  } else if (Array.isArray(pathOrPoints) && parent) {
+    ownPath = svgEl("path", { d: smoothPath(pathOrPoints), class: "mo-flow-guide", fill: "none", stroke: "none" }, parent);
+    pathEl = ownPath;
+  }
+  let resolveDone;
+  const done = new Promise((r) => (resolveDone = r));
+  if (!pathEl || !parent) { resolveDone(); return deadHandle(); }
+
+  let len = 0;
+  try { len = pathEl.getTotalLength(); } catch (_) { len = 0; }
+  if (!len) { resolveDone(); return deadHandle(); }
+
+  const g = svgEl("g", { class: "mo-flow" }, parent);
+  const dots = [];
+  for (let i = 0; i < count; i++) {
+    dots.push(svgEl("circle", { r: size, class: `fill-${tone}` }, g));
+  }
+
+  const place = (dist) => {
+    // dist: 粒子 0 已经走过的像素；粒子 i 落后 i/count 个周期
+    for (let i = 0; i < dots.length; i++) {
+      const p = (((dist / len) - i / dots.length) % 1 + 1) % 1;
+      const pt = pathEl.getPointAtLength(p * len);
+      dots[i].setAttribute("cx", String(pt.x));
+      dots[i].setAttribute("cy", String(pt.y));
+      const edge = Math.min(p / 0.12, (1 - p) / 0.12, 1);
+      dots[i].setAttribute("opacity", String(opacity * Math.max(0, edge)));
+    }
+  };
+
+  if (reducedMotion()) {
+    // 静态：均匀摆一排点，表示「这条路上有流」
+    for (let i = 0; i < dots.length; i++) {
+      const p = (i + 0.5) / dots.length;
+      const pt = pathEl.getPointAtLength(p * len);
+      dots[i].setAttribute("cx", String(pt.x));
+      dots[i].setAttribute("cy", String(pt.y));
+      dots[i].setAttribute("opacity", String(opacity * 0.7));
+    }
+    const h = deadHandle();
+    h.cancel = h.stop = () => { g.remove(); if (ownPath) ownPath.remove(); resolveDone(); };
+    return h;
+  }
+
+  let dist = 0;
+  let running = true;
+  let fadeOut = null; // 停流时的整体淡出
+  const tick = (dt) => {
+    if (running) dist += (speed * dt) / 1000;
+    place(dist);
+    if (fadeOut != null) {
+      fadeOut -= dt;
+      const o = Math.max(0, fadeOut / 220);
+      g.setAttribute("opacity", String(o));
+      if (fadeOut <= 0) api.cancel();
+    }
+  };
+  addUpdater(tick);
+
+  const api = {
+    done,
+    pause() { running = false; },
+    resume() { running = true; },
+    setSpeed(v) { speed = v; },
+    stop(fadeMs = 220) { fadeOut = fadeMs; },
+    cancel() {
+      removeUpdater(tick);
+      g.remove();
+      if (ownPath) ownPath.remove();
+      resolveDone();
+    },
+  };
+  return api;
+
+  function deadHandle() {
+    return { done, cancel() { resolveDone(); }, stop() { resolveDone(); }, pause() {}, resume() {}, setSpeed() {} };
+  }
+}
+
+/** 折点列 → 平滑闭合不闭合的 Catmull-Rom → bezier 路径 d。 */
+function smoothPath(pts) {
+  if (pts.length < 2) return "";
+  if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
+    const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    d += ` C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+// ---------- 5. morph / split / merge ----------
+
+/** 读矩形：rect 元素读 x/y/width/height；对象直接取 {x,y,w,h}。 */
+function readBox(elOrBox) {
+  if (!elOrBox) return null;
+  if (typeof elOrBox.getAttribute === "function") {
+    return { x: num(elOrBox, "x"), y: num(elOrBox, "y"), w: num(elOrBox, "width"), h: num(elOrBox, "height") };
+  }
+  return { x: elOrBox.x, y: elOrBox.y, w: elOrBox.w, h: elOrBox.h };
+}
+
+/**
+ * morph(el, fromBox, toBox, opts)：rect 形元素从 fromBox 变形到 toBox（弹簧）。
+ * fromBox 传 null 表示从当前位置出发。返回 spring handle。
+ */
+function morph(el, fromBox, toBox, opts = {}) {
+  if (fromBox) {
+    el.setAttribute("x", String(fromBox.x));
+    el.setAttribute("y", String(fromBox.y));
+    el.setAttribute("width", String(fromBox.w));
+    el.setAttribute("height", String(fromBox.h));
+  }
+  return spring(el, { x: toBox.x, y: toBox.y, width: toBox.w, height: toBox.h }, opts);
+}
+
+function splitBoxes(box, n, layout, gap) {
+  const out = [];
+  if (layout === "column") {
+    const h = (box.h - (n - 1) * gap) / n;
+    for (let i = 0; i < n; i++) out.push({ x: box.x, y: box.y + i * (h + gap), w: box.w, h });
+  } else if (layout === "grid") {
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    const w = (box.w - (cols - 1) * gap) / cols;
+    const h = (box.h - (rows - 1) * gap) / rows;
+    for (let i = 0; i < n; i++) {
+      out.push({
+        x: box.x + (i % cols) * (w + gap),
+        y: box.y + Math.floor(i / cols) * (h + gap),
+        w, h,
+      });
+    }
+  } else { // "row"
+    const w = (box.w - (n - 1) * gap) / n;
+    for (let i = 0; i < n; i++) out.push({ x: box.x + i * (w + gap), y: box.y, w, h: box.h });
+  }
+  return out;
+}
+
+/**
+ * split(el, n, { layout = "row", gap, boxes, cls, parent, keep, instant })
+ *   一个块分裂成 n 块（prompt 切块、张量拆分）。碎片从原块位置弹簧散开。
+ *   el：rect 元素或 {x,y,w,h}（此时必须给 parent 与 cls）。原块默认淡出移除（keep 保留）。
+ * 返回 { els, done, cancel }；cancel 撤销整场分裂（碎片移除、原块复原）——timeline seek 靠它。
+ */
+function split(el, n, { layout = "row", gap = 6, boxes, cls, parent, keep = false, instant } = {}) {
+  const isEl = el && typeof el.getAttribute === "function";
+  const box = readBox(el);
+  const host = parent || (isEl ? el.parentNode : null);
+  const targets = boxes || splitBoxes(box, n, layout, gap);
+  const clsName = cls || (isEl ? el.getAttribute("class") : "tone-mist") || "tone-mist";
+  const springs = [];
+  const els = targets.map((t, i) => {
+    const r = svgEl("rect", {
+      x: box.x, y: box.y, width: box.w, height: box.h,
+      class: clsName, opacity: 0,
+    }, host);
+    r.setAttribute("data-order", String(i));
+    // 先入淡（CSS opacity 过渡），同时弹簧就位
+    requestAnimationFrame(() => r.setAttribute("opacity", "1"));
+    springs.push(spring(r, { x: t.x, y: t.y, width: t.w, height: t.h }, { instant, stiffness: 170, damping: 23 }));
+    return r;
+  });
+  let removed = false;
+  const removeOriginal = () => {
+    if (!isEl || keep || removed) return;
+    removed = true;
+    el.setAttribute("opacity", "0");
+    setTimeout(() => el.remove(), 320);
+  };
+  removeOriginal();
+  const done = Promise.all(springs.map((s) => s.done));
+  return {
+    els,
+    done,
+    cancel() {
+      for (const s of springs) s.cancel();
+      for (const r of els) r.remove();
+      if (isEl && removed) {
+        // 复原原块（若还在文档里则只恢复透明度）
+        el.setAttribute("opacity", "1");
+      }
+    },
+  };
+}
+
+/**
+ * merge(els, target, { cls, dest, reveal, instant })
+ *   多个 rect 收拢进 target 盒（{x,y,w,h} 或元素）。
+ *   dest：在 target 处新建的落位块（默认用第一块的类；dest === null 则不建）。
+ *   reveal：收拢完成后要淡入显示的元素（例如场景里早就声明好的合并块）。
+ * 返回 { el: dest, done, cancel }；cancel 撤销（碎片复原、落位块移除/隐藏）。
+ */
+function merge(els, target, { cls, dest, reveal, instant } = {}) {
+  const box = readBox(target);
+  const host = (els[0] && els[0].parentNode) || null;
+  let destEl = dest === null ? null
+    : dest || svgEl("rect", {
+        x: box.x, y: box.y, width: box.w, height: box.h,
+        class: cls || (els[0] && els[0].getAttribute("class")) || "tone-sage", opacity: 0,
+      }, host);
+  const springs = els.map((el) =>
+    morph(el, null, box, { instant, stiffness: 170, damping: 23 })
+  );
+  const finishUp = () => {
+    for (const el of els) el.remove();
+    if (reveal) reveal.setAttribute("opacity", "1");
+    else if (destEl) destEl.setAttribute("opacity", "1");
+  };
+  const done = Promise.all(springs.map((s) => s.done)).then(finishUp);
+  if (instant) finishUp();
+  const kept = els.map((el) => ({ el, parent: el.parentNode, next: el.nextSibling, opacity: el.getAttribute("opacity") }));
+  return {
+    el: destEl,
+    done,
+    cancel() {
+      for (const s of springs) s.cancel();
+      for (const k of kept) {
+        if (!k.el.isConnected && k.parent) {
+          if (k.next && k.next.parentNode === k.parent) k.parent.insertBefore(k.el, k.next);
+          else k.parent.appendChild(k.el);
+        }
+        if (k.opacity != null) k.el.setAttribute("opacity", k.opacity);
+      }
+      if (dest === undefined && destEl) destEl.remove(); // 只移除库自己创建的
+      if (reveal) reveal.setAttribute("opacity", "0");
+    },
+  };
+}
+
+// ---------- 6. camera：viewBox 推拉平移 ----------
+//
+// const cam = camera(svg)；cam.focus(box, { padding }) / cam.reset() / cam.set(box)。
+// 内部是 4 个数的弹簧（x,y,w,h），翻步中途改目标平滑接续。focus/reset 返回 rest Promise。
+// 目标框始终按画布初始宽高比（默认 16:9）扩展，不会拉伸画面。
+
+function camera(svg) {
+  const b = svg.viewBox.baseVal;
+  const vb0 = { x: b.x, y: b.y, w: b.width, h: b.height };
+  const aspect = vb0.w / vb0.h;
+  const proxy = svgEl("g"); // 不挂树，只借 spring 的数值积分
+  const sp = spring(proxy, { x: vb0.x, y: vb0.y, width: vb0.w, height: vb0.h }, { stiffness: 120, damping: 26, instant: true });
+  let resolveRest = null;
+  const write = () => {
+    svg.setAttribute("viewBox", `${sp.value("x")} ${sp.value("y")} ${sp.value("width")} ${sp.value("height")}`);
+  };
+  // spring 写到代理元素的 x/y/width/height 属性上；我们在它的 done 前每帧回写 viewBox。
+  // 简化：包一层 updater 跟随 spring。
+  let follow = null;
+  const followUp = () => {
+    if (follow) return;
+    follow = () => {
+      write();
+      if (sp.resting) { removeUpdater(follow); follow = null; const r = resolveRest; resolveRest = null; r && r(); }
+    };
+    addUpdater(follow);
+  };
+  const norm = (box, padding = 0) => {
+    let w = box.w + 2 * padding;
+    let h = w / aspect;
+    if (h < box.h + 2 * padding) { h = box.h + 2 * padding; w = h * aspect; }
+    return { x: box.x + box.w / 2 - w / 2, y: box.y + box.h / 2 - h / 2, w, h };
+  };
+  const go = (t, opts = {}) => {
+    const p = new Promise((r) => (resolveRest = r));
+    sp.to({ x: t.x, y: t.y, width: t.w, height: t.h }, opts);
+    if (reducedMotion() || opts.instant) { write(); const r = resolveRest; resolveRest = null; r && r(); }
+    else followUp();
+    return p;
+  };
+  return {
+    focus: (box, { padding = 48, ...o } = {}) => go(norm(box, padding), o),
+    reset: (o = {}) => go(vb0, o),
+    set(box) { sp.to({ x: box.x, y: box.y, width: box.w, height: box.h }, { instant: true }); write(); },
+    current: () => ({ x: sp.value("x"), y: sp.value("y"), w: sp.value("width"), h: sp.value("height") }),
+    home: vb0,
+  };
+}
+
+// ---------- 7. highlight：关联高亮 ----------
+//
+// highlight(root, { selector = "[data-link]", onChange })
+//   悬停/focus 一个元素：同 data-link 值的一组元素全亮，其余 [data-link] 降到 20% 透明；
+//   点击（或 Enter）钉住，再点/点空白/Esc 解除。样式由 motion.css 的 .mo-dim/.mo-hot 承担。
+// handle: { clear, destroy, pinned() }
+
+function highlight(root, { selector = "[data-link]", onChange } = {}) {
+  let pinnedVal = null;
+  let hoverVal = null;
+
+  const val = (el) => el.getAttribute("data-link") || el.getAttribute("data-tip-id");
+  const apply = (v) => {
+    for (const el of root.querySelectorAll(selector)) {
+      el.classList.toggle("mo-dim", v != null && val(el) !== v);
+      el.classList.toggle("mo-hot", v != null && val(el) === v);
+    }
+    onChange && onChange(v);
+  };
+  const current = () => pinnedVal ?? hoverVal;
+
+  const over = (e) => {
+    const el = e.target.closest && e.target.closest(selector);
+    if (!el || !root.contains(el)) return;
+    const v = val(el);
+    if (hoverVal !== v) { hoverVal = v; apply(current()); }
+  };
+  const out = (e) => {
+    if (!hoverVal) return;
+    if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(selector)) return;
+    hoverVal = null;
+    apply(current());
+  };
+  const click = (e) => {
+    const el = e.target.closest && e.target.closest(selector);
+    if (el && root.contains(el)) {
+      const v = val(el);
+      pinnedVal = pinnedVal === v ? null : v;
+    } else pinnedVal = null;
+    apply(current());
+  };
+  const key = (e) => {
+    if (e.key === "Enter") {
+      const el = e.target.closest && e.target.closest(selector);
+      if (el) { e.preventDefault(); const v = val(el); pinnedVal = pinnedVal === v ? null : v; apply(current()); }
+    } else if (e.key === "Escape" && pinnedVal != null) {
+      pinnedVal = null;
+      apply(current());
+      e.stopPropagation();
+    }
+  };
+  root.addEventListener("pointerover", over);
+  root.addEventListener("pointerout", out);
+  root.addEventListener("click", click);
+  root.addEventListener("keydown", key);
+  for (const el of root.querySelectorAll(selector)) {
+    if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+  }
+  apply(current());
+
+  return {
+    clear() { pinnedVal = hoverVal = null; apply(null); },
+    pinned: () => pinnedVal,
+    cancel() { this.destroy(); },
+    destroy() {
+      root.removeEventListener("pointerover", over);
+      root.removeEventListener("pointerout", out);
+      root.removeEventListener("click", click);
+      root.removeEventListener("keydown", key);
+      apply(null);
+    },
+  };
+}
+
+// ---------- 8. stagger：按因果顺序依次 ----------
+//
+// stagger(els, fn, { each = 90 })：fn(el, i) 每隔 each 毫秒触发一个。
+// handle: { cancel, done }
+
+function stagger(els, fn, { each = 90, instant } = {}) {
+  let resolveDone;
+  const done = new Promise((r) => (resolveDone = r));
+  const list = [...els];
+  if (reducedMotion() || instant || each <= 0) {
+    list.forEach((el, i) => fn(el, i));
+    resolveDone();
+    return { cancel() {}, done };
+  }
+  let i = 0;
+  let acc = 0;
+  const tick = (dt) => {
+    acc += dt;
+    while (i < list.length && acc >= i * each) { fn(list[i], i); i++; }
+    if (i >= list.length) { removeUpdater(tick); resolveDone(); }
+  };
+  addUpdater(tick);
+  return {
+    cancel() { removeUpdater(tick); resolveDone(); },
+    done,
+  };
+}
+
+// ---------- 9. typewriter：逐字出现（仅代码/事件行） ----------
+//
+// typewriter(textEl, { text, cps = 24, instant })
+// handle: { cancel, finish, done }
+
+function typewriter(textEl, { text, cps = 24, instant } = {}) {
+  const str = text ?? textEl.textContent ?? "";
+  let resolveDone;
+  const done = new Promise((r) => (resolveDone = r));
+  let acc = 0;
+  let shown = 0;
+  let active = false;
+  const tick = (dt) => {
+    acc += dt;
+    const n = Math.min(str.length, Math.floor((acc / 1000) * cps));
+    if (n !== shown) { shown = n; textEl.textContent = str.slice(0, n); }
+    if (n >= str.length) finish();
+  };
+  const finish = () => {
+    if (active) { active = false; removeUpdater(tick); }
+    textEl.textContent = str;
+    resolveDone();
+  };
+  if (reducedMotion() || instant || !str) {
+    textEl.textContent = str;
+    resolveDone();
+    return { cancel() { resolveDone(); }, finish, done };
+  }
+  textEl.textContent = "";
+  active = true;
+  addUpdater(tick);
+  return {
+    cancel() { if (active) { active = false; removeUpdater(tick); } resolveDone(); },
+    finish,
+    done,
+  };
+}
+
+// ---------- 10. ripple / glow：事件信号（柔和描边扩散，各只播一次） ----------
+
+/** ripple(parent, x, y, { tone, r, duration })：一圈描边从点扩散开——「发生了一个事件」。 */
+function ripple(parent, x, y, { tone = "rose", r = 30, duration = 640, instant } = {}) {
+  if (reducedMotion() || instant) return { cancel() {}, done: Promise.resolve() };
+  const c = svgEl("circle", {
+    cx: x, cy: y, r: 3, class: `line-${tone}`,
+    fill: "none", "stroke-width": 1.8, opacity: 0.9,
+  }, parent);
+  let resolveDone;
+  const done = new Promise((res) => (resolveDone = res));
+  let t = 0;
+  const tick = (dt) => {
+    t += dt;
+    const p = Math.min(1, t / duration);
+    const e = EASE.out(p);
+    c.setAttribute("r", String(3 + (r - 3) * e));
+    c.setAttribute("opacity", String(0.9 * (1 - e)));
+    if (p >= 1) { removeUpdater(tick); c.remove(); resolveDone(); }
+  };
+  addUpdater(tick);
+  return { cancel() { removeUpdater(tick); c.remove(); resolveDone(); }, done };
+}
+
+/** glow(el, { tone, padding, duration })：一圈描边沿元素外缘扩散——「落位 / 命中」。 */
+function glow(el, { tone = "sage", padding = 5, duration = 760, instant } = {}) {
+  let b;
+  try { b = el.getBBox(); } catch (_) { return { cancel() {}, done: Promise.resolve() }; }
+  const parent = el.parentNode;
+  if (reducedMotion() || instant || !parent) {
+    // reduced：留下一圈静态描边（不扩散、不淡出），由调用方的 render 周期清理
+    if (parent) {
+      const r = svgEl("rect", {
+        x: b.x - padding, y: b.y - padding, width: b.width + 2 * padding, height: b.height + 2 * padding,
+        class: `line-${tone}`, fill: "none", "stroke-width": 1.6,
+      }, parent);
+      return { cancel() { r.remove(); }, done: Promise.resolve() };
+    }
+    return { cancel() {}, done: Promise.resolve() };
+  }
+  const r = svgEl("rect", {
+    x: b.x - padding, y: b.y - padding, width: b.width + 2 * padding, height: b.height + 2 * padding,
+    class: `line-${tone}`, fill: "none", "stroke-width": 1.8, opacity: 0.85,
+  }, parent);
+  let resolveDone;
+  const done = new Promise((res) => (resolveDone = res));
+  let t = 0;
+  const tick = (dt) => {
+    t += dt;
+    const p = Math.min(1, t / duration);
+    const e = EASE.out(p);
+    const g = padding + 10 * e; // 外扩 10px
+    r.setAttribute("x", String(b.x - g));
+    r.setAttribute("y", String(b.y - g));
+    r.setAttribute("width", String(b.width + 2 * g));
+    r.setAttribute("height", String(b.height + 2 * g));
+    r.setAttribute("opacity", String(0.85 * (1 - e)));
+    if (p >= 1) { removeUpdater(tick); r.remove(); resolveDone(); }
+  };
+  addUpdater(tick);
+  return { cancel() { removeUpdater(tick); r.remove(); resolveDone(); }, done };
+}
+
+// ---------- 11. timeline：把一步里的多个动画按时间编排 ----------
+//
+// const tl = timeline();
+// tl.at(300, (ctx) => { ... });           // ctx = { instant, scope, locals }
+// tl.play() / tl.pause() / tl.seek(t) / tl.replay() / tl.stop()
+//
+// 规则：
+//   - 每个 item 的 fn 在播放头经过它的时刻触发一次；fn 里创建的动画请 add 进 ctx.scope。
+//   - seek(t)：撤销本 run 已触发的一切（scope.dispose），把 t 之前的 item 以 instant=true
+//     重放一遍（原语 instant = 直落终态；一次性信号 instant = 跳过），再从 t 继续。
+//   - ctx.locals 是同一次 run 内 item 之间共享对象（例如 split 的碎片交给后面的 item）。
+//   - prefers-reduced-motion：play() 立即按顺序全部以 instant 触发。
+
+function timeline({ tail = 400 } = {}) {
+  const items = [];
+  let time = 0;
+  let playing = false;
+  let fired = 0; // 已触发到第几个（items 按时间排序后）
+  let runScope = scope();
+  let locals = {};
+  let resolveDone = null;
+  let donePromise = null;
+
+  const sorted = () => items.sort((a, b) => a.t - b.t);
+  const durationOf = () => (items.length ? Math.max(...items.map((i) => i.t)) + tail : 0);
+
+  const fireOne = (it, instant) => {
+    it.fn({ instant, scope: runScope, locals, timeline: api });
+  };
+  const fireUpTo = (t, instant) => {
+    while (fired < items.length && items[fired].t <= t) {
+      fireOne(items[fired], instant);
+      fired++;
+    }
+  };
+  const teardown = () => {
+    runScope.dispose();
+    runScope = scope();
+    locals = {};
+    fired = 0;
+  };
+
+  const tick = (dt) => {
+    time += dt;
+    fireUpTo(time, false);
+    if (time >= durationOf()) {
+      playing = false;
+      removeUpdater(tick);
+      const r = resolveDone; resolveDone = null; donePromise = null;
+      r && r();
+    }
+  };
+
+  const api = {
+    at(t, fn) { items.push({ t, fn }); sorted(); return api; },
+    get duration() { return durationOf(); },
+    get time() { return time; },
+    get playing() { return playing; },
+    play() {
+      if (reducedMotion()) {
+        teardown();
+        time = durationOf();
+        fireUpTo(time, true);
+        return Promise.resolve();
+      }
+      if (playing) return donePromise || Promise.resolve();
+      if (time >= durationOf()) api.seek(0);
+      playing = true;
+      donePromise = new Promise((r) => (resolveDone = r));
+      addUpdater(tick);
+      return donePromise;
+    },
+    pause() {
+      playing = false;
+      removeUpdater(tick);
+      const r = resolveDone; resolveDone = null; donePromise = null;
+      r && r();
+    },
+    seek(t) {
+      const wasPlaying = playing;
+      api.pause();
+      teardown();
+      time = Math.max(0, Math.min(t, durationOf()));
+      fireUpTo(time, true);
+      if (wasPlaying && !reducedMotion()) api.play();
+    },
+    replay() { api.seek(0); return api.play(); },
+    stop() { api.pause(); teardown(); time = 0; },
+    cancel() { api.stop(); },
+  };
+  return api;
+}
+
+window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmtInt, scope, spring, drawPath, countTo, flow, smoothPath, morph, split, merge, camera, highlight, stagger, typewriter, ripple, glow, timeline };
+})();
+</script>
+<style>
+  .fig-legend button {
+    background: none; border: 0; padding: 2px 0; font: inherit; color: inherit; cursor: pointer;
+  }
+  .fig-legend button:hover { color: var(--ink); }
+  .fig-legend button.on { color: var(--ink); font-weight: 600; }
+  .fig-legend button:focus-visible { outline: 2px solid var(--blue-ms); outline-offset: 2px; }
+
+  .b-blue { fill: var(--series-blue); }
+  .b-gold { fill: var(--series-gold); }
+
+  #stage.emph-blue .k-gold, #stage.emph-gold .k-blue { opacity: .25; }
+
+  .hit { fill: transparent; cursor: pointer; }
+  .hit:focus { outline: none; }
+  .hit:focus-visible { stroke: var(--blue-ms); stroke-width: 1.5; }
+
+  #tbl-btn { margin-top: 12px; }
+  .tbl-wrap { overflow-x: auto; }
+  .fig-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px;
+    font-variant-numeric: tabular-nums; }
+  .fig-table th { text-align: left; font-size: 12.5px; font-weight: 600; color: var(--muted);
+    border-bottom: 1px solid var(--rule); padding: 6px 10px 6px 0; white-space: nowrap; }
+  .fig-table td { border-bottom: 1px solid var(--rule); padding: 6px 10px 6px 0; white-space: nowrap; }
+
+  @media (max-width: 480px) {
+    .plab { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="fig" id="fig">
+  <div class="fig-head">
+    <p class="fig-kicker">SWA bounded replay · prefill TTFT</p>
+    <h1 class="fig-title">Prefill TTFT with SWA bounded replay</h1>
+    <p class="fig-sub">DeepSeek-V4.1-Flash, single request. TTFT relative to replay off (lower is better).</p>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <svg class="fig-stage" id="stage" viewBox="0 0 736 528" role="img"
+      aria-label="Replay with decoder CUDA graphs cuts single-request prefill TTFT by 30–40% at every prompt length; without graphs, 1K prompts get slower."></svg>
+    <p class="fig-note">Median of 3 runs on NVIDIA GB200; prefix caching off. Percentages relative to replay off.</p>
+  </div>
+  <div class="fig-legend" id="legend">
+    <span><i class="ref-line"></i>Replay off = 100%</span>
+    <button type="button" data-k="blue" aria-pressed="false"><i class="s-blue"></i>Replay on, eager decoder</button>
+    <button type="button" data-k="gold" aria-pressed="false"><i class="s-gold"></i>Replay on, decoder CUDA graph</button>
+  </div>
+  <button type="button" class="fig-link" id="tbl-btn" aria-expanded="false">Show table</button>
+  <div class="tbl-wrap" id="tbl-wrap" hidden></div>
+</div>
+<script>
+(function () {
+  const S = document.getElementById("stage");
+  const STATIC = /[?&]static\b/.test(location.search) || FK.reduced();
+
+  const SERIES = [
+    { key: "blue", name: "Replay on, eager decoder" },
+    { key: "gold", name: "Replay on, decoder CUDA graph" },
+  ];
+  const DATA = [
+    { cfg: "TP4", head: "TP4 · 4-way tensor parallel", rows: [
+      { p: "1K",   off: 160.9, eager: 165.9, graph: 103.3 },
+      { p: "4K",   off: 165.4, eager: 172.5, graph: 107.0 },
+      { p: "8K",   off: 170.0, eager: 177.8, graph: 112.5 },
+      { p: "32K",  off: 540.1, eager: 376.0, graph: 327.8 },
+      { p: "128K", off: 2267,  eager: 1522,  graph: 1392  },
+    ]},
+    { cfg: "DEP2", head: "DEP2 · 2-way data + expert parallel", rows: [
+      { p: "1K",   off: 103.8, eager: 116.2, graph: 72.5  },
+      { p: "4K",   off: 135.3, eager: 117.4, graph: 92.3  },
+      { p: "8K",   off: 246.9, eager: 164.1, graph: 159.4 },
+      { p: "32K",  off: 983.1, eager: 617.8, graph: 609.8 },
+      { p: "128K", off: 3950,  eager: 2518,  graph: 2460  },
+    ]},
+  ];
+
+  const fmtMs = (v) => (v >= 1000 ? v.toLocaleString("en-US") : v.toFixed(1));  // as reported: 2,267 / 170.0
+  const pct = (v, off) => {
+    const d = (v - off) / off * 100;
+    return (d > 0 ? "+" : d < 0 ? "−" : "") + Math.abs(d).toFixed(1) + "%";
+  };
+
+  // geometry
+  const X0 = 44, X1 = 732, PH = 168, VMAX = 120;
+  const HEAD_H = 32, LAB_H = 48, PANEL_GAP = 28;
+  const BW = 34, BG = 16, PITCH = BW + BG;  // replay off is the 100% line, so two bars per group
+  const slot = (X1 - X0) / 5, GW = 2 * BW + BG, pad = (slot - GW) / 2;
+
+  const tip = document.createElement("div");
+  tip.className = "fig-tip";
+  document.body.appendChild(tip);
+  let tipFor = null;
+  function showTip(html, x, y) {
+    tip.innerHTML = html;
+    tip.classList.add("show");
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.max(4, Math.min(x + 12, window.innerWidth - r.width - 8)) + "px";
+    tip.style.top = Math.max(4, y - r.height - 10) + "px";
+  }
+  function hideTip() { tip.classList.remove("show"); tipFor = null; }
+
+  const bars = [];
+  DATA.forEach((panel, pi) => {
+    const PT = 4 + pi * (HEAD_H + PH + LAB_H + PANEL_GAP);
+    FK.text(S, 0, PT + 16, panel.head, "t-head");
+    const plotTop = PT + HEAD_H, plotBot = plotTop + PH;
+    const Y = (v) => plotBot - (v / VMAX) * PH;
+
+    FK.svg("line", { x1: X0, x2: X1, y1: Y(50), y2: Y(50), class: "m-rule" }, S);
+    FK.svg("line", { x1: X0, x2: X1, y1: Y(100), y2: Y(100),
+      style: "stroke: var(--line); stroke-dasharray: 5 4" }, S);
+    FK.svg("line", { x1: X0, x2: X1, y1: plotBot, y2: plotBot, class: "m-rule" }, S);
+    for (const v of [0, 50, 100])
+      FK.text(S, X0 - 6, Y(v) + 4.5, v + "%", "t-faint", { "text-anchor": "end" });
+    FK.text(S, X1, Y(100) - 8, "replay off", "t-mut", { "text-anchor": "end" });
+
+    panel.rows.forEach((row, gi) => {
+      const gx = X0 + gi * slot + pad, cx = X0 + gi * slot + slot / 2;
+      FK.text(S, cx, plotBot + 24, row.p, "t-lab-b", { "text-anchor": "middle" });
+      FK.text(S, cx, plotBot + 42, fmtMs(row.off) + " ms", "t-mut", { "text-anchor": "middle" });
+
+      SERIES.forEach((se, si) => {
+        const v = se.key === "blue" ? row.eager : row.graph;
+        const rel = v / row.off * 100;
+        const x = gx + si * PITCH, yTop = Y(rel), h = plotBot - yTop;
+        const r = FK.svg("rect", {
+          x, y: STATIC ? yTop : plotBot, width: BW, height: STATIC ? h : 0,
+          class: "b-" + se.key + " k-" + se.key,
+        }, S);
+        bars.push({ el: r, y: yTop, h });
+
+        FK.text(S, x + BW / 2, yTop - 8, pct(v, row.off),
+            se.key === "gold" ? "plab t-num k-gold" : "plab t-mut k-blue",
+            { "text-anchor": "middle" });
+
+        const relStr = pct(v, row.off) + " vs replay off (" + fmtMs(row.off) + " ms)";
+        const tipHtml = "<b>" + panel.cfg + " · " + row.p + " prompt</b><br>" +
+          se.name + "<br>" + fmtMs(v) + " ms · " + relStr;
+        const hit = FK.svg("rect", {
+          x: x - BG / 2, y: plotTop, width: PITCH, height: PH, class: "hit",
+          tabindex: "0",
+          "aria-label": panel.cfg + ", " + row.p + " prompt, " + se.name + ": " +
+            fmtMs(v) + " ms, " + relStr,
+        }, S);
+        hit.addEventListener("mousemove", (e) => showTip(tipHtml, e.clientX, e.clientY));
+        hit.addEventListener("mouseleave", hideTip);
+        hit.addEventListener("focus", () => {
+          const b = hit.getBoundingClientRect();
+          showTip(tipHtml, b.left + b.width / 2, b.top);
+        });
+        hit.addEventListener("blur", hideTip);
+      });
+    });
+  });
+
+  // grow once when the chart scrolls into view
+  const grow = () => MO.stagger(bars.map((b) => b.el),
+    (el, i) => MO.spring(el, { y: bars[i].y, height: bars[i].h }), { each: 40 });
+  if (!STATIC && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => {
+      if (!es[0].isIntersecting) return;
+      io.disconnect();
+      grow();
+    }, { threshold: 0.3 });
+    io.observe(S);
+  } else if (!STATIC) {
+    grow();
+  }
+
+  // legend emphasis toggle
+  let emph = null;
+  const legBtns = [...document.querySelectorAll("#legend button")];
+  legBtns.forEach((b) => {
+    b.addEventListener("click", () => {
+      emph = emph === b.dataset.k ? null : b.dataset.k;
+      S.setAttribute("class", "fig-stage" + (emph ? " emph-" + emph : ""));
+      legBtns.forEach((x) => {
+        const on = x.dataset.k === emph;
+        x.classList.toggle("on", on);
+        x.setAttribute("aria-pressed", on);
+      });
+    });
+  });
+
+  // data table toggle
+  const tblBtn = document.getElementById("tbl-btn");
+  const tblWrap = document.getElementById("tbl-wrap");
+  let built = false;
+  tblBtn.addEventListener("click", () => {
+    if (!built) {
+      built = true;
+      let h = '<table class="fig-table"><thead><tr>' +
+        "<th>Config</th><th>Prompt</th><th>Replay off (ms)</th>" +
+        "<th>On, eager decoder (ms)</th><th>Δ vs off</th>" +
+        "<th>On, decoder CUDA graph (ms)</th><th>Δ vs off</th></tr></thead><tbody>";
+      DATA.forEach((panel) => panel.rows.forEach((row) => {
+        h += "<tr><td>" + panel.cfg + "</td><td>" + row.p + "</td><td>" + fmtMs(row.off) + "</td><td>" +
+          fmtMs(row.eager) + "</td><td>" + pct(row.eager, row.off) + "</td><td>" +
+          fmtMs(row.graph) + "</td><td>" + pct(row.graph, row.off) + "</td></tr>";
+      }));
+      tblWrap.innerHTML = h + "</tbody></table>";
+    }
+    const show = tblWrap.hidden;
+    tblWrap.hidden = !show;
+    tblBtn.textContent = show ? "Hide table" : "Show table";
+    tblBtn.setAttribute("aria-expanded", show);
+  });
+})();
+</script>
+</body>
+</html>
