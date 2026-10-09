@@ -68,7 +68,7 @@ MoE decode is bound by reading weights from HBM, so our goal is optimizing memor
 
 SMs cannot always be partitioned into equal domains. Locality domain creation, by default, will not include those SMs when trying to create equal partitions. To make both partitions have equal SMs, we need to enable `cudaDevSmResourceGroupBackfill` (backfill mode) when creating domains (we refer users to the official locality domain documentation for more detail). During our performance study, we include both default mode (only 200 SMs are used across both domains) and backfill mode (all 212 SMs are used).
 
-Figure 4 compares the MoE layer forward time (FC1 + FC2) with locality domains on and off for different parallel strategies. We use the MiniMax M3 MoE shapes as an example. With locality domains enabled, the MoE layer is up to 1.2x faster at small token counts, 1.16x on average from 32 to 1,024 tokens, and the trend stays roughly the same across the TP and EP serving strategies. Even in default mode, where only 200 of the 212 SMs are used, enabling locality domains gives a similar gain. The primary reason is that in small-token decode the forward pass is dominated by weight loading, and locality domains enable higher HBM throughput. When the number of tokens grows, the MoE layer forward shifts to compute bound, where the latency is primarily dominated by the tensor core throughput. So locality domains buy little benefit at high token counts; at 4,096 tokens, EP2 is even slightly slower (0.98x).
+Figure 4 compares the MoE layer forward time (FC1 + FC2) with locality domains on and off for different parallel strategies. We use the MiniMax M3 MoE shapes as an example. With locality domains enabled, the MoE layer is up to 1.2x faster at small token counts, 1.16x on average from 32 to 1,024 tokens, and the trend stays roughly the same across the TP and EP serving strategies. Even in default mode, where only 200 of the 212 SMs are used, enabling locality domains gives a similar gain. The primary reason is that in small-token decode the forward pass is dominated by weight loading, and locality domains enable higher HBM throughput.
 
 <iframe class="vllm-embed" src="/assets/figures/2026-10-09-vera-rubin-preview/moe-locality-latency.html" title="Locality-aware MoE latency on MiniMax M3" style="display: block; width: 100%; height: 640px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
 
@@ -86,7 +86,7 @@ Usability is always vLLM’s first priority. As of today, users can pull and use
 
 ### Rubin-tuned kernels
 
-Gradually, the kernels that leverage Rubin-specific hardware capabilities and features are being released and upstreamed to kernel libraries such as FlashInfer, vLLM’s fork of MSA (`vllm-project/MSA`), etc. As of today, vLLM has integrated a few important kernels to achieve maximized Rubin performance, including dense NVFP4 or MXFP4 GEMM, NVFP4 MoE, FP8 attention, FP8 MSA prefill, and many more.
+Gradually, the kernels that leverage Rubin-specific hardware capabilities and features are being released and upstreamed to kernel libraries such as FlashInfer, vLLM’s fork of MSA (`vllm-project/MSA`), Humming (`vllm-project/humming`), etc. As of today, vLLM has integrated a few important kernels to achieve maximized Rubin performance, including dense NVFP4 or MXFP4 GEMM, NVFP4 MoE, FP8 attention, FP8 MSA prefill, and many more.
 
 ## Performance
 
