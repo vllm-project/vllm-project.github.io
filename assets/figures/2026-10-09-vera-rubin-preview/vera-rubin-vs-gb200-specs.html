@@ -1514,7 +1514,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
   </div>
   <div class="fig-frame"><span class="fig-corners"></span>
     <svg class="fig-stage" id="stage" viewBox="0 0 736 574" role="img"
-      aria-label="Per GPU, Vera Rubin NVL72 has about 3.5× the FP8 and NVFP4 training throughput, 2.5× the HBM bandwidth, 1.5× the HBM capacity and 1.7× the NVLink bandwidth of GB200 NVL72, and 2–4× faster softmax exponentials per SM."></svg>
+      aria-label="Per GPU, Vera Rubin NVL72 has about 3.5× the FP8 and NVFP4 training throughput, 2.4× the HBM bandwidth, 1.5× the HBM capacity and 1.7× the NVLink bandwidth of GB200 NVL72, and 2–4× faster softmax exponentials per SM."></svg>
     <p class="fig-note">Tensor throughput is dense except *NVFP4 inference, which compares NVIDIA's sparse specs for both GPUs. Softmax is per SM per clock. Schematic, not to scale.</p>
   </div>
   <div class="fig-legend">
@@ -1536,7 +1536,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
   const DATA = [
     { sec: "HBM memory", sub: "8 stacks · HBM3e → HBM4", link: "hbm", rows: [
       { m: "Capacity",   u: "GB",   gb: 186, rb: 288,  d: 0 },             // GB 372/2; VR 288
-      { m: "Bandwidth",  u: "TB/s", gb: 7.6, rb: 19.2, d: 1 },             // GB 7.6 (confirmed by the author); VR 19.2
+      { m: "Bandwidth",  u: "TB/s", gb: 7.94, rb: 19.16, d: 2 },           // GB 7936*4*2/8 = 7.94; VR 16128*4.752*2/8 = 19.16
     ]},
     { sec: "Tensor Cores", sub: "Dense, except * (see note)", link: "tc", rows: [
       { m: "BF16",              u: "PFLOPS", gb: 2.5, rb: 4.0,  d: 1 },    // GB 10 sparse /2 /2; VR 4 dense

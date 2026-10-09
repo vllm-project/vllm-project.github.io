@@ -18,7 +18,7 @@ NVIDIA Vera Rubin is the next-generation rack-scale platform built for agentic i
 
 This post is an early look at where things stand, and here are a few highlights from the work so far:
 
-- **Rubin hardware:** 3.5x the dense FP4 FLOPS, about 2.5x the HBM bandwidth and 1.7x the bidirectional NVLink bandwidth of GB200, with 2-4x faster exponentials for softmax.
+- **Rubin hardware:** 3.5x the dense FP4 FLOPS, about 2.4x the HBM bandwidth and 1.7x the bidirectional NVLink bandwidth of GB200, with 2-4x faster exponentials for softmax.
 - **Day-0 support:** Rubin shares Blackwell's architecture family, so vLLM’s Blackwell kernels are compatible with Rubin. Thanks to this, vLLM already supports diverse models such as DeepSeek, Kimi, GLM, and MiniMax on Rubin.
 - **Rubin-tuned kernels:** Through FlashInfer 0.7.0, vLLM gets Rubin-tuned attention, GEMM, and MoE kernels. We have also tuned our MiniMax Sparse Attention (MSA) prefill kernel for Rubin.
 - **Locality-aware MoE:** To make full use of HBM bandwidth, we split the MoE weights across Rubin's locality domains so that the SMs read weights only from the HBM in the same domain.
@@ -46,7 +46,7 @@ With 212 SMs (vs 152 SMs in Blackwell Ultra) and enhanced Tensor Cores, a Rubin 
 
 **Softmax.** Notably, Rubin also improved the softmax performance, which is a core operation in LLM attention. Rubin increases exponential throughput, including 2x FP32 and 4x BF16/FP16 throughput versus NVIDIA GB200, helping softmax keep pace with faster matrix operations.
 
-**Memory.** The HBM in Rubin has been upgraded from HBM3e to HBM4, delivering up to 2.5x higher bandwidth compared to GB200. Combined with its more powerful compute, Rubin GPU accelerates key LLM inference operations such as GEMM, MoE (Mixture of Experts), and attention, and delivers much higher overall throughput and lower decode latency ([details below](#performance)).
+**Memory.** The HBM in Rubin has been upgraded from HBM3e to HBM4, delivering up to 2.4x higher bandwidth compared to GB200. Combined with its more powerful compute, Rubin GPU accelerates key LLM inference operations such as GEMM, MoE (Mixture of Experts), and attention, and delivers much higher overall throughput and lower decode latency ([details below](#performance)).
 
 **Networking.** Inter-GPU networking is also greatly improved on the Rubin platform. The sixth-generation NVLink delivers 1.7x higher network bandwidth than the previous generation. This would speed up collectives (e.g., AllReduce and All2all) and other communication operations, improving the speed and scalability of large-scale LLM inference (e.g., prefill/decode disaggregation, wide expert parallelism).
 
