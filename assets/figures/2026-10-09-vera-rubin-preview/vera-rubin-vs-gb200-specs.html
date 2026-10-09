@@ -387,10 +387,12 @@ body {
     for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
     return new Promise((res) => {
       if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
-      const t0 = performance.now();
+      // time from the first frame: in an embedded iframe, rAF timestamps can lag performance.now()
+      // by however long after the page the iframe loaded, which stalled tweens for that long
+      let t0 = null;
       const tick = (now) => {
-        // clamp: a rAF timestamp can predate t0 (throttled / off-screen iframes), and the cubic ease explodes for t < 0
-        const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = ease(t);
+        if (t0 === null) t0 = now;
+        const t = Math.min(1, (now - t0) / ms), e = ease(t);
         for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
         if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
       };
@@ -1515,7 +1517,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
   <div class="fig-frame"><span class="fig-corners"></span>
     <svg class="fig-stage" id="stage" viewBox="0 0 736 574" role="img"
       aria-label="Per GPU, Vera Rubin NVL72 has about 3.5× the FP8 and NVFP4 training throughput, 2.4× the HBM bandwidth, 1.5× the HBM capacity and 1.7× the NVLink bandwidth of GB200 NVL72, and 2–4× faster softmax exponentials per SM."></svg>
-    <p class="fig-note">Tensor throughput is dense except *NVFP4 inference, which compares NVIDIA's sparse specs for both GPUs. Softmax is per SM per clock. Schematic, not to scale.</p>
+    <p class="fig-note">*Sparse; other tensor values are dense. Softmax is per SM per clock. Schematic, not to scale.</p>
   </div>
   <div class="fig-legend">
     <span><i class="s-blue"></i>GB200 · Blackwell</span>
@@ -1542,7 +1544,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
       { m: "BF16",              u: "PFLOPS", gb: 2.5, rb: 4.0,  d: 1 },    // GB 10 sparse /2 /2; VR 4 dense
       { m: "FP8",               u: "PFLOPS", gb: 5.0, rb: 17.5, d: 1 },    // GB 20 sparse /2 /2; VR 17.5 dense
       { m: "NVFP4 training",    u: "PFLOPS", gb: 10,  rb: 35,   d: 0 },    // GB 20 dense /2; VR 35 dense
-      { m: "NVFP4 inference*",  u: "PFLOPS", gb: 20,  rb: 50,   d: 0 },    // sparse vs sparse: GB 40 sparse /2; VR 50 ("Sparse specification")
+      { m: "NVFP4 inference",   u: "PFLOPS", gb: 10,  rb: 50,   d: 0, mark: "*" },  // GB 10 dense (20 sparse /2); VR 50 = NVL72 "Sparse specification" (PB: Transformer Engine compute)
     ]},
     { sec: "NVLink", sub: "NVLink 5 → NVLink 6 · bidirectional", link: "nvlink", rows: [
       { m: "Bandwidth",  u: "TB/s", gb: 1.8, rb: 3.0, d: 1 },              // GB 3.6/2; VR 3
@@ -1585,7 +1587,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
      Vera Rubin (gold) bars on a shared scale, mono value at each bar end */
   function metric(x0, colW, ry, sec, row) {
     const g = FK.svg("g", { "data-link": sec.link }, S);
-    const track = colW - 40;  // room for the mono value past the full-width bar
+    const track = colW - 48;  // room for the mono value past the full-width bar (5 chars, e.g. "19.16")
     const full = Math.max(row.gb, row.rb);
     const bw = track * row.gb / full, gw = track * row.rb / full;
     FK.text(g, x0, ry + 13, labelOf(row), "t-lab-b");
@@ -1595,13 +1597,17 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
     const b2 = rect(g, x0, ry + 40, fin ? gw : 0, 8, "b-gold");
     bars.push({ el: b1, w: bw }, { el: b2, w: gw });
     FK.text(g, x0 + bw + 6, ry + 31, num(row, row.gb), "t-vb");
-    FK.text(g, x0 + gw + 6, ry + 47, num(row, row.rb), "t-vg");
+    const rv = FK.text(g, x0 + gw + 6, ry + 47, num(row, row.rb), "t-vg");
+    if (row.mark) {  // footnote mark as a small superscript on the value
+      const sup = FK.svg("tspan", { dy: -5, "font-size": "8.5px" }, rv);
+      sup.textContent = row.mark;
+    }
     const tipHtml = "<b>" + sec.sec + " · " + row.m + "</b><br>GB200 " + tval(row, row.gb) +
-      " · Vera Rubin " + tval(row, row.rb) + " · " + ratioStr(ratioOf(row));
+      " · Vera Rubin " + tval(row, row.rb) + (row.mark ? "<sup>" + row.mark + "</sup>" : "") + " · " + ratioStr(ratioOf(row));
     const hit = rect(g, x0, ry, colW, 56, "hit");
     hit.setAttribute("tabindex", "0");
     hit.setAttribute("aria-label", sec.sec + ", " + row.m + ": GB200 " + tval(row, row.gb) +
-      ", Vera Rubin " + tval(row, row.rb) + ", ratio " + ratioStr(ratioOf(row)));
+      ", Vera Rubin " + tval(row, row.rb) + (row.mark || "") + ", ratio " + ratioStr(ratioOf(row)));
     hit.addEventListener("mousemove", (e) => showTip(tipHtml, e.clientX, e.clientY));
     hit.addEventListener("mouseleave", hideTip);
     hit.addEventListener("focus", () => {
@@ -1795,7 +1801,7 @@ window.MO = { reducedMotion, EASE, freezeMotion, unfreezeMotion, tickMotion, fmt
         h += '<tr><th colspan="4">' + sec.sec + " · " + sec.sub + "</th></tr>";
         sec.rows.forEach((row) => {
           h += "<tr><td>" + row.m + '</td><td class="num">' + tval(row, row.gb) + '</td>' +
-            '<td class="num new">' + tval(row, row.rb) + '</td>' +
+            '<td class="num new">' + tval(row, row.rb) + (row.mark ? "<sup>" + row.mark + "</sup>" : "") + '</td>' +
             '<td class="num">' + ratioStr(ratioOf(row)) + "</td></tr>";
         });
       });

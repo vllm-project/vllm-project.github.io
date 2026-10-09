@@ -387,10 +387,12 @@ body {
     for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
     return new Promise((res) => {
       if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
-      const t0 = performance.now();
+      // time from the first frame: in an embedded iframe, rAF timestamps can lag performance.now()
+      // by however long after the page the iframe loaded, which stalled tweens for that long
+      let t0 = null;
       const tick = (now) => {
-        // clamp: a rAF timestamp can predate t0 (throttled / off-screen iframes), and the cubic ease explodes for t < 0
-        const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = ease(t);
+        if (t0 === null) t0 = now;
+        const t = Math.min(1, (now - t0) / ms), e = ease(t);
         for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
         if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
       };
