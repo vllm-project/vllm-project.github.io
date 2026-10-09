@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Reinforcement Learning: Optimizing 0.6B Dense Models on Heterogeneous Hardware via vLLM"
-author: "Meta ASA and Ranking AI Research"
+author: "Loki Chen, Yang Song, Hongye Xie, Ming Lei, Greg Rehm, Chongyang Bai, Dre Olgiati, Bob Kamma, Tej Choudhary, Hang Cui, Imed Zitouni, Hamed Firooz (Meta ASA); Mingfu Liang, Kavosh Asadi, Yufei Li, Frank Shyu, Parish Aggarwal, Senthil Manickavelu, Xi Liu, Luke Simon (Meta Ranking AI Research)"
 date: 2026-10-09 09:00:00 +0000
 summary: "Co-designing RL for a Qwen3-0.6B dense policy across GB200, MI350X, and TPU v7x with vLLM: one workload contract, hardware-specific fast paths, and a 107x end-to-end speedup from ~100 minutes to ~56 seconds per true-8K RL step."
 image: /assets/figures/2026-10-09-rl-small-dense-heterogeneous-hardware/program-journey-107x.png
