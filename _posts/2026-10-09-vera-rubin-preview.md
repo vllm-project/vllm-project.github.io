@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "vLLM Support for Vera Rubin: 7.8x Throughput over GB200"
+title: "vLLM Support for NVIDIA Vera Rubin NVL72: 7.8x Throughput over GB200 NVL72"
 author: "vLLM Team, Inferact, Red Hat, and NVIDIA"
-summary: "vLLM now runs on NVIDIA Vera Rubin with day-0 model support, Rubin-tuned FlashInfer kernels, and locality-aware MoE, delivering 7.8x the per-GPU throughput of GB200 on AgentX."
+summary: "vLLM now runs on NVIDIA Vera Rubin NVL72 with day-0 model support, Rubin-tuned FlashInfer kernels, and locality-aware MoE, delivering 7.8x the per-GPU throughput of GB200 NVL72 on AgentX."
 image: /assets/figures/2026-10-09-vera-rubin-preview/social-preview.png
 social_image: /assets/figures/2026-10-09-vera-rubin-preview/social-preview.png
 tags:
@@ -10,19 +10,19 @@ tags:
   - performance
 ---
 
-![vLLM on NVIDIA Vera Rubin](/assets/figures/2026-10-09-vera-rubin-preview/social-preview.png)
+![vLLM on NVIDIA Vera Rubin NVL72](/assets/figures/2026-10-09-vera-rubin-preview/social-preview.png)
 
-## vLLM now supports Vera Rubin!
+## vLLM now supports Vera Rubin NVL72!
 
-NVIDIA Vera Rubin is the next-generation rack-scale platform built for agentic inference. Inferact, NVIDIA, Red Hat, and the vLLM community have been bringing vLLM up on Rubin since it was announced, and vLLM runs on Rubin today with daily container builds and support for models from DeepSeek, Moonshot AI, Z.ai, and MiniMax.
+NVIDIA Vera Rubin is the next-generation rack-scale platform built for agentic inference. Inferact, NVIDIA, Red Hat, and the vLLM community have been bringing vLLM up on Vera Rubin NVL72 since it was announced, and vLLM runs on Vera Rubin NVL72 today with daily container builds and support for models from DeepSeek, Moonshot AI, Z.ai, and MiniMax.
 
 This post is an early look at where things stand, and here are a few highlights from the work so far:
 
-- **Rubin hardware:** 3.5x the dense FP4 FLOPS, about 2.4x the HBM bandwidth and 1.7x the bidirectional NVLink bandwidth of GB200, with 2-4x faster exponentials for softmax.
+- **Vera Rubin NVL72 hardware:** 5x the NVFP4 FLOPS, about 2.4x the HBM bandwidth and 1.7x the bidirectional NVLink bandwidth of GB200 NVL72, with 2-4x faster exponentials for softmax.
 - **Day-0 support:** Rubin shares Blackwell's architecture family, so vLLM’s Blackwell kernels are compatible with Rubin. Thanks to this, vLLM already supports diverse models such as DeepSeek, Kimi, GLM, and MiniMax on Rubin.
 - **Rubin-tuned kernels:** Through FlashInfer 0.7.0, vLLM gets Rubin-tuned attention, GEMM, and MoE kernels. We have also tuned our MiniMax Sparse Attention (MSA) prefill kernel for Rubin.
 - **Locality-aware MoE:** To make full use of HBM bandwidth, we split the MoE weights across Rubin's locality domains so that the SMs read weights only from the HBM in the same domain.
-- **Performance:** Early results already show impressive gains: **7.8x the throughput per GPU versus GB200** on AgentX at matched interactivity and up to **3.7x higher VLM throughput than GB300 NVL72** in MLPerf, with further optimizations underway.
+- **Early Performance:** Early results already show impressive gains with vLLM: **7.8x the throughput per GPU versus GB200 NVL72** on AgentX at matched interactivity and up to **3.7x higher VLM throughput versus GB300 NVL72** in MLPerf. This is just the beginning; we expect to see more performance as optimizations continue.
 
 ## What Rubin changes for inference
 
@@ -38,7 +38,7 @@ This post is an early look at where things stand, and here are a few highlights 
   <em>Figure 2. Overview of the NVIDIA Vera Rubin platform (source: <a href="https://www.nvidia.com/en-us/data-center/technologies/rubin/">NVIDIA Vera Rubin Platform</a>).</em>
 </p>
 
-NVIDIA Vera Rubin is a rack-scale platform consisting of multiple types of racks and hardware: Vera Rubin NVL72 rack, Vera CPU, Groq 3 LPX, Vera BlueField-4 STX, and Spectrum-6 SPX Ethernet racks. In this section, we dissect a few important features and improvements in Vera Rubin NVL72, where vLLM runs today; Figure 1 summarizes them per GPU.
+NVIDIA Vera Rubin is a rack-scale platform consisting of multiple types of racks and hardware: Vera Rubin NVL72, Vera CPU rack, Groq 3 LPX, BlueField-4 STX Storage, and Spectrum-6 SPX Ethernet racks. In this section, we dissect a few important features and improvements in Vera Rubin NVL72, where vLLM runs today; Figure 1 summarizes them per GPU.
 
 **Compute units and FLOPs.** FLOPs is arguably the first metric LLM inference workloads care about, especially for their prefill phase. NVIDIA Rubin increases compute capacity for BF16, FP8 and NVFP4.
 
@@ -46,7 +46,7 @@ With 212 SMs (vs 152 SMs in Blackwell Ultra) and enhanced Tensor Cores, a Rubin 
 
 **Softmax.** Notably, Rubin also improved the softmax performance, which is a core operation in LLM attention. Rubin increases exponential throughput, including 2x FP32 and 4x BF16/FP16 throughput versus NVIDIA GB200, helping softmax keep pace with faster matrix operations.
 
-**Memory.** The HBM in Rubin has been upgraded from HBM3e to HBM4, delivering up to 2.4x higher bandwidth compared to GB200. Combined with its more powerful compute, Rubin GPU accelerates key LLM inference operations such as GEMM, MoE (Mixture of Experts), and attention, and delivers much higher overall throughput and lower decode latency ([details below](#performance)).
+**Memory.** The HBM in Rubin has been upgraded from HBM3e to HBM4, delivering up to 2.4x higher bandwidth compared to GB200 NVL72. Combined with its more powerful compute, Rubin GPU accelerates key LLM inference operations such as GEMM, MoE (Mixture of Experts), and attention, and delivers much higher overall throughput and lower decode latency ([details below](#performance)).
 
 **Networking.** Inter-GPU networking is also greatly improved on the Rubin platform. The sixth-generation NVLink delivers 1.7x higher network bandwidth than the previous generation. This would speed up collectives (e.g., AllReduce and All2all) and other communication operations, improving the speed and scalability of large-scale LLM inference (e.g., prefill/decode disaggregation, wide expert parallelism).
 
@@ -90,9 +90,9 @@ Gradually, the kernels that leverage Rubin-specific hardware capabilities and fe
 
 ## Performance
 
-We evaluate vLLM performance running on Rubin GPUs with two representative benchmarks: SemiAnalysis AgentX (detailed in our [previous post](https://vllm.ai/blog/2026-09-08-vllm-agentx)), and [MLPerf Inference v6.1](https://mlcommons.org/).
+We evaluate vLLM performance running on Vera Rubin NVL72 GPUs with two representative benchmarks: SemiAnalysis AgentX (detailed in our [previous post](https://vllm.ai/blog/2026-09-08-vllm-agentx)), and [MLPerf Inference v6.1](https://mlcommons.org/).
 
-On AgentX, vLLM running MiniMax M3 on Vera Rubin NVL72 delivers up to 7.84x the per-GPU throughput of NVIDIA GB200 at matched interactivity, and 5.18x higher throughput under a 150 TPS constraint. This is a very early look at the platform’s inference capabilities. As we gain access to more Vera Rubin nodes, we’ll broaden testing and accelerate optimization, with further performance gains expected as that work progresses.
+On AgentX, vLLM running MiniMax M3 on Vera Rubin NVL72 delivers up to 7.84x the per-GPU throughput of NVIDIA GB200 NVL72 at matched interactivity, and 5.18x higher throughput under a 150 TPS constraint. This is a very early look at the platform’s inference capabilities. As we gain access to more Vera Rubin NVL72 nodes, we’ll broaden testing and accelerate optimization, with further performance gains expected as that work progresses.
 
 The MLPerf Inference v6.1 round was the first-ever testing ground for bringing up vLLM onto the NVIDIA Vera Rubin NVL72 platform. On the Vision Language Model (VLM) benchmark, deploying the Qwen3-VL-235B-A22B model via vLLM as the backend inference engine and Dynamo as the frontend router, Vera Rubin NVL72 delivers up to **3.7x** higher throughput than GB300 NVL72 across offline, server and interactive scenarios. More details on the published MLPerf Inference v6.1 results are in [NVIDIA's blog post](https://blogs.nvidia.com/blog/vera-rubin-nvl72-mlperf-inference/).
 
@@ -119,12 +119,12 @@ The MLPerf Inference v6.1 round was the first-ever testing ground for bringing u
 
 This work is a collaborative effort across Inferact, NVIDIA, Red Hat, and the broader vLLM community. We would like to extend special thanks to:
 
-- NVIDIA, for early access to Rubin and close collaboration throughout development.
+- NVIDIA, for early access to Vera Rubin NVL72 and close collaboration throughout development.
 - Inferact and NVIDIA, for leading the Rubin collaboration, driving performance tuning, integrating MSA kernels, and dissecting the performance of locality-aware MoE.
 - NVIDIA and Red Hat, for setting up and enabling daily Docker builds for Rubin.
 - The vLLM community, for continuous support and contributions throughout the process.
 
-## Appendix: running vLLM on Rubin
+## Appendix: running vLLM on Vera Rubin NVL72
 
 <details markdown="1">
 <summary>Show the kernel configurations for Rubin</summary>
