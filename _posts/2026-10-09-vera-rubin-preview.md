@@ -26,7 +26,7 @@ This post is an early look at where things stand, and here are a few highlights 
 
 ## What Rubin changes for inference
 
-<iframe class="vllm-embed" src="/assets/figures/2026-10-09-vera-rubin-preview/vera-rubin-vs-gb200-specs.html" title="Vera Rubin vs GB200, per GPU" style="display: block; width: 100%; height: 900px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/vera-rubin-vs-gb200-specs.html" title="Vera Rubin vs GB200, per GPU" style="display: block; width: 100%; height: 900px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
 
 *Figure 1. Per-GPU comparison of NVIDIA Vera Rubin NVL72 and GB200 NVL72. Hover over a metric to highlight its part of the GPU; "Show table" lists every value. Sources: NVIDIA [Vera Rubin NVL72](https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/) and [GB200 NVL72](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) spec pages, and NVIDIA Rubin developer blogs.*
 
@@ -58,7 +58,7 @@ In this section, we highlight vLLM’s ongoing Rubin-specific support, namely le
 
 Since Ampere, NVIDIA GPUs have featured non-uniform global memory accesses. The [locality domain feature](https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/locality-domains.html) in NVIDIA CUDA 13.4 allows applications to take full advantage of non-uniform global memory access by placing computation and data within the same locality domain. SMs can access global memory within their own locality domain with higher bandwidth and lower latency than HBM in other domains. With [Green Contexts](https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/green-contexts.html) and CUDA streams, we can launch one kernel in each locality domain, so that each kernel can access local memory. This feature primarily speeds up memory-bound workloads such as MoE decode. Locality domains remain in active design and development. In this section, we use MoE decode as an example for a deep dive.
 
-<iframe class="vllm-embed" src="/assets/figures/2026-10-09-vera-rubin-preview/moe-split-n-locality.html" title="Split-N on two locality domains" style="display: block; width: 100%; height: 560px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/vera-rubin-moe-split-n-locality.html" title="Split-N on two locality domains" style="display: block; width: 100%; height: 560px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
 
 *Figure 3. Split-N in MoE forward on two locality domains. The weights W are split by columns at N/2, and the SMs of each domain read only the half of W in their own HBM, so each domain uses its local memory bandwidth. The input X and the output C are across both domains. Use Pause, Prev/Next or the step chips to go through the steps.*
 
@@ -68,7 +68,7 @@ SMs cannot always be partitioned into equal domains. Locality domain creation, b
 
 Figure 4 compares the preliminary MoE layer forward time (FC1 + FC2) with locality domains on and off for different parallel strategies. We use the MiniMax M3 MoE shapes as an example. With locality domain enabled, we can consistently get on average 1.2x speedups in small token forward settings. And the trend stays roughly the same for other TP and EP serving strategies. Even in default mode, where only 200 of the 212 SMs are used, enabling locality domains gives a similar gain. The primary reason is that in small-token decode the forward pass is dominated by weight loading, and locality domains enable higher HBM throughput. These early results are just a starting point, with room for further tuning and optimization to maximize the performance benefits of localization on Rubin.
 
-<iframe class="vllm-embed" src="/assets/figures/2026-10-09-vera-rubin-preview/moe-locality-latency.html" title="Locality-aware MoE latency on MiniMax M3" style="display: block; width: 100%; height: 640px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/vera-rubin-moe-locality-latency.html" title="Locality-aware MoE latency on MiniMax M3" style="display: block; width: 100%; height: 640px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
 
 *Figure 4. Preliminary FC1 + FC2 latency per rank of the MiniMax M3 MoE layer on Rubin, non-localized vs localized (lower is better), with the speedup (non-localized ÷ localized latency) above each pair. The tabs switch the parallel strategy (TP2, TP4, EP2, EP4); the toggle switches between backfill mode (all 212 SMs) and default mode (200 of 212 SMs). Balanced routing; communication time is not included.*
 
