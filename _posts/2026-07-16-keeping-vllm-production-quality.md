@@ -360,6 +360,8 @@ I'm deeply grateful to everyone who helped with CI along the way (listed alphabe
 
 - **Arm**: Fadi Arafeh, Ioana Ghiban
 
+- **DaoCloud**: Yuqi Wang (noooop)
+
 - **EmbeddedLLM**: Tun Jian Tan
 
 - **Google**: Brittany Rockwell, Jincheng Chen, Ming Huang, Qiliang Cui, Yarong Mu, Yiwei Wang
@@ -378,7 +380,9 @@ I'm deeply grateful to everyone who helped with CI along the way (listed alphabe
 
 - **Reflection AI**: Amr Mahdi (contribution made during his time at Meta)
 
-- **Independent contributors**: Cyrus Leung (DarkLight1337), Yuqi Wang (noooop), haosdent, Mohammad Angkad
+- **Shopee**: haosdent
+
+- **Independent contributors**: Cyrus Leung (DarkLight1337), Mohammad Angkad
 
 the amazing partners:
 
