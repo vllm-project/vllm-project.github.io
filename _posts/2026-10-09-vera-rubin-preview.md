@@ -14,12 +14,12 @@ tags:
 
 ## vLLM now supports Vera Rubin NVL72!
 
-NVIDIA Vera Rubin is the next-generation rack-scale platform built for agentic inference. Inferact, NVIDIA, Red Hat, and the vLLM community have been bringing vLLM up on Vera Rubin NVL72 since it was announced, and vLLM runs on Vera Rubin NVL72 today with daily container builds and support for models from DeepSeek, Moonshot AI, Z.ai, and MiniMax.
+NVIDIA Vera Rubin is the next-generation platform built for agentic inference. Inferact, NVIDIA, Red Hat, and the vLLM community have been bringing vLLM up on Vera Rubin NVL72 since it was announced, and vLLM runs on Vera Rubin NVL72 today with daily container builds and support for models from DeepSeek, Moonshot AI, Z.ai, and MiniMax.
 
 This post is an early look at where things stand, and here are a few highlights from the work so far:
 
 - **Vera Rubin NVL72 hardware:** 5x the NVFP4 FLOPS, about 2.4x the HBM bandwidth and 1.7x the bidirectional NVLink bandwidth of GB200 NVL72, with 2-4x faster exponentials for softmax.
-- **Day-0 support:** Rubin shares Blackwell's architecture family, so vLLM’s Blackwell kernels are compatible with Rubin. Thanks to this, vLLM already supports diverse models such as DeepSeek, Kimi, GLM, and MiniMax on Rubin.
+- **Day-0 support:** Rubin builds on Blackwell's architecture family, so vLLM’s Blackwell kernels are compatible with Rubin. Thanks to this, vLLM already supports diverse models such as DeepSeek, Kimi, GLM, and MiniMax on Rubin.
 - **Rubin-tuned kernels:** Through FlashInfer 0.7.0, vLLM gets Rubin-tuned attention, GEMM, and MoE kernels. We have also tuned our MiniMax Sparse Attention (MSA) prefill kernel for Rubin.
 - **Locality-aware MoE:** To make best use of Rubin's increased HBM bandwidth, we leverage CUDA 13.4's locality domains to split the MoE weights. This allows the SMs to read weights only from the memory nearest to them.
 - **Early Performance:** Early results already show impressive gains with vLLM: **7.8x the throughput per GPU versus GB200 NVL72** on AgentX at matched interactivity and up to **3.7x higher VLM throughput versus GB300 NVL72** in MLPerf. This is just the beginning; we expect to see more performance as optimizations continue.
@@ -66,7 +66,7 @@ MoE decode is bound by reading weights from HBM, so our goal is optimizing memor
 
 SMs cannot always be partitioned into equal domains. Locality domain creation, by default, will not include those SMs when trying to create equal partitions. To make both partitions have equal SMs, we need to enable `cudaDevSmResourceGroupBackfill` (backfill mode) when creating domains (we refer users to the official locality domain documentation for more detail). During our performance study, we include both default mode (only 200 SMs are used across both domains) and backfill mode (all 212 SMs are used).
 
-Figure 4 compares the preliminary MoE layer forward time (FC1 + FC2) with locality domains on and off for different parallel strategies. We use the MiniMax M3 MoE shapes as an example. With locality domains enabled, the MoE layer is up to 1.2x faster at small token counts, 1.16x on average from 32 to 1,024 tokens, and the trend stays roughly the same across the TP and EP serving strategies. Even in default mode, where only 200 of the 212 SMs are used, enabling locality domains gives a similar gain. The primary reason is that in small-token decode the forward pass is dominated by weight loading, and locality domains enable higher HBM throughput. These early results are just a starting point, with room for further tuning and optimization to maximize the performance benefits of localization on Rubin.
+Figure 4 compares the preliminary MoE layer forward time (FC1 + FC2) with locality domains on and off for different parallel strategies. We use the MiniMax M3 MoE shapes as an example. With locality domains enabled, the MoE layer is up to 1.26x faster at small token counts, 1.18x on average from 32 to 1,024 tokens, and the trend stays roughly the same across the TP and EP serving strategies. Even in default mode, where only 200 of the 212 SMs are used, enabling locality domains gives a similar gain. The primary reason is that in small-token decode the forward pass is dominated by weight loading, and locality domains enable higher HBM throughput. These early results are just a starting point, with room for further tuning and optimization to maximize the performance benefits of localization on Rubin.
 
 <iframe class="vllm-embed" src="/assets/figures/2026-10-09-vera-rubin-preview/moe-locality-latency.html" title="Locality-aware MoE latency on MiniMax M3" style="display: block; width: 100%; height: 640px; border: 0; overflow: hidden;" loading="lazy" scrolling="no"></iframe>
 
@@ -76,9 +76,9 @@ Figure 4 compares the preliminary MoE layer forward time (FC1 + FC2) with locali
 
 Usability is always vLLM’s first priority. As of today, users can pull and use the nightly images built with CUDA 13.4 and PyTorch 2.15 from vLLM’s Docker Hub, namely [`vllm/vllm-openai:cu134-nightly`](https://hub.docker.com/layers/vllm/vllm-openai/cu134-nightly/images/sha256-5f74ee1fb3cec4f248e5ac3ad57d05c5a1af70c61787821795137372865e84fd), for Rubin hardware.
 
-**Blackwell software stack compatibility.** Rubin shares Blackwell’s architecture family, with extended `tcgen05` tensor core instructions. It is a new GPU compile target (sm107), but kernels built for the Blackwell family target (sm100f) can also run on it. In practice, vLLM’s Blackwell kernels, especially the GEMM-heavy ones, like attention and MoE, can already run on Rubin without any modifications.
+**Blackwell software stack compatibility.** Rubin builds on Blackwell’s architecture family, with extended `tcgen05` tensor core instructions. It is a new GPU compile target (sm107), but kernels built for the Blackwell family target (sm100f) can also run on it. In practice, vLLM’s Blackwell kernels, especially the GEMM-heavy ones, like attention and MoE, can already run on Rubin without any modifications.
 
-**Daily container builds.** Daily container builds for Rubin are already available ([#55953](https://github.com/vllm-project/vllm/pull/55953)), enabled by [#53443](https://github.com/vllm-project/vllm/pull/53443) and [#54640](https://github.com/vllm-project/vllm/pull/54640) for the Rubin build path on CUDA 13.4, and [#56545](https://github.com/vllm-project/vllm/pull/56545) for Rubin dependency updates.
+**Daily container builds.** Daily container builds for Rubin are already available ([#55953](https://github.com/vllm-project/vllm/pull/55953)), enabled by [#53443](https://github.com/vllm-project/vllm/pull/53443) and [#54640](https://github.com/vllm-project/vllm/pull/54640) for the Rubin build path on CUDA 13.4, and [#56545](https://github.com/vllm-project/vllm/pull/56545) and [#59288](https://github.com/vllm-project/vllm/pull/59288) for Rubin dependency updates.
 
 **Model coverage.** With these parts in place, vLLM can now serve diverse models including DeepSeek, Kimi, GLM, and MiniMax on Rubin.
 
@@ -102,7 +102,7 @@ The MLPerf Inference v6.1 round was the first-ever testing ground for bringing u
 
 ## Next Steps
 
-"Rome was not built in a day", and polishing the usability and performance on NVIDIA Rubin GPUs is going to be a continuing journey that is full of excitement. In the immediate future, working together as a community, we are planning to enable many more new features for NVIDIA Rubin GPUs, including but not limited to:
+"Rome was not built in a day", and polishing the usability and performance on Vera Rubin NVL72 GPUs is going to be a continuing journey that is full of excitement. In the immediate future, working together as a community, we are planning to enable many more new features for Rubin GPUs, including but not limited to:
 
 - Integrate the sm107 FlashInfer MegaMoE into vLLM through FlashInfer.
 - Fully enable locality domains for MoE layers.
@@ -134,7 +134,7 @@ vLLM has already integrated a few highly optimized kernels for Rubin. This secti
 - CuTe-DSL masked grouped GEMM for NVFP4 W4A4 MoE in the “batched” expert format. This is applicable to a deployment with `--enable-expert-parallel --data-parallel-size N --all2all-backend deepep_low_latency|nixl_ep` where `N>1`. In this case, `--moe-backend auto|flashinfer_cutedsl` both would resolve to this kernel.
 - CuTe-DSL FP8 BMM for static per-tensor FP8 W8A8 linear layers. On by default and it can be picked up by the FlashInfer autotuner.
 - Trtllm-gen FP8 attention. To turn on, you need FP8 KV cache via `--kv-cache-dtype fp8` or a checkpoint that specifies an FP8 KV cache, and also setting `--attention-backend FLASHINFER|FLASHINFER_MLA`. For DeepSeek-style MLA prefill, please also add `-ac.mla_prefill_backend=TRTLLM_RAGGED -ac.use_prefill_query_quantization=true`.
-- CuTe-DSL FP8 MSA prefill. To turn on, you need FP8 KV cache via `--kv-cache-dtype fp8` or a checkpoint that specifies an FP8 KV cache, and also setting `--attention-config '{"backend":"CUTLASS_MSA"}'`.
+- CuTe-DSL FP8 MSA prefill. To turn on, you need FP8 KV cache via `--kv-cache-dtype fp8` or a checkpoint that specifies an FP8 KV cache, and also setting `--attention-config.minimax_m3_msa_decode_backend=cutlass`.
 
 </details>
 
