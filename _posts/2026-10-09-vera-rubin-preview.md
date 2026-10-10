@@ -38,11 +38,9 @@ This post is an early look at where things stand, and here are a few highlights 
   <em>Figure 2. Overview of the NVIDIA Vera Rubin platform (source: <a href="https://www.nvidia.com/en-us/data-center/technologies/rubin/">NVIDIA Vera Rubin Platform</a>).</em>
 </p>
 
-NVIDIA Vera Rubin is a rack-scale platform consisting of multiple types of racks and hardware: Vera Rubin NVL72, Vera CPU rack, Groq 3 LPX, BlueField-4 STX Storage, and Spectrum-6 SPX Ethernet racks. In this section, we dissect a few important features and improvements in Vera Rubin NVL72, where vLLM runs today; Figure 1 summarizes them per GPU.
+The Vera Rubin platform delivers great performance through extreme co-design of its rack components – it comes with five new, distinct, purpose-built rack-scale systems for agentic AI workloads: Vera Rubin NVL72, Vera CPU rack, Groq 3 LPX, Spectrum-6 SPX, and BlueField-4 STX Storage.
 
-**Compute units and FLOPs.** FLOPs is arguably the first metric LLM inference workloads care about, especially for their prefill phase. NVIDIA Rubin increases compute capacity for BF16, FP8 and NVFP4.
-
-With 212 SMs (vs 152 SMs in Blackwell Ultra) and enhanced Tensor Cores, a Rubin GPU can deliver up to 17.5 PFLOPS of FP8 throughput and 35 PFLOPS of NVFP4 throughput. These capabilities provide optimized vLLM kernels with greater compute capacity for transformer linear layers and MoE expert computation, complemented by the memory and networking improvements described below.
+A single Vera Rubin NVL72 delivers 5x more NVFP4 inference FLOPS than GB200 NVL72 and 2.4x higher memory bandwidth (Figure 1 compares them per GPU). On the scale-up network side, the sixth-generation NVLink delivers up to 1.7x more bandwidth than Blackwell, driving a significantly better user experience in production agentic serving scenarios.
 
 **Softmax.** Notably, Rubin also improved the softmax performance, which is a core operation in LLM attention. Rubin increases exponential throughput, including 2x FP32 and 4x BF16/FP16 throughput versus NVIDIA GB200, helping softmax keep pace with faster matrix operations.
 
