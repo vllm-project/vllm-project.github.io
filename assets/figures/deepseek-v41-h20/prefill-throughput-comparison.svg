@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" role="img" aria-labelledby="title desc">
+  <title id="title">Fixed 1K Prefill throughput by concurrency</title>
+  <desc id="desc">Three-run mean input-token throughput for Humming W4A8 and the tuned FP8 recipe at concurrency 1, 8, 32, and 64. At concurrency 64 the tuned recipe averages 15048 input tokens per second, 52.4 percent above Humming.</desc>
+  <rect width="1100" height="560" fill="#fff"/>
+  <text x="64" y="54" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#17233b">Fixed-1K Prefill: tuned recipe averages 15,048 tok/s at c64</text>
+  <text x="64" y="84" font-family="Arial,sans-serif" font-size="15" fill="#63718a">Server-side prompt tokens/s · 1,024 input + 1 output · three-run mean</text>
+  <g stroke="#e5e9f0" stroke-width="1">
+    <line x1="140" y1="430" x2="1010" y2="430"/><line x1="140" y1="345" x2="1010" y2="345"/>
+    <line x1="140" y1="260" x2="1010" y2="260"/><line x1="140" y1="175" x2="1010" y2="175"/>
+    <line x1="140" y1="90" x2="1010" y2="90"/>
+  </g>
+  <g font-family="Arial,sans-serif" font-size="13" fill="#63718a" text-anchor="end">
+    <text x="126" y="435">0</text><text x="126" y="350">4k</text><text x="126" y="265">8k</text><text x="126" y="180">12k</text><text x="126" y="95">16k</text>
+  </g>
+  <g fill="#8ea0ba">
+    <rect x="260" y="267" width="42" height="163" rx="3"/><rect x="460" y="228" width="42" height="202" rx="3"/>
+    <rect x="660" y="221" width="42" height="209" rx="3"/><rect x="860" y="220" width="42" height="210" rx="3"/>
+  </g>
+  <g fill="#3266c8">
+    <rect x="306" y="279" width="42" height="151" rx="3"/><rect x="506" y="148" width="42" height="282" rx="3"/>
+    <rect x="706" y="110" width="42" height="320" rx="3"/><rect x="906" y="110" width="42" height="320" rx="3"/>
+  </g>
+  <g font-family="Arial,sans-serif" font-size="13" fill="#4d5b73" text-anchor="middle">
+    <text x="304" y="456">1</text><text x="504" y="456">8</text><text x="704" y="456">32</text><text x="904" y="456">64</text>
+  </g>
+  <text x="574" y="492" font-family="Arial,sans-serif" font-size="14" fill="#63718a" text-anchor="middle">Concurrent requests</text>
+  <rect x="310" y="515" width="16" height="12" rx="2" fill="#8ea0ba"/><text x="334" y="526" font-family="Arial,sans-serif" font-size="13" fill="#4d5b73">Humming W4A8</text>
+  <rect x="480" y="515" width="16" height="12" rx="2" fill="#3266c8"/><text x="504" y="526" font-family="Arial,sans-serif" font-size="13" fill="#4d5b73">Tuned FP8 recipe</text>
+  <text x="1010" y="526" font-family="Arial,sans-serif" font-size="12" fill="#63718a" text-anchor="end">Complete recipe comparison · 10 s warmup</text>
+</svg>
