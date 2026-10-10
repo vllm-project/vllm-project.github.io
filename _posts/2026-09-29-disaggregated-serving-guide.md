@@ -9,7 +9,7 @@ tags:
   - disaggregation
 ---
 
-A single `vllm serve` process does three jobs that get in each other's way: processing prompts (prefill), generating tokens (decode) and a pile of CPU work around them. Disaggregated serving in vLLM separates the different stages of LLM inference. Splitting prefill from decode stops long prompts stalling everyone else's output, as long as the KV cache moves between them fast. Moving tokenization and parsing to a CPU-only frontend (`/render`, `/derender`) takes that work off your GPU nodes and leaves the engine working purely in token IDs. This post covers when each split or separation is worth using, how to run it with vLLM v0.30.0 or later, and the key gaps and improvements still ahead.
+A single `vllm serve` process does three jobs that get in each other's way: processing prompts (prefill), generating tokens (decode) and a pile of CPU work around them. Disaggregated serving in vLLM separates the different stages of LLM inference. Splitting prefill from decode stops long prompts stalling everyone else's output, as long as the KV cache moves between them fast. Moving tokenization and parsing to a CPU-only frontend (`/render`, `/derender`) takes that work off your GPU nodes and leaves the engine working purely in token IDs. This post covers when each split or separation is worth using, how to run it with vLLM v0.31.0 or later, and the key gaps and improvements still ahead.
 
 ## One Server Doing Three Unrelated Jobs
 
@@ -81,7 +81,7 @@ So check the transfer before you benchmark anything else. On one box, `nvidia-sm
 
 ## Running Prefill/Decode
 
-Everything from here on assumes vLLM v0.30.0 or later. The examples use Qwen3-0.6B because it loads fast. That's fine for checking the wiring but it's too small to show a P/D benefit, so benchmark with a larger model (see [Where to start](#where-to-start)).
+Everything from here on assumes vLLM v0.31.0 or later. The examples use Qwen3-0.6B because it loads fast. That's fine for checking the wiring but it's too small to show a P/D benefit, so benchmark with a larger model (see [Where to start](#where-to-start)).
 
 Three processes: prefiller, decoder, proxy.
 
@@ -132,7 +132,7 @@ Once it works, sizing it is the hard part. The [Qwen3.8-2.4T PD post](https://vl
 
 ## Multi-Turn: Stop Recomputing the Conversation
 
-Standard P/D moves the cache one way which is wasteful for chat and agent loops. On turn two, decode still holds KV for the answer it just generated but prefill has never computed it, so prefill recomputes it. With `bidirectional_kv_xfer` set on both instances, prefill pulls those blocks back from decode instead and computes only the new tokens. A proxy tracks which blocks belong to which conversation, keyed by a `conversation_id` the client sends. The [bidirectional KV transfer post](https://vllm.ai/blog/2026-09-30-bidirectional-kvxfer-multiturn-agentic-workload) covers setup, tuning and benchmarking in depth.
+Standard P/D moves the cache one way which is wasteful for chat and agent loops. On turn two, decode still holds KV for the answer it just generated but prefill has never computed it, so prefill recomputes it. With `bidirectional_kv_xfer` set on both instances, prefill pulls those blocks back from decode instead and computes only the new tokens. A proxy tracks which blocks belong to which conversation, keyed by a `conversation_id` the client sends. The [bidirectional KV transfer post](https://github.com/vllm-project/vllm-project.github.io/pull/345) covers setup, tuning and benchmarking in depth.
 
 One warning for reasoning models. Decode's blocks include the thinking traces it generated. If the next turn's prompt drops them, as Qwen3's chat template does on its own, prefill's prompt no longer lines up with decode's blocks and you get wrong output, not just slow output. Nothing in vLLM catches that mismatch today ([#43094](https://github.com/vllm-project/vllm/issues/43094)), so check your chat template before you turn this on.
 
