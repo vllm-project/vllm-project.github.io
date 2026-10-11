@@ -158,7 +158,7 @@ Communication for the target topology must be prepared separately because it is 
 
 ### Achieve state-of-the-art EP communication with NIXL EP
 
-We aim for state-of-the-art dispatch and combine performance with NIXL EP while maintaining full support for Elastic EP and fault tolerance. An upcoming NIXL EP performance update is the next step toward that goal (see the [NIXL EP roadmap RFC](TODO_NIXL_EP_ROADMAP_RFC_URL)).
+We aim for state-of-the-art dispatch and combine performance with NIXL EP while maintaining full support for Elastic EP and fault tolerance. An upcoming NIXL EP performance update is the next step toward that goal (see the [NIXL EP roadmap RFC](https://github.com/ai-dynamo/nixl/issues/2383)).
 
 ### Connect Elastic EP to Dynamo and llm-d orchestration
 
