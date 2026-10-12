@@ -1,0 +1,362 @@
+{
+  "PROVISION.json": {
+    "ok": true
+  },
+  "completed_cells": 36,
+  "config_and_oracle_sha256": "d97a4ea09ff038b951aacbba2f8b8938d7e54592ad31bdfae54eb5fb3004f696",
+  "errors": [],
+  "identity-gate.json": {
+    "cache_states_A": {
+      "missing": 26327,
+      "valid": 407
+    },
+    "cache_states_B": {
+      "valid": 26734
+    },
+    "ok": true,
+    "pyc_bytes_A": 5010861,
+    "pyc_bytes_B": 423003516,
+    "source_compilations_A_B_bypass": [
+      5257,
+      0,
+      5478
+    ]
+  },
+  "models": {
+    "qwen06": {
+      "pairs": [
+        {
+          "A_s": 66.55471187457442,
+          "B_s": 55.84018109180033,
+          "cells": [
+            "qwen06-p1-a",
+            "qwen06-p1-b"
+          ],
+          "difference_s": 10.71453078277409,
+          "order": "A-first",
+          "pair": 1,
+          "reduction_pct": 16.098831293817547
+        },
+        {
+          "A_s": 74.27941074687988,
+          "B_s": 57.08898913953453,
+          "cells": [
+            "qwen06-p2-b",
+            "qwen06-p2-a"
+          ],
+          "difference_s": 17.190421607345343,
+          "order": "B-first",
+          "pair": 2,
+          "reduction_pct": 23.14291596351608
+        },
+        {
+          "A_s": 70.16581688821316,
+          "B_s": 58.93254307843745,
+          "cells": [
+            "qwen06-p3-a",
+            "qwen06-p3-b"
+          ],
+          "difference_s": 11.23327380977571,
+          "order": "A-first",
+          "pair": 3,
+          "reduction_pct": 16.009610246072313
+        },
+        {
+          "A_s": 71.87990305386484,
+          "B_s": 59.6403166456148,
+          "cells": [
+            "qwen06-p4-b",
+            "qwen06-p4-a"
+          ],
+          "difference_s": 12.239586408250034,
+          "order": "B-first",
+          "pair": 4,
+          "reduction_pct": 17.027828208223962
+        },
+        {
+          "A_s": 78.22575996536762,
+          "B_s": 63.308325606398284,
+          "cells": [
+            "qwen06-p5-a",
+            "qwen06-p5-b"
+          ],
+          "difference_s": 14.91743435896933,
+          "order": "A-first",
+          "pair": 5,
+          "reduction_pct": 19.06972123450591
+        },
+        {
+          "A_s": 75.41259669605643,
+          "B_s": 62.076775015331805,
+          "cells": [
+            "qwen06-p6-b",
+            "qwen06-p6-a"
+          ],
+          "difference_s": 13.33582168072462,
+          "order": "B-first",
+          "pair": 6,
+          "reduction_pct": 17.683811809946594
+        }
+      ],
+      "repo": "Qwen/Qwen3-0.6B",
+      "statistics": {
+        "A": {
+          "median_s": 73.07965690037236,
+          "n": 6,
+          "range_s": [
+            66.55471187457442,
+            78.22575996536762
+          ]
+        },
+        "B": {
+          "median_s": 59.286429862026125,
+          "n": 6,
+          "range_s": [
+            55.84018109180033,
+            63.308325606398284
+          ]
+        },
+        "by_order": {
+          "A-first": {
+            "median_difference_s": 11.23327380977571,
+            "median_reduction_pct": 16.098831293817547,
+            "n": 3
+          },
+          "B-first": {
+            "median_difference_s": 13.33582168072462,
+            "median_reduction_pct": 17.683811809946594,
+            "n": 3
+          }
+        },
+        "difference_of_arm_medians_s": 13.793227038346231,
+        "median_paired_difference_s": 12.787704044487327,
+        "median_paired_reduction_pct": 17.355820009085278,
+        "n_pairs": 6
+      }
+    },
+    "qwen17": {
+      "pairs": [
+        {
+          "A_s": 72.6919458983466,
+          "B_s": 59.2354065105319,
+          "cells": [
+            "qwen17-p1-b",
+            "qwen17-p1-a"
+          ],
+          "difference_s": 13.4565393878147,
+          "order": "B-first",
+          "pair": 1,
+          "reduction_pct": 18.511733619887554
+        },
+        {
+          "A_s": 74.608398524113,
+          "B_s": 62.139252725057304,
+          "cells": [
+            "qwen17-p2-a",
+            "qwen17-p2-b"
+          ],
+          "difference_s": 12.469145799055696,
+          "order": "A-first",
+          "pair": 2,
+          "reduction_pct": 16.712791114294916
+        },
+        {
+          "A_s": 77.99342591688037,
+          "B_s": 62.856911301612854,
+          "cells": [
+            "qwen17-p3-b",
+            "qwen17-p3-a"
+          ],
+          "difference_s": 15.136514615267515,
+          "order": "B-first",
+          "pair": 3,
+          "reduction_pct": 19.407423686451335
+        },
+        {
+          "A_s": 74.53476551547647,
+          "B_s": 64.75146461557597,
+          "cells": [
+            "qwen17-p4-b",
+            "qwen17-p4-a"
+          ],
+          "difference_s": 9.783300899900496,
+          "order": "B-first",
+          "pair": 4,
+          "reduction_pct": 13.125822335711357
+        },
+        {
+          "A_s": 78.42805337626487,
+          "B_s": 64.89354860130697,
+          "cells": [
+            "qwen17-p5-a",
+            "qwen17-p5-b"
+          ],
+          "difference_s": 13.534504774957895,
+          "order": "A-first",
+          "pair": 5,
+          "reduction_pct": 17.25722390434074
+        },
+        {
+          "A_s": 76.43718961253762,
+          "B_s": 61.9620939604938,
+          "cells": [
+            "qwen17-p6-a",
+            "qwen17-p6-b"
+          ],
+          "difference_s": 14.47509565204382,
+          "order": "A-first",
+          "pair": 6,
+          "reduction_pct": 18.937242100891606
+        }
+      ],
+      "repo": "Qwen/Qwen3-1.7B",
+      "statistics": {
+        "A": {
+          "median_s": 75.52279406832531,
+          "n": 6,
+          "range_s": [
+            72.6919458983466,
+            78.42805337626487
+          ]
+        },
+        "B": {
+          "median_s": 62.49808201333508,
+          "n": 6,
+          "range_s": [
+            59.2354065105319,
+            64.89354860130697
+          ]
+        },
+        "by_order": {
+          "A-first": {
+            "median_difference_s": 13.534504774957895,
+            "median_reduction_pct": 17.25722390434074,
+            "n": 3
+          },
+          "B-first": {
+            "median_difference_s": 13.4565393878147,
+            "median_reduction_pct": 18.511733619887554,
+            "n": 3
+          }
+        },
+        "difference_of_arm_medians_s": 13.024712054990232,
+        "median_paired_difference_s": 13.495522081386298,
+        "median_paired_reduction_pct": 17.88447876211415,
+        "n_pairs": 6
+      }
+    },
+    "smol17": {
+      "pairs": [
+        {
+          "A_s": 52.852466851472855,
+          "B_s": 43.37047536112368,
+          "cells": [
+            "smol17-p1-a",
+            "smol17-p1-b"
+          ],
+          "difference_s": 9.481991490349174,
+          "order": "A-first",
+          "pair": 1,
+          "reduction_pct": 17.940489924520783
+        },
+        {
+          "A_s": 57.023276751860976,
+          "B_s": 41.55469839926809,
+          "cells": [
+            "smol17-p2-b",
+            "smol17-p2-a"
+          ],
+          "difference_s": 15.468578352592885,
+          "order": "B-first",
+          "pair": 2,
+          "reduction_pct": 27.126779157053726
+        },
+        {
+          "A_s": 57.41267088241875,
+          "B_s": 45.10594995226711,
+          "cells": [
+            "smol17-p3-a",
+            "smol17-p3-b"
+          ],
+          "difference_s": 12.306720930151641,
+          "order": "A-first",
+          "pair": 3,
+          "reduction_pct": 21.435548531361356
+        },
+        {
+          "A_s": 62.53815206326544,
+          "B_s": 48.44521219562739,
+          "cells": [
+            "smol17-p4-b",
+            "smol17-p4-a"
+          ],
+          "difference_s": 14.092939867638052,
+          "order": "B-first",
+          "pair": 4,
+          "reduction_pct": 22.534947712208087
+        },
+        {
+          "A_s": 58.51156345475465,
+          "B_s": 45.31586857046932,
+          "cells": [
+            "smol17-p5-a",
+            "smol17-p5-b"
+          ],
+          "difference_s": 13.19569488428533,
+          "order": "A-first",
+          "pair": 5,
+          "reduction_pct": 22.55228557426805
+        },
+        {
+          "A_s": 60.94821615796536,
+          "B_s": 47.289551802910864,
+          "cells": [
+            "smol17-p6-b",
+            "smol17-p6-a"
+          ],
+          "difference_s": 13.658664355054498,
+          "order": "B-first",
+          "pair": 6,
+          "reduction_pct": 22.41027747170487
+        }
+      ],
+      "repo": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+      "statistics": {
+        "A": {
+          "median_s": 57.9621171685867,
+          "n": 6,
+          "range_s": [
+            52.852466851472855,
+            62.53815206326544
+          ]
+        },
+        "B": {
+          "median_s": 45.210909261368215,
+          "n": 6,
+          "range_s": [
+            41.55469839926809,
+            48.44521219562739
+          ]
+        },
+        "by_order": {
+          "A-first": {
+            "median_difference_s": 12.306720930151641,
+            "median_reduction_pct": 21.435548531361356,
+            "n": 3
+          },
+          "B-first": {
+            "median_difference_s": 14.092939867638052,
+            "median_reduction_pct": 22.534947712208087,
+            "n": 3
+          }
+        },
+        "difference_of_arm_medians_s": 12.751207907218486,
+        "median_paired_difference_s": 13.427179619669914,
+        "median_paired_reduction_pct": 22.472612591956477,
+        "n_pairs": 6
+      }
+    }
+  },
+  "primary_result": true,
+  "status": "complete"
+}

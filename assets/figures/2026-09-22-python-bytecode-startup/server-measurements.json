@@ -1,0 +1,496 @@
+{
+  "accepted": true,
+  "campaign_ok": true,
+  "campaign_error": null,
+  "config_golden_sha256": "6a5cbe3b2ddfbb626f36ecf234ad146667316fd14ed5b059e444c30317b1902d",
+  "models": {
+    "qwen8": {
+      "repo": "Qwen/Qwen3-8B",
+      "n_pairs": 4,
+      "median_paired_saving_s": 17.600675020366907,
+      "median_paired_reduction_pct": 17.555008495998557,
+      "saving_range_s": [
+        16.73237998224795,
+        18.52308233641088
+      ],
+      "reduction_range_pct": [
+        16.81095330419026,
+        18.035609481990683
+      ],
+      "positive_pairs": 4,
+      "control_median_s": 100.26300728693604,
+      "shipped_median_s": 82.96206117607653,
+      "difference_of_arm_medians_s": 17.300946110859513,
+      "order_strata": {
+        "A-first": {
+          "n": 2,
+          "median_saving_s": 17.627731159329414,
+          "median_reduction_pct": 17.42328139309047
+        },
+        "B-first": {
+          "n": 2,
+          "median_saving_s": 17.600675020366907,
+          "median_reduction_pct": 17.555008495998557
+        }
+      }
+    },
+    "qwen32": {
+      "repo": "Qwen/Qwen3-32B",
+      "n_pairs": 4,
+      "median_paired_saving_s": 17.752994458191097,
+      "median_paired_reduction_pct": 13.907852923374026,
+      "saving_range_s": [
+        14.74463446252048,
+        19.105651972815394
+      ],
+      "reduction_range_pct": [
+        11.679320264126343,
+        14.890678888335946
+      ],
+      "positive_pairs": 4,
+      "control_median_s": 127.63088674563915,
+      "shipped_median_s": 109.87789228744805,
+      "difference_of_arm_medians_s": 17.752994458191097,
+      "order_strata": {
+        "A-first": {
+          "n": 2,
+          "median_saving_s": 17.752994458191097,
+          "median_reduction_pct": 13.907852923374026
+        },
+        "B-first": {
+          "n": 2,
+          "median_saving_s": 16.925143217667937,
+          "median_reduction_pct": 13.284999576231144
+        }
+      }
+    }
+  },
+  "pairs": [
+    {
+      "model": "qwen8",
+      "repo": "Qwen/Qwen3-8B",
+      "pair": 1,
+      "order": "B-first",
+      "control_s": 100.11351528763771,
+      "shipped_bytecode_s": 82.20076858624816,
+      "saving_s": 17.91274670138955,
+      "reduction_pct": 17.892436051140706
+    },
+    {
+      "model": "qwen32",
+      "repo": "Qwen/Qwen3-32B",
+      "pair": 1,
+      "order": "A-first",
+      "control_s": 128.06531434506178,
+      "shipped_bytecode_s": 109.5825139246881,
+      "saving_s": 18.482800420373678,
+      "reduction_pct": 14.43232347095424
+    },
+    {
+      "model": "qwen32",
+      "repo": "Qwen/Qwen3-32B",
+      "pair": 2,
+      "order": "B-first",
+      "control_s": 126.24565581791103,
+      "shipped_bytecode_s": 111.50102135539055,
+      "saving_s": 14.74463446252048,
+      "reduction_pct": 11.679320264126343
+    },
+    {
+      "model": "qwen8",
+      "repo": "Qwen/Qwen3-8B",
+      "pair": 2,
+      "order": "A-first",
+      "control_s": 99.5326063875109,
+      "shipped_bytecode_s": 82.80022640526295,
+      "saving_s": 16.73237998224795,
+      "reduction_pct": 16.81095330419026
+    },
+    {
+      "model": "qwen32",
+      "repo": "Qwen/Qwen3-32B",
+      "pair": 3,
+      "order": "A-first",
+      "control_s": 127.19645914621651,
+      "shipped_bytecode_s": 110.173270650208,
+      "saving_s": 17.023188496008515,
+      "reduction_pct": 13.383382375793811
+    },
+    {
+      "model": "qwen8",
+      "repo": "Qwen/Qwen3-8B",
+      "pair": 3,
+      "order": "B-first",
+      "control_s": 100.41249928623438,
+      "shipped_bytecode_s": 83.12389594689012,
+      "saving_s": 17.288603339344263,
+      "reduction_pct": 17.217580940856404
+    },
+    {
+      "model": "qwen8",
+      "repo": "Qwen/Qwen3-8B",
+      "pair": 4,
+      "order": "A-first",
+      "control_s": 102.70283549278975,
+      "shipped_bytecode_s": 84.17975315637887,
+      "saving_s": 18.52308233641088,
+      "reduction_pct": 18.035609481990683
+    },
+    {
+      "model": "qwen32",
+      "repo": "Qwen/Qwen3-32B",
+      "pair": 4,
+      "order": "B-first",
+      "control_s": 128.30611764639616,
+      "shipped_bytecode_s": 109.20046567358077,
+      "saving_s": 19.105651972815394,
+      "reduction_pct": 14.890678888335946
+    }
+  ],
+  "cells": [
+    {
+      "cell": {
+        "cell": "qwen8-p1-b",
+        "model": "qwen8",
+        "arm": "B",
+        "pair": 1
+      },
+      "accepted": true,
+      "elapsed_s": 82.20076858624816,
+      "health_s": 82.18173210509121,
+      "clock_started_epoch": 1791576543.163473,
+      "first_response_epoch": 1791576625.364242,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p1-a",
+        "model": "qwen8",
+        "arm": "A",
+        "pair": 1
+      },
+      "accepted": true,
+      "elapsed_s": 100.11351528763771,
+      "health_s": 100.09519614651799,
+      "clock_started_epoch": 1791576683.4454095,
+      "first_response_epoch": 1791576783.5589259,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p1-a",
+        "model": "qwen32",
+        "arm": "A",
+        "pair": 1
+      },
+      "accepted": true,
+      "elapsed_s": 128.06531434506178,
+      "health_s": 128.02828976139426,
+      "clock_started_epoch": 1791576839.7819052,
+      "first_response_epoch": 1791576967.84722,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p1-b",
+        "model": "qwen32",
+        "arm": "B",
+        "pair": 1
+      },
+      "accepted": true,
+      "elapsed_s": 109.5825139246881,
+      "health_s": 109.5472192876041,
+      "clock_started_epoch": 1791577040.0355942,
+      "first_response_epoch": 1791577149.6181085,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p2-b",
+        "model": "qwen32",
+        "arm": "B",
+        "pair": 2
+      },
+      "accepted": true,
+      "elapsed_s": 111.50102135539055,
+      "health_s": 111.45368538051844,
+      "clock_started_epoch": 1791577223.5856948,
+      "first_response_epoch": 1791577335.0867171,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p2-a",
+        "model": "qwen32",
+        "arm": "A",
+        "pair": 2
+      },
+      "accepted": true,
+      "elapsed_s": 126.24565581791103,
+      "health_s": 126.2096878644079,
+      "clock_started_epoch": 1791577394.0602531,
+      "first_response_epoch": 1791577520.3059094,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p2-a",
+        "model": "qwen8",
+        "arm": "A",
+        "pair": 2
+      },
+      "accepted": true,
+      "elapsed_s": 99.5326063875109,
+      "health_s": 99.51454498060048,
+      "clock_started_epoch": 1791577577.5986886,
+      "first_response_epoch": 1791577677.1312952,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p2-b",
+        "model": "qwen8",
+        "arm": "B",
+        "pair": 2
+      },
+      "accepted": true,
+      "elapsed_s": 82.80022640526295,
+      "health_s": 82.78231604024768,
+      "clock_started_epoch": 1791577758.784673,
+      "first_response_epoch": 1791577841.5849,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p3-a",
+        "model": "qwen32",
+        "arm": "A",
+        "pair": 3
+      },
+      "accepted": true,
+      "elapsed_s": 127.19645914621651,
+      "health_s": 127.14837962202728,
+      "clock_started_epoch": 1791577899.6412916,
+      "first_response_epoch": 1791578026.8377507,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p3-b",
+        "model": "qwen32",
+        "arm": "B",
+        "pair": 3
+      },
+      "accepted": true,
+      "elapsed_s": 110.173270650208,
+      "health_s": 110.13551614247262,
+      "clock_started_epoch": 1791578098.8014915,
+      "first_response_epoch": 1791578208.974763,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p3-b",
+        "model": "qwen8",
+        "arm": "B",
+        "pair": 3
+      },
+      "accepted": true,
+      "elapsed_s": 83.12389594689012,
+      "health_s": 83.09487061016262,
+      "clock_started_epoch": 1791578282.9242551,
+      "first_response_epoch": 1791578366.0481515,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p3-a",
+        "model": "qwen8",
+        "arm": "A",
+        "pair": 3
+      },
+      "accepted": true,
+      "elapsed_s": 100.41249928623438,
+      "health_s": 100.39454592578113,
+      "clock_started_epoch": 1791578424.405815,
+      "first_response_epoch": 1791578524.8183138,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p4-a",
+        "model": "qwen8",
+        "arm": "A",
+        "pair": 4
+      },
+      "accepted": true,
+      "elapsed_s": 102.70283549278975,
+      "health_s": 102.68544561229646,
+      "clock_started_epoch": 1791578580.9650419,
+      "first_response_epoch": 1791578683.6678777,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen8-p4-b",
+        "model": "qwen8",
+        "arm": "B",
+        "pair": 4
+      },
+      "accepted": true,
+      "elapsed_s": 84.17975315637887,
+      "health_s": 84.16207289136946,
+      "clock_started_epoch": 1791578754.840399,
+      "first_response_epoch": 1791578839.0201528,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p4-b",
+        "model": "qwen32",
+        "arm": "B",
+        "pair": 4
+      },
+      "accepted": true,
+      "elapsed_s": 109.20046567358077,
+      "health_s": 109.16182108968496,
+      "clock_started_epoch": 1791578911.8307843,
+      "first_response_epoch": 1791579021.0312507,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qwen32-p4-a",
+        "model": "qwen32",
+        "arm": "A",
+        "pair": 4
+      },
+      "accepted": true,
+      "elapsed_s": 128.30611764639616,
+      "health_s": 128.26907721720636,
+      "clock_started_epoch": 1791579080.26106,
+      "first_response_epoch": 1791579208.5671782,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    }
+  ],
+  "qualifications_unpooled": [
+    {
+      "cell": {
+        "cell": "qual-qwen06-a",
+        "model": "qwen06",
+        "arm": "A",
+        "pair": 0
+      },
+      "accepted": true,
+      "elapsed_s": 91.07536587119102,
+      "health_s": 91.05915857292712,
+      "clock_started_epoch": 1791574995.8892844,
+      "first_response_epoch": 1791575086.9646595,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qual-qwen06-b",
+        "model": "qwen06",
+        "arm": "B",
+        "pair": 0
+      },
+      "accepted": true,
+      "elapsed_s": 75.75438773073256,
+      "health_s": 75.73887185379863,
+      "clock_started_epoch": 1791575157.7213488,
+      "first_response_epoch": 1791575233.475737,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qual-qwen8-a",
+        "model": "qwen8",
+        "arm": "A",
+        "pair": 0
+      },
+      "accepted": true,
+      "elapsed_s": 101.05900009535253,
+      "health_s": 101.04144360683858,
+      "clock_started_epoch": 1791575290.9918346,
+      "first_response_epoch": 1791575392.050835,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qual-qwen8-b",
+        "model": "qwen8",
+        "arm": "B",
+        "pair": 0
+      },
+      "accepted": true,
+      "elapsed_s": 83.23870381712914,
+      "health_s": 83.2208917401731,
+      "clock_started_epoch": 1791575462.915522,
+      "first_response_epoch": 1791575546.1542265,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qual-qwen32-a",
+        "model": "qwen32",
+        "arm": "A",
+        "pair": 0
+      },
+      "accepted": true,
+      "elapsed_s": 129.80031647905707,
+      "health_s": 129.76294895634055,
+      "clock_started_epoch": 1791575604.3640587,
+      "first_response_epoch": 1791575734.1643758,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    },
+    {
+      "cell": {
+        "cell": "qual-qwen32-b",
+        "model": "qwen32",
+        "arm": "B",
+        "pair": 0
+      },
+      "accepted": true,
+      "elapsed_s": 111.07228458113968,
+      "health_s": 111.03336832113564,
+      "clock_started_epoch": 1791575806.278824,
+      "first_response_epoch": 1791575917.3511097,
+      "software_resident_fraction": 1.0,
+      "responses_checked": 8
+    }
+  ],
+  "missing_cells": [],
+  "incomplete_pairs": [],
+  "scope": {
+    "clock": "monotonic process launch to first correct loopback HTTP completion; no image/model download",
+    "hardware": "one Xeon Platinum 8480+ / H100 SXM 80GB host",
+    "cpu": "affinity 0-7: eight distinct physical cores on GPU NUMA node; not exclusive allocation",
+    "runtime": "official nightly 8cbd5d03006c33185f402249ff2b448efd594986, linux/amd64",
+    "cache": "fresh application/compiler caches; software pages resident in both arms; model pages warm/uncontrolled",
+    "treatment": "same installation; A source-backed package caches absent; B original shipped caches restored",
+    "correctness": "eight fixed greedy decoded-text/usage fixtures per launch; not token-ID equivalence or general quality",
+    "generality": "four paired observations per model, two model sizes from one family, one server; unpooled with rig/qualification"
+  }
+}
