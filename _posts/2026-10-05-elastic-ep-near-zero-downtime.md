@@ -13,7 +13,7 @@ tags:
   - cuda-graphs
 ---
 
-Traditionally, changing the number of GPUs in a vLLM service required adding or removing entire model replicas or restarting the engine with a different GPU count. As models grow larger, each replica needs more GPUs, so scaling by replica adds or removes GPUs in increasingly large increments. Restarting vLLM interrupted serving for **197 seconds** (see our [benchmark](#performance-on-deepseek-v4-pro)).
+Traditionally, changing the number of GPUs in a vLLM service required adding or removing entire model replicas or restarting the engine with a different GPU count. As models grow larger, each replica needs more GPUs, so scaling by replica adds or removes GPUs in increasingly large increments. Restarting vLLM to scale DeepSeek V4 Pro from 16 to 20 GB200 GPUs stopped serving for **197 seconds** (see the [performance section](#performance-on-deepseek-v4-pro) for details).
 
 In our [first Elastic EP post](https://vllm.ai/blog/2026-05-14-elastic-expert-parallelism), we showed how vLLM could add or remove GPUs from a running MoE engine without restarting it. While we avoided a restart, serving still stopped throughout reconfiguration as we initialized new workers, prepared the expanded communication groups, loaded model weights, and repeated kernel warmup and CUDA graph capture. In our DeepSeek V4 Pro benchmark, this pause lasted **100 seconds when scaling from 16 to 20 GPUs** and **56 seconds when scaling back to 16 GPUs** (full details in the [performance section](#performance-on-deepseek-v4-pro)).
 
@@ -84,9 +84,11 @@ After capture, NIXL EP can reactivate peers without invalidating the graphs. Joi
 
 ## Performance on DeepSeek V4 Pro
 
+All experiments in this section used [DeepSeek V4 Pro](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/tree/b5968e9190ef611bbf34a7229255be88a0e937c1) on GB200 GPUs, with TP=1 and DP/EP sizes of 16 and 20. Model weights were pre-downloaded in safetensors format on shared Lustre storage and loaded using the default `--load-format auto`. Measurements used warm kernel-compilation caches (Triton, TileLang, and FlashInfer).
+
 ### Scale-up and scale-down timings
 
-We benchmarked DeepSeek V4 Pro on GB200 GPUs, scaling from 16 to 20 GPUs and back. The table shows which stages run while serving is paused and which run in the background while existing workers continue serving.
+The table shows which stages run while serving is paused and which run in the background while existing workers continue serving.
 
 | Stage | A: Blocking | B: Async preparation | C: Async preparation + graph reuse |
 | --- | --- | --- | --- |
