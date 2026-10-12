@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="785" viewBox="0 0 1180 785" role="img" aria-labelledby="title desc">
+<title id="title">Unified duplex serving architecture</title><desc id="desc">The API Server and orchestrator occupy one frontend process with different responsibilities and event loops. Session commands reach an ordered runtime. Model stages run below, and ordinary session events return through a bounded per-session output buffer.</desc>
+<defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#607b96"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .title{font-weight:700}</style>
+<rect width="1180" height="785" fill="white"/>
+<text x="35" y="43" font-size="28" fill="#17324f" font-weight="700" text-anchor="start">Unified duplex serving</text>
+<text x="35" y="75" font-size="18" fill="#57708a" font-weight="400" text-anchor="start">Communication, session coordination, and model computation</text>
+<rect x="35" y="108" width="190" height="83" rx="8" fill="#eef3f9" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="130" y="140" font-size="20" fill="#17324f" font-weight="700" text-anchor="middle">User client</text>
+<text x="130" y="170" font-size="14" fill="#57708a" font-weight="400" text-anchor="middle">Audio · video · playback</text>
+<text x="280" y="139" font-size="17" fill="#2476db" font-weight="700" text-anchor="start">Realtime messages + duplex extensions</text>
+<text x="280" y="170" font-size="16" fill="#57708a" font-weight="400" text-anchor="start">/v1/realtime?duplex=1   ·   /v1/duplex</text>
+<rect x="25" y="222" width="1130" height="325" rx="8" fill="#ffffff" stroke="#92acc8" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="245" y="252" font-size="17" fill="#57708a" font-weight="700" text-anchor="start">Frontend process</text>
+<rect x="50" y="284" width="230" height="100" rx="8" fill="#f4f8fd" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="67" y="315" font-size="20" fill="#2476db" font-weight="700" text-anchor="start">API Server</text>
+<text x="67" y="342" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">WebSocket I/O and validation</text>
+<text x="67" y="366" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Connection attachment / replay</text>
+<rect x="326" y="284" width="230" height="100" rx="8" fill="#f4f8fd" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="343" y="315" font-size="20" fill="#2476db" font-weight="700" text-anchor="start">EngineClient</text>
+<text x="343" y="342" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Session handles and lifecycle</text>
+<text x="343" y="366" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Command submission / events</text>
+<path d="M280 326 L326 326" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M326 355 L280 355" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M556 326 L604 326" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="604" y="271" width="527" height="247" rx="8" fill="#f3f9fa" stroke="#82bcc0" stroke-width="1.5"/>
+<text x="625" y="300" font-size="21" fill="#008d96" font-weight="700" text-anchor="start">Duplex Orchestrator</text>
+<text x="625" y="325" font-size="15" fill="#57708a" font-weight="400" text-anchor="start">Dedicated thread and event loop</text>
+<rect x="625" y="342" width="248" height="74" rx="8" fill="#fff" stroke="#a3c9cc" stroke-width="1.5"/>
+<text x="640" y="368" font-size="16" fill="#008d96" font-weight="700" text-anchor="start">SessionManager</text>
+<text x="640" y="394" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">Admission · dispatch · leases</text>
+<rect x="625" y="429" width="248" height="72" rx="8" fill="#fff" stroke="#a3c9cc" stroke-width="1.5"/>
+<text x="640" y="454" font-size="15" fill="#008d96" font-weight="700" text-anchor="start">SessionRunner + session state</text>
+<text x="640" y="480" font-size="13.5" fill="#17324f" font-weight="400" text-anchor="start">Ordered input, response, playback</text>
+<rect x="890" y="342" width="221" height="159" rx="8" fill="#fff" stroke="#a3c9cc" stroke-width="1.5"/>
+<text x="906" y="369" font-size="17" fill="#008d96" font-weight="700" text-anchor="start">Model plugin</text>
+<text x="906" y="398" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Capabilities</text>
+<text x="906" y="423" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Input preparation</text>
+<text x="906" y="448" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Model-specific state</text>
+<text x="906" y="473" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Output interpretation</text>
+<rect x="50" y="429" width="506" height="72" rx="8" fill="#eff4fb" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="67" y="455" font-size="17" fill="#2476db" font-weight="700" text-anchor="start">Bounded output buffer per session</text>
+<text x="67" y="481" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Session event → handle.events() → client</text>
+<path d="M604 465 L556 465" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M440 429 L440 384" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="55" y="531" font-size="13.5" fill="#57708a" font-weight="400" text-anchor="start">Ordinary text/audio events use this session buffer.</text>
+<path d="M759 518 L759 589" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M738 589 L738 518" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="784" y="572" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Submit work / receive stage output</text>
+<rect x="25" y="589" width="1130" height="153" rx="8" fill="#fbfcfe" stroke="#92acc8" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="45" y="619" font-size="17" fill="#57708a" font-weight="700" text-anchor="start">Stage engines and model workers</text>
+<rect x="50" y="639" width="300" height="77" rx="8" fill="#f4f8fd" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="200.0" y="666" font-size="17" fill="#2476db" font-weight="700" text-anchor="middle">Stage 0</text>
+<text x="200.0" y="692" font-size="13.5" fill="#57708a" font-weight="400" text-anchor="middle">Scheduler + model worker</text>
+<rect x="430" y="639" width="300" height="77" rx="8" fill="#f4f8fd" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="580.0" y="666" font-size="17" fill="#2476db" font-weight="700" text-anchor="middle">Stage 1</text>
+<text x="580.0" y="692" font-size="13.5" fill="#57708a" font-weight="400" text-anchor="middle">Scheduler + model worker</text>
+<rect x="810" y="639" width="316" height="77" rx="8" fill="#f4f8fd" stroke="#a9bfd5" stroke-width="1.5"/>
+<text x="968.0" y="666" font-size="17" fill="#2476db" font-weight="700" text-anchor="middle">Stage N</text>
+<text x="968.0" y="692" font-size="13.5" fill="#57708a" font-weight="400" text-anchor="middle">Scheduler + model worker</text>
+<path d="M350 677 L430 677" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M730 677 L810 677" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M165 191 L165 284" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M130 284 L130 191" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="35" y="769" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Stage layout and state retention depend on the model. A module boundary is not automatically a GPU boundary.</text>
+</svg>
