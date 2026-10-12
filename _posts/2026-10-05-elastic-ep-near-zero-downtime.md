@@ -13,7 +13,7 @@ tags:
   - cuda-graphs
 ---
 
-Traditionally, changing the number of GPUs in a vLLM service required adding or removing entire model replicas or restarting the engine with a different GPU count. As models grow larger, each replica needs more GPUs, so scaling by replica adds or removes GPUs in increasingly large increments. Restarting vLLM to scale DeepSeek V4 Pro from 16 to 20 GB200 GPUs stopped serving for **197 seconds** (see the [performance section](#performance-on-deepseek-v4-pro) for details).
+Traditionally, changing the number of GPUs in a vLLM service required adding or removing entire model replicas or restarting the engine with a different GPU count. As models grow larger, each replica needs more GPUs, so scaling by replica adds or removes GPUs in increasingly large increments. Restarting vLLM to scale DeepSeek V4 Pro from 16 to 20 GB200 GPUs stopped serving for **197 seconds** (see the [performance section](#performance-on-deepseek-v4-pro) for details), leaving those expensive GPUs allocated without generating tokens.
 
 In our [first Elastic EP post](https://vllm.ai/blog/2026-05-14-elastic-expert-parallelism), we showed how vLLM could add or remove GPUs from a running MoE engine without restarting it. While we avoided a restart, serving still stopped throughout reconfiguration as we initialized new workers, prepared the expanded communication groups, loaded model weights, and repeated kernel warmup and CUDA graph capture. In our DeepSeek V4 Pro benchmark, this pause lasted **100 seconds when scaling from 16 to 20 GPUs** and **56 seconds when scaling back to 16 GPUs** (full details in the [performance section](#performance-on-deepseek-v4-pro)).
 
