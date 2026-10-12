@@ -21,7 +21,7 @@ In this post, we describe how asynchronous preparation and [NIXL EP](https://git
 
 ## Overlapping topology preparation with serving
 
-We reorganized vLLM's reconfiguration flow into two phases: background preparation and a short commit. Each existing worker prepares its part of the new topology on a separate thread while continuing to serve requests using its current communication groups and CUDA graphs. In parallel, joining workers initialize, receive model weights, and prepare their communication and GPU execution. During the commit phase, vLLM briefly pauses its schedulers, activates the prepared topology, and resumes serving. These changes were introduced in [asynchronous preparation](https://github.com/vllm-project/vllm/pull/47288) and [prepare/commit optimizations](https://github.com/vllm-project/vllm/pull/51885).
+We reorganized vLLM's reconfiguration flow into two phases: background preparation and a short commit. Existing workers use separate background threads to prepare and warm up target communication, transfer model weights, and synchronize execution-related information (such as autotuning results) with joining workers, while continuing to serve requests with their current communication groups and CUDA graphs. In parallel, joining workers initialize, receive model weights, and prepare their communication and GPU execution. During the commit phase, vLLM briefly pauses its schedulers, activates the prepared topology, and resumes serving. These changes were introduced in [asynchronous preparation](https://github.com/vllm-project/vllm/pull/47288) and [prepare/commit optimizations](https://github.com/vllm-project/vllm/pull/51885).
 
 Preparation covers four main tasks:
 
