@@ -1,0 +1,136 @@
+# Online preview of blog PRs with the real vllm.ai/blog styling.
+#
+# vllm.ai/blog is rendered by vllm-project/vllm_website, which pulls this repo in
+# as the `content/blog-source` submodule. For every PR we push a branch
+# `blog-preview/pr-<N>` to vllm_website whose submodule points at the PR head;
+# Vercel's git integration builds it as a Preview deployment, and we record it
+# as a GitHub deployment here so the PR shows a "View deployment" button.
+#
+# The preview lives at the branch's stable Vercel URL. To know when a push is
+# live there, the preview commit also writes the PR head SHA to
+# public/blog-preview.txt, and we poll that file. This avoids needing read
+# access to vllm_website's deployments/statuses on PARENT_REPO_PAT.
+#
+# Runs on pull_request_target so fork PRs (most of ours) get secrets. This is
+# safe only because the workflow never checks out or executes PR code: the PR
+# head SHA is written as a gitlink, and posts are rendered on Vercel as plain
+# markdown (`format: 'md'`, no MDX JS). Keep it that way.
+name: Vercel Preview
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
+
+  # Backfill previews for PRs opened before this workflow existed.
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number
+        required: true
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: vercel-preview-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
+
+env:
+  PARENT: vllm-project/vllm_website
+  PR: ${{ github.event.pull_request.number || inputs.pr }}
+  ENVIRONMENT: vllm.ai preview
+  # Vercel branch URL: <project>-git-<branch, slugified>-<team>.vercel.app
+  PREVIEW_HOST: https://vllm-website-git-blog-preview-pr-${{ github.event.pull_request.number || inputs.pr }}-inferact-inc.vercel.app
+
+jobs:
+  preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Resolve PR head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$PR" =~ ^[0-9]+$ ]] || { echo "Invalid PR number: $PR"; exit 1; }
+          pr=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR}")
+          [ "$(jq -r .state <<<"$pr")" = open ] || { echo "PR #${PR} is not open"; exit 1; }
+          head=$(jq -r .head.sha <<<"$pr")
+          echo "HEAD_SHA=${head}" >> "$GITHUB_ENV"
+          # Point the button at the post itself when the PR touches exactly one.
+          posts=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files" \
+            -q '.[] | select(.status != "removed") | .filename | select(test("^_posts/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/ ]+\\.md$"))')
+          path=/blog
+          if [ "$(grep -c . <<<"$posts" || true)" = 1 ]; then
+            path="/blog/$(basename "$posts" .md | tr '[:upper:]' '[:lower:]')"
+          fi
+          echo "PREVIEW_PATH=${path}" >> "$GITHUB_ENV"
+
+      - name: Create GitHub deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(jq -n --arg ref "$HEAD_SHA" --arg env "$ENVIRONMENT" \
+                 '{ref: $ref, environment: $env, auto_merge: false, production_environment: false, required_contexts: []}' |
+               gh api "repos/${GITHUB_REPOSITORY}/deployments" --input - -q .id)
+          echo "DEPLOYMENT_ID=${id}" >> "$GITHUB_ENV"
+          gh api "repos/${GITHUB_REPOSITORY}/deployments/${id}/statuses" \
+            -f state=in_progress -F auto_inactive=false \
+            -f log_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" > /dev/null
+
+      - name: Push preview branch to vllm_website
+        env:
+          PAT: ${{ secrets.PARENT_REPO_PAT }}
+        run: |
+          git clone -q --depth 1 "https://x-access-token:${PAT}@github.com/${PARENT}.git" site
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git update-index --cacheinfo "160000,${HEAD_SHA},content/blog-source"
+          echo "$HEAD_SHA" > public/blog-preview.txt
+          git add public/blog-preview.txt
+          git commit -qm "chore: preview blog PR #${PR} (${HEAD_SHA:0:7})"
+          git push -qf origin "HEAD:refs/heads/blog-preview/pr-${PR}"
+
+      - name: Wait for Vercel deployment
+        run: |
+          # The branch URL keeps serving the previous build until the new one is
+          # ready, so wait until it reports this PR head. A failed Vercel build
+          # never updates it and ends in the timeout below.
+          for _ in $(seq 1 60); do
+            live=$(curl -sf "${PREVIEW_HOST}/blog-preview.txt?t=$(date +%s)" || true)
+            if [ "$live" = "$HEAD_SHA" ]; then
+              echo "PREVIEW_URL=${PREVIEW_HOST}${PREVIEW_PATH}" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Timed out waiting for ${PREVIEW_HOST} to serve ${HEAD_SHA}"
+          exit 1
+
+      - name: Report deployment status
+        if: always() && env.DEPLOYMENT_ID != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ job.status }}
+        run: |
+          args=(-F auto_inactive=false -f log_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
+          if [ "$OUTCOME" = success ] && [ -n "$PREVIEW_URL" ]; then
+            args+=(-f state=success -f environment_url="$PREVIEW_URL")
+          elif [ "$OUTCOME" = cancelled ]; then
+            # Superseded by a newer push to the same PR.
+            args+=(-f state=inactive)
+          else
+            args+=(-f state=failure)
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}/statuses" "${args[@]}" > /dev/null
+
+  cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete preview branch
+        env:
+          GH_TOKEN: ${{ secrets.PARENT_REPO_PAT }}
+        run: gh api -X DELETE "repos/${PARENT}/git/refs/heads/blog-preview/pr-${PR}" || true
