@@ -6,6 +6,11 @@
 # Vercel's git integration builds it as a Preview deployment, and we record it
 # as a GitHub deployment here so the PR shows a "View deployment" button.
 #
+# The preview lives at the branch's stable Vercel URL. To know when a push is
+# live there, the preview commit also writes the PR head SHA to
+# public/blog-preview.txt, and we poll that file. This avoids needing read
+# access to vllm_website's deployments/statuses on PARENT_REPO_PAT.
+#
 # Runs on pull_request_target so fork PRs (most of ours) get secrets. This is
 # safe only because the workflow never checks out or executes PR code: the PR
 # head SHA is written as a gitlink, and posts are rendered on Vercel as plain
@@ -35,6 +40,8 @@ env:
   PARENT: vllm-project/vllm_website
   PR: ${{ github.event.pull_request.number || inputs.pr }}
   ENVIRONMENT: vllm.ai preview
+  # Vercel branch URL: <project>-git-<branch, slugified>-<team>.vercel.app
+  PREVIEW_HOST: https://vllm-website-git-blog-preview-pr-${{ github.event.pull_request.number || inputs.pr }}-inferact-inc.vercel.app
 
 jobs:
   preview:
@@ -81,30 +88,25 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git update-index --cacheinfo "160000,${HEAD_SHA},content/blog-source"
+          echo "$HEAD_SHA" > public/blog-preview.txt
+          git add public/blog-preview.txt
           git commit -qm "chore: preview blog PR #${PR} (${HEAD_SHA:0:7})"
           git push -qf origin "HEAD:refs/heads/blog-preview/pr-${PR}"
-          echo "SITE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
       - name: Wait for Vercel deployment
-        env:
-          GH_TOKEN: ${{ secrets.PARENT_REPO_PAT }}
         run: |
-          for _ in $(seq 1 75); do
-            dep=$(gh api "repos/${PARENT}/deployments?sha=${SITE_SHA}" -q '.[0].id // empty')
-            if [ -n "$dep" ]; then
-              status=$(gh api "repos/${PARENT}/deployments/${dep}/statuses" -q '.[0] // empty')
-              case "$(jq -r '.state // empty' <<<"$status")" in
-                success)
-                  echo "PREVIEW_URL=$(jq -r .environment_url <<<"$status")${PREVIEW_PATH}" >> "$GITHUB_ENV"
-                  exit 0 ;;
-                failure|error)
-                  echo "Vercel build failed: $(jq -r .target_url <<<"$status")"
-                  exit 1 ;;
-              esac
+          # The branch URL keeps serving the previous build until the new one is
+          # ready, so wait until it reports this PR head. A failed Vercel build
+          # never updates it and ends in the timeout below.
+          for _ in $(seq 1 60); do
+            live=$(curl -sf "${PREVIEW_HOST}/blog-preview.txt?t=$(date +%s)" || true)
+            if [ "$live" = "$HEAD_SHA" ]; then
+              echo "PREVIEW_URL=${PREVIEW_HOST}${PREVIEW_PATH}" >> "$GITHUB_ENV"
+              exit 0
             fi
-            sleep 20
+            sleep 15
           done
-          echo "Timed out waiting for Vercel deployment"
+          echo "Timed out waiting for ${PREVIEW_HOST} to serve ${HEAD_SHA}"
           exit 1
 
       - name: Report deployment status
