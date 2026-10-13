@@ -175,6 +175,41 @@ Full-duplex serving makes the conversation itself the unit of coordination. vLLM
 
 The work is developed in the open. Join the discussion in [vLLM-Omni](https://github.com/vllm-project/vllm-omni), try a session with your workload, and contribute model adapters, evaluation cases, or performance improvements.
 
+## References
+
+### Framework design and protocol
+
+- [Full-Duplex Serving Roadmap and PR Status — RFC #6494](https://github.com/vllm-project/vllm-omni/issues/6494): the roadmap and development history behind the duplex serving work.
+- [Design of Unified Full-duplex Framework — RFC #7181](https://github.com/vllm-project/vllm-omni/issues/7181): the motivation for separating communication, session coordination, and model execution.
+- [Full-duplex framework design](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/fullduplex.md): session ownership, command ordering, cancellation, and stage coordination in the implementation discussed here.
+- [Realtime and Duplex API guide](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/serving/realtime_duplex_api.md): endpoints, messages, model capabilities, playback feedback, and session recovery.
+
+### Model execution and evaluation
+
+- [PersonaPlex serving guide](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/examples/online_serving/personaplex/README.md) and [native-duplex design and load testing](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/fullduplex-personaplex.md): streaming execution, state lifetime, deployment, and measurement.
+- [MiniCPM-o 4.5 pipeline](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/minicpmo_4_5/pipeline.py) and [execution and performance design](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/minicpm_o45_mrv2_performance.md): model stages, retained state, and implementation-specific optimization.
+- [AURA integration — PR #7633](https://github.com/vllm-project/vllm-omni/pull/7633) and [AURA pipeline](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/aura_omni/pipeline.py): the ASR–Thinker–Talker–Code2Wav path and its duplex integration.
+- [Qwen3-Omni duplex adapter](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/qwen3_omni/duplex/plugin.py): turn-based execution and input/history preparation within a duplex session.
+- [OmniInteract implementation](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/benchmarks/omniinteract.py) and [Omni-DuplexEval integration guide](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/tests/e2e/accuracy/omni_duplex_eval/README.md): evaluation of streamed multimodal inputs and conversational behavior.
+
+### VAD and future integration
+
+These sources inform the discussion of endpointing and future integrations; they do not imply that all of these components are integrated into vLLM-Omni.
+
+- [Silero VAD](https://github.com/snakers4/silero-vad): acoustic speech-activity detection.
+- [Pipecat Smart Turn](https://github.com/pipecat-ai/smart-turn) and [LiveKit turn detection](https://docs.livekit.io/agents/logic/turns/turn-detector/): turn-completion detection and its combination with acoustic VAD.
+- [Gander](https://github.com/Omni-Interaction-Gander/Omni-Interaction-Agent) and [vLLM-Omni community roadmap #8264](https://github.com/vllm-project/vllm-omni/issues/8264): continuous multimodal interaction, asynchronous agent work, and proposed integration priorities.
+
+### Earlier presentations and performance engineering
+
+These materials provide project history and engineering context. Their performance results are not measurements of the duplex sessions described in this article.
+
+- [vLLM Office Hours #57 — vLLM-Omni Project Update & Demos](https://docs.google.com/presentation/d/1L84FWrGAI-fns6TaR0Q8R6I9CvbrWQvbVbGl_KtXhy8/edit): the September 2026 presentation, including the v0.28 duplex update on slide 19.
+- [Streaming Requests & Realtime API in vLLM](https://vllm-project.github.io/2026/01/31/streaming-realtime.html): incremental input processing and the Realtime transport foundation.
+- [Engineering TTS Inference in vLLM-Omni](https://vllm-project.github.io/2026/06/23/vllm-omni-tts.html): staged speech generation, batching, CUDA Graphs, and model-specific kernels.
+- [Experience and Lessons Learned from Serving Multi-Stage Qwen3-Omni in vLLM-Omni](https://vllm-project.github.io/2026/07/01/qwen3-omni-optimization.html): stage-level optimization methods and performance measurement.
+- [Announcing vLLM-Omni](https://vllm-project.github.io/2025/11/30/vllm-omni.html): the project's original multimodal and multi-stage serving architecture.
+
 <script>
 (function () {
   window.addEventListener('message', function (event) {
