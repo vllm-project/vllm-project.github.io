@@ -175,13 +175,6 @@ Full-duplex serving makes the conversation itself the unit of coordination. vLLM
 
 The work is developed in the open. Join the discussion in [vLLM-Omni](https://github.com/vllm-project/vllm-omni), try a session with your workload, and contribute model adapters, evaluation cases, or performance improvements.
 
-## Related reading
-
-- [Streaming Requests & Realtime API in vLLM](https://vllm-project.github.io/2026/01/31/streaming-realtime.html)
-- [Engineering TTS Inference in vLLM-Omni](https://vllm-project.github.io/2026/06/23/vllm-omni-tts.html)
-- [Experience and Lessons Learned from Serving Multi-Stage Qwen3-Omni in vLLM-Omni](https://vllm-project.github.io/2026/07/01/qwen3-omni-optimization.html)
-- [Announcing vLLM-Omni](https://vllm-project.github.io/2025/11/30/vllm-omni.html)
-
 <script>
 (function () {
   window.addEventListener('message', function (event) {
