@@ -47,9 +47,9 @@ The public duplex surface is **`/v1/realtime?duplex=1`**, with **`/v1/duplex`** 
 
 A live conversation has several activities in flight: input arrives, inference produces output, the client plays audio, and the user may interrupt or disconnect. The unified framework gives these activities a common session identity and explicit owners.
 
-![Unified duplex architecture showing the API Server, EngineClient, session runtime, bounded output buffer, and model stages.](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg)
+<iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/architecture.html" title="Inside a live duplex session: communication, session coordination, and model execution" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 960px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 1. Communication, session coordination, and model computation have separate responsibilities. Ordinary session output returns through a bounded per-session buffer.*
+*Figure 1. Step through the input and output paths, or click a component to explore its role. Ordinary session output returns through a bounded per-session buffer. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/architecture.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg).*
 
 | Component | Responsibility |
 |---|---|
@@ -70,9 +70,9 @@ The common output path is deliberately short: a session emits an event into its 
 
 The shared session runtime does not force every model into the same inference pipeline. These four paths illustrate both the differences in computation and the differences in conversation state.
 
-![Stage-level execution paths for PersonaPlex, MiniCPM-o 4.5, AURA, and Qwen3-Omni.](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg)
+<iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/models.html" title="Speech execution and state: compare PersonaPlex, MiniCPM-o 4.5, AURA, and Qwen3-Omni" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 2. Stage boundaries group work for execution and deployment. They do not correspond one-to-one with neural network modules or autoregressive loops.*
+*Figure 2. Switch models and step through their encoders, autoregressive modules, waveform decoders, and retained state. Brackets group modules into serving stages: neural modules and autoregressive loops do not map one-to-one to stages. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/models.html) or [compare all four models in the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg).*
 
 ### PersonaPlex: frame-by-frame speech interaction
 
@@ -183,3 +183,17 @@ The work is developed in the open. Join the discussion in [vLLM-Omni](https://gi
 - [Engineering TTS Inference in vLLM-Omni](https://vllm-project.github.io/2026/06/23/vllm-omni-tts.html)
 - [Experience and Lessons Learned from Serving Multi-Stage Qwen3-Omni in vLLM-Omni](https://vllm-project.github.io/2026/07/01/qwen3-omni-optimization.html)
 - [Announcing vLLM-Omni](https://vllm-project.github.io/2025/11/30/vllm-omni.html)
+
+<script>
+(function () {
+  window.addEventListener('message', function (event) {
+    var data = event.data;
+    if (event.origin !== window.location.origin || !data || data.type !== 'vllm-embed-resize' || !Number.isFinite(data.height)) return;
+    document.querySelectorAll('iframe.vllm-embed').forEach(function (frame) {
+      if (frame.contentWindow === event.source) {
+        frame.style.height = Math.max(400, Math.min(2400, Math.ceil(data.height))) + 'px';
+      }
+    });
+  });
+})();
+</script>

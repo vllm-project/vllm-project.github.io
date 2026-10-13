@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speech execution and state across four models | vLLM-Omni</title>
+<link rel="stylesheet" href="figure.css">
+</head>
+<body>
+<main>
+  <div class="kicker">vLLM-Omni · model execution and state</div>
+  <header class="head"><div><h1>From streaming input to PCM</h1><p class="sub">Explore neural modules, stage boundaries, and what carries into the next input.</p></div><a href="models.html" id="open-page" target="_blank" rel="noopener">Open separately ↗</a></header>
+  <div class="model-picker" role="group" aria-label="Choose a model">
+    <button type="button" data-model="personaplex" aria-pressed="true">PersonaPlex</button>
+    <button type="button" data-model="minicpm" aria-pressed="false">MiniCPM-o 4.5</button>
+    <button type="button" data-model="aura" aria-pressed="false">AURA</button>
+    <button type="button" data-model="qwen" aria-pressed="false">Qwen3-Omni</button>
+  </div>
+  <div class="model-heading"><h2 id="model-name"></h2><span id="mode" class="mode"></span></div>
+  <p id="model-summary" class="sub"></p>
+  <div class="scroll" tabindex="0" role="region" aria-label="Model pipeline; scroll horizontally on narrow screens"><svg id="pipeline" viewBox="0 0 800 408" role="group" aria-labelledby="model-title model-desc"></svg></div>
+  <p class="hint">Scroll the diagram horizontally on a narrow screen, or open it separately.</p>
+  <div id="player" aria-label="Model execution walkthrough"></div>
+  <div class="legend"><span></span>Gold marks the current step. Brackets group neural modules into execution stages.</div>
+  <p class="note">AR = autoregressive · ViT = Vision Transformer · RVQ = residual vector quantization · DiT = Diffusion Transformer · iSTFT = inverse short-time Fourier transform.</p>
+  <p class="note">Frame / chunk sizes describe input processing cadence, not end-to-end latency. Context and retained history are bounded. Stage boundaries do not imply a separate GPU for every module.</p>
+  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg" target="_blank" rel="noopener">All four models · static diagram</a><a id="source" target="_blank" rel="noopener">Model implementation ↗</a></p>
+  <noscript><p>Enable JavaScript to switch models and step through their modules.</p><img src="../../figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg" alt="Stage paths and retained state for PersonaPlex, MiniCPM-o 4.5, AURA, and Qwen3-Omni"></noscript>
+</main>
+<script src="player.js"></script>
+<script>
+"use strict";
+const models = {
+  personaplex: {
+    name: "PersonaPlex", mode: "Native duplex · 80 ms model frames",
+    summary: "Continuing input updates the active Stage 0 request. Temporal and codec state carry across frames.",
+    input: "24 kHz PCM audio → buffered into 80 ms model frames",
+    inputDetail: "The client sends PCM audio continuously. Buffering assembles model frames of 80 ms; client packets need not have that size. The model can keep listening while it speaks, without a client commit marking each turn.",
+    overview: "Two autoregressive loops share Stage 0: the Temporal Transformer advances across frames, while the Depformer predicts codebooks within a frame. Stage 1 decodes the resulting audio tokens. Two AR modules do not imply two serving stages.",
+    stages: [{name: "Stage 0 · Talker", first: 0, last: 2}, {name: "Stage 1 · Code2Wav", first: 3, last: 3}],
+    modules: [
+      {name: "Mimi encoder", type: ["ConvNet + Transformer", "RVQ"], output: "PCM → codec tokens", detail: "Mimi encodes the incoming waveform with convolutional and Transformer layers. Residual vector quantization converts its representation into codec tokens that participate in the streaming model computation."},
+      {name: "Temporal", type: ["AR Transformer", "Across frames"], output: "Temporal features", detail: "The Temporal Transformer advances along the conversation's frame timeline. Its retained KV context allows continuing user input to participate in ongoing listening and speaking, within the supported context window."},
+      {name: "Depformer", type: ["AR Transformer", "Across codebooks"], output: "Audio codec tokens", detail: "The Depformer autoregressively predicts codebooks within the current frame. It is tightly coupled to the Temporal Transformer in the same Talker stage. Its short-lived KV state resets for each frame; it is not a second conversation-history cache."},
+      {name: "Mimi decoder", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 1 reconstructs a waveform from the generated codebooks. Streaming codec state preserves the context required at frame boundaries, so decoding does not need to restart from the entire conversation prefix."}
+    ],
+    state: ["Across frames: Temporal KV + Mimi streaming state.", "Within each frame: Depformer KV is rebuilt; context remains bounded."],
+    stateDetail: "Conversation continuity comes from temporal model context and streaming codec state. These are distinct from the Depformer's per-frame state. In the current integration, explicit cancellation resets context and a disconnected client starts a new session.",
+    source: "vllm_omni/model_executor/models/personaplex/pipeline.py"
+  },
+  minicpm: {
+    name: "MiniCPM-o 4.5", mode: "Native duplex · typically ~1 s input chunks",
+    summary: "Audio and video update ongoing model computation. LISTEN stays in the listening path; SPEAK continues to speech generation.",
+    input: "PCM audio + video frames → accumulated into model input chunks",
+    inputDetail: "The runtime buffers PCM audio and associated video frames, typically into chunks around one second. Continuing input updates the active Stage 0 request. This chunk size is a processing granularity, not a response-latency guarantee.",
+    overview: "Stage 0 combines perception and LLM execution. Only SPEAK results continue to the Talker. Stage 2 combines a flow-matching model and a vocoder: generating a mel spectrogram and reconstructing PCM are separate computations within the same serving stage.",
+    stages: [{name: "Stage 0 · LLM", first: 0, last: 1}, {name: "Stage 1 · Talker", first: 2, last: 2}, {name: "Stage 2 · Code2Wav", first: 3, last: 4}],
+    modules: [
+      {name: "Audio / vision", type: ["Whisper Transformer", "SigLIP ViT"], output: "Audio / visual features", detail: "Whisper-based audio encoding and a SigLIP vision encoder turn the current audio and video chunks into model features. They run as part of Stage 0, together with the language model."},
+      {name: "LLM", type: ["AR Transformer", "LISTEN / SPEAK"], output: "Text + hidden features", detail: "The LLM uses retained context and new input to produce a LISTEN or SPEAK decision. LISTEN continues receiving input without forwarding that marker to speech synthesis. SPEAK passes text and hidden features to the Talker. This is model-driven behavior, not a Server VAD silence threshold."},
+      {name: "Talker", type: ["AR Transformer"], output: "Speech codec tokens", detail: "The Talker receives a SPEAK result and autoregressively produces speech codec tokens. It is a separate execution stage from the LLM and from waveform synthesis."},
+      {name: "Flow matching", type: ["DiT"], output: "Tokens → mel", detail: "The flow-matching model, implemented with a Diffusion Transformer, converts speech-token conditioning into a mel spectrogram. This computation is not another autoregressive language-model decode loop."},
+      {name: "HiFT vocoder", type: ["ConvNet + iSTFT"], output: "Mel → PCM", detail: "The HiFT vocoder converts the mel representation into PCM waveform samples using convolutional processing and inverse STFT. Flow matching and HiFT are grouped into Stage 2, Code2Wav."}
+    ],
+    state: ["Across chunks: LLM KV + audio-processing state carry forward.", "LISTEN keeps receiving; SPEAK advances to Talker and Code2Wav."],
+    stateDetail: "The native path reuses supported model and audio-processing state as new chunks arrive. This avoids rebuilding every conversational turn from scratch. The retained KV is bounded by the configured context; it is not unlimited conversation memory.",
+    source: "vllm_omni/model_executor/models/minicpmo_4_5/pipeline.py"
+  },
+  aura: {
+    name: "AURA", mode: "Turn-based execution inside a duplex session",
+    summary: "Each response starts a new request from current input and retained history. Audio becomes text before the Thinker.",
+    input: "PCM audio → ASR  ·  Video frames → Thinker directly",
+    inputDetail: "Audio enters the ASR stage. Video frames bypass ASR and enter the Thinker. The transport remains a live duplex session, but committing an input and requesting a model response can be separate operations.",
+    overview: "Four serving stages separate speech recognition, multimodal reasoning, speech-token generation, and waveform decoding. History is retained on the Thinker side as transcripts, video clips, and assistant text; every response is built as a new inference request.",
+    stages: [{name: "Stage 0 · ASR", first: 0, last: 0}, {name: "Stage 1 · Thinker", first: 1, last: 1}, {name: "Stage 2 · Talker", first: 2, last: 2}, {name: "Stage 3 · Code2Wav", first: 3, last: 3}],
+    modules: [
+      {name: "Qwen3-ASR", type: ["Audio Transformer", "+ AR LLM"], output: "PCM → transcript", detail: "Qwen3-ASR turns user audio into text. The Thinker's conversational history retains the resulting transcript, rather than treating the original audio as native continuing acoustic input."},
+      {name: "AURA Thinker", type: ["Qwen3-VL", "ViT + AR Transformer"], output: "Transcript + video → text", detail: "The Qwen3-VL-based Thinker consumes transcript text and video. Its stage retains ASR text, video clips, and assistant text, then combines that history with current input to prepare a new response request."},
+      {name: "Qwen3-TTS Talker", type: ["AR Transformer", "+ code predictor"], output: "Text → codec tokens", detail: "The Qwen3-TTS Talker generates speech codec tokens from the response text, using autoregressive generation and its code predictor. This is a separate stage from the visual-language Thinker."},
+      {name: "Code2Wav", type: ["12 Hz codec decoder", "Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "The 12 Hz speech codec decoder reconstructs PCM audio from the Talker's tokens. The 12 Hz rate describes the codec representation; it is not an end-to-end response-latency measurement."}
+    ],
+    state: ["Retained history: ASR transcripts + video clips + assistant text.", "Next response: construct a new request from current input and history."],
+    stateDetail: "AURA preserves conversational content and assembles it into subsequent requests. It does not append every incoming chunk to one continuously active native duplex computation. Prefix reuse, where applicable, is a separate optimization.",
+    source: "vllm_omni/model_executor/models/aura_omni/pipeline.py"
+  },
+  qwen: {
+    name: "Qwen3-Omni", mode: "Turn-based execution inside a duplex session",
+    summary: "Audio features enter the Thinker directly. New responses are prepared from retained multimodal history.",
+    input: "PCM audio + images / video frames → Thinker-side encoders",
+    inputDetail: "The live session can receive new microphone input during output playback. Server VAD can support turn completion and, when configured, cancellation. Model inference still starts each response as a new request; bidirectional transport does not make it native duplex execution.",
+    overview: "Audio and vision encoders share Stage 0 with the Thinker. Unlike AURA's ASR-first path, the AuT audio encoder produces features, not a transcript to feed a separate text-only path. The Talker and Code2Wav execute in Stages 1 and 2.",
+    stages: [{name: "Stage 0 · Thinker", first: 0, last: 1}, {name: "Stage 1 · Talker", first: 2, last: 2}, {name: "Stage 2 · Code2Wav", first: 3, last: 3}],
+    modules: [
+      {name: "AuT / vision", type: ["Conv2D + Transformer", "Vision: ViT"], output: "Audio / visual features", detail: "The AuT encoder transforms audio into features using convolutional downsampling and Transformer processing. A vision encoder handles images or frames. These encoders belong to the Thinker stage; AuT output is not an ASR transcript."},
+      {name: "Thinker", type: ["AR MoE Transformer"], output: "Text + hidden features", detail: "The multimodal Thinker processes current content together with retained conversation history. Its autoregressive execution produces response text and features used by speech generation. A response uses a newly prepared request, with prefill and decode as required."},
+      {name: "Talker", type: ["AR MoE Transformer", "+ code predictor"], output: "Speech codec tokens", detail: "The Talker uses the Thinker's outputs to produce audio codec tokens. Its autoregressive model and code predictor are grouped in Stage 1, independently of the Stage 0 input encoders."},
+      {name: "Code2Wav", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 2 decodes the generated speech codec tokens into PCM waveform samples. Streaming delivery can overlap stage work, but does not change the model's turn-based request construction."}
+    ],
+    state: ["Retained history: user audio / images + conversation text.", "Next response: rebuild a multimodal request from that history."],
+    stateDetail: "The adapter retains multimodal conversation content, including audio and images, for subsequent requests. This differs from AURA's transcript-first history and from a native duplex model's continuing computation state.",
+    source: "vllm_omni/model_executor/models/qwen3_omni/duplex/plugin.py"
+  }
+};
+
+const svg = document.querySelector("#pipeline");
+const ns = "http://www.w3.org/2000/svg";
+let player;
+function element(tag, attributes, parent = svg, value) {
+  const node = document.createElementNS(ns, tag);
+  Object.entries(attributes).forEach(([key, val]) => node.setAttribute(key, val));
+  if (value !== undefined) node.textContent = value;
+  parent.appendChild(node);
+  return node;
+}
+function text(x, y, value, cls, parent = svg, anchor = "start") {
+  return element("text", {x, y, class: cls || "", "text-anchor": anchor}, parent, value);
+}
+function selectModel(key) {
+  if (player) player.dispose();
+  const model = models[key];
+  document.querySelectorAll("[data-model]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.model === key)));
+  document.querySelector("#model-name").textContent = model.name;
+  document.querySelector("#mode").textContent = model.mode;
+  document.querySelector("#model-summary").textContent = model.summary;
+  document.querySelector("#source").href = "https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/" + model.source;
+  document.querySelector("#open-page").href = "models.html?model=" + key;
+  svg.replaceChildren();
+  element("title", {id: "model-title"}, svg, model.name + " execution and state");
+  element("desc", {id: "model-desc"}, svg, model.overview + " Click a module to learn its structure and state behavior.");
+  const defs = element("defs", {});
+  const marker = element("marker", {id: "arrow", markerWidth: 7, markerHeight: 7, refX: 6, refY: 3.5, orient: "auto"}, defs);
+  element("path", {d: "M0 0L7 3.5L0 7Z", fill: "context-stroke"}, marker);
+  const input = element("g", {class: "node", id: "input", "data-step": 0, "aria-label": model.input});
+  element("rect", {x: 18, y: 14, width: 764, height: 42, rx: 3}, input);
+  text(31, 40, model.input, "", input);
+  const gap = 22, width = (764 - gap * (model.modules.length - 1)) / model.modules.length;
+  const x = index => 18 + index * (width + gap);
+  element("path", {d: `M${x(0) + width / 2} 56V113`, class: "edge", id: "input-edge", "marker-end": "url(#arrow)"});
+  if (key === "aura") {
+    element("path", {d: `M680 56V90H${x(1) + width / 2}V113`, class: "edge", id: "video-edge", "marker-end": "url(#arrow)"});
+    text(448, 81, "Video bypasses ASR", "meta");
+  }
+  if (key === "minicpm") {
+    element("path", {d: `M${x(1) + width / 2} 114V81H32V57`, class: "edge", id: "listen-edge", "stroke-dasharray": "4 3", "marker-end": "url(#arrow)"});
+    text(112, 73, "LISTEN → keep listening", "meta");
+    text(x(2), 98, "SPEAK →", "meta");
+  }
+  model.modules.forEach((module, index) => {
+    const group = element("g", {class: "node", id: "module-" + index, "data-step": index + 1, "aria-label": module.name + ": " + module.type.join(", ")});
+    element("rect", {x: x(index), y: 114, width, height: 144, rx: 3}, group);
+    text(x(index) + width / 2, 142, module.name, "label", group, "middle");
+    module.type.forEach((line, j) => text(x(index) + width / 2, 172 + j * 20, line, "small", group, "middle"));
+    text(x(index) + width / 2, 235, module.output, "small", group, "middle");
+    if (index > 0) element("path", {d: `M${x(index) - gap} 186H${x(index) - 2}`, class: "edge", id: "edge-" + index, "marker-end": "url(#arrow)"});
+  });
+  model.stages.forEach(stage => {
+    const left = x(stage.first), right = x(stage.last) + width, center = (left + right) / 2;
+    element("path", {d: `M${left} 272v6q0 5 5 5H${center - 8}l8 7 8 -7H${right - 5}q5 0 5 -5v-6`, class: "bracket"});
+    text(center, 308, stage.name, "meta", svg, "middle");
+  });
+  const state = element("g", {class: "node", id: "state", "data-step": model.modules.length + 1, "aria-label": "Retained state and the next input"});
+  element("rect", {x: 18, y: 330, width: 764, height: 60, rx: 3}, state);
+  model.state.forEach((line, index) => text(32, 354 + index * 23, line, index === 0 ? "meta" : "", state));
+  const steps = [{label: "Input", title: "Streaming input", text: model.inputDetail, nodes: ["input"], edges: ["input-edge", "video-edge"]},
+    ...model.modules.map((module, index) => ({label: module.name, title: module.name + " · " + model.stages.find(s => index >= s.first && index <= s.last).name,
+      text: module.detail, nodes: ["module-" + index], edges: [index === 0 ? "input-edge" : "edge-" + index, ...(key === "minicpm" && index === 1 ? ["listen-edge"] : []), ...(key === "aura" && index === 1 ? ["video-edge"] : [])]})),
+    {label: "State", title: model.mode.startsWith("Native") ? "Continue with retained computation state" : "Build the next response from retained history", text: model.stateDetail, nodes: ["state"], edges: []}];
+  player = createDuplexPlayer({steps, overview: {title: model.name + " · the complete path", text: model.overview, nodes: [], edges: []},
+    render(step) { highlightDiagram(svg, step); }
+  });
+  bindDiagramSteps(svg, player);
+}
+document.querySelectorAll("[data-model]").forEach(button => button.onclick = () => selectModel(button.dataset.model));
+const requested = new URLSearchParams(location.search).get("model");
+selectModel(Object.hasOwn(models, requested) ? requested : "personaplex");
+</script>
+</body>
+</html>
