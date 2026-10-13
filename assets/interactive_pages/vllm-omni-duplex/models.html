@@ -18,12 +18,11 @@
   </div>
   <div class="model-heading"><h2 id="model-name"></h2><span id="mode" class="mode"></span></div>
   <p id="model-summary" class="sub"></p>
-  <div class="scroll" tabindex="0" role="region" aria-label="Model pipeline; scroll horizontally on narrow screens"><svg id="pipeline" viewBox="0 0 800 408" role="group" aria-labelledby="model-title model-desc"></svg></div>
+  <div class="scroll" tabindex="0" role="region" aria-label="Model pipeline; scroll horizontally on narrow screens"><svg id="pipeline" viewBox="0 0 800 480" role="group" aria-labelledby="model-title model-desc"></svg></div>
   <p class="hint">Scroll the diagram horizontally on a narrow screen, or open it separately.</p>
   <div id="player" aria-label="Model execution walkthrough"></div>
   <div class="legend"><span></span>Gold marks the current step. Brackets group neural modules into execution stages.</div>
   <p class="note">AR = autoregressive · ViT = Vision Transformer · RVQ = residual vector quantization · DiT = Diffusion Transformer · iSTFT = inverse short-time Fourier transform.</p>
-  <p class="note">Frame / chunk sizes describe input processing cadence, not end-to-end latency. Context and retained history are bounded. Stage boundaries do not imply a separate GPU for every module.</p>
   <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg" target="_blank" rel="noopener">All four models · static diagram</a><a id="source" target="_blank" rel="noopener">Model implementation ↗</a></p>
   <noscript><p>Enable JavaScript to switch models and step through their modules.</p><img src="../../figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg" alt="Stage paths and retained state for PersonaPlex, MiniCPM-o 4.5, AURA, and Qwen3-Omni"></noscript>
 </main>
@@ -34,9 +33,9 @@ const models = {
   personaplex: {
     name: "PersonaPlex", mode: "Native duplex · 80 ms model frames",
     summary: "Continuing input updates the active Stage 0 request. Temporal and codec state carry across frames.",
-    input: "24 kHz PCM audio → buffered into 80 ms model frames",
-    inputDetail: "The client sends PCM audio continuously. Buffering assembles model frames of 80 ms; client packets need not have that size. The model can keep listening while it speaks, without a client commit marking each turn.",
-    overview: "Two autoregressive loops share Stage 0: the Temporal Transformer advances across frames, while the Depformer predicts codebooks within a frame. Stage 1 decodes the resulting audio tokens. Two AR modules do not imply two serving stages.",
+    input: "24 kHz pcm_f32le audio → buffered into 80 ms frames",
+    inputDetail: "The client sends 24 kHz pcm_f32le audio continuously and receives 24 kHz pcm16 audio. Buffering assembles model frames of 80 ms; client packets need not have that size. The model can keep listening while it speaks, without a client commit marking each turn.",
+    overview: "Two autoregressive loops share Stage 0: the Temporal Transformer advances across frames, while the Depformer predicts codebooks within a frame. Stage 1 decodes the resulting audio tokens.",
     stages: [{name: "Stage 0 · Talker", first: 0, last: 2}, {name: "Stage 1 · Code2Wav", first: 3, last: 3}],
     modules: [
       {name: "Mimi encoder", type: ["ConvNet + Transformer", "RVQ"], output: "PCM → codec tokens", detail: "Mimi encodes the incoming waveform with convolutional and Transformer layers. Residual vector quantization converts its representation into codec tokens that participate in the streaming model computation."},
@@ -77,7 +76,7 @@ const models = {
       {name: "Qwen3-ASR", type: ["Audio Transformer", "+ AR LLM"], output: "PCM → transcript", detail: "Qwen3-ASR turns user audio into text. The Thinker's conversational history retains the resulting transcript, rather than treating the original audio as native continuing acoustic input."},
       {name: "AURA Thinker", type: ["Qwen3-VL", "ViT + AR Transformer"], output: "Transcript + video → text", detail: "The Qwen3-VL-based Thinker consumes transcript text and video. Its stage retains ASR text, video clips, and assistant text, then combines that history with current input to prepare a new response request."},
       {name: "Qwen3-TTS Talker", type: ["AR Transformer", "+ code predictor"], output: "Text → codec tokens", detail: "The Qwen3-TTS Talker generates speech codec tokens from the response text, using autoregressive generation and its code predictor. This is a separate stage from the visual-language Thinker."},
-      {name: "Code2Wav", type: ["12 Hz codec decoder", "Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "The 12 Hz speech codec decoder reconstructs PCM audio from the Talker's tokens. The 12 Hz rate describes the codec representation; it is not an end-to-end response-latency measurement."}
+      {name: "Code2Wav", type: ["12 Hz codec decoder", "Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "The 12 Hz speech codec decoder reconstructs PCM audio from the Talker's tokens."}
     ],
     state: ["Retained history: ASR transcripts + video clips + assistant text.", "Next response: construct a new request from current input and history."],
     stateDetail: "AURA preserves conversational content and assembles it into subsequent requests. It does not append every incoming chunk to one continuously active native duplex computation. Prefix reuse, where applicable, is a separate optimization.",
@@ -115,6 +114,21 @@ function element(tag, attributes, parent = svg, value) {
 function text(x, y, value, cls, parent = svg, anchor = "start") {
   return element("text", {x, y, class: cls || "", "text-anchor": anchor}, parent, value);
 }
+function wrappedText(x, y, value, width, lineHeight, cls, parent) {
+  const label = text(x, y, "", cls, parent, "middle");
+  let line = element("tspan", {x, y}, label), words = [];
+  for (const word of value.split(" ")) {
+    const candidate = [...words, word];
+    line.textContent = candidate.join(" ");
+    if (words.length && line.getComputedTextLength() > width) {
+      line.textContent = words.join(" ");
+      y += lineHeight;
+      line = element("tspan", {x, y}, label, word);
+      words = [word];
+    } else words = candidate;
+  }
+  return y + lineHeight;
+}
 function selectModel(key) {
   if (player) player.dispose();
   const model = models[key];
@@ -147,20 +161,22 @@ function selectModel(key) {
   }
   model.modules.forEach((module, index) => {
     const group = element("g", {class: "node", id: "module-" + index, "data-step": index + 1, "aria-label": module.name + ": " + module.type.join(", ")});
-    element("rect", {x: x(index), y: 114, width, height: 144, rx: 3}, group);
-    text(x(index) + width / 2, 142, module.name, "label", group, "middle");
-    module.type.forEach((line, j) => text(x(index) + width / 2, 172 + j * 20, line, "small", group, "middle"));
-    text(x(index) + width / 2, 235, module.output, "small", group, "middle");
-    if (index > 0) element("path", {d: `M${x(index) - gap} 186H${x(index) - 2}`, class: "edge", id: "edge-" + index, "marker-end": "url(#arrow)"});
+    element("rect", {x: x(index), y: 114, width, height: 190, rx: 3}, group);
+    const center = x(index) + width / 2;
+    wrappedText(center, 143, module.name, width - 20, 22, "label", group);
+    let nextLine = 194;
+    module.type.forEach(line => { nextLine = wrappedText(center, nextLine, line, width - 20, 20, "small", group); });
+    wrappedText(center, 268, module.output, width - 20, 20, "small", group);
+    if (index > 0) element("path", {d: `M${x(index) - gap} 209H${x(index) - 2}`, class: "edge", id: "edge-" + index, "marker-end": "url(#arrow)"});
   });
   model.stages.forEach(stage => {
     const left = x(stage.first), right = x(stage.last) + width, center = (left + right) / 2;
-    element("path", {d: `M${left} 272v6q0 5 5 5H${center - 8}l8 7 8 -7H${right - 5}q5 0 5 -5v-6`, class: "bracket"});
-    text(center, 308, stage.name, "meta", svg, "middle");
+    element("path", {d: `M${left} 320v6q0 5 5 5H${center - 8}l8 7 8 -7H${right - 5}q5 0 5 -5v-6`, class: "bracket"});
+    stage.name.split(" · ").forEach((line, index) => text(center, 357 + index * 20, line, "meta", svg, "middle"));
   });
   const state = element("g", {class: "node", id: "state", "data-step": model.modules.length + 1, "aria-label": "Retained state and the next input"});
-  element("rect", {x: 18, y: 330, width: 764, height: 60, rx: 3}, state);
-  model.state.forEach((line, index) => text(32, 354 + index * 23, line, index === 0 ? "meta" : "", state));
+  element("rect", {x: 18, y: 400, width: 764, height: 60, rx: 3}, state);
+  model.state.forEach((line, index) => text(32, 424 + index * 23, line, index === 0 ? "meta" : "", state));
   const steps = [{label: "Input", title: "Streaming input", text: model.inputDetail, nodes: ["input"], edges: ["input-edge", "video-edge"]},
     ...model.modules.map((module, index) => ({label: module.name, title: module.name + " · " + model.stages.find(s => index >= s.first && index <= s.last).name,
       text: module.detail, nodes: ["module-" + index], edges: [index === 0 ? "input-edge" : "edge-" + index, ...(key === "minicpm" && index === 1 ? ["listen-edge"] : []), ...(key === "aura" && index === 1 ? ["video-edge"] : [])]})),

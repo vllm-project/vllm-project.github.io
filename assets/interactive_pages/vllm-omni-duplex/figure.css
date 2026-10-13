@@ -31,11 +31,11 @@ button[aria-pressed="true"] { color: var(--bg); background: var(--ink); border-c
 .model-heading h2 { font-size: 20px; margin: 0; }
 .mode { color: var(--blue); font-size: 13px; font-weight: 600; }
 .scroll { overflow-x: auto; overscroll-behavior-x: contain; margin: 12px 0; border: 1px solid var(--rule); }
-svg { width: 100%; min-width: 740px; height: auto; display: block; }
-svg text { font-family: inherit; fill: var(--ink); font-size: 14px; }
-svg .label { font-weight: 650; font-size: 16px; }
-svg .small { font-size: 12px; fill: var(--muted); }
-svg .meta { font-size: 12px; fill: var(--blue); font-weight: 600; }
+svg { width: 100%; min-width: 700px; height: auto; display: block; }
+svg text { font-family: inherit; fill: var(--ink); font-size: 16px; }
+svg .label { font-weight: 650; font-size: 18px; }
+svg .small { font-size: 14px; fill: var(--muted); }
+svg .meta { font-size: 14px; fill: var(--blue); font-weight: 600; }
 svg .boundary { fill: none; stroke: var(--rule); stroke-width: 1.5; }
 svg .node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.25; }
 svg .node { cursor: pointer; }
@@ -45,7 +45,7 @@ svg .node:hover rect, svg .node:focus-visible rect { stroke: var(--blue); stroke
 svg .node:focus-visible { outline: none; }
 svg .edge { stroke: var(--line); stroke-width: 1.5; fill: none; }
 svg .edge.active { stroke: var(--gold); stroke-width: 2.5; }
-svg .edge-label { fill: var(--muted); font-size: 12px; }
+svg .edge-label { fill: var(--muted); font-size: 14px; }
 svg .bracket { stroke: var(--blue); stroke-width: 1.5; fill: none; }
 svg .tag { fill: var(--bg); }
 .hint { display: none; margin-top: -4px; }
@@ -53,7 +53,7 @@ svg .tag { fill: var(--bg); }
 .controls button { font-size: 13px; min-height: 36px; }
 .count { margin-left: auto; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .steps { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
-.steps button { font-size: 12px; padding: 6px 9px; }
+.steps button { font-size: 13px; min-height: 36px; padding: 6px 9px; }
 .steps button[aria-pressed="true"] { color: var(--gold); background: var(--gold-bg); border-color: var(--gold); }
 .explain { border-left: 3px solid var(--gold); background: var(--surface); padding: 12px 16px; min-height: 115px; }
 .explain h2 { font-size: 16px; margin: 0 0 5px; }
@@ -63,6 +63,7 @@ svg .tag { fill: var(--bg); }
 .legend { margin-top: 9px; font-size: 12px; color: var(--muted); }
 .legend span { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--gold); background: var(--gold-bg); vertical-align: -1px; margin-right: 5px; }
 noscript img { max-width: 100%; }
-@media (max-width: 780px) { .hint { display: block; } .head { flex-wrap: wrap; gap: 6px; } }
+@media (max-width: 780px) { .head { flex-wrap: wrap; gap: 6px; } }
+@media (max-width: 725px) { .hint { display: block; } }
 @media (max-width: 480px) { body { padding: 8px; } h1 { font-size: 21px; } .count { width: 100%; margin: 4px 0 0; } .explain { min-height: 160px; } }
 @media print { .controls, .steps, .model-picker, .hint, .head > a { display: none; } .scroll { overflow: visible; } svg { min-width: 0; } }

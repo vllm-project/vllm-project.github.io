@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Interfaces, interaction modes and model execution | vLLM-Omni</title>
 <link rel="stylesheet" href="figure.css">
-<style>.taxonomy svg text { font-size: 16px; } .taxonomy svg .label { font-size: 19px; } .taxonomy svg .small, .taxonomy svg .meta { font-size: 14px; }</style>
+<style>.taxonomy svg text { font-size: 19px; } .taxonomy svg .label { font-size: 22px; } .taxonomy svg .small, .taxonomy svg .meta { font-size: 18px; }</style>
 </head>
 <body>
 <main class="taxonomy">
@@ -39,7 +39,7 @@
       <rect x="396" y="257" width="270" height="118" rx="4"/><text x="531" y="287" class="label" text-anchor="middle">Native duplex execution</text><text x="531" y="320" text-anchor="middle">Continuing input updates</text><text x="531" y="345" text-anchor="middle">ongoing model computation.</text>
     </g>
     <g id="turn" class="node" data-path="turn" role="button" tabindex="0" aria-label="Turn-based execution within a duplex session">
-      <rect x="706" y="257" width="270" height="118" rx="4"/><text x="841" y="287" class="label" text-anchor="middle">Turn-based execution</text><text x="841" y="320" text-anchor="middle">Each response: a new request</text><text x="841" y="345" text-anchor="middle">from current input and history.</text>
+      <rect x="706" y="257" width="270" height="118" rx="4"/><text x="841" y="287" class="label" text-anchor="middle">Turn-based execution</text><text x="841" y="320" text-anchor="middle">A new request per response</text><text x="841" y="345" text-anchor="middle">Current input + history</text>
     </g>
     <g id="chat-models" class="node" data-path="chat" role="button" tabindex="0" aria-label="Request-response examples: Qwen3-Omni and MiniCPM-o 4.5 in turn mode">
       <rect x="142" y="415" width="224" height="117" rx="4"/><text x="254" y="446" class="label" text-anchor="middle">Qwen3-Omni</text><text x="254" y="474" class="label" text-anchor="middle">MiniCPM-o 4.5</text><text x="254" y="501" class="small" text-anchor="middle">(turn mode)</text>
@@ -56,7 +56,7 @@
       <path id="native-a" class="edge" d="M686 195V226H531V255"/><path id="turn-a" class="edge" d="M686 195V226H841V255"/>
       <path id="native-b" class="edge" d="M531 375V413"/><path id="turn-b" class="edge" d="M841 375V413"/>
     </g>
-    <text x="142" y="554" class="small">Model names identify example serving profiles, not an exhaustive list of supported interfaces.</text>
+    <text x="142" y="554" class="small">Examples show serving profiles; a model may support more than one interface.</text>
   </svg>
   </div>
   <p class="hint">Scroll the diagram horizontally on a narrow screen, or open it separately.</p>

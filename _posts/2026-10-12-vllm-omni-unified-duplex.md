@@ -18,12 +18,16 @@ This is the serving problem behind full-duplex interaction. The input does not e
 
 vLLM-Omni's unified duplex framework brings these interactions into a common session runtime. It serves native duplex models such as **PersonaPlex** and **MiniCPM-o 4.5**, as well as models such as **AURA** and **Qwen3-Omni** that execute one turn at a time within an ongoing duplex session. The framework shares connection handling, session control, and stage execution while preserving the behavior each model actually supports.
 
+*This post covers vLLM-Omni as of [October 12, 2026](https://github.com/vllm-project/vllm-omni/tree/c10115052ef691e4d0270f1ddf5bce5bc4d140f8).*
+
 ## TL;DR
 
 - **One session framework, different execution modes.** Native duplex models incorporate continuing input into live model execution. Turn-based models start each response with a new request built from the current turn and retained history.
 - **Clear ownership from connection to computation.** The API Server handles communication; EngineClient connects applications to session handles; the Duplex Orchestrator coordinates session state and work; model stages perform inference.
 - **Model behavior stays model-specific.** Plugins adapt input preparation, capabilities, and output interpretation. Model-driven speech, local playback stop, and server cancellation remain distinct operations.
 - **Optimization targets the entire audio path.** Batching ready sessions, reusing execution graphs, reducing repeated codec work, and streaming stage outputs all matter. Evaluation must also measure audio continuity and interaction quality.
+
+**In this post:** [Interaction modes](#from-streaming-replies-to-continuous-interaction) · [Architecture](#a-session-runtime-with-clear-responsibilities) · [Model paths](#four-model-paths-and-what-they-retain) · [Optimization and metrics](#optimizing-the-live-audio-path) · [Quickstart](#try-a-native-duplex-session) · [Next steps](#next-steps-for-the-framework)
 
 ## From streaming replies to continuous interaction
 
@@ -35,7 +39,7 @@ The interface, interaction mode, and model execution describe different layers:
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/interfaces.html" title="Interfaces, interaction modes and model execution: request-response and duplex session paths" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 1. Follow an interface through its interaction and execution modes, then see example model profiles. Select a branch to highlight its path. A duplex session supports both native duplex and turn-based execution. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/interfaces.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg).*
+*Figure 1. Follow an interface through its interaction and execution modes, then see example model profiles. Select a branch to highlight its path. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/interfaces.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg).*
 
 A bidirectional connection is therefore useful for both execution modes. Qwen3-Omni with Server VAD can receive microphone audio during playback, stop a response, and start another after a new turn is committed. That provides an interruptible voice experience, while its model execution remains turn-based. PersonaPlex and MiniCPM-o 4.5 additionally support model-native processing of continuing input.
 
@@ -45,9 +49,11 @@ The public duplex surface is **`/v1/realtime?duplex=1`**, with **`/v1/duplex`** 
 
 A live conversation has several activities in flight: input arrives, inference produces output, the client plays audio, and the user may interrupt or disconnect. The unified framework gives these activities a common session identity and explicit owners.
 
+Consider the opening example with MiniCPM: new camera frames and “Actually, I meant this one” arrive while the assistant is speaking. The API forwards that input, the runtime orders it alongside stage outputs, and the model processes it with retained context. Its next output can adapt the explanation or yield the floor. Follow that path in the diagram below.
+
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/architecture.html" title="Inside a live duplex session: communication, session coordination, and model execution" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 960px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 2. Step through the input and output paths, or click a component to explore its role. Ordinary session output returns through a bounded per-session buffer. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/architecture.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg).*
+*Figure 2. Step through the input and output paths, or click a component to explore its role. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/architecture.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg).*
 
 | Component | Responsibility |
 |---|---|
@@ -62,7 +68,7 @@ The **model plugin** supplies the model-specific rules: which capabilities are a
 
 These responsibilities also clarify the process boundary. In the local serving arrangement, the API side and the orchestrator run in the same frontend process, with the orchestrator on its own thread and event loop. Stage engines and GPU workers perform model computation in their execution processes. A logical box in the architecture is not automatically a separate process or GPU.
 
-The common output path is deliberately short: a session emits an event into its bounded output buffer, its handle consumes the event, and the API sends it to the client. This avoids routing every audio chunk through a global event queue. Per-session output limits bound the audio backlog. If a slow consumer fills that buffer, the response fails with a backpressure error. The [framework design](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/fullduplex.md) describes the lifecycle and ordering rules behind this separation.
+The common output path is deliberately short: a session emits an event into its bounded output buffer, its handle consumes the event, and the API sends it to the client. This avoids routing every audio chunk through a global event queue. Per-session output limits bound the audio backlog. If a slow consumer exceeds the per-session output limit, the runtime fails the affected response and closes that session. The client must open a new session to continue. The [framework design](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/fullduplex.md) describes the lifecycle and ordering rules behind this separation.
 
 ## Four model paths and what they retain
 
@@ -70,7 +76,7 @@ The shared session runtime does not force every model into the same inference pi
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/models.html" title="Speech execution and state: compare PersonaPlex, MiniCPM-o 4.5, AURA, and Qwen3-Omni" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 3. Switch models and step through their encoders, autoregressive modules, waveform decoders, and retained state. Brackets group modules into serving stages: neural modules and autoregressive loops do not map one-to-one to stages. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/models.html) or [compare all four models in the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg).*
+*Figure 3. Switch models and step through their encoders, autoregressive modules, waveform decoders, and retained state. Brackets group neural modules into serving stages. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/models.html) or [compare all four models in the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg).*
 
 ### PersonaPlex: frame-by-frame speech interaction
 
@@ -92,7 +98,7 @@ AURA follows a four-stage path: **ASR → Thinker → Talker → Code2Wav**. ASR
 
 Qwen3-Omni instead feeds audio features from its AuT encoder and visual features into the Thinker, followed by Talker and Code2Wav. Its duplex adapter retains multimodal conversation content and prepares subsequent requests from that history.
 
-Both maintain a live session. Each response starts a new inference request built from the current turn and retained history. Committing input and requesting a response can be separate operations. This differs from appending input to a native duplex model's continuing computation. Prefix reuse, when applicable, is a separate optimization and does not change that distinction. The implementations are described by the [AURA pipeline](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/aura_omni/pipeline.py) and [Qwen3-Omni duplex adapter](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/qwen3_omni/duplex/plugin.py).
+Both maintain a live session. Each response starts a new inference request built from the current turn and retained history. Committing input and requesting a response can be separate operations. The implementations are described by the [AURA pipeline](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/aura_omni/pipeline.py) and [Qwen3-Omni duplex adapter](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/qwen3_omni/duplex/plugin.py).
 
 ## Model decisions, playback stop, and server cancellation
 
@@ -159,7 +165,7 @@ python -m vllm_omni.entrypoints.cli.main serve \
   --deploy-config vllm_omni/deploy/personaplex.yaml
 ```
 
-The shipped profile enables duplex serving. Connect through `ws://127.0.0.1:8000/v1/realtime?duplex=1`, select a bundled voice and persona, and continuously stream audio. The Python client preset prepares the expected 24 kHz PCM session configuration; the model supplies the speech behavior without client commits. Follow the [PersonaPlex quickstart](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/examples/online_serving/personaplex/README.md) for the client code and validation command.
+The shipped profile enables duplex serving. Connect through `ws://127.0.0.1:8000/v1/realtime?duplex=1`, select a bundled voice and persona, and continuously stream audio. The Python client preset configures **24 kHz `pcm_f32le` input** (32-bit little-endian floating-point samples) and **24 kHz `pcm16` output**. Send audio in the configured input format; the model supplies the speech behavior without client commits. Follow the [PersonaPlex quickstart](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/examples/online_serving/personaplex/README.md) for the client code and validation command.
 
 ## Next steps for the framework
 
