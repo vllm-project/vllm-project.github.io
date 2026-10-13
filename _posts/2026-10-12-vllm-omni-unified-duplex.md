@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Full-Duplex Conversations with vLLM-Omni"
-author: "natureofnature"
+author: "natureofnature, Sy0307, amy-why-3459, chickeyton"
 summary: "How vLLM-Omni serves live voice and video conversations with a unified duplex session runtime, model-specific execution, streaming audio optimizations, and interaction-aware evaluation."
 image: /assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg
 social_image: /assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg
