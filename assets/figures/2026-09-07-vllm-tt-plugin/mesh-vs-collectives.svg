@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 780" width="960" height="780" role="img" aria-labelledby="f1t f1d">
+<title id="f1t">Host-issued collectives versus a compiled mesh program</title>
+<desc id="f1d">Top: a host issues all-reduce and all-gather collectives to four GPUs on every layer. Bottom: a Tenstorrent Galaxy of 32 chips is one compiled and traced mesh program; the fabric moves data between chips inside the program, and the host only submits and reads once per step.</desc>
+
+  <style>
+    .bg-panel  { fill: #f6f6fb; stroke: #d9d9e8; }
+    .bg-box    { fill: #ffffff; stroke: #c3c3d6; }
+    .idle      { fill: #eeeef4; stroke: #b6b6c8; }
+    .t         { fill: #16162a; font-family: ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+    .t-mut     { fill: #5c5c78; font-family: ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+    .ln        { stroke: #9a9ab4; fill: none; }
+    .ln-div    { stroke: #d2d2e2; fill: none; }
+    .acc-s     { stroke: #6C5CE7; fill: none; }
+    .acc-f     { fill: #6C5CE7; }
+    .acc-soft  { fill: #ece9fd; stroke: #6C5CE7; }
+    .acc-mid   { fill: #d8d2fb; stroke: #6C5CE7; }
+    .fab       { stroke: #6C5CE7; opacity: 0.8; fill: none; }
+    .acc2-s    { stroke: #0E8A7D; fill: none; }
+    .acc2-f    { fill: #0E8A7D; }
+    .acc2-soft { fill: #e2f4f1; stroke: #0E8A7D; }
+    .acc2-mid  { fill: #c6e9e3; stroke: #0E8A7D; }
+    .warn-f    { fill: #C2410C; }
+    .warn-s    { stroke: #C2410C; fill: none; }
+    .warn-soft { fill: #fdeee4; stroke: #C2410C; }
+    .ah        { fill: #9a9ab4; }
+    .ah-acc    { fill: #6C5CE7; }
+    .ah-acc2   { fill: #0E8A7D; }
+    .ah-warn   { fill: #C2410C; }
+    @media (prefers-color-scheme: dark) {
+      .bg-panel  { fill: #1b1b2b; stroke: #34344a; }
+      .bg-box    { fill: #23233a; stroke: #45455e; }
+      .idle      { fill: #26263a; stroke: #4b4b62; }
+      .t         { fill: #e9e9f2; }
+      .t-mut     { fill: #a2a2bd; }
+      .ln        { stroke: #6a6a86; }
+      .ln-div    { stroke: #3a3a52; }
+      .acc-s     { stroke: #A29BFE; }
+      .acc-f     { fill: #A29BFE; }
+      .acc-soft  { fill: #2e2b52; stroke: #A29BFE; }
+      .acc-mid   { fill: #423a78; stroke: #A29BFE; }
+      .fab       { stroke: #A29BFE; opacity: 1; }
+      .acc2-s    { stroke: #4ECDC4; }
+      .acc2-f    { fill: #4ECDC4; }
+      .acc2-soft { fill: #1d3a3a; stroke: #4ECDC4; }
+      .acc2-mid  { fill: #27514e; stroke: #4ECDC4; }
+      .warn-f    { fill: #FB923C; }
+      .warn-s    { stroke: #FB923C; }
+      .warn-soft { fill: #3a2a1c; stroke: #FB923C; }
+      .ah        { fill: #6a6a86; }
+      .ah-acc    { fill: #A29BFE; }
+      .ah-acc2   { fill: #4ECDC4; }
+      .ah-warn   { fill: #FB923C; }
+    }
+  </style>
+
+<text x="20" y="30" class="t" font-size="17" text-anchor="start" font-weight="700">Where does cross-chip parallelism live?</text>
+<rect x="16" y="44" width="928" height="320" rx="10" class="bg-panel" stroke-width="1.25"/>
+<rect x="404.04" y="58" width="151.92" height="19" rx="9.5" class="bg-box" stroke-width="1.1"/><text x="480" y="71.82" class="t-mut" font-size="12" text-anchor="middle" font-weight="600">A GPU-shaped stack</text>
+<rect x="370" y="92" width="220" height="42" rx="6" class="bg-box" stroke-width="1.25"/>
+<text x="480" y="120" class="t" font-size="14" text-anchor="middle" font-weight="600">Host / framework</text>
+<line x1="480" y1="134" x2="480" y2="166" class="warn-s" stroke-width="1.6"/><path d="M475.8,166 L484.2,166 L480,172 Z" class="ah-warn"/>
+<text x="492" y="152" class="warn-f" font-size="13" text-anchor="start" font-weight="600">issues collectives on every layer</text>
+<rect x="158.0" y="176" width="140" height="70" rx="6" class="bg-box" stroke-width="1.25"/>
+<text x="228.0" y="206" class="t" font-size="14" text-anchor="middle" font-weight="600">GPU 0</text>
+<text x="228.0" y="225" class="t-mut" font-size="12" text-anchor="middle">own rank</text>
+<line x1="300.0" y1="211" x2="324.0" y2="211" class="warn-s" stroke-width="1.6"/>
+<rect x="326.0" y="176" width="140" height="70" rx="6" class="bg-box" stroke-width="1.25"/>
+<text x="396.0" y="206" class="t" font-size="14" text-anchor="middle" font-weight="600">GPU 1</text>
+<text x="396.0" y="225" class="t-mut" font-size="12" text-anchor="middle">own rank</text>
+<line x1="468.0" y1="211" x2="492.0" y2="211" class="warn-s" stroke-width="1.6"/>
+<rect x="494.0" y="176" width="140" height="70" rx="6" class="bg-box" stroke-width="1.25"/>
+<text x="564.0" y="206" class="t" font-size="14" text-anchor="middle" font-weight="600">GPU 2</text>
+<text x="564.0" y="225" class="t-mut" font-size="12" text-anchor="middle">own rank</text>
+<line x1="636.0" y1="211" x2="660.0" y2="211" class="warn-s" stroke-width="1.6"/>
+<rect x="662.0" y="176" width="140" height="70" rx="6" class="bg-box" stroke-width="1.25"/>
+<text x="732.0" y="206" class="t" font-size="14" text-anchor="middle" font-weight="600">GPU 3</text>
+<text x="732.0" y="225" class="t-mut" font-size="12" text-anchor="middle">own rank</text>
+<path d="M228.0,246 C228.0,298 732.0,298 732.0,246" class="warn-s" stroke-width="1.6" stroke-dasharray="4 3" fill="none"/>
+<text x="480" y="312" class="t-mut" font-size="13" text-anchor="middle">ring / all-to-all traffic on the interconnect</text>
+<text x="480" y="342" class="t" font-size="13.5" text-anchor="middle">Parallelism is a runtime choice: tensor-parallel and pipeline-parallel ranks.</text>
+<rect x="16" y="380" width="928" height="336" rx="10" class="bg-panel" stroke-width="1.25"/>
+<rect x="396.6" y="394" width="166.8" height="19" rx="9.5" class="acc-soft" stroke-width="1.1"/><text x="480" y="407.82" class="acc-f" font-size="12" text-anchor="middle" font-weight="600">The Tenstorrent mesh</text>
+<rect x="370" y="428" width="220" height="42" rx="6" class="bg-box" stroke-width="1.25"/>
+<text x="480" y="456" class="t" font-size="14" text-anchor="middle" font-weight="600">Host / vLLM engine</text>
+<line x1="480" y1="470" x2="480" y2="500" class="acc-s" stroke-width="1.6"/><path d="M475.8,500 L484.2,500 L480,506 Z" class="ah-acc"/>
+<text x="492" y="490" class="acc-f" font-size="13" text-anchor="start" font-weight="600">submit + read once per step</text>
+<rect x="120" y="510" width="720" height="180" rx="9" class="acc-s" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="136" y="532" class="acc-f" font-size="12.5" text-anchor="start" font-weight="600">one compiled + traced mesh program</text>
+<line x1="178" y1="562.0" x2="185" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="164.0" y1="576" x2="164.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="213" y1="562.0" x2="220" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="199.0" y1="576" x2="199.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="248" y1="562.0" x2="255" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="234.0" y1="576" x2="234.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="283" y1="562.0" x2="290" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="269.0" y1="576" x2="269.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="318" y1="562.0" x2="325" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="304.0" y1="576" x2="304.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="353" y1="562.0" x2="360" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="339.0" y1="576" x2="339.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="388" y1="562.0" x2="395" y2="562.0" class="fab" stroke-width="1.5"/>
+<line x1="374.0" y1="576" x2="374.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="409.0" y1="576" x2="409.0" y2="583" class="fab" stroke-width="1.5"/>
+<line x1="178" y1="597.0" x2="185" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="164.0" y1="611" x2="164.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="213" y1="597.0" x2="220" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="199.0" y1="611" x2="199.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="248" y1="597.0" x2="255" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="234.0" y1="611" x2="234.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="283" y1="597.0" x2="290" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="269.0" y1="611" x2="269.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="318" y1="597.0" x2="325" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="304.0" y1="611" x2="304.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="353" y1="597.0" x2="360" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="339.0" y1="611" x2="339.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="388" y1="597.0" x2="395" y2="597.0" class="fab" stroke-width="1.5"/>
+<line x1="374.0" y1="611" x2="374.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="409.0" y1="611" x2="409.0" y2="618" class="fab" stroke-width="1.5"/>
+<line x1="178" y1="632.0" x2="185" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="164.0" y1="646" x2="164.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="213" y1="632.0" x2="220" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="199.0" y1="646" x2="199.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="248" y1="632.0" x2="255" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="234.0" y1="646" x2="234.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="283" y1="632.0" x2="290" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="269.0" y1="646" x2="269.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="318" y1="632.0" x2="325" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="304.0" y1="646" x2="304.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="353" y1="632.0" x2="360" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="339.0" y1="646" x2="339.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="388" y1="632.0" x2="395" y2="632.0" class="fab" stroke-width="1.5"/>
+<line x1="374.0" y1="646" x2="374.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="409.0" y1="646" x2="409.0" y2="653" class="fab" stroke-width="1.5"/>
+<line x1="178" y1="667.0" x2="185" y2="667.0" class="fab" stroke-width="1.5"/>
+<line x1="213" y1="667.0" x2="220" y2="667.0" class="fab" stroke-width="1.5"/>
+<line x1="248" y1="667.0" x2="255" y2="667.0" class="fab" stroke-width="1.5"/>
+<line x1="283" y1="667.0" x2="290" y2="667.0" class="fab" stroke-width="1.5"/>
+<line x1="318" y1="667.0" x2="325" y2="667.0" class="fab" stroke-width="1.5"/>
+<line x1="353" y1="667.0" x2="360" y2="667.0" class="fab" stroke-width="1.5"/>
+<line x1="388" y1="667.0" x2="395" y2="667.0" class="fab" stroke-width="1.5"/>
+<rect x="150" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="185" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="220" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="255" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="290" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="325" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="360" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="395" y="548" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="150" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="185" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="220" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="255" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="290" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="325" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="360" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="395" y="583" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="150" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="185" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="220" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="255" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="290" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="325" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="360" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="395" y="618" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="150" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="185" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="220" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="255" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="290" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="325" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="360" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<rect x="395" y="653" width="28" height="28" rx="4" class="acc-soft" stroke-width="1.1"/>
+<text x="660" y="580" class="t" font-size="13" text-anchor="middle">32 Wormhole chips. The fabric moves</text>
+<text x="660" y="601" class="t" font-size="13" text-anchor="middle">data between chips as part of the</text>
+<text x="660" y="622" class="t" font-size="13" text-anchor="middle">program, not as a host-issued call.</text>
+<text x="480" y="742" class="t-mut" font-size="13.5" text-anchor="middle">So there are no TP or PP ranks to configure: the mesh shape is the parallelism,</text>
+<text x="480" y="762" class="t-mut" font-size="13.5" text-anchor="middle">and the model code picks the layout that fits a given (model, mesh) pair.</text>
+</svg>

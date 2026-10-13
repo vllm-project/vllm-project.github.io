@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="650" viewBox="0 0 1280 650" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax H3 few-step adapter integration contracts</title>
+  <desc id="desc">Comparison of request-switchable Turbo LoRA sidecars with FastH3 load-time fusion into a specialized four-forward student.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .title { font-size: 27px; font-weight: 750; fill: #0f172a; }
+      .subtitle { font-size: 15px; font-weight: 500; fill: #64748b; }
+      .panel-title { font-size: 20px; font-weight: 750; fill: #0f172a; }
+      .panel-sub { font-size: 13px; font-weight: 600; fill: #64748b; }
+      .node-title { font-size: 16px; font-weight: 720; fill: #0f172a; }
+      .node-sub { font-size: 13px; font-weight: 500; fill: #475569; }
+      .formula { font-size: 19px; font-weight: 700; fill: #4c1d95; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .badge { font-size: 12px; font-weight: 700; }
+      .foot { font-size: 12px; font-weight: 550; fill: #64748b; }
+      .arrow { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .arrow-purple { stroke: #7c3aed; stroke-width: 2.5; fill: none; marker-end: url(#arrowPurple); }
+      .dash { stroke-dasharray: 7 6; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="650" fill="#ffffff"/>
+  <text x="44" y="50" class="title">Few-step MiniMax H3: two adapter contracts</text>
+  <text x="44" y="77" class="subtitle">Both target four DiT forwards, but they change weights and server lifecycle differently.</text>
+
+  <!-- Turbo panel -->
+  <rect x="40" y="108" width="580" height="486" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="40" y="108" width="580" height="66" rx="18" fill="#eef2ff"/>
+  <rect x="40" y="150" width="580" height="24" fill="#eef2ff"/>
+  <text x="68" y="139" class="panel-title">Turbo LoRA</text>
+  <text x="68" y="161" class="panel-sub">Dynamic sidecars · request-switchable · FL2VA/T2VA</text>
+
+  <rect x="70" y="212" width="150" height="66" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="145" y="239" text-anchor="middle" class="node-title">Base weight W</text>
+  <text x="145" y="260" text-anchor="middle" class="node-sub">unchanged</text>
+
+  <rect x="70" y="332" width="150" height="76" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="145" y="360" text-anchor="middle" class="node-title">LoRA A / B</text>
+  <text x="145" y="381" text-anchor="middle" class="node-sub">resident sidecars</text>
+  <text x="145" y="399" text-anchor="middle" class="node-sub">selected per request</text>
+
+  <circle cx="300" cy="292" r="28" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="300" y="301" text-anchor="middle" class="formula">+</text>
+  <path class="arrow" d="M 220 245 L 266 278"/>
+  <path class="arrow-purple" d="M 220 370 L 270 311"/>
+
+  <rect x="370" y="244" width="205" height="96" rx="13" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.7"/>
+  <text x="472" y="276" text-anchor="middle" class="node-title">Wrapped H3 linear</text>
+  <text x="472" y="306" text-anchor="middle" class="formula">y = Wx + B(Ax)</text>
+  <text x="472" y="329" text-anchor="middle" class="node-sub">base + active adapter</text>
+  <path class="arrow-purple" d="M 328 292 L 356 292"/>
+
+  <rect x="290" y="386" width="285" height="62" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="432" y="412" text-anchor="middle" class="node-title">Published few-step schedule</text>
+  <text x="432" y="434" text-anchor="middle" class="node-sub">5 sigma points → 4 DiT forwards</text>
+  <path class="arrow" d="M 472 340 L 448 374"/>
+
+  <rect x="70" y="486" width="505" height="68" rx="12" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.3"/>
+  <text x="90" y="513" class="node-title">DLO composition</text>
+  <text x="90" y="536" class="node-sub">DLO streams base blocks; request-switchable A/B buffers remain on the accelerator.</text>
+
+  <!-- FastH3 panel -->
+  <rect x="660" y="108" width="580" height="486" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="660" y="108" width="580" height="66" rx="18" fill="#ecfeff"/>
+  <rect x="660" y="150" width="580" height="24" fill="#ecfeff"/>
+  <text x="688" y="139" class="panel-title">FastH3 preview</text>
+  <text x="688" y="161" class="panel-sub">Load-time fusion · specialized server · dense T2VA preview</text>
+
+  <rect x="690" y="205" width="150" height="58" rx="11" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="765" y="239" text-anchor="middle" class="node-title">Base W</text>
+
+  <rect x="690" y="289" width="150" height="74" rx="11" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="765" y="316" text-anchor="middle" class="node-title">LoRA B @ A</text>
+  <text x="765" y="339" text-anchor="middle" class="node-sub">rank-64 factors</text>
+
+  <rect x="690" y="389" width="150" height="74" rx="11" fill="#ffedd5" stroke="#f97316" stroke-width="1.5"/>
+  <text x="765" y="416" text-anchor="middle" class="node-title">Full-rank deltas</text>
+  <text x="765" y="439" text-anchor="middle" class="node-sub">.diff / .diff_b</text>
+
+  <circle cx="910" cy="330" r="31" fill="#ffffff" stroke="#0d9488" stroke-width="2"/>
+  <text x="910" y="339" text-anchor="middle" class="formula">+</text>
+  <path class="arrow" d="M 840 234 L 882 308"/>
+  <path class="arrow-purple" d="M 840 326 L 866 328"/>
+  <path d="M 840 426 L 884 352" stroke="#f97316" stroke-width="2.3" fill="none" marker-end="url(#arrow)"/>
+
+  <rect x="995" y="248" width="205" height="104" rx="13" fill="#ecfeff" stroke="#0d9488" stroke-width="1.7"/>
+  <text x="1098" y="279" text-anchor="middle" class="node-title">Fused student W*</text>
+  <text x="1098" y="309" text-anchor="middle" class="formula">W* = W + BA + Δ</text>
+  <text x="1098" y="334" text-anchor="middle" class="node-sub">assigned before sharding</text>
+  <path d="M 941 330 L 981 310" stroke="#0d9488" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+
+  <rect x="915" y="390" width="285" height="62" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="1057" y="416" text-anchor="middle" class="node-title">Fixed four-forward student</text>
+  <text x="1057" y="438" text-anchor="middle" class="node-sub">every request uses the fused weights</text>
+  <path class="arrow" d="M 1098 352 L 1072 378"/>
+
+  <rect x="690" y="486" width="510" height="68" rx="12" fill="#fef2f2" stroke="#ef4444" stroke-width="1.3"/>
+  <text x="710" y="513" class="node-title">Current preview boundary</text>
+  <text x="710" y="535" class="node-sub">Not request-switchable; VSA variants are unsupported.</text>
+  <text x="710" y="551" class="node-sub">The current integration also rejects offload.</text>
+
+  <text x="40" y="628" class="foot">Source contracts: vLLM-Omni PR #6476 (Turbo), #6550 (Turbo + DLO), and #6714 (FastH3 preview).</text>
+</svg>

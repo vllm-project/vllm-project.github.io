@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="390" viewBox="0 0 760 390" role="img" aria-labelledby="t3 d3">
+  <title id="t3">Two typical MoE workloads and the kernel profile each motivates</title>
+  <desc id="d3">Two panels side by side. The prefill panel shows many routed rows per expert, roughly hundreds, and names the WGMMA mainloop profile. The decode panel shows few routed rows per expert, roughly nine to fifteen, and names the profile with swapped MMA operands. The panels are independent: each profile and its weight layout are fixed when the model is loaded, not chosen per request.</desc>
+  <defs>
+    <style>
+    .s{font-family:Inter,ui-sans-serif,-apple-system,"Segoe UI",Arial,sans-serif}
+    .bg{fill:#fcfcfb}
+    .ttl{font-size:19px;font-weight:600;fill:#1a1a19}
+    .sub{font-size:13px;fill:#55554f}
+    .phase{font-size:16px;font-weight:600;fill:#1a1a19}
+    .cnt{font-size:12.5px;fill:#6b6b64}
+    .sched{font-size:13px;fill:#3a3a36}
+    .mut{font-size:12px;fill:#6b6b64}
+    .card{fill:#f4f4f0;stroke:#dededa;stroke-width:1}
+    .blue{fill:#2a78d6}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#1a1a19}
+      .ttl,.phase{fill:#ecece6}.sched{fill:#d4d4cc}.sub{fill:#b4b4ac}.cnt,.mut{fill:#9a9a92}
+      .card{fill:#232320;stroke:#3d3d38}
+      .blue{fill:#3987e5}
+    }
+    </style>
+  </defs>
+  <rect class="bg" width="760" height="390"/>
+  <text class="s ttl" x="34" y="36">Two workloads, two kernel profiles</text>
+  <text class="s sub" x="34" y="60">Each profile and its packed weight layout are fixed at model load, not chosen per request.</text>
+  <rect class="card" x="34" y="104" width="330" height="214" rx="10"/>
+  <text class="s phase" x="199" y="134" text-anchor="middle">Prefill</text>
+  <text class="s sched" x="199" y="156" text-anchor="middle">WGMMA mainloop</text>
+    <rect class="blue" x="82" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="116" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="150" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="184" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="218" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="252" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="286" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="82" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="116" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="150" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="184" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="218" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="252" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="286" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="82" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="116" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="150" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="184" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="218" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="252" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="286" y="224" width="30" height="12" rx="2"/>
+    <rect class="blue" x="82" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="116" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="150" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="184" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="218" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="252" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="286" y="208" width="30" height="12" rx="2"/>
+    <rect class="blue" x="82" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="116" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="150" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="184" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="218" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="252" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="286" y="192" width="30" height="12" rx="2"/>
+    <rect class="blue" x="82" y="176" width="30" height="12" rx="2"/>
+    <rect class="blue" x="116" y="176" width="30" height="12" rx="2"/>
+    <rect class="blue" x="150" y="176" width="30" height="12" rx="2"/>
+    <rect class="blue" x="184" y="176" width="30" height="12" rx="2"/>
+    <rect class="blue" x="218" y="176" width="30" height="12" rx="2"/>
+    <rect class="blue" x="252" y="176" width="30" height="12" rx="2"/>
+    <rect class="blue" x="286" y="176" width="30" height="12" rx="2"/>
+  <text class="s cnt" x="199" y="300" text-anchor="middle">~hundreds of rows / expert</text>
+  <rect class="card" x="396" y="104" width="330" height="214" rx="10"/>
+  <text class="s phase" x="561" y="134" text-anchor="middle">Decode</text>
+  <text class="s sched" x="561" y="156" text-anchor="middle">MMA operands swapped</text>
+    <rect class="blue" x="444" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="478" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="512" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="546" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="580" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="614" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="648" y="256" width="30" height="12" rx="2"/>
+    <rect class="blue" x="444" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="478" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="512" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="546" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="580" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="614" y="240" width="30" height="12" rx="2"/>
+    <rect class="blue" x="648" y="240" width="30" height="12" rx="2"/>
+  <text class="s cnt" x="561" y="300" text-anchor="middle">~9–15 rows / expert</text>
+  <text class="s mut" x="34" y="352">Within the prefill profile, 80 routed tokens per expert is the block-M heuristic threshold: below it the</text>
+  <text class="s mut" x="34" y="370">resolver keeps its baseline block-count search, above it block-M is sized around each expert’s padded rows.</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 830 356" width="830" height="356">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .term   { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 24px; font-weight: 600; }
+    .punct  { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 24px; fill: #94a3b8; }
+    .result { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 20px; font-weight: 600; fill: #111827; }
+    .label  { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 15px; }
+    .grp    { font-size: 13px; font-weight: 600; fill: #64748b; }
+    .leader { fill: none; stroke-width: 1.4; }
+    .bracket{ fill: none; stroke: #cbd5e1; stroke-width: 1.4; }
+  </style>
+
+  <rect width="830" height="356" fill="#ffffff"/>
+
+  <text x="32" y="28" font-size="14" font-weight="600" fill="#64748b">GDN conv state, <tspan font-weight="700" fill="#111827">per request</tspan></text>
+
+  <!-- group brackets above the formula -->
+  <text class="grp" x="126" y="52" text-anchor="middle">q, k</text>
+  <path class="bracket" d="M 54 76 L 54 62 L 198 62 L 198 76"/>
+  <text class="grp" x="285" y="52" text-anchor="middle">v</text>
+  <path class="bracket" d="M 228 76 L 228 62 L 343 62 L 343 76"/>
+
+  <!-- formula -->
+  <text class="punct" x="32"  y="104">(</text>
+  <text class="term"  x="54"  y="104" fill="#2563eb">128</text>
+  <text class="punct" x="104" y="104">&#215;</text>
+  <text class="term"  x="126" y="104" fill="#7c3aed">16</text>
+  <text class="punct" x="162" y="104">&#215;</text>
+  <text class="term"  x="184" y="104" fill="#16a34a">2</text>
+  <text class="punct" x="206" y="104">+</text>
+  <text class="term"  x="228" y="104" fill="#0891b2">128</text>
+  <text class="punct" x="278" y="104">&#215;</text>
+  <text class="term"  x="300" y="104" fill="#dc2626">128</text>
+  <text class="punct" x="350" y="104">)</text>
+  <text class="punct" x="372" y="104">&#215;</text>
+  <text class="term"  x="394" y="104" fill="#f97316">3</text>
+  <text class="punct" x="416" y="104">&#215;</text>
+  <text class="term"  x="438" y="104" fill="#475569">2</text>
+
+  <text class="result" x="478" y="103">=  122,880 B  =  120 KiB</text>
+
+  <!-- leader lines: rightmost term shallowest, leftmost deepest (no crossings) -->
+  <path class="leader" stroke="#475569" d="M 445 118 L 445 148 L 470 148"/>
+  <path class="leader" stroke="#f97316" d="M 401 118 L 401 178 L 470 178"/>
+  <path class="leader" stroke="#dc2626" d="M 321 118 L 321 208 L 470 208"/>
+  <path class="leader" stroke="#0891b2" d="M 249 118 L 249 238 L 470 238"/>
+  <path class="leader" stroke="#16a34a" d="M 191 118 L 191 268 L 470 268"/>
+  <path class="leader" stroke="#7c3aed" d="M 140 118 L 140 298 L 470 298"/>
+  <path class="leader" stroke="#2563eb" d="M 75  118 L 75  328 L 470 328"/>
+
+  <!-- labels -->
+  <text class="label" x="480" y="153" fill="#475569">sizeof(bfloat16)</text>
+  <text class="label" x="480" y="183" fill="#f97316">linear_conv_kernel_dim - 1</text>
+  <text class="label" x="480" y="213" fill="#dc2626">v: linear_num_value_heads</text>
+  <text class="label" x="480" y="243" fill="#0891b2">v: linear_value_head_dim</text>
+  <text class="label" x="480" y="273" fill="#16a34a">q and k, both this size</text>
+  <text class="label" x="480" y="303" fill="#7c3aed">q,k: linear_num_key_heads</text>
+  <text class="label" x="480" y="333" fill="#2563eb">q,k: linear_key_head_dim</text>
+</svg>

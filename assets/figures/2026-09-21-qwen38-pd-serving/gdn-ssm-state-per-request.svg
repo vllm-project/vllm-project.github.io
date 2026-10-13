@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 270" width="700" height="270">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .term   { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 24px; font-weight: 600; }
+    .punct  { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 24px; fill: #94a3b8; }
+    .result { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 20px; font-weight: 600; fill: #111827; }
+    .label  { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-size: 15px; }
+    .leader { fill: none; stroke-width: 1.4; }
+  </style>
+
+  <rect width="700" height="270" fill="#ffffff"/>
+
+  <text x="32" y="28" font-size="14" font-weight="600" fill="#64748b">GDN SSM state, <tspan font-weight="700" fill="#111827">per request</tspan></text>
+
+  <!-- formula -->
+  <text class="punct" x="32"  y="78">(</text>
+  <text class="term"  x="54"  y="78" fill="#dc2626">128</text>
+  <text class="punct" x="104" y="78">&#215;</text>
+  <text class="term"  x="126" y="78" fill="#0891b2">128</text>
+  <text class="punct" x="176" y="78">&#215;</text>
+  <text class="term"  x="198" y="78" fill="#2563eb">128</text>
+  <text class="punct" x="248" y="78">)</text>
+  <text class="punct" x="270" y="78">&#215;</text>
+  <text class="term"  x="292" y="78" fill="#475569">2</text>
+
+  <text class="result" x="332" y="77">=  4,194,304 B  =  4 MiB</text>
+
+  <!-- leader lines: rightmost term shallowest, leftmost deepest (no crossings) -->
+  <path class="leader" stroke="#475569" d="M 299 92 L 299 122 L 324 122"/>
+  <path class="leader" stroke="#2563eb" d="M 219 92 L 219 152 L 324 152"/>
+  <path class="leader" stroke="#0891b2" d="M 147 92 L 147 182 L 324 182"/>
+  <path class="leader" stroke="#dc2626" d="M 75  92 L 75  212 L 324 212"/>
+
+  <!-- labels -->
+  <text class="label" x="334" y="127" fill="#475569">sizeof(bfloat16)</text>
+  <text class="label" x="334" y="157" fill="#2563eb">linear_key_head_dim</text>
+  <text class="label" x="334" y="187" fill="#0891b2">linear_value_head_dim</text>
+  <text class="label" x="334" y="217" fill="#dc2626">linear_num_value_heads</text>
+</svg>
