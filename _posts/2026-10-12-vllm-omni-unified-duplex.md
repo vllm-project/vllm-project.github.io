@@ -31,13 +31,11 @@ Chat interfaces made request–response interaction familiar: submit an input an
 
 Streaming output improves the wait for the first sound. Native full duplex changes what can happen *during* that sound. The model continues processing incoming audio, and where supported video, while producing its own output. New input can affect subsequent speech, including whether to keep speaking or yield the floor. Already played audio cannot be taken back; the opportunity is to adapt what comes next.
 
-It helps to separate three concepts:
+The interface, interaction mode, and model execution describe different layers:
 
-| Interface | Conversation mode | Model execution |
-|---|---|---|
-| Chat Completions | Request–response | A request provides an input snapshot; the response may stream back. |
-| Realtime / Duplex | Duplex session | Turn-based execution: run each response as a new request built from the current turn and history, within the ongoing session. |
-| Realtime / Duplex | Duplex session | Native duplex execution: continuing input participates in the model's ongoing listening and speaking process. |
+<iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/interfaces.html" title="Interfaces, interaction modes and model execution: request-response and duplex session paths" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; overflow: hidden;"></iframe>
+
+*Figure 1. Follow an interface through its interaction and execution modes, then see example model profiles. Select a branch to highlight its path. A duplex session supports both native duplex and turn-based execution. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/interfaces.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg).*
 
 A bidirectional connection is therefore useful for both execution modes. Qwen3-Omni with Server VAD can receive microphone audio during playback, stop a response, and start another after a new turn is committed. That provides an interruptible voice experience, while its model execution remains turn-based. PersonaPlex and MiniCPM-o 4.5 additionally support model-native processing of continuing input.
 
@@ -49,7 +47,7 @@ A live conversation has several activities in flight: input arrives, inference p
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/architecture.html" title="Inside a live duplex session: communication, session coordination, and model execution" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 960px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 1. Step through the input and output paths, or click a component to explore its role. Ordinary session output returns through a bounded per-session buffer. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/architecture.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg).*
+*Figure 2. Step through the input and output paths, or click a component to explore its role. Ordinary session output returns through a bounded per-session buffer. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/architecture.html) or [view the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg).*
 
 | Component | Responsibility |
 |---|---|
@@ -72,7 +70,7 @@ The shared session runtime does not force every model into the same inference pi
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-omni-duplex/models.html" title="Speech execution and state: compare PersonaPlex, MiniCPM-o 4.5, AURA, and Qwen3-Omni" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 2. Switch models and step through their encoders, autoregressive modules, waveform decoders, and retained state. Brackets group modules into serving stages: neural modules and autoregressive loops do not map one-to-one to stages. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/models.html) or [compare all four models in the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg).*
+*Figure 3. Switch models and step through their encoders, autoregressive modules, waveform decoders, and retained state. Brackets group modules into serving stages: neural modules and autoregressive loops do not map one-to-one to stages. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/models.html) or [compare all four models in the static version](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg).*
 
 ### PersonaPlex: frame-by-frame speech interaction
 
