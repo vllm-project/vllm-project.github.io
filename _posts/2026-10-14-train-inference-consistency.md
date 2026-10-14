@@ -13,27 +13,19 @@ tags:
 
 Rollout dominates RL training time, so training systems adopt low-precision compute, low-precision KV cache, and communication and kernel optimizations. These change the inference-side numerics. The inference engine generates a response; the training engine recomputes its probabilities and updates the model. With identical weights, the two sides now assign different probabilities to the same token, so training optimizes a policy other than the one that sampled. The gap can grow with updates and destabilize training. In our DeepSeek-V4-Flash-Base experiment (no algorithmic correction such as TIS), the high-performance baseline's train-inference KL rose from 2e-3 to 29.9 while reward fell back; the consistent version had a difference of 0 at every step and no such drop.
 
-Stable training means fewer crashes, rollbacks and reruns, and less total time to reach the same result. Our goal is to **finish effective RL training faster**: faster end to end, not per step. This post measures numerical consistency, training curves and rollout throughput; the end-to-end wall-clock comparison is left for later. The goal needs three properties at once:
+Stable training means fewer crashes, rollbacks and reruns, and less total time to reach the same result. Our goal is to **finish effective RL training faster**: faster end to end, not per step. This post measures numerical consistency, training curves and rollout throughput; the end-to-end wall-clock comparison is left for later.
+
+Our approach: on the high-performance numerical path, training and inference produce a **bitwise identical** logprob for every sampled token (diff = 0; Section 2 defines it exactly), which is true on-policy RL; an agent skill then lowers the cost of doing this on a new model. On DeepSeek-V4-Flash we reach 0 diff at 91.3% of the high-performance baseline's rollout throughput, and we carried the method over to Nemotron, a Mamba hybrid with NVFP4.
+
+## 1. Existing approaches: how they trade off the three
+
+Finishing effective RL training faster needs three properties at once:
 
 - **A, high performance**: fast rollout and training, with low-precision compute, low-precision KV cache and communication optimizations all usable;
 - **B, high consistency**: training and inference compute the same policy for the same weights;
 - **C, low cost and generality**: getting A and B on a new model, precision or hardware costs acceptable effort.
 
 These rarely hold together. Drop B and you optimize freely but risk unstable training. Drop A and you can use consistent kernels, but inference gets much slower (numbers in the table below). Keeping A and B means aligning model by model and operator by operator, which used to need senior engineers, so C fails.
-
-We make B strict on the high-performance numerical path: with the same weights and input, training and inference produce a **bitwise identical** logprob for every sampled token (diff = 0; Section 2 defines it exactly). This is true on-policy: training optimizes the numerical policy that actually sampled. It holds on our accepted tasks (math reasoning, multi-turn tool calling) and parallel layouts, including different layouts per side. Agent + skill then cuts the cost of building this path. The post covers:
-
-1. How existing approaches trade off the three, and why we chose this one (Section 1);
-2. What train-inference consistency requires (Section 2);
-3. **Reference recipe**: DeepSeek-V4-Flash-Base combines low-precision compute (block-FP8), sparse attention and multi-node expert parallelism. We reach 0 diff on it with whole-run average rollout throughput at 91.3% of the high-performance baseline (Section 3);
-4. **Module-by-module deep dive**: per module and kernel, what each side does, the trade-offs, and who pays (Section 4);
-5. Encoding the method as an agent skill to lower C (Section 5);
-6. **Transfer**: using agent + skill to support a different kind of model, Nemotron, a Mamba hybrid with NVFP4. The agent did most reproduction, experiments and hypothesis elimination; humans made the key judgments (Section 6);
-7. Open-sourcing the skill and code (Section 7).
-
-The second case tests whether the recipe and skill transfer; aligning the Mamba recurrence and routing drift under multiple updates per step were both new.
-
-## 1. Existing approaches: how they trade off the three
 
 Train-inference mismatch is not new; existing approaches trade off A, B and C differently:
 
@@ -51,21 +43,23 @@ Algorithmic correction covers several mechanisms:
 - **FlashREINFORCE** ([Hu, Zhang et al.](https://github.com/yifanzhang-pro/FlashREINFORCE)): for asynchronous agentic RL; trajectory-level drift filtering (sequence trust region) removes trajectories that deviate too far;
 - **Score Centering** ([Marek & Ryabinin](https://arxiv.org/abs/2609.20807)): cancels train-inference drift accumulated with each update via an additive correction term; stacks with importance sampling.
 
+These methods reduce the effect of the mismatch but do not remove it. [Yao et al.](https://fengyao.notion.site/off-policy-rl) show that the mismatch turns on-policy training into off-policy training. [Li & Liu](https://yingru.notion.site/Part-1-Why-Mismatch-Breaks-LLM-RL-295211a558b780b8bb4cc8e367d906d0) analyze the bias of token-level importance sampling when the mismatch is large and has several sources, such as MoE expert shifts and engine operator differences, and find training more prone to collapse. In [P1-VL](https://arxiv.org/abs/2602.09443), truncated importance sampling only delayed collapse.
+
 R3 (Rollout Routing Replay, [Ma et al.](https://arxiv.org/abs/2510.11370)) targets MoE: it records expert routing during rollout and replays it in training, removing the difference caused by routing flips.
 
-Several teams work on the last row, paying with either A or C. In [Defeating Nondeterminism in LLM Inference](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference), Thinking Machines Lab traces inference nondeterminism mainly to batch size varying with load and achieves true on-policy RL with batch-invariant kernels, at the inference-time cost in the table (the post also notes that much of the overhead comes from a FlexAttention integration that is not yet well optimized).
+Several teams work on the last row, paying with either A or C. In [Defeating Nondeterminism in LLM Inference](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference), Thinking Machines Lab traces inference nondeterminism mainly to batch size varying with load and achieves true on-policy RL with batch-invariant kernels, at the inference-time cost in the table (the post also notes that much of the overhead comes from a FlexAttention integration that is not yet well optimized). [vLLM and TorchTitan](https://vllm.ai/blog/2025-11-10-bitwise-consistent-train-inference) reuse vLLM's forward kernels on the training side and write their own backward; their bitwise-consistent training reached a higher reward in fewer steps.
 
 [slime](https://github.com/THUDM/slime) aligns training and rollout logprobs on the GLM-5 architecture (MLA + DSA sparse attention, same structure as DeepSeek-V3.2).
 
-In the vLLM community, [IsoExec](https://vllm.ai/blog/2026-08-21-isoexec) by Alexander Jiang and the SkyRL team does the same for linear attention (recurrent structures such as Qwen3.5-35B-A3B's Gated DeltaNet) (details in Section 6).
+In the vLLM community, [IsoExec](https://vllm.ai/blog/2026-08-21-isoexec) by Alexander Jiang and the SkyRL team does the same for linear attention (recurrent structures such as Qwen3.5-35B-A3B's Gated DeltaNet) (details in Section 7).
 
 These approaches target different differences, and most stack. Two kinds must be distinguished: the numerical difference between engines on the same weight version, and the policy difference between weight versions.
 
-With staleness, as in asynchronous training, rollout's old weights lag the trained policy. That algorithm-level off-policy still goes to TIS, MIS or Score Centering, yet the old weights can still be numerically aligned across engines. Removing engine-induced differences leaves only the algorithm's own off-policy, free of implementation noise.
+With staleness, as in asynchronous training, rollout's old weights lag the trained policy. That algorithm-level off-policy still goes to TIS, MIS or Score Centering, yet the old weights can still be numerically aligned across engines. Removing engine-induced differences leaves only the algorithm's own off-policy, free of implementation noise, and the bitwise-consistent run then serves as a baseline for measuring algorithmic corrections.
 
 QAT is also part of strict alignment: for low-precision rollout and training to match bitwise, the training forward must apply the same quantization; our backward uses STE.
 
-We take the last-row path that keeps A, with this bar for A: **rollout throughput at least 70% of an equally optimized high-performance baseline** (rollout is the most time-consuming part of RL training; training-side overhead was not measured separately, see 3.3). C is this path's weak point; Section 5 covers how Agent + skill makes up for it.
+We take the last-row path that keeps A, with this bar for A: **rollout throughput at least 70% of an equally optimized high-performance baseline** (rollout is the most time-consuming part of RL training; training-side overhead was not measured separately, see 3.1). C is this path's weak point; Section 6 covers how Agent + skill makes up for it.
 
 ## 2. What train-inference consistency requires
 
@@ -83,8 +77,8 @@ train-inference consistency ⇐ operator determinism + batch independence + phas
 
 **Cross-GPU consistency.** Cross-GPU reductions (AllReduce, reduce-scatter, and merging expert outputs after the MoE all-to-all) must also be fixed, at two levels.
 
-- With the **same parallel layout** on both sides, communication results must not vary with timing and scheduling (fix the communication library's channel count, thread count and algorithm, plus reduction chunking and precision and expert merge order; this is not cheap, see 4.5).
-- With **different parallel layouts** (e.g. different TP/EP degrees), results must also stay the same as the degree of parallelism changes, which needs a fixed reduction tree and costs more. The DeepSeek-V4 recipe instead moves cross-GPU reduction out of the compared path (4.5).
+- With the **same parallel layout** on both sides, communication results must not vary with timing and scheduling (fix the communication library's channel count, thread count and algorithm, plus reduction chunking and precision and expert merge order; this is not cheap, see 5.5).
+- With **different parallel layouts** (e.g. different TP/EP degrees), results must also stay the same as the degree of parallelism changes, which needs a fixed reduction tree and costs more. The DeepSeek-V4 recipe instead moves cross-GPU reduction out of the compared path (5.5).
 
 The four dimensions do not suffice: two engines can each be deterministic, batch-invariant, phase-consistent and cross-GPU consistent yet take different numerical paths and disagree. So we also require **aligned numerical contracts on both sides**: same quantization and rounding, same accumulation precision, same kernel arithmetic.
 
@@ -97,118 +91,107 @@ Discrete choices such as Top-K and MoE routing are an amplifier, not a third roo
 
 To reach 0 diff: remove static path and order-of-operations differences, then pin dynamic path selection so it ignores load. With upstream aligned, discrete selection must also match: same tie-breaking, output ordering and merging rules on both sides.
 
-Here diff is, before each update with the same weight version and token prefix, the difference between rollout's logprob for each valid token (sampled tokens inside the response mask) and the training side's recomputed old-logprob. Acceptance requires the max, mean and standard deviation of the per-token difference |p_rollout − p_train|, and the k3 KL, all to be exactly 0. This is exact equality, not a threshold, checked before each update; a mini-batch update changes the policy anyway, which the definition excludes.
+Here diff is, before each update with the same weight version and token prefix, the difference between rollout's logprob for each valid token (sampled tokens inside the response mask) and the training side's recomputed old-logprob. Acceptance requires the max, mean and standard deviation of the per-token difference |p_rollout − p_train|, and the k3 KL, all to be exactly 0. This is exact equality, not a threshold, checked before each update; a mini-batch update changes the policy anyway, which the definition excludes. It holds on our accepted tasks (math reasoning, multi-turn tool calling) and parallel layouts, including different layouts per side.
 
-Hence: **a train-inference consistent recipe does only 1 update per step (step batch equals mini-batch).** With multiple mini-batch updates per step, from the second on, training weights differ from sampling weights; diff = 0 does not cover this, and training stops being strictly true on-policy (example in 6.2).
+Hence: **a train-inference consistent recipe does only 1 update per step (step batch equals mini-batch).** With multiple mini-batch updates per step, from the second on, training weights differ from sampling weights; diff = 0 does not cover this, and training stops being strictly true on-policy (example in 7.2).
 
-Two easily missed points. First, the four dimensions guarantee only a consistent forward; training also needs a correct backward, and the first step after checkpoint restore must still be consistent. Second, **diff = 0 says the two sides compute the same thing, not that it suits training**: with multiple updates per step, diff = 0 holds while routing drifts between updates (6.2). diff = 0 is our engineering target, not a sufficient condition for training quality, which needs separate acceptance.
+Two easily missed points. First, the four dimensions guarantee only a consistent forward; training also needs a correct backward, and the first step after checkpoint restore must still be consistent. Second, **diff = 0 says the two sides compute the same thing, not that it suits training**: with multiple updates per step, diff = 0 holds while routing drifts between updates (7.2). diff = 0 is our engineering target, not a sufficient condition for training quality, which needs separate acceptance.
 
 ## 3. Reference recipe: DeepSeek-V4-Flash
 
 DeepSeek-V4-Flash combines low-precision compute, sparse attention and multi-node expert parallelism; it is one of the hardest consistency tasks we have done. From the FP8 base we trained two 100-step runs on GB200: an optimized high-performance baseline and a consistent version with diff = 0.
 
-Below, **BI=0 means the baseline version and BI=1 means the consistent version** (BI is batch invariance, Section 2's "batch independence", borrowed as a label).
-
 Task: math reasoning with DAPO-format data, GRPO, and a reward with an over-length penalty (so it can be negative). Each run uses 8 machines (32 GPUs), 128 prompts × 8 responses per step, and 1 update per step (step batch = mini-batch). Neither run uses TIS, MIS or similar corrections, exposing the engine difference directly.
 
-Parallelism: DP data, EP expert, CP context (sequence split), TP tensor. Consistent-version rollout runs 4 vLLM engines, each DP8/EP8, TP=1; training uses EP32, CP4, TP=1. **The two sides use different parallel layouts** (4.5).
+Parallelism: DP data, EP expert, CP context (sequence split), TP tensor. Consistent-version rollout runs 4 vLLM engines, each DP8/EP8, TP=1; training uses EP32, CP4, TP=1. **The two sides use different parallel layouts** (5.5).
 
 Relevant structures: **MLA** (multi-head latent attention, which compresses KV before caching); **DSA** (DeepSeek sparse attention: a lightweight indexer scores history positions, Top-K keeps at most 2048, and MLA attends only to them); the **CSA compressor** (compresses history KV into fewer rows); **mHC** (mixing across residual streams, with the mixing matrix normalized by Sinkhorn iterations); and 43 MoE layers. SM100 is Blackwell (the GB200 used here); SM90 is Hopper.
 
-Section 4 examines each key choice in the 3.2 table.
+### 3.1 Results and who pays
 
-### 3.1 Division of work: inference kernels define the values, training adds backward
+![DeepSeek-V4-Flash 100-step training reward](/assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png)
 
-Two engines agree most easily by running the same code; the question is which side adapts. Rollout dominates RL time, with every operator tuned for throughput. With training as reference, every inference optimization would have to accommodate it, and A would fail. Inference as reference has a cost too: training still owns backward and saved tensors, and each layout entry point (e.g. masked / contiguous in 4.4) needs its own verification. So **inference kernels are the numerical reference, training forward calls the same vLLM kernels for its values, and training only adds backward.**
+*Per-step training reward. Orange: baseline; blue: consistent version. Thick line: moving average of the current and previous 4 steps; thin line: raw value.*
 
-But inference kernels lack backward, and FP8 quantization is not differentiable. We use two kinds of wiring:
+![DeepSeek-V4-Flash per-step train-inference difference](/assets/figures/2026-10-14-train-inference-consistency/ds4-train-infer-mismatch.png)
 
-- **Most modules use a custom `autograd.Function`**: forward calls the vLLM kernel without gradients and saves what backward needs; backward is a hand-written BF16 / FP32 VJP (input and parameter gradients from the upstream gradient) w.r.t. the BF16 master weights, with FP8 quantization as identity (STE). Linear layers, norm, mHC, MoE and o_proj use it.
-- **A few places use the straight-through form** `visible + (graph - graph.detach())`: forward takes the inference kernel's value (visible); backward runs through a differentiable PyTorch graph (graph, unrelated to CUDA Graph).
+*Top: per-step max train-inference probability difference; bottom: train-inference KL (k3 estimator r − 1 − log r, used throughout; symmetric log scale, linear near zero). Max difference reacts to one routing flip or Top-K swap, so it is sizable from baseline step 1; KL shows the overall level. Orange: baseline; blue: consistent version. Both consistent-version metrics are 0 at every step.*
 
-  Only attention q/k, compressed KV and the final logprob use it. These inference kernels are stateful fused operators that quantize and write the KV cache (or return only the selected token's logprob), with no differentiable output. Their math (RoPE, norm, compression pooling, log-softmax) is easy to express in PyTorch for autograd, with FP8 store/load as STE, so no hand-written backward is needed.
+Over 100 steps, the consistent version's rollout averages 24.22 token/ms, 91.3% of the baseline (26.53):
 
-Each backward first checks the master weights are unchanged since forward, so recomputation or async updates cannot mix versions.
+![DeepSeek-V4-Flash rollout throughput](/assets/figures/2026-10-14-train-inference-consistency/ds4-rollout-throughput.png)
 
-Both costs land on training. First, the gradient is a surrogate, not the quantized operator's exact derivative; a bitwise-identical forward proves nothing about gradients, so the skill checks backward against an independent reference (Section 5). Second, training forward must save the inference kernels' inputs and outputs for backward; the memory pressure is why the recipe enables full recomputation.
+*Per-step rollout throughput (output token/ms, summed over 32 GPUs). Orange: baseline; blue: consistent version. Thick line: moving average of the current and previous 4 steps; thin line: raw value.*
 
-### 3.2 Per-operator master table
+Baseline train-inference KL grows (2e-3 to 29.9) while its reward falls back; the consistent version stays at diff 0 and its reward holds. Another potential gain is one fewer forward: we recompute old-logprob each step only to measure diff; after acceptance, training can use the rollout logprob instead.
 
-Per module: what each operator does in rollout and training, what is fixed or given up, and who pays. "Same as left" means training forward calls the same vLLM kernel as rollout. Cost sits mostly in MoE communication and backend (4.4, 4.5), then attention gather and dequantization (4.2, 4.3); dense is cheap.
+**Rollout side**, measured in this run: average throughput is 91.3% of baseline (about 9% lower), above Section 1's 70% floor. Baseline slowdown after step 90 inflates this; the first 89 steps give 88.6%.
+
+On the inference benchmark the consistent version matches or beats the baseline (5.5); the training-time gap is not yet attributed to operators; Section 5 points to MoE LL communication and backend, attention gather and dequantization, and per-request launches.
+
+**Training side**, not measured separately: per Section 5, overhead is repacking FP8 weights every forward, serial per-request attention and Top-K, one extra routing-metadata dispatch, and memory pressure from saving intermediates for backward (hence full recomputation: forward runs twice).
+
+A separate verl recipe PR preview on 32 GB200 GPUs reports about 10% end-to-end overhead: rollout near parity, the gap mostly in training. Training-side optimization is next.
+
+## 4. Core decision: inference kernels define the values, training adds backward
+
+Two engines agree most easily by running the same code; the question is which side adapts. Rollout dominates RL time, with every operator tuned for throughput. With training as reference, every inference optimization would have to accommodate it, and A would fail. Inference as reference has a cost too: training still owns backward and saved tensors, and each layout entry point (e.g. masked / contiguous in 5.4) needs its own verification. So **inference kernels are the numerical reference, training forward calls the same vLLM kernels for its values, and training only adds backward.**
+
+Inference kernels have no backward, and FP8 quantization is not differentiable. Most modules wrap the vLLM kernel in a custom `autograd.Function` with a hand-written BF16 / FP32 VJP w.r.t. the BF16 master weights, treating FP8 quantization as identity (STE, straight-through estimator). A few inference kernels are stateful fused operators with no differentiable output (attention q/k, compressed KV, the final logprob); there forward takes the kernel's value and backward recomputes the same function in PyTorch: `visible + (graph - graph.detach())`. Each backward first checks that the master weights are unchanged since forward, so recomputation or async updates cannot mix versions.
+
+Both costs land on training. First, the gradient is a surrogate, not the quantized operator's exact derivative; a bitwise-identical forward proves nothing about gradients, so the skill checks backward against an independent reference (Section 6). Backward only has to be correct; it does not need to be deterministic. Second, training forward must save the inference kernels' inputs and outputs for backward; the memory pressure is why the recipe enables full recomputation.
+
+## 5. Operator by operator: technical choices in the DeepSeek-V4 recipe
+
+Each subsection covers the bottleneck, the choice and why, the numerical problem it introduces, the fix, and who pays.
+
+### Per-operator master table
+
+Per module: what each operator does in rollout and training, what is fixed or given up, and who pays. "Same as left" means training forward calls the same vLLM kernel as rollout. Cost sits mostly in MoE communication and backend (5.4, 5.5), then attention gather and dequantization (5.2, 5.3); dense is cheap.
 
 **Dense, norm and mHC**
 
-| Operator | rollout (BI=1) | Training | What is fixed / given up; cost |
+| Operator | rollout (consistent) | Training | What is fixed / given up; cost |
 |---|---|---|---|
-| Embedding | Table lookup | Forward: Same as left<br>Backward: PyTorch deterministic | Naturally consistent |
-| mHC residual mixing (pre / post / Sinkhorn) | Split TileLang mHC kernels, `split_tokens=1` | Forward: Same as left<br>Backward: Hand-written VJP, Sinkhorn iterations unrolled, FP32 | Gives up BI=0's fused post+pre kernel (split count varies with token count)<br>Cost: Both sides lose one fusion |
+| Embedding | Table lookup | Forward: Same as left<br>Backward: PyTorch | Naturally consistent |
+| mHC residual mixing (pre / post / Sinkhorn) | Split TileLang mHC kernels, `split_tokens=1` | Forward: Same as left<br>Backward: Hand-written VJP, Sinkhorn iterations unrolled, FP32 | Gives up the baseline's fused post+pre kernel (split count varies with token count)<br>Cost: Both sides lose one fusion |
 | RMSNorm | Batch-invariant RMSNorm (one program per row) | Forward: Same as left<br>Backward: FP32 VJP | Per-row reduction order fixed<br>Cost: Small |
-| FP8 linear layers (q_a/kv, q_b, wo_b, shared expert) | DeepGEMM FP8 GEMM, batch-invariant mode; weights in 128×128 blocks, activations quantized dynamically per token in groups of 128 | Forward: Quantizes BF16 master weights on the fly to the same block FP8, same DeepGEMM<br>Backward: Transformer Engine (TE) BF16 GEMM w.r.t. BF16 master weights (STE) | Gives up BI=0's FlashInfer switch at M<32; scale is UE8M0 on SM100 (8-bit, exponent only, i.e. a power of 2), FP32 on SM90<br>Cost: rollout: no faster small-batch kernel; training: FP8 weights repacked every forward (including recomputation) |
+| FP8 linear layers (q_a/kv, q_b, wo_b, shared expert) | DeepGEMM FP8 GEMM, batch-invariant mode; weights in 128×128 blocks, activations quantized dynamically per token in groups of 128 | Forward: Quantizes BF16 master weights on the fly to the same block FP8, same DeepGEMM<br>Backward: Transformer Engine (TE) BF16 GEMM w.r.t. BF16 master weights (STE) | Gives up the baseline's FlashInfer switch at M<32; scale is UE8M0 on SM100 (8-bit, exponent only, i.e. a power of 2), FP32 on SM90<br>Cost: rollout: no faster small-batch kernel; training: FP8 weights repacked every forward (including recomputation) |
 | Small linear layers (compressor, indexer weight projection) | FP32-output cuBLAS GEMM / batch-invariant persistent Triton matmul | Forward: Same as left<br>Backward: BF16 | Summation order along K fixed<br>Cost: Small |
 
 **Attention (DSA sparse attention + FP8 KV cache)**
 
-| Operator | rollout (BI=1) | Training | What is fixed / given up; cost |
+| Operator | rollout (consistent) | Training | What is fixed / given up; cost |
 |---|---|---|---|
 | q-norm + RoPE + KV write | Fused kernel quantizes K and writes the FP8 cache | Forward: Same kernel writes a private training-side FP8 cache, then reads it back<br>Backward: FP32 RoPE / norm in PyTorch (straight-through) | K takes the same FP8 round trip<br>Cost: Training: one extra cache and dequantization |
-| FP8 KV cache | Stored as FP8; prefill and decode dequantize to BF16 before attention | Forward: Same as left<br>Backward: — | Gives up the default FP8-reading decode kernel (4.2)<br>Cost: rollout decode |
+| FP8 KV cache | Stored as FP8; prefill and decode dequantize to BF16 before attention | Forward: Same as left<br>Backward: — | Gives up the default FP8-reading decode kernel (5.2)<br>Cost: rollout decode |
 | CSA compressor | vLLM compression kernel, state reset per request | Forward: Same kernel's values, functional graph's gradients<br>Backward: autograd | In-request state starts as in prefill<br>Cost: Training: loop over requests |
 | DSA indexer scoring | DeepGEMM FP8 MQA logits; prefill reads contiguous KV, decode reads paged KV | Forward: Same as left, per request<br>Backward: None (indexer not trained) | Paged and contiguous reads bitwise identical |
-| Top-K selection + index arrangement | Batch-invariant Top-K (64-bit key + radix select), sorted descending, invalid entries last | Forward: Same as left<br>Backward: None | Ties go to the larger in-request index (4.3)<br>Cost: One extra sort per side, recovered by fusion |
+| Top-K selection + index arrangement | Batch-invariant Top-K (64-bit key + radix select), sorted descending, invalid entries last | Forward: Same as left<br>Backward: None | Ties go to the larger in-request index (5.3)<br>Cost: One extra sort per side, recovered by fusion |
 | Sparse MLA | `flash_mla_sparse_fwd`; prefill one segment per request, decode same sparse kernel | Forward: Same as left, once per request<br>Backward: cuDNN frontend DSA backward | In-request geometry ignores neighbors; decode emits 1 token per request per call<br>Cost: rollout: multiple prefill launches; training: serial over requests |
 | o_proj | SM100: DeepGEMM FP8 einsum; SM90: grouped Triton W8A8 | Forward: Same as left<br>Backward: TE BF16 grouped GEMM + inverse-RoPE VJP | Aligned per architecture; no bitwise identity across architectures<br>Cost: Loop over groups on SM90 |
 
 **MoE**
 
-| Operator | rollout (BI=1) | Training | What is fixed / given up; cost |
+| Operator | rollout (consistent) | Training | What is fixed / given up; cost |
 |---|---|---|---|
-| Router scoring + expert selection | Same FP32-output gate GEMM for all batch sizes; sqrt-softplus + bias selects top-k | Forward: Same as left, routing recomputed bitwise<br>Backward: Expert IDs fixed, FP32 gradient w.r.t. routing weights | Gives up the small-batch gate kernel; **R3 is not needed** (4.4)<br>Cost: Small |
+| Router scoring + expert selection | Same FP32-output gate GEMM for all batch sizes; sqrt-softplus + bias selects top-k | Forward: Same as left, routing recomputed bitwise<br>Backward: Expert IDs fixed, FP32 gradient w.r.t. routing weights | Gives up the small-batch gate kernel; **R3 is not needed** (5.4)<br>Cost: Small |
 | Dispatch | DeepEP low-latency (LL below), fixed per-rank capacity, all ranks segment in sync; FP8 quantization uses elementwise round-to-nearest | Forward: DeepEP normal, plus one dispatch of routing metadata (fingerprint, expert, weight)<br>Backward: DeepEP backward | Experts get bitwise-identical FP8 values and scales either way<br>Cost: rollout: LL communication cannot overlap compute; training: metadata dispatch and hash matching |
-| SiLU · mul · quantization | Batch-invariant fused kernel: product rounded once to BF16, then quantized in groups of 128 | Forward: Same as left (mandatory)<br>Backward: FP32 VJP | Rounding position fixed (4.4)<br>Cost: Small after optimization |
-| Routed expert GEMM | DeepGEMM masked grouped GEMM, static capacity as scheduling hint | Forward: DeepGEMM contiguous grouped GEMM, per-expert rows aligned to 128<br>Backward: TE BF16 grouped GEMM | Gives up BI=0 FlashInfer TRT-LLM MoE (not batch-invariant)<br>Cost: rollout: a main throughput gap; training: alignment padding |
-| Combine | DeepEP LL combine, fixed merge order | Forward: FP32 accumulation in top-k slot order on the token's owning rank, then BF16<br>Backward: Ordered gradient scatter | Merge order by slot, not arrival order or rank<br>Cost: 43 layers × 2 serial all-to-all per step |
+| SiLU · mul · quantization | Batch-invariant fused kernel: product rounded once to BF16, then quantized in groups of 128 | Forward: Same as left (mandatory)<br>Backward: FP32 VJP | Rounding position fixed (5.4)<br>Cost: Small after optimization |
+| Routed expert GEMM | DeepGEMM masked grouped GEMM, static capacity as scheduling hint | Forward: DeepGEMM contiguous grouped GEMM, per-expert rows aligned to 128<br>Backward: TE BF16 grouped GEMM | Gives up the baseline's FlashInfer TRT-LLM MoE (not batch-invariant)<br>Cost: rollout: a main throughput gap; training: alignment padding |
+| Combine | DeepEP LL combine, fixed merge order | Forward: FP32 accumulation in top-k slot order on the token's owning rank, then BF16<br>Backward: Gradient scatter | Merge order by slot, not arrival order or rank<br>Cost: 43 layers × 2 serial all-to-all per step |
 | Shared expert | FP8 linear layer; auxiliary stream under LL + MNNVL (multi-node NVLink) | Forward: Same as left<br>Backward: BF16 (STE) | Stream changes overlap, not values<br>Cost: A source of recovered speed |
 
 **Output layer and infrastructure**
 
-| Item | rollout (BI=1) | Training | What is fixed / given up; cost |
+| Item | rollout (consistent) | Training | What is fixed / given up; cost |
 |---|---|---|---|
 | lm_head + logprob | Batch-invariant matmul; FP32 batch-invariant log-softmax | Logits per 8192 tokens, vLLM logprob value; backward via PyTorch log-softmax on the same logits (straight-through) | temperature must be a scalar<br>Cost: Training: each chunk's FP32 log-softmax kept for backward |
-| Cross-GPU reduction | TP=1, no all-reduce; NCCL channel count and algorithm pinned as a guard | TP=1; CP exchanges boundaries only, no reduction | TP>1 not supported (4.5)<br>Cost: Cannot split with TP |
-| CUDA Graph | Kept, with the right mode (4.6) | — | Graph and eager paths bitwise identical |
+| Cross-GPU reduction | TP=1, no all-reduce; NCCL channel count and algorithm pinned as a guard | TP=1; CP exchanges boundaries only, no reduction | TP>1 not supported (5.5)<br>Cost: Cannot split with TP |
+| CUDA Graph | Kept, with the right mode (5.6) | — | Graph and eager paths bitwise identical |
 | Weight sync | Reload copies new values to original addresses, refreshes derived weights | Exports block-FP8 weights | Graph-referenced addresses unchanged<br>Cost: One export and transfer per step |
 
-### 3.3 Results and who pays
-
-![DeepSeek-V4-Flash 100-step training reward](/assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png)
-
-*Per-step training reward. Orange: BI=0 baseline; blue: BI=1 consistent. Thick line: moving average of the current and previous 4 steps; thin line: raw value.*
-
-![DeepSeek-V4-Flash per-step train-inference difference](/assets/figures/2026-10-14-train-inference-consistency/ds4-train-infer-mismatch.png)
-
-*Top: per-step max train-inference probability difference; bottom: train-inference KL (k3 estimator r − 1 − log r, used throughout; symmetric log scale, linear near zero). Max difference reacts to one routing flip or Top-K swap, so it is sizable from baseline step 1; KL shows the overall level. Orange: BI=0; blue: BI=1. Both BI=1 metrics are 0 at every step.*
-
-Over 100 steps, BI=1 rollout averages 24.22 token/ms, 91.3% of BI=0 (26.53):
-
-![DeepSeek-V4-Flash rollout throughput](/assets/figures/2026-10-14-train-inference-consistency/ds4-rollout-throughput.png)
-
-*Per-step rollout throughput (output token/ms, summed over 32 GPUs). Orange: BI=0; blue: BI=1. Thick line: moving average of the current and previous 4 steps; thin line: raw value.*
-
-Baseline train-inference KL grows (2e-3 to 29.9) while its reward falls back; BI=1 stays at diff 0 and its reward holds. Another potential gain is one fewer forward: we recompute old-logprob each step only to measure diff; after acceptance, training can use the rollout logprob instead.
-
-**Rollout side**, measured in this run: average throughput is 91.3% of baseline (about 9% lower), above Section 1's 70% floor. Baseline slowdown after step 90 inflates this; the first 89 steps give 88.6%.
-
-On the inference benchmark the consistent version matches or beats the baseline (4.5); the training-time gap is not yet attributed to operators; 3.2 points to MoE LL communication and backend, attention gather and dequantization, and per-request launches.
-
-**Training side**, not measured separately: per 3.2, overhead is repacking FP8 weights every forward, serial per-request attention and Top-K, one extra routing-metadata dispatch, and memory pressure from saving intermediates for backward (hence full recomputation: forward runs twice).
-
-A separate verl recipe PR preview on 32 GB200 GPUs reports about 10% end-to-end overhead: rollout near parity, the gap mostly in training. Training-side optimization is next.
-
-## 4. Module by module: technical choices in the DeepSeek-V4 recipe
-
-This section expands the key choices in the 3.2 master table. Each subsection covers the bottleneck, the choice and why, the numerical problem it introduces, the fix, and who pays.
-
-### 4.1 W8A8 and dense GEMM: same precision, same accumulation
+### 5.1 W8A8 and dense GEMM: same precision, same accumulation
 
 **Bottleneck and choice.** DeepSeek-V4-Flash-Base ships in block-FP8, so the natural deployment path is W8A8: weights in FP8 E4M3 with 128×128 blocks, activations quantized dynamically per token in groups of 128, and DeepGEMM for the GEMM.
 
@@ -216,7 +199,7 @@ A BF16 rollout would cost compute and weight bandwidth (we did not measure the l
 
 So the consistent version's training forward uses deployment-time W8A8 values: each forward quantizes the BF16 master weights to block FP8 by the deployment rule (checkpoint scales before the first update, recomputed from amax afterwards) and calls the inference GEMM.
 
-**Not everything is 8-bit.** DeepGEMM scales are powers of 2: UE8M0-packed on SM100, FP32 on SM90. The router gate and compressor projection output FP32, the indexer weight projection and lm_head are BF16, the KV cache is FP8 (4.2), and the routed experts' FP8 path is in 4.4. Backward is BF16 / FP32 against the BF16 master weights; optimizer state is FP32.
+**Not everything is 8-bit.** DeepGEMM scales are powers of 2: UE8M0-packed on SM100, FP32 on SM90. The router gate and compressor projection output FP32, the indexer weight projection and lm_head are BF16, the KV cache is FP8 (5.2), and the routed experts' FP8 path is in 5.4. Backward is BF16 / FP32 against the BF16 master weights; optimizer state is FP32.
 
 **The numerical problem: same precision, different accumulation.** The inference engine picks kernels by shape: the FP8 linear layer uses FlashInfer when M<32 and DeepGEMM otherwise; the router gate switches to a small-batch kernel at 16 tokens or fewer; the mHC split count grows with token count. Floating-point addition is not associative, so each makes a token's result depend on its neighbors.
 
@@ -224,7 +207,7 @@ So the consistent version's training forward uses deployment-time W8A8 values: e
 
 *Horizontal axis: tokens per step (schematic). The default path switches kernels at 32, so the same request in an 8-token and a 200-token step goes through FlashInfer and DeepGEMM and differs in the last bit. Batch-invariant mode has one summation order.*
 
-**Fix.** Under BI=1, each output element has exactly one accumulation order:
+**Fix.** In the consistent version, each output element has exactly one accumulation order:
 
 - the FP8 linear layer always uses DeepGEMM in batch-invariant mode (a DeepGEMM version without that mode raises an error rather than silently falling back);
 - the router gate uses the same FP32-output GEMM at every batch size;
@@ -235,9 +218,9 @@ Training calls the same kernels and packs FP8 weights by the deployment rule: a 
 
 **Cost.** Rollout loses faster small-batch kernels and one mHC fusion, but Tensor Cores stay in use. Training does not cache FP8 weights by default, so every forward (including the recompute forward) repacks them; the cache saves that time for one more resident FP8 copy.
 
-Because the BI=0 mHC split count varies with token count, each new prefill size triggers a 10–14 s recompilation. Rule out this stall before comparing the two runs.
+Because the baseline mHC split count varies with token count, each new prefill size triggers a 10–14 s recompilation. Rule out this stall before comparing the two runs.
 
-### 4.2 FP8 KV cache: FP8 storage, unified read path
+### 5.2 FP8 KV cache: FP8 storage, unified read path
 
 **Bottleneck and choice.** The DeepSeek-V4 KV cache is FP8. Per token per layer it stores 448 FP8 NoPE (no positional encoding) dimensions, 64 BF16 RoPE dimensions, one UE8M0 scale per 64 elements and 1 alignment byte: 584 bytes, about 57% of BF16 (1024 bytes), which directly sets concurrency. The consistent version keeps it, and both runs share one fused write kernel (q-norm, RoPE, K quantization, write).
 
@@ -255,7 +238,7 @@ Training has no real cache, but K must make the same FP8 round trip. The trainin
 
 **Cost.** Decode loses the direct-FP8 kernel and adds gather and dequantization; training adds a cache and a dequantization, and the compressor loops over requests. This is the price of phase consistency; storage precision is untouched.
 
-### 4.3 Top-K in sparse attention
+### 5.3 Top-K in sparse attention
 
 **Bottleneck.** The DSA indexer scores every history position, and Top-K picks at most 2048 for attention. This discrete choice turns tiny numerical differences into a different context: one ulp upstream can swap a position and change the whole layer after it.
 
@@ -275,17 +258,17 @@ The R3 alternative records the indices during rollout and replays them in traini
 
 This matches existing practice. [DeepSeek-V3.2](https://arxiv.org/abs/2512.02556) trains DSA with the indexer's input detached, the indexer trained only by a separate KL alignment loss and the main model only by the language-model loss, so the RL loss never reaches the indexer. [GLM-5](https://arxiv.org/abs/2602.15763) also freezes the indexer by default in RL, to speed up training and avoid unstable indexer learning. Our auxiliary loss also does not yet support CP>1.
 
-**Cost and recovery.** The deterministic Top-K takes about 5.9 µs per call, an order of magnitude faster than another radix select implementation with a built-in histogram (56.7 µs). Fusing Top-K with the index sort raises the consistent version's inference-benchmark throughput by 6.7% (configuration in 4.4); separately the two changes give only +2.3% and +0.1%. The interaction is unexplained, so measure them together. The remaining cost is multiple per-request launches in prefill.
+**Cost and recovery.** The deterministic Top-K takes about 5.9 µs per call, an order of magnitude faster than another radix select implementation with a built-in histogram (56.7 µs). Fusing Top-K with the index sort raises the consistent version's inference-benchmark throughput by 6.7% (configuration in 5.4); separately the two changes give only +2.3% and +0.1%. The interaction is unexplained, so measure them together. The remaining cost is multiple per-request launches in prefill.
 
 **Not yet covered**: under decode context parallel (DCP>1), the tie rule for merging candidates across GPUs is the opposite of the local rule, so this combination is unsupported.
 
-### 4.4 Low-precision expert GEMM: two layouts, same row result
+### 5.4 Low-precision expert GEMM: two layouts, same row result
 
-**Bottleneck.** The routed experts' FP8 grouped GEMM dominates the MoE layer, and its input layout depends on the communication mode. Rollout uses DeepEP low-latency (LL) mode (why: 4.5), giving a masked layout chunked by expert with fixed capacity per chunk. Training processes many tokens with DeepEP normal mode, giving a contiguous layout packed by expert.
+**Bottleneck.** The routed experts' FP8 grouped GEMM dominates the MoE layer, and its input layout depends on the communication mode. Rollout uses DeepEP low-latency (LL) mode (why: 5.5), giving a masked layout chunked by expert with fixed capacity per chunk. Training processes many tokens with DeepEP normal mode, giving a contiguous layout packed by expert.
 
 **Consistency locks the backend.** Of the block-FP8 MoE backends in our vLLM version, only DeepGEMM's grouped GEMM passed batch-invariance acceptance: cutlass lacks block-FP8, and triton falls into a batched implementation that does not declare batch invariance. So both consistent sides use DeepGEMM in batch-invariant mode; the baseline can use the faster FlashInfer TRT-LLM MoE.
 
-Rollout's masked grouped GEMM takes static capacity as the scheduling hint instead of reading the per-expert max token count back to the host, which would synchronize and cannot be graph-captured (4.6). Training uses the contiguous grouped GEMM, with each expert's row count aligned to 128.
+Rollout's masked grouped GEMM takes static capacity as the scheduling hint instead of reading the per-expert max token count back to the host, which would synchronize and cannot be graph-captured (5.6). Training uses the contiguous grouped GEMM, with each expert's row count aligned to 128.
 
 **Numerical problems and fixes.** For a token to get the same expert output in both layouts, three conditions must hold:
 
@@ -301,17 +284,17 @@ Rollout's masked grouped GEMM takes static capacity as the scheduling hint inste
 
 **Why R3 is unnecessary here.** R3 (Section 1) replays rollout routing because the two sides may compute different routing. Here the router's scoring GEMM uses one FP32-output kernel at every batch size on bitwise-identical inputs, so recomputed routing matches rollout. Backward fixes the expert indices and differentiates only routing weights.
 
-This assumes 1 update per step, as in the DeepSeek-V4 experiment. With several mini-batch updates per step (step batch larger than mini-batch), weights change after the first, later mini-batches' routing drifts from sampling time, and training is no longer strictly true on-policy; hence our recommendation of 1 update per step (Section 2). The math task in 6.2, with 4 updates per step, is exactly this case.
+This assumes 1 update per step, as in the DeepSeek-V4 experiment. With several mini-batch updates per step (step batch larger than mini-batch), weights change after the first, later mini-batches' routing drifts from sampling time, and training is no longer strictly true on-policy; hence our recommendation of 1 update per step (Section 2). The math task in 7.2, with 4 updates per step, is exactly this case.
 
-**Cost.** Rollout gives up FlashInfer TRT-LLM MoE, but the GEMM is not most of the gap. On the inference benchmark (GB200, DP8/EP8, 256 concurrency, 150 input / 3000 output per request) the consistent version started 33% slower than the baseline, about 83% of it from non-overlappable LL communication (4.5).
+**Cost.** Rollout gives up FlashInfer TRT-LLM MoE, but the GEMM is not most of the gap. On the inference benchmark (GB200, DP8/EP8, 256 concurrency, 150 input / 3000 output per request) the consistent version started 33% slower than the baseline, about 83% of it from non-overlappable LL communication (5.5).
 
 We also tried other parallel layouts for performance only (the final recipe is restricted to TP=1): TP2/DP4 is 17% slower, TP4/DP2 28% slower, and DP8 remains best for the consistent version. The inference-benchmark numbers below come from different optimization stages: numbers in one sentence share a configuration; do not compare across paragraphs.
 
 Training must save the input and gate_up for backward and pays for padding each expert to 128 rows.
 
-The SiLU·mul·quantization kernel also taught a fairness lesson. vLLM enables it whenever the shared library is present, ignoring the consistency switch, so any image shipping the library runs this batch-invariant kernel under BI=0 too. Unoptimized, it took 35.7 µs per call and 9.9% of GPU time, slowing the baseline. Optimization cut it to 5.3 µs and lifted the benchmark of the time from 16703 to 18313 tok/s for both runs. Confirm which kernel the baseline runs before comparing.
+The SiLU·mul·quantization kernel also taught a fairness lesson. vLLM enables it whenever the shared library is present, ignoring the consistency switch, so any image shipping the library runs this batch-invariant kernel in the baseline too. Unoptimized, it took 35.7 µs per call and 9.9% of GPU time, slowing the baseline. Optimization cut it to 5.3 µs and lifted the benchmark of the time from 16703 to 18313 tok/s for both runs. Confirm which kernel the baseline runs before comparing.
 
-### 4.5 Cross-GPU reduction: off the compared path
+### 5.5 Cross-GPU reduction: off the compared path
 
 **Bottleneck.** Rollout wants low latency and uses DP8/EP8; training must fit long-sequence activations and uses EP32 plus CP4. As Section 2 noted, different layouts need results invariant to parallelism degree, usually via a fixed, expensive reduction tree.
 
@@ -327,7 +310,7 @@ The SiLU·mul·quantization kernel also taught a fairness lesson. vLLM enables i
 
 **Numerical problems and fixes: making the data movement deterministic.**
 
-- **Rollout: fixed shape.** Each rank sends at most a fixed number of tokens per call and all ranks segment in lockstep; ranks with few tokens join every dispatch and combine with empty segments, and the shared expert launches once, in the first segment. Only LL implements this, and DeepEP normal mode disables CUDA Graph when DP>1 (4.6), so rollout must use LL.
+- **Rollout: fixed shape.** Each rank sends at most a fixed number of tokens per call and all ranks segment in lockstep; ranks with few tokens join every dispatch and combine with empty segments, and the shared expert launches once, in the first segment. Only LL implements this, and DeepEP normal mode disables CUDA Graph when DP>1 (5.6), so rollout must use LL.
 - **Training: recover each result by slot.** Normal mode has no fixed arrival order, so training dispatches routing metadata once more (per route: a 16-element token fingerprint, expert index and FP32 routing weight), matches each expert output to its token and slot by bitwise hash, and scatters into expert-ordered rows with a deterministic Triton kernel. Backward follows the same mapping, with routing-weight gradients in FP32.
 - **Communication library pinned as a guard.** NCCL channel count, thread count, protocol and algorithm are pinned, and both symmetric-memory all-reduce and custom all-reduce are off. Under TP=1 they are off the compared path; this is a guard, not the consistency mechanism.
 
@@ -337,11 +320,11 @@ We eventually closed the communication gap on the inference benchmark. Confirm b
 
 Training: one extra metadata dispatch plus hash matching. **Not covered**: TP>1 and decode context parallel, which would put cross-GPU reduction or merging back on the compared path.
 
-### 4.6 CUDA Graph: required for rollout, and must coexist with consistency
+### 5.6 CUDA Graph: required for rollout, and must coexist with consistency
 
-**Bottleneck.** Decode runs dozens of small kernels per layer per step at one token per request, so launch overhead would dominate; we keep CUDA Graph to hit the performance target. Graphs conflict with batch invariance in three places: a step may run in the graph or fall back to eager; graphs forbid host syncs and batch-dependent shapes; and graphs capture addresses while RL swaps weights every step.
+**Bottleneck.** Decode runs dozens of small kernels per layer per step at one token per request, so launch overhead would dominate; we keep CUDA Graph to hit the performance target. Graphs conflict with bitwise consistency in three places: a step may run in the graph or fall back to eager; graphs forbid host syncs and batch-dependent shapes; and graphs capture addresses while RL swaps weights every step.
 
-![Three conflicts between CUDA Graph and batch invariance](/assets/figures/2026-10-14-train-inference-consistency/ds4-cuda-graph.png)
+![Three conflicts between CUDA Graph and bitwise consistency](/assets/figures/2026-10-14-train-inference-consistency/ds4-cuda-graph.png)
 
 *The path each mode takes for three kinds of step, with inference-benchmark throughput on the right. A request switches between graph and eager depending on its batch, so both paths must be bitwise identical.*
 
@@ -355,9 +338,9 @@ We use FULL_AND_PIECEWISE, the fastest of the three, and diff stays 0 across the
 
 **Conflict 2: no host sync or batch-dependent shapes in the graph.** This aligns with consistency, and many designs serve both:
 
-- The MoE masked GEMM uses static capacity as the scheduling hint instead of reading the per-expert max token count back to the host (4.4);
-- LL's fixed per-rank capacity and lockstep segmentation fix the communication shape (4.5); DeepEP normal mode disables the graph when DP>1, another reason rollout can only use LL;
-- The sparse attention decode workspace size depends only on max length, compression ratio and window (4.2), and the row starts Top-K uses live in a resident zero buffer;
+- The MoE masked GEMM uses static capacity as the scheduling hint instead of reading the per-expert max token count back to the host (5.4);
+- LL's fixed per-rank capacity and lockstep segmentation fix the communication shape (5.5); DeepEP normal mode disables the graph when DP>1, another reason rollout can only use LL;
+- The sparse attention decode workspace size depends only on max length, compression ratio and window (5.2), and the row starts Top-K uses live in a resident zero buffer;
 - All workspaces are allocated once in warmup, before capture, and locked afterwards;
 - Performance-only shortcut branches (for example skipping indexer zeroing for short contexts) are disabled at capture time so no step's branch gets baked into the graph (the Conflict 1 bug came from such a branch).
 
@@ -365,9 +348,9 @@ We use FULL_AND_PIECEWISE, the fastest of the three, and diff stays 0 across the
 
 **Cost.** Mainly mode choice: PIECEWISE is slowest, and FULL has worse time to first token. Workspaces reserved at their upper bound cost some memory. Other speed recoveries (removing needless debug padding and cold start from rollout, faster KV cache zeroing) apply to both runs; the baseline must get them too, or the performance-loss number is meaningless.
 
-## 5. Lowering engineering cost with Agent + skill
+## 6. Lowering engineering cost with Agent + skill
 
-A and B can coexist, but the key choices in the 3.2 master table and Section 4 take expert judgment: which backend is batch-invariant, that discrete choices need aligned ties and order, how to align quantization and merge order across different communication modes, and that a communication gap first requires ruling out a transport difference. A new model, precision or hardware means starting over, so C does not hold.
+A and B can coexist, but the Section 5 master table and the key choices in it take expert judgment: which backend is batch-invariant, that discrete choices need aligned ties and order, how to align quantization and merge order across different communication modes, and that a communication gap first requires ruling out a transport difference. A new model, precision or hardware means starting over, so C does not hold.
 
 After DeepSeek-V4-Flash, we saw that most of this work is two kinds of task, each with a measurable goal:
 
@@ -386,11 +369,11 @@ The manual has 11 gates (C0–C10) with explicit pass conditions. To speed up co
 4. **Run RL, then switch to the full model (C8–C9).** On the small model, run two consecutive updates in the real training framework, comparing under the same weight version before and after each. After human review, switch to the full model and scale up stepwise, including checking the first step after checkpoint restore.
 5. **Recover performance (C10).** Optimize the most expensive operators one by one, rechecking consistency each time, then run a paired comparison against the baseline on the delivery image.
 
-Two designs matter most. First, **two agents advance the baseline and consistency in parallel**: one makes the baseline fast, the other builds the consistent version. The tuned baseline is frozen for human review, so the agent cannot slow it to narrow the gap. Second, **our pitfalls are written into the process**: the running program must match the source being read; checkpoints need the first post-restore step verified, not just a save; every performance conclusion needs a fair baseline and traceable raw data; before comparing communication bottlenecks, confirm both runs use the same transport (the lesson from 4.5).
+Two designs matter most. First, **two agents advance the baseline and consistency in parallel**: one makes the baseline fast, the other builds the consistent version. The tuned baseline is frozen for human review, so the agent cannot slow it to narrow the gap. Second, **our pitfalls are written into the process**: the running program must match the source being read; checkpoints need the first post-restore step verified, not just a save; every performance conclusion needs a fair baseline and traceable raw data; before comparing communication bottlenecks, confirm both runs use the same transport (the lesson from 5.5).
 
-The skill lowers the cost of localization and regression (savings not yet quantified here); it does not replace human judgment: humans still review the baseline, precision trade-offs and recipe. 6.2 is an example: the agent builds a repro from the symptom, runs discriminating experiments and eliminates hypotheses, and a human sets the direction at a specific step.
+The skill lowers the cost of localization and regression (savings not yet quantified here); it does not replace human judgment: humans still review the baseline, precision trade-offs and recipe. 7.2 is an example: the agent builds a repro from the symptom, runs discriminating experiments and eliminates hypotheses, and a human sets the direction at a specific step.
 
-## 6. Transfer: Nemotron, a Mamba hybrid architecture + NVFP4
+## 7. Transfer: Nemotron, a Mamba hybrid architecture + NVFP4
 
 We then tested the reference recipe and skill on a structurally very different model: Nemotron.
 
@@ -402,11 +385,11 @@ IsoExec also contributes the **unified model**: training and inference share one
 
 Mamba-2 and GDN are both linear recurrences: state recurs per token, training and prefill run chunk-parallel, decode runs one step at a time, and all three need one rounding order. We make decode exactly replay prefill's chunked arithmetic instead of its own single-step recurrence, and training imports the same operators as inference, following the unified model's kernel sharing. Agent + skill did this alignment.
 
-The target is **Nemotron-3.5-Lightning-30B-A3B (NVFP4)**, a Mamba-2 / attention / MoE hybrid (NVFP4 W4A16 routed experts, FP8 Mamba projections, FP8 KV cache for attention) on GB200. BI=0 uses NVFP4 QAT training (quantization rule and export from NVIDIA ModelOpt) + R3 route replay; BI=1 shares vLLM's forward, without route replay. Both runs use BF16 master weights and 1 update per step.
+The target is **Nemotron-3.5-Lightning-30B-A3B (NVFP4)**, a Mamba-2 / attention / MoE hybrid (NVFP4 W4A16 routed experts, FP8 Mamba projections, FP8 KV cache for attention) on GB200. The baseline uses NVFP4 QAT training (quantization rule and export from NVIDIA ModelOpt) + R3 route replay; the consistent version shares vLLM's forward, without route replay. Both runs use BF16 master weights and 1 update per step.
 
 In vLLM, every operator that might depend on batch composition gets a batch-invariant implementation, and training (a lightweight Megatron-LM fork) imports them:
 
-| Operator | What BI=1 does |
+| Operator | Consistent version |
 |---|---|
 | Mamba-2 SSD scan | decode exactly replays prefill's chunked arithmetic, fixed autotune config, fp32 state |
 | Attention | FlashAttention with fixed split-KV, split count independent of batch |
@@ -415,34 +398,34 @@ In vLLM, every operator that might depend on batch composition gets a batch-inva
 | Router GEMM | Batch-invariant persistent matmul, fp32 output |
 | Norm / FP8 quantization | Unified batch-invariant kernels; value-changing fusions forbidden |
 
-### 6.1 Results: training on SWE-bench Pro
+### 7.1 Results: training on SWE-bench Pro
 
 We run agentic RL on SWE-bench Pro in remote sandboxes: 32 tasks × 8 trajectories per step, about 57K tokens per trajectory on average, GRPO, 8 GB200 nodes per run. Both runs use the same image and recipe, without corrections such as TIS or MIS. With 1 update per step, the KL between pre-update rollout logprobs and the training-side recomputation is that step's train-inference KL.
 
 ![Nemotron SWE-bench Pro: train-inference KL, training score and entropy](/assets/figures/2026-10-14-train-inference-consistency/nemotron-swe.png)
 
-*Top: per-step train-inference KL; middle: training score (moving average over the current and previous 4 steps); bottom: actor entropy. Orange: BI=0; blue: BI=1. At BI=1 step 10 only a few trajectories returned from the sandbox, so its score is excluded.*
+*Top: per-step train-inference KL; middle: training score (moving average over the current and previous 4 steps); bottom: actor entropy. Orange: baseline; blue: consistent version. At consistent-version step 10 only a few trajectories returned from the sandbox, so its score is excluded.*
 
-- **BI=1**: train-inference KL is exactly 0 every step, entropy stays around 0.05, and the score goes from 0.56 (first 10 steps) to 0.59 (last 10), with no drop.
-- **BI=0**: train-inference KL falls from ~0.015 to ~0.002, but entropy rises from 0.05 to 2.6 and the score drops from 0.56 to 0.22 (first 10 steps vs. last 10).
-- **rollout speed**: over the first 30 steps, while both runs are healthy, BI=1 rollout throughput is 87.5% of BI=0, only 12.5% slower.
+- **Consistent version**: train-inference KL is exactly 0 every step, entropy stays around 0.05, and the score goes from 0.56 (first 10 steps) to 0.59 (last 10), with no drop.
+- **Baseline**: train-inference KL falls from ~0.015 to ~0.002, but entropy rises from 0.05 to 2.6 and the score drops from 0.56 to 0.22 (first 10 steps vs. last 10).
+- **rollout speed**: over the first 30 steps, while both runs are healthy, the consistent version's rollout throughput is 87.5% of the baseline's, only 12.5% slower.
 
 ![Nemotron SWE-bench Pro: rollout throughput](/assets/figures/2026-10-14-train-inference-consistency/nemotron-swe-rollout.png)
 
-*Per-step rollout throughput (token/ms, moving average over the current and previous 4 steps). Orange: BI=0; blue: BI=1.*
+*Per-step rollout throughput (token/ms, moving average over the current and previous 4 steps). Orange: baseline; blue: consistent version.*
 
-### 6.2 Lesson: with multiple updates per step, consistency is not enough
+### 7.2 Lesson: with multiple updates per step, consistency is not enough
 
-Earlier, we reused a math-task recipe with 4 mini-batch updates per step. Consistency only guarantees identical routing under the same weight version. After the first update the weights change, so routing recomputed for later mini-batches deviates from sampling-time routing: about 7% of tokens switch expert combination after each update. Hence we recommend 1 update per step (Section 2), as in 6.1. The agent located this with a small-scale repro; a human set the direction.
+Earlier, we reused a math-task recipe with 4 mini-batch updates per step. Consistency only guarantees identical routing under the same weight version. After the first update the weights change, so routing recomputed for later mini-batches deviates from sampling-time routing: about 7% of tokens switch expert combination after each update. Hence we recommend 1 update per step (Section 2), as in 7.1. The agent located this with a small-scale repro; a human set the direction.
 
-## 7. Open source
+## 8. Open source
 
 We open-source this so others can reach train-inference consistency with less reliance on senior engineers checking operator by operator, using the skill, ready-made code and an agent on their own model. The release:
 
 - **[train-inference-consistency skill](https://github.com/vllm-project/vllm/pull/61551)**: the full workflow (C0–C10), ten guides, and key practices such as logprob comparison and gradient cross-checking;
 - **DeepSeek-V4**: a true on-policy RL recipe reaching 0 diff on Megatron and vLLM, [verl-project/verl#7688](https://github.com/verl-project/verl/pull/7688);
 - **Nemotron-3.5-Lightning-30B-A3B** (BF16 master weights, quantized to the deployment NVFP4 in the training forward and at weight sync):
-  - vLLM batch-invariant inference aligned with training: [aoshen02/vllm#85](https://github.com/aoshen02/vllm/pull/85);
+  - vLLM bitwise-consistent inference aligned with training: [aoshen02/vllm#85](https://github.com/aoshen02/vllm/pull/85);
   - A training actor aligned with vLLM: [aoshen02/Megatron-LM#7](https://github.com/aoshen02/Megatron-LM/pull/7);
   - Two verl changes: [aoshen02/verl#11](https://github.com/aoshen02/verl/pull/11);
   - Train-inference consistency recipe and unified image Dockerfile: [aoshen02/verl#12](https://github.com/aoshen02/verl/pull/12).
@@ -453,4 +436,4 @@ Next: train-inference consistency for DeepSeek-V4.1 has reached 0 diff; performa
 
 ## Acknowledgments
 
-Thanks to (in alphabetical order): [Jian Hu](https://hijkzzz.notion.site/) of NVIDIA Research, [Nolen Liang](https://github.com/NolenLiang) and [Tomer](https://github.com/TomerBN-Nvidia) of the Nemotron team, [Verda](https://verda.com/) for sandbox support, the [verl](https://github.com/verl-project/verl) team, and the vLLM community.
+Thanks to (in alphabetical order): [Jian Hu](https://hijkzzz.notion.site/) of NVIDIA Research, [Mingrui](https://github.com/mingruimingrui) of TikTok, [Nolen Liang](https://github.com/NolenLiang) and [Tomer](https://github.com/TomerBN-Nvidia) of the Nemotron team, the [slime](https://github.com/THUDM/slime) community, [Verda](https://verda.com/) for sandbox support, the [verl](https://github.com/verl-project/verl) team, and the vLLM community.
