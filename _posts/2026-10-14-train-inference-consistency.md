@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Finish RL Training Faster: Bitwise-Consistent, High-Performance, Agent-Driven"
-author: "Bai Yan (NVIDIA), Ao Shen (Inferact)"
+author: "Yan Bai (NVIDIA), Ao Shen (Inferact)"
 date: 2026-10-14 09:00:00 +0000
 summary: "We make vLLM rollout and the training forward give bitwise identical logprobs on DeepSeek-V4-Flash and Nemotron-3.5-Lightning-30B-A3B (NVFP4), keep 91% of rollout throughput on DeepSeek-V4-Flash, and open-source the agent skill."
 image: /assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png
