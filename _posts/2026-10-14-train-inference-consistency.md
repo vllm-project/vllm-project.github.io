@@ -374,7 +374,7 @@ After DeepSeek-V4-Flash, we saw that most of this work is two kinds of task, eac
 
 Reading code, tracing call chains, locating divergences, writing repros, changing kernels and rerunning regressions is long-running work suited to an agent, with success decided by consistency comparison and performance measurement.
 
-We packaged this as the [train-inference-consistency skill](https://github.com/vllm-project/vllm/tree/main/.agents/skills/train-inference-consistency). A skill is an operating manual for agents: what to do in what order, and what each step must reach to pass. It is not one experiment's launch command; it is meant to work for other models too.
+We packaged this as the [train-inference-consistency skill](https://github.com/vllm-project/vllm/pull/61551). A skill is an operating manual for agents: what to do in what order, and what each step must reach to pass. It is not one experiment's launch command; it is meant to work for other models too.
 
 The manual has 11 gates (C0–C10) with explicit pass conditions. To speed up cold start, we **first cut a few layers from the full model into a small model, solve most problems there, then move to the full model**. Five steps:
 
@@ -437,7 +437,7 @@ Earlier, we reused a math-task recipe with 4 mini-batch updates per step. Consis
 
 We open-source this so others can reach train-inference consistency with less reliance on senior engineers checking operator by operator, using the skill, ready-made code and an agent on their own model. The release:
 
-- **[train-inference-consistency skill](https://github.com/vllm-project/vllm/tree/main/.agents/skills/train-inference-consistency)**: the full workflow (C0–C10), nine knowledge guides, and key practices such as logprob comparison and gradient cross-checking;
+- **[train-inference-consistency skill](https://github.com/vllm-project/vllm/pull/61551)**: the full workflow (C0–C10), ten guides, and key practices such as logprob comparison and gradient cross-checking;
 - **DeepSeek-V4**: a true on-policy RL recipe reaching 0 diff on Megatron and vLLM, [verl-project/verl#7688](https://github.com/verl-project/verl/pull/7688);
 - **Nemotron-3.5-Lightning-30B-A3B** (BF16 master weights, quantized to the deployment NVFP4 in the training forward and at weight sync):
   - vLLM batch-invariant inference aligned with training: [aoshen02/vllm#85](https://github.com/aoshen02/vllm/pull/85);
