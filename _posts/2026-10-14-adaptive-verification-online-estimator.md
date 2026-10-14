@@ -3,8 +3,8 @@ layout: post
 title: "Adaptive Verification Without a Confidence Head"
 author: "Giancarlo Delfin (Inferact)"
 summary: "An online-fitted acceptance estimator that lets every draft-model speculator use Adaptive Verification, by predicting the target's acceptance probability from the drafter's own logits and refitting continuously during serving."
-image: /assets/figures/2026-10-09-adaptive-verification-online-estimator/cover.png
-social_image: /assets/figures/2026-10-09-adaptive-verification-online-estimator/cover.png
+image: /assets/figures/2026-10-14-adaptive-verification-online-estimator/cover.png
+social_image: /assets/figures/2026-10-14-adaptive-verification-online-estimator/cover.png
 math: true
 tags:
   - speculative-decoding
@@ -123,7 +123,7 @@ However, once we exclude the first draft from the averages, the picture changes 
 
 The head and estimator are now virtually tied on calibration. The per-position AUC breakdown helps explain why:
 
-![Per-position AUC for the online estimator and the trained confidence head on DeepSeek-V4-Flash + DSpark at 7 speculative tokens, over 4.47M labeled drafts. The head leads at the first position; the estimator leads from the second onwards, and both fall off past the fifth position.](/assets/figures/2026-10-09-adaptive-verification-online-estimator/auc-by-draft-position.png)
+![Per-position AUC for the online estimator and the trained confidence head on DeepSeek-V4-Flash + DSpark at 7 speculative tokens, over 4.47M labeled drafts. The head leads at the first position; the estimator leads from the second onwards, and both fall off past the fifth position.](/assets/figures/2026-10-14-adaptive-verification-online-estimator/auc-by-draft-position.png)
 
 The confidence head is the better predictor on the first draft position, but the estimator takes the lead from the second position onwards. The gap widens with depth, with the estimator leading by 0.08 AUC by the last position. Both predictors also fall off after the fifth position. This is likely because DSV4-Flash's DSpark declares a block size of 5 and the drafter was never trained past it, so the drafts themselves get worse there.
 
@@ -177,15 +177,15 @@ Read together, the two tables suggest a division of labor. The slope measures ho
 
 We benchmarked three checkpoints (MiMo-V2.5-Pro-FP4 + DFlash, Inkling-NVFP4 + MTP, and Muse-Glimmer-30B + DFlash2) that previously could not use AV at all, along with DSV4-Flash + DSpark + the estimator, and DSV4-Flash + DSpark + the confidence head, as a reference. The gains below were captured with AV off vs on, temperature 1.0, top-p 0.95, and concurrency 64, over four datasets.
 
-![Output throughput gain from Adaptive Verification, AV off vs on, for MiMo-V2.5-Pro, Inkling-NVFP4, Muse-Glimmer-30B, and DeepSeek-V4-Flash + DSpark with both the online estimator and the confidence head, across four datasets at concurrency 64](/assets/figures/2026-10-09-adaptive-verification-online-estimator/gain-by-dataset-with-dsv4.png)
+![Output throughput gain from Adaptive Verification, AV off vs on, for MiMo-V2.5-Pro, Inkling-NVFP4, Muse-Glimmer-30B, and DeepSeek-V4-Flash + DSpark with both the online estimator and the confidence head, across four datasets at concurrency 64](/assets/figures/2026-10-14-adaptive-verification-online-estimator/gain-by-dataset-with-dsv4.png)
 
 Compared to fixed verification, the online estimator at the same speculative length is a win across all benchmarked datasets. However, that gain alone doesn't tell the whole story. Oftentimes, a smaller fixed length can be found to outperform AV at the max speculative length at specific concurrencies. The Pareto curve below was captured with DSV4 + DSpark across a sweep of fixed speculative lengths and AV at the max speculative length:
 
-![Throughput versus interactivity for DeepSeek-V4-Flash + DSpark across fixed speculative lengths and Adaptive Verification with the online estimator and the confidence head](/assets/figures/2026-10-09-adaptive-verification-online-estimator/dsv4-frontier-throughput-vs-interactivity.png)
+![Throughput versus interactivity for DeepSeek-V4-Flash + DSpark across fixed speculative lengths and Adaptive Verification with the online estimator and the confidence head](/assets/figures/2026-10-14-adaptive-verification-online-estimator/dsv4-frontier-throughput-vs-interactivity.png)
 
 The online estimator and the confidence head are roughly on par in terms of performance, across all measured concurrencies. However, the online estimator is not meant to be a replacement for the confidence head, but rather a drop-in alternative in the absence of one. Let's see how it performs on a model pair that currently lacks a confidence head. Below is the Pareto curve for MiMo-V2.5-Pro-FP4 + DFlash across a sweep of fixed speculative lengths and AV:
 
-![Throughput versus interactivity for MiMo-V2.5-Pro-FP4 + DFlash across fixed speculative lengths and Adaptive Verification with the online estimator](/assets/figures/2026-10-09-adaptive-verification-online-estimator/mimo-frontier-throughput-vs-interactivity.png)
+![Throughput versus interactivity for MiMo-V2.5-Pro-FP4 + DFlash across fixed speculative lengths and Adaptive Verification with the online estimator](/assets/figures/2026-10-14-adaptive-verification-online-estimator/mimo-frontier-throughput-vs-interactivity.png)
 
 AV sits on the throughput-interactivity frontier at 5 of 7 concurrencies.
 
