@@ -11,6 +11,8 @@ tags:
   - performance
 ---
 
+<img src="/assets/figures/2026-10-14-adaptive-verification-online-estimator/cover.png" alt="Adaptive Verification with an online-fitted acceptance estimator" width="100%">
+
 ## TL;DR
 
 Confidence scoring is now supported for all draft-model-based speculator types. In the absence of a confidence head, an **online-fitted estimator** derives a feature from the drafter's logits to predict the target model's probability of accepting it, which is used directly as a confidence score for Adaptive Verification. The estimator's coefficients are continuously fitted, adapting to the incoming data traffic. This feature landed in PR [#52228](https://github.com/vllm-project/vllm/pull/52228), and is enabled with `enable_adaptive_verification` for draft models without a confidence head.
