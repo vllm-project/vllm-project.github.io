@@ -2,7 +2,7 @@
 layout: post
 title: "Reducing vLLM startup time with one uv flag"
 author: "Nils Matteson"
-summary: "A pinned official nightly tested with 8B and 32B models on a Xeon/H100 server, plus a separate three-model rig study. Models are local; image pull is excluded."
+summary: "One uv build flag saved 17.6–17.8 seconds per startup for Qwen3-8B and Qwen3-32B on an H100 server, with images and models already local."
 image: /assets/figures/2026-09-22-python-bytecode-startup/bytecode-server.png
 social_image: /assets/figures/2026-09-22-python-bytecode-startup/bytecode-server.png
 tags:
@@ -10,38 +10,39 @@ tags:
   - deployment
 ---
 
-Shipped Python bytecode saved 17.6 seconds with Qwen3-8B and 17.8 seconds with Qwen3-32B in median paired startup time on a Xeon/H100 server. I used four adjacent pairs per model, timing process launch to the first correct response with weights already local. The build change is one uv setting:
+Building Python bytecode into the image saved **17.6 seconds for Qwen3-8B and 17.8 seconds for Qwen3-32B** in median paired startup time on a Xeon/H100 server. The change is one uv setting, enabled before installing runtime packages:
 
 ```dockerfile
 ENV UV_COMPILE_BYTECODE=1
 ```
 
-This is uv's `--compile-bytecode` flag in environment-variable form. It compiles Python source when packages are installed, so new containers can use the bytecode from their first launch.
+This tells uv to compile Python source during package installation, so fresh containers can load the prepared `.pyc` files instead of compiling that source at startup.
 
-For the server test, I used one pinned official nightly and removed or restored only its source-backed package `.pyc` files. The control starts without package bytecode; normal cache writes remain enabled in both arms. The interpreter, installed software and paths stayed the same. This checks the benefit of the shipped caches rather than comparing two release images.
-
-| Model | Median paired startup saving | Median paired reduction |
-|---|---:|---:|
-| Qwen3-8B | 17.60 s | 17.6% |
-| Qwen3-32B | 17.75 s | 13.9% |
-
-![All four paired process-launch-to-first-correct-response observations for each model, comparing package bytecode absent with the original shipped caches.](/assets/figures/2026-09-22-python-bytecode-startup/bytecode-server.png)
-
-*Four adjacent pairs per model, two in each order, on one Xeon Platinum 8480+ / H100 SXM 80GB server. BF16, TP1, maximum context 2048. Affinity selected eight physical cores; allocation was nonexclusive. Models local; fresh application/compiler caches. Python/native files were made resident in both arms before timing. No image pull or model download is included.*
-
-These are per-model paired medians, not a fleet-wide estimate. The [server methods and all eight pairs](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#server-follow-up-october-9-2026), [JSON](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/server-measurements.json) and [16-observation CSV](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/server-observations.csv) retain the exact starting state and checks. The same-family models test size; they do not establish architecture diversity or general serving equivalence.
-
-I also ran a separate matched-image study on my i9-13900HX / RTX 4090 Laptop: six balanced pairs each for Qwen3-0.6B, Qwen3-1.7B and SmolLM2-1.7B. All 18 pairs favored precompilation, with median paired savings of 12.8–13.5 seconds. Its [all-observation figure](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/bytecode-multimodel.png), [methods](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#three-model-launch-only-follow-up-october-9-2026) and [data](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/multi-model-measurements.json) remain separate. Hardware, runtime and clock differ, so a change in saving cannot be assigned to the CPU alone.
-
-In the earlier Qwen3-0.6B experiment, the clock also included pulling and unpacking the image from a local loopback registry into an empty Docker store. Its three paired savings were 15.36, 11.21 and 16.10 seconds. The precompiled image added 153 MB compressed, or 1.8%; that transfer tradeoff remains relevant on a slow first pull. Those [original image-delivery methods](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#image-delivery) and data remain separate from the launch-only follow-up.
-
-For official-image users, [PR #55422](https://github.com/vllm-project/vllm/pull/55422) is included in this [CUDA nightly](https://hub.docker.com/r/vllm/vllm-openai/tags?name=nightly-8cbd5d03006c33185f402249ff2b448efd594986), whose build setting I verified from the published image metadata:
+For official-image users, [PR #55422](https://github.com/vllm-project/vllm/pull/55422) is already included in this [CUDA nightly](https://hub.docker.com/r/vllm/vllm-openai/tags?name=nightly-8cbd5d03006c33185f402249ff2b448efd594986):
 
 ```text
 vllm/vllm-openai:nightly-8cbd5d03006c33185f402249ff2b448efd594986
 ```
 
-As of October 9, the latest stable release, [v0.31.0](https://github.com/vllm-project/vllm/releases/tag/v0.31.0), does not include the change. The server follow-up uses this pinned nightly. Its actual linux/amd64 runtime had valid caches for all 31,528 package source files checked; the earlier matched-image studies use their retained images. The [supplement](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#official-image-availability-october-9-2026) records the image digests and verification scope.
+As of October 14, the latest stable release, [v0.31.0](https://github.com/vllm-project/vllm/releases/tag/v0.31.0), does not include the change.
+
+## Startup savings on the H100
+
+I timed process launch to the first correct response, with the image and model files already local. Four adjacent pairs per model compared the nightly's shipped package bytecode with those caches removed. All eight pairs improved. **Image pull and model download are excluded.**
+
+![All four paired process-launch-to-first-correct-response observations for each model, comparing package bytecode absent with the original shipped caches.](/assets/figures/2026-09-22-python-bytecode-startup/bytecode-server.png)
+
+*Four pairs per model, two in each order, on one Xeon Platinum 8480+ / H100 SXM 80GB server. Software files were resident in RAM; application/compiler caches started fresh. Lines connect paired starts.*
+
+The interpreter, installed software and paths stayed the same; only package `.pyc` availability changed. Normal cache writes remained enabled in both conditions. The [methods](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#server-follow-up-october-9-2026), [JSON](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/server-measurements.json) and [all 16 observations](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/server-observations.csv) record the configuration and output checks. These are paired medians on one deployment, not a fleet-wide estimate.
+
+The absolute saving was similar for the two model sizes, while the percentage reduction was larger for 8B: 17.6% versus 13.9%. That is consistent with avoiding Python import work shared by both models. The time saved will depend on the runtime and host.
+
+## Other startup measurements
+
+On my i9-13900HX / RTX 4090 Laptop, a separate matched-image study covered Qwen3-0.6B, Qwen3-1.7B and SmolLM2-1.7B with six balanced pairs each. All 18 pairs favored precompilation, with median paired savings of 12.8–13.5 seconds. The [figure](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/bytecode-multimodel.png) shows every pair, and the [methods](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#three-model-launch-only-follow-up-october-9-2026) link the data. Hardware, runtime and clock differ from the H100 study, so I keep the results separate.
+
+An earlier Qwen3-0.6B test also included pulling and unpacking matched images from a local loopback registry into an empty Docker store. It saved a median paired 15.4 seconds across three pairs. The precompiled image added 153 MB compressed, or 1.8%, which can matter on a slow first pull. The [image-delivery measurements](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#image-delivery) retain that separate timing boundary and image-size tradeoff.
 
 ## Why fresh containers compile Python again
 
@@ -63,17 +64,17 @@ Running the precompiled image with `-X pycache_prefix` pointing at an empty dire
 
 ## Compiler time explains most of the import saving
 
-In a separately instrumented serving-CLI import, Python spent 6.99 seconds compiling source. Valid bytecode shortened that import by 7.19 seconds. Compiler time accounts for most of this difference, leaving about 0.20 seconds unexplained. This diagnostic used one run per condition; it explains the import saving, not the full server-startup saving.
+In one separately instrumented serving-CLI comparison, valid bytecode cut import time from **12.20 to 5.01 seconds**, a saving of 7.19 seconds. Without the caches, Python spent 6.99 seconds inside 5,118 source-compiler calls; with them, it made zero such calls. Compilation accounts for most of that import gap. This one-run-per-condition diagnostic does not partition the full server-startup saving.
 
-For repeated measurements without instrumentation, I used a released vLLM 0.28.0 installation outside Docker. The serving-CLI import took a median 12.27 seconds without precompiled package bytecode and 5.02 seconds with it. The other import roots improved too:
+A separate, repeated study measured imports without compiler instrumentation in a released vLLM 0.28.0 installation outside Docker. Every import root improved:
 
 ![Fresh-process import measurements for torch, transformers, vLLM and the serving CLI. Each root is measured independently, with and without bytecode.](/assets/figures/2026-09-22-python-bytecode-startup/import-times.png)
 
-*Three fresh processes per condition, with the measured Python and native-library files resident in memory and no compiler instrumentation. Dots are observations; ticks are medians. Each import includes its dependencies, so rows are not additive.*
+*Three fresh processes per condition, with the measured Python and native-library files resident in memory and no compiler instrumentation. These are separate observations from the diagnostic above. Dots are observations; ticks are medians. Each import includes its dependencies, so rows are not additive.*
 
 In this vLLM release, `import vllm` already loads Dynamo, Inductor and SymPy; a plain `import torch` leaves them unloaded. Most of the source belongs to dependencies, but vLLM's import path decides when it loads.
 
-To isolate the compiler, I traced the files that the serving-CLI import compiled: 5,118 files containing 78.6 MB of source. This installation differs from the Docker build above, which compiled 5,257 files. I read the corpus into memory before timing Python's compiler directly:
+For a separate compiler-only test, I used the traced serving-CLI corpus: 5,118 files containing 78.6 MB of source. This installation differs from the Docker build above, which compiled 5,257 files. I read the corpus into memory before timing Python's compiler directly:
 
 ```python
 # Read and verify the sources before starting the clock.
@@ -81,7 +82,7 @@ for filename, source_bytes in preloaded_sources:
     compile(source_bytes, filename, "exec", dont_inherit=True, optimize=0)
 ```
 
-Compiling and discarding those code objects took 6.30 seconds median across three passes, with 6.30 seconds of current-thread CPU time. No file reads, module execution or bytecode writes occurred inside the timed loop.
+Compiling and discarding those code objects took 6.30 seconds median across three fresh-process passes, with 6.30 seconds of current-thread CPU time. No file reads, module execution or bytecode writes occurred inside the timed loop. This is the standalone compiler median; the 6.99 seconds above was measured during an actual import with per-call timing hooks.
 
 ## The saving remains with source files already in RAM
 
