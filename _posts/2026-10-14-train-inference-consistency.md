@@ -3,12 +3,11 @@ layout: post
 title: "Finish RL Training Faster: Bitwise-Consistent, High-Performance, Agent-Driven"
 author: "Bai Yan (NVIDIA), Ao Shen (Inferact)"
 date: 2026-10-14 09:00:00 +0000
-summary: "We make vLLM rollout and the training forward give bitwise identical logprobs on DeepSeek-V4-Flash and Nemotron-H NVFP4, keep 91% of rollout throughput on DeepSeek-V4-Flash, and open-source an agent skill for other models."
+summary: "We make vLLM rollout and the training forward give bitwise identical logprobs on DeepSeek-V4-Flash and Nemotron-3.5-Lightning-30B-A3B (NVFP4), keep 91% of rollout throughput on DeepSeek-V4-Flash, and open-source the agent skill."
 image: /assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png
 social_image: /assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png
 tags:
-  - rl
-  - batch-invariance
+  - reinforcement-learning
   - deepseek
 ---
 
@@ -20,7 +19,7 @@ Stable training means fewer crashes, rollbacks and reruns, and less total time t
 - **B, high consistency**: training and inference compute the same policy for the same weights;
 - **C, low cost and generality**: getting A and B on a new model, precision or hardware costs acceptable effort.
 
-These rarely hold together. Drop B and you optimize freely but risk unstable training. Drop A and you can use consistent kernels, but on the workload reported by [Thinking Machines Lab](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference) time went from 26 to 55 seconds, or 42 seconds with an improved attention kernel. Keeping A and B means aligning model by model and operator by operator, which used to need senior engineers, so C fails.
+These rarely hold together. Drop B and you optimize freely but risk unstable training. Drop A and you can use consistent kernels, but inference gets much slower (numbers in the table below). Keeping A and B means aligning model by model and operator by operator, which used to need senior engineers, so C fails.
 
 We make B strict on the high-performance numerical path: with the same weights and input, training and inference produce a **bitwise identical** logprob for every sampled token (diff = 0; Section 2 defines it exactly). This is true on-policy: training optimizes the numerical policy that actually sampled. It holds on our accepted tasks (math reasoning, multi-turn tool calling) and parallel layouts, including different layouts per side. Agent + skill then cuts the cost of building this path. The post covers:
 
@@ -98,11 +97,12 @@ Discrete choices such as Top-K and MoE routing are an amplifier, not a third roo
 
 To reach 0 diff: remove static path and order-of-operations differences, then pin dynamic path selection so it ignores load. With upstream aligned, discrete selection must also match: same tie-breaking, output ordering and merging rules on both sides.
 
-Here diff is, before each update with the same weight version and token prefix, the difference between rollout's logprob for each valid token (sampled tokens inside the response mask) and the training side's recomputed old-logprob. Acceptance requires the max, mean and standard deviation of the corresponding-probability difference, and k3 KL, all to be exactly 0. This is exact equality, not a threshold, checked before each update; a mini-batch update changes the policy anyway, which the definition excludes.
+Here diff is, before each update with the same weight version and token prefix, the difference between rollout's logprob for each valid token (sampled tokens inside the response mask) and the training side's recomputed old-logprob. Acceptance requires the max, mean and standard deviation of the per-token difference |p_rollout − p_train|, and the k3 KL, all to be exactly 0. This is exact equality, not a threshold, checked before each update; a mini-batch update changes the policy anyway, which the definition excludes.
 
 Hence: **a train-inference consistent recipe does only 1 update per step (step batch equals mini-batch).** With multiple mini-batch updates per step, from the second on, training weights differ from sampling weights; diff = 0 does not cover this, and training stops being strictly true on-policy (example in 6.2).
 
 Two easily missed points. First, the four dimensions guarantee only a consistent forward; training also needs a correct backward, and the first step after checkpoint restore must still be consistent. Second, **diff = 0 says the two sides compute the same thing, not that it suits training**: with multiple updates per step, diff = 0 holds while routing drifts between updates (6.2). diff = 0 is our engineering target, not a sufficient condition for training quality, which needs separate acceptance.
+
 ## 3. Reference recipe: DeepSeek-V4-Flash
 
 DeepSeek-V4-Flash combines low-precision compute, sparse attention and multi-node expert parallelism; it is one of the hardest consistency tasks we have done. From the FP8 base we trained two 100-step runs on GB200: an optimized high-performance baseline and a consistent version with diff = 0.
@@ -203,6 +203,7 @@ On the inference benchmark the consistent version matches or beats the baseline 
 **Training side**, not measured separately: per 3.2, overhead is repacking FP8 weights every forward, serial per-request attention and Top-K, one extra routing-metadata dispatch, and memory pressure from saving intermediates for backward (hence full recomputation: forward runs twice).
 
 A separate verl recipe PR preview on 32 GB200 GPUs reports about 10% end-to-end overhead: rollout near parity, the gap mostly in training. Training-side optimization is next.
+
 ## 4. Module by module: technical choices in the DeepSeek-V4 recipe
 
 This section expands the key choices in the 3.2 master table. Each subsection covers the bottleneck, the choice and why, the numerical problem it introduces, the fix, and who pays.
@@ -363,6 +364,7 @@ We use FULL_AND_PIECEWISE, the fastest of the three, and diff stays 0 across the
 **Conflict 3: graphs capture addresses, weights change every step.** After each step, training quantizes the updated BF16 weights to block FP8 by the deployment rule, exports them and transfers them to rollout in buckets. Rollout must copy new values into the original storage rather than new memory that leaves the graph on old addresses, and recompute weight-derived mHC parameters in place without new tensors. Matching at the first step is not enough, so the skill's acceptance compares again after update, export and reload.
 
 **Cost.** Mainly mode choice: PIECEWISE is slowest, and FULL has worse time to first token. Workspaces reserved at their upper bound cost some memory. Other speed recoveries (removing needless debug padding and cold start from rollout, faster KV cache zeroing) apply to both runs; the baseline must get them too, or the performance-loss number is meaningless.
+
 ## 5. Lowering engineering cost with Agent + skill
 
 A and B can coexist, but the key choices in the 3.2 master table and Section 4 take expert judgment: which backend is batch-invariant, that discrete choices need aligned ties and order, how to align quantization and merge order across different communication modes, and that a communication gap first requires ruling out a transport difference. A new model, precision or hardware means starting over, so C does not hold.
@@ -448,7 +450,6 @@ We open-source this so others can reach train-inference consistency with less re
 Issues, PRs and feedback from using the skill on your own model are welcome.
 
 Next: train-inference consistency for DeepSeek-V4.1 has reached 0 diff; performance optimization is in progress and will get its own post.
-
 
 ## Acknowledgments
 
