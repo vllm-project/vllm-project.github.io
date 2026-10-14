@@ -135,7 +135,7 @@ Baseline train-inference KL grows (2e-3 to 29.9) while its reward falls back; th
 
 On the inference benchmark the consistent version matches or beats the baseline (4.5); the training-time gap is not yet attributed to operators; Section 4 points to MoE LL communication and backend, attention gather and dequantization, and per-request launches.
 
-**Training side**, not measured separately: per Section 4, overhead is repacking FP8 weights every forward, serial per-request attention and Top-K, one extra routing-metadata dispatch, and memory pressure from saving intermediates for backward (hence full recomputation: forward runs twice).
+**Training side**, not measured separately: per Section 4, overhead is requantizing FP8 weights every forward, serial per-request attention and Top-K, one extra routing-metadata dispatch, and full recomputation (3.1), which runs forward twice.
 
 A separate verl recipe PR preview on 32 GB200 GPUs reports about 10% end-to-end overhead: rollout near parity, the gap mostly in training. Training-side optimization is next.
 
