@@ -36,6 +36,8 @@
 <text x="242" y="400" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">Retained state: LLM KV and audio state; SPEAK results continue to speech generation.</text>
 <text x="35" y="465" font-size="18" fill="#008d96" font-weight="700" text-anchor="start">AURA</text>
 <text x="35" y="492" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Turn-based execution</text>
+<text x="35" y="518" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Video required</text>
+<text x="35" y="540" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Audio optional</text>
 <rect x="230" y="435" width="179" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
 <text x="319.5" y="460" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 0 · ASR</text>
 <text x="319.5" y="486" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Audio → text</text>

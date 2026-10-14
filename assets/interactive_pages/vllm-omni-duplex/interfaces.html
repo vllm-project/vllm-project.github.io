@@ -69,7 +69,7 @@
   </div>
   <section class="explain" aria-live="polite" aria-atomic="true"><h2>One duplex session framework, two execution modes</h2><p>The interface carries the conversation. The execution mode determines how the model processes continuing input. Streaming a response is possible in every path shown here; native duplex additionally incorporates continuing input into ongoing model computation.</p></section>
   <p class="note">Realtime / Duplex uses OpenAI Realtime event conventions with vLLM-Omni extensions. Video, playback feedback, and session resume depend on the model.</p>
-  <p class="note">Realtime also has a separate turn-mode service at <code>/v1/realtime?duplex=0</code>, outside the unified duplex paths shown here.</p>
+  <p class="note">The separate turn-based Realtime handler at <code>/v1/realtime</code> requires an enabled Chat service (for example, in a <code>session_mode: turn</code> deployment). It is distinct from turn-based execution within a unified duplex session.</p>
   <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/serving/realtime_duplex_api.md" target="_blank" rel="noopener">API guide ↗</a></p>
   <noscript><p>The full diagram is shown above. Enable JavaScript to highlight individual paths.</p></noscript>
 </main>

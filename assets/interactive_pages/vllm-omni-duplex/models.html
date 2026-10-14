@@ -67,9 +67,9 @@ const models = {
   },
   aura: {
     name: "AURA", mode: "Turn-based execution inside a duplex session",
-    summary: "Each response starts a new request from current input and retained history. Audio becomes text before the Thinker.",
-    input: "PCM audio → ASR  ·  Video frames → Thinker directly",
-    inputDetail: "Audio enters the ASR stage. Video frames bypass ASR and enter the Thinker. The transport remains a live duplex session, but committing an input and requesting a model response can be separate operations.",
+    summary: "Each response starts a new request from current input and retained history. Video is required; audio is optional.",
+    input: "Optional PCM → ASR  ·  Required video → Thinker",
+    inputDetail: "AURA duplex sessions require video; audio is optional. When provided, audio enters the ASR stage. Video frames bypass ASR and enter the Thinker. Committing an input and requesting a model response can be separate operations.",
     overview: "Four serving stages separate speech recognition, multimodal reasoning, speech-token generation, and waveform decoding. History is retained on the Thinker side as transcripts, video clips, and assistant text; every response is built as a new inference request.",
     stages: [{name: "Stage 0 · ASR", first: 0, last: 0}, {name: "Stage 1 · Thinker", first: 1, last: 1}, {name: "Stage 2 · Talker", first: 2, last: 2}, {name: "Stage 3 · Code2Wav", first: 3, last: 3}],
     modules: [

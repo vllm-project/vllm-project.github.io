@@ -94,7 +94,7 @@ The Talker predicts audio tokens. Code2Wav then uses conditional flow matching, 
 
 ### AURA and Qwen3-Omni: new requests from retained history
 
-AURA follows a four-stage path: **ASR → Thinker → Talker → Code2Wav**. ASR converts user audio to text, while video goes to the visual Thinker. The Thinker-side session history retains transcripts, video clips, and assistant text for later turns.
+AURA follows a four-stage path: **ASR → Thinker → Talker → Code2Wav**. AURA duplex sessions require video; audio is optional. When provided, audio is converted to text by ASR, while video goes to the visual Thinker. The Thinker-side session history retains transcripts, video clips, and assistant text for later turns.
 
 Qwen3-Omni instead feeds audio features from its AuT encoder and visual features into the Thinker, followed by Talker and Code2Wav. Its duplex adapter retains multimodal conversation content and prepares subsequent requests from that history.
 
@@ -171,7 +171,7 @@ The shipped profile enables duplex serving. Connect through `ws://127.0.0.1:8000
 
 The common session runtime provides a foundation for broader model support and richer interactions. The next areas of work are:
 
-- **Broader unified tool calling.** [Qwen3-Omni](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/entrypoints/openai/realtime/connection.py) has tool-call parsing on its separate turn-mode Realtime service (`/v1/realtime?duplex=0`), while [Nemotron VoiceChat](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/nemotron_voicechat/duplex/plugin.py) supports calls and results in unified native duplex. Extend unified support across models while handling interruptions, timeouts, and duplicate or late results without applying an old result to a new turn.
+- **Broader unified tool calling.** [Qwen3-Omni](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/entrypoints/openai/realtime/connection.py) supports tool-call parsing through the separate turn-based Realtime handler, where enabled by the deployment, while [Nemotron VoiceChat](https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/vllm_omni/model_executor/models/nemotron_voicechat/duplex/plugin.py) supports calls and results in unified native duplex. Extend unified support across models while handling interruptions, timeouts, and duplicate or late results without applying an old result to a new turn.
 - **Semantic turn completion.** Add meaning-aware endpointing alongside acoustic speech detection, and integrate it with commit and response policies. A pause in “Book a flight to… Beijing tomorrow” should not always end the turn.
 - **JoyAI and Gander integration.** Extend the unified duplex framework with model adapters for JoyAI and [Gander](https://github.com/Omni-Interaction-Gander/Omni-Interaction-Agent). For Gander, connect continuous audio-visual interaction with asynchronous agent work, so users can ask follow-up questions or redirect a task while it runs.
 - **Longer conversations and broader scale.** Continue work on bounded context, predictable memory use, multi-session execution, and routing beyond one API worker, building on the existing stage machinery.
