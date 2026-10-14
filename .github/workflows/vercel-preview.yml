@@ -39,7 +39,7 @@ concurrency:
 env:
   PARENT: vllm-project/vllm_website
   PR: ${{ github.event.pull_request.number || inputs.pr }}
-  ENVIRONMENT: vllm.ai preview
+  ENVIRONMENT: vllm.ai/blog preview
   # Vercel branch URL: <project>-git-<branch, slugified>-<team>.vercel.app
   PREVIEW_HOST: https://vllm-website-git-blog-preview-pr-${{ github.event.pull_request.number || inputs.pr }}-inferact-inc.vercel.app
 
