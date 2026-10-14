@@ -547,7 +547,7 @@ In practice, we run <code>N</code> vLLM prefill instances and <code>M</code> vLL
 
 How does this work in vLLM?
 
-For clarity, the example below relies on <code>SharedStorageConnector</code>, a debugging connector implementation used to illustrate the mechanics.
+For clarity, the example below relies on <code>ExampleConnector</code> (renamed from <code>SharedStorageConnector</code> in <a href="https://github.com/vllm-project/vllm/pull/30201">vLLM #30201</a>), a debugging connector implementation used to illustrate the mechanics. Current vLLM rejects the old name with <code>Unsupported connector type: SharedStorageConnector</code>.
 
 > [!NOTE]
 > Connector is vLLM's abstraction for handling the exchange of KVs between instances. Connector interface is not yet stable, there are some near-term improvements planned which will involve changes, some potentially breaking.
@@ -574,7 +574,7 @@ def run_prefill(prefill_done):
   sampling_params = SamplingParams(temperature=0, top_p=0.95, max_tokens=1)
 
   ktc=KVTransferConfig(
-      kv_connector="SharedStorageConnector",
+      kv_connector="ExampleConnector",
       kv_role="kv_both",
       kv_connector_extra_config={"shared_storage_path": "local_storage"},
   )
@@ -598,7 +598,7 @@ def run_decode(prefill_done):
   sampling_params = SamplingParams(temperature=0, top_p=0.95)
 
   ktc=KVTransferConfig(
-      kv_connector="SharedStorageConnector",
+      kv_connector="ExampleConnector",
       kv_role="kv_both",
       kv_connector_extra_config={"shared_storage_path": "local_storage"},
   )
@@ -623,7 +623,7 @@ if __name__ == "__main__":
 ```
 
 > [!NOTE]
-> I've also experimented with <code>LMCache</code> [[11]](#ref-11), the fastest production-ready connector (uses NVIDIA's NIXL as the backend), but it's still at the bleeding edge and I ran into some bugs. Since much of its complexity lives in an external repo, <code>SharedStorageConnector</code> is a better choice for explanation.
+> I've also experimented with <code>LMCache</code> [[11]](#ref-11), the fastest production-ready connector (uses NVIDIA's NIXL as the backend), but it's still at the bleeding edge and I ran into some bugs. Since much of its complexity lives in an external repo, <code>ExampleConnector</code> is a better choice for explanation.
 
 These are the steps in vLLM:
 
@@ -649,7 +649,7 @@ Here is a visual example:
 </p>
 
 > [!NOTE] Additional notes:
-> * For <code>SharedStorageConnector</code> "external server" is just a local file system.
+> * For <code>ExampleConnector</code> "external server" is just a local file system.
 > * Depending on configuration, KV transfers can also be done layer-by-layer (before/after each attention layer).
 > * Decode loads external KV only once, on the first step of its requests; afterwards it computes/stores locally.
 

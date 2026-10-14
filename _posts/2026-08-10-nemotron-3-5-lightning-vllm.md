@@ -3,6 +3,7 @@ layout: post
 title: "Announcing Day-0 Support for NVIDIA Nemotron 3.5 Lightning on vLLM"
 author: "NVIDIA Nemotron Team and vLLM Team"
 summary: "How vLLM serves NVIDIA Nemotron 3.5 Lightning with OpenAI-compatible APIs, speculative decoding, and BF16/NVFP4 checkpoints across NVIDIA GPUs and edge systems."
+image: /assets/figures/2026-nemotron-3-5-lightning/figure1-dgx-spark-pareto.png
 tags:
   - model-support
 ---
