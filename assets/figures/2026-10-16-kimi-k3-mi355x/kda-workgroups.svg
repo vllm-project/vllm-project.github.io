@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="755" viewBox="0 0 1200 755" role="img" aria-labelledby="title desc">
+<title id="title">The same KDA state can expose more independent work</title>
+<desc id="desc">One sequence has twelve local KDA heads. Enlarge one head state with 128 key rows and 128 value columns. A 32-value-column workgroup tile partitions a head into 4 stripes and launches 48 workgroups across 12 heads. A 4-value-column tile partitions it into 32 stripes and launches 384 workgroups. The state dimensions and mathematical update remain the same. These are launch-grid counts, not occupancy or a predicted speedup.</desc>
+<defs><marker id="arrow-muted" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#526677" stroke-width="2.4"/></marker><marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#30a2ff" stroke-width="2.4"/></marker><marker id="arrow-amber" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#fdb515" stroke-width="2.4"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;font-size:24px;fill:#16324b} .title{font-size:36px;font-weight:700}.heading{font-size:28px;font-weight:700}.label{font-size:24px;font-weight:700}.small{font-size:21px}.tiny{font-size:19px}.number{font-size:48px;font-weight:700}</style>
+<rect width="1200" height="755" fill="white"/>
+<text x="30" y="49" class="title" text-anchor="start">The same KDA state can expose more independent work</text>
+<text x="30" y="91" class="small" text-anchor="start" style="fill:#526677">One sequence · 12 local heads per GPU at TP8 · one head enlarged below</text>
+<rect x="24" y="117" width="556" height="532" rx="10" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="47" y="158" class="heading" text-anchor="start">Before · 32 value columns per tile</text>
+<text x="345.0" y="199" class="label" text-anchor="middle">128 value columns</text>
+<path d="M175 225V215H515V225" fill="none" stroke="#526677" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="105" y="327" class="small" text-anchor="middle" style="fill:#526677">128</text>
+<text x="105" y="354" class="small" text-anchor="middle" style="fill:#526677">key</text>
+<text x="105" y="381" class="small" text-anchor="middle" style="fill:#526677">rows</text>
+<path d="M162 240H152V481H162" fill="none" stroke="#526677" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="175.0" y="240" width="85.0" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="260.0" y="240" width="85.0" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="345.0" y="240" width="85.0" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="430.0" y="240" width="85.0" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<path d="M175 270.125H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M175 300.25H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M175 330.375H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M175 360.5H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M175 390.625H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M175 420.75H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M175 450.875H515" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="175" y="240" width="85.0" height="241" rx="0" fill="none" stroke="#30a2ff" stroke-width="3"/>
+<text x="217.5" y="368.5" class="heading" text-anchor="middle" style="fill:#16324b">32</text>
+<text x="345.0" y="521" class="small" text-anchor="middle" style="fill:#526677">4 stripes for this head</text>
+<text x="302" y="565" class="label" text-anchor="middle">4 tiles per head × 12 heads</text>
+<text x="302" y="622" class="number" text-anchor="middle" style="fill:#16324b">48 workgroups</text>
+<rect x="620" y="117" width="556" height="532" rx="10" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="643" y="158" class="heading" text-anchor="start">After · 4 value columns per tile</text>
+<text x="941.0" y="199" class="label" text-anchor="middle">128 value columns</text>
+<path d="M771 225V215H1111V225" fill="none" stroke="#526677" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="701" y="327" class="small" text-anchor="middle" style="fill:#526677">128</text>
+<text x="701" y="354" class="small" text-anchor="middle" style="fill:#526677">key</text>
+<text x="701" y="381" class="small" text-anchor="middle" style="fill:#526677">rows</text>
+<path d="M758 240H748V481H758" fill="none" stroke="#526677" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="771.0" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="781.625" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="792.25" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="802.875" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="813.5" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="824.125" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="834.75" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="845.375" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="856.0" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="866.625" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="877.25" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="887.875" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="898.5" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="909.125" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="919.75" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="930.375" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="941.0" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="951.625" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="962.25" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="972.875" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="983.5" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="994.125" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1004.75" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1015.375" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1026.0" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1036.625" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1047.25" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1057.875" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1068.5" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1079.125" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1089.75" y="240" width="10.625" height="241" rx="0" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.25"/>
+<rect x="1100.375" y="240" width="10.625" height="241" rx="0" fill="#f2f8ff" stroke="#30a2ff" stroke-width="1.25"/>
+<path d="M771 270.125H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M771 300.25H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M771 330.375H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M771 360.5H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M771 390.625H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M771 420.75H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M771 450.875H1111" fill="none" stroke="#93c9f2" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="771" y="240" width="10.625" height="241" rx="0" fill="none" stroke="#30a2ff" stroke-width="3"/>
+<path d="M776.3125 484V512H837" fill="none" stroke="#30a2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<text x="849" y="520" class="small" text-anchor="start" style="fill:#16324b">4 columns</text>
+<text x="898" y="565" class="label" text-anchor="middle">32 tiles per head × 12 heads</text>
+<text x="898" y="622" class="number" text-anchor="middle" style="fill:#16324b">384 workgroups</text>
+<rect x="24" y="671" width="1152" height="47" rx="8" fill="#e8f4ff" stroke="none" stroke-width="1.6"/>
+<text x="600" y="702" class="label" text-anchor="middle" style="fill:#16324b">Each stripe is one independently scheduled workgroup.</text>
+<text x="600" y="747" class="small" text-anchor="middle" style="fill:#526677">These counts describe the launch grid; they do not say how many groups run at once.</text>
+</svg>
