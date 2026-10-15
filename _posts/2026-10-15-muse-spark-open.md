@@ -38,7 +38,7 @@ vllm serve meta-models/Muse-Spark-Open-816B-A42B-NVFP4 \
     --reasoning-parser muse \
     --tool-call-parser muse \
     --enable-auto-tool-choice \
-    --speculative-config '{"method":"dspark","model": "Inferact/Muse-Spark-open-DSpark","num_speculative_tokens":7,"draft_sample_method":"probabilistic","rejection_sample_method":"block","enable_adaptive_verification":true}'
+    --speculative-config '{"method":"dspark","model": "Inferact/Muse-Spark-Open-DSpark","num_speculative_tokens":7,"draft_sample_method":"probabilistic","rejection_sample_method":"block","enable_adaptive_verification":true}'
 ```
 
 To use this model with plain text:
@@ -116,7 +116,7 @@ Our speculator also uses the Muse Spark Open sliding-window attention to keep dr
 To enable it, add this when the server starts:
 
 ```bash
---speculative-config '{"method":"dspark","model": "Inferact/Muse-Spark-open-DSpark","num_speculative_tokens":7,"draft_sample_method":"probabilistic","rejection_sample_method":"block","enable_adaptive_verification":true}'
+--speculative-config '{"method":"dspark","model": "Inferact/Muse-Spark-Open-DSpark","num_speculative_tokens":7,"draft_sample_method":"probabilistic","rejection_sample_method":"block","enable_adaptive_verification":true}'
 ```
 
 ### Nvidia
@@ -135,7 +135,7 @@ We have added support for Muse Spark Open on TPU on top of TorchTPU. Please cont
 
 vLLM also supports LoRA RL on Muse Spark Open from day 0, serving as the rollout engine with Verl FSDP2 as the trainer. vLLM serves the original NVFP4 checkpoint with the LoRA adapter applied on top. The trainer runs on a BF16 dequantization of the same weights and updates only the adapter (rank 32, alpha 64), which covers attention, the MoE latent projections and all routed experts. It also replays the rollout’s MoE routing (R3), and only the adapter is synced back to vLLM after each step.
 
-We trained with GRPO on DAPO-Math-17K for 150 steps on 16 GB300 GPUs, sampling 8 responses for each of 32 prompts per step with up to 4K tokens per response. The accuracy on AIME-2024 (mean@8) went from 0.56 before training to 0.85 by the end of the run. Throughout the run, the k3 KL between the trainer’s and vLLM’s log-probabilities held near 2×10⁻⁴. More details are available in https://github.com/verl-project/verl/pull/xxxx. In the vLLM ecosystem, Titan RL also uses vLLM as its rollout engine to provide day-0 RL support.
+We trained with GRPO on DAPO-Math-17K for 150 steps on 16 GB300 GPUs, sampling 8 responses for each of 32 prompts per step with up to 4K tokens per response. The accuracy on AIME-2024 (mean@8) went from 0.56 before training to 0.85 by the end of the run. Throughout the run, the k3 KL between the trainer’s and vLLM’s log-probabilities held near 2×10⁻⁴. More details are available in https://github.com/verl-project/verl/pull/8257. In the vLLM ecosystem, Titan RL also uses vLLM as its rollout engine to provide day-0 RL support.
 
 ![Muse Spark Open LoRA RL results](/assets/figures/2026-10-15-muse-spark-open/lora-rl-results.png)
 
