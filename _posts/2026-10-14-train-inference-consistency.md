@@ -4,12 +4,23 @@ title: "Finish RL Training Faster: Bitwise-Consistent, High-Performance, Agent-D
 author: "Yan Bai (NVIDIA DevTech), Ao Shen (Inferact)"
 date: 2026-10-14 09:00:00 +0000
 summary: "We make vLLM rollout and the training forward give bitwise identical logprobs on DeepSeek-V4-Flash and Nemotron-3.5-Lightning-30B-A3B (NVFP4), keep 91% of rollout throughput on DeepSeek-V4-Flash, and open-source the agent skill."
-image: /assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png
-social_image: /assets/figures/2026-10-14-train-inference-consistency/ds4-reward.png
+image: /assets/figures/2026-10-14-train-inference-consistency/hero.png
+social_image: /assets/figures/2026-10-14-train-inference-consistency/hero.png
 tags:
   - reinforcement-learning
   - deepseek
 ---
+**TL;DR**
+
+- **Problem**: inference-side optimizations in high-performance RL change the numerics, so training optimizes a policy other than the one that sampled. On DeepSeek-V4-Flash, the high-performance baseline's train-inference KL rose from 2e-3 to 29.9 while reward fell back.
+- **Approach**: the training forward calls vLLM's inference kernels directly, and those high-performance kernels are modified so rollout and training produce bitwise-identical logprobs for every sampled token (diff = 0).
+- **Results**: over 100 DeepSeek-V4-Flash training steps, diff is 0 at every step at 91.3% of the baseline's rollout throughput. Carried over to Nemotron (Mamba hybrid + NVFP4), the consistent run's SWE-bench Pro score holds while the baseline's drops from 0.56 to 0.22.
+- **Open source**: the process is packaged as an agent skill and released with the recipes and code, lowering the cost of doing this on a new model.
+- **In progress**: DeepSeek-V4.1 has reached 0 diff; performance work is being finalized and will get its own post.
+
+![Same kernels on both sides: mismatch 0, and training holds](/assets/figures/2026-10-14-train-inference-consistency/hero.png)
+
+*DeepSeek-V4-Flash reached 0 diff first; the process became an agent skill, which was then applied to Nemotron-3.5 (a Mamba-2 hybrid). Left: DeepSeek-V4-Flash train-inference KL; the baseline climbs from 2e-3 to 29.9 and the consistent run is 0 at every step. Right: Nemotron-3.5 train score on SWE-bench Pro (5-step rolling mean); the consistent run stays around 0.6 while the baseline falls to 0.23.*
 
 Rollout dominates RL training time, so training systems adopt low-precision compute, low-precision KV cache, and communication and kernel optimizations. These change the inference-side numerics. The inference engine generates a response; the training engine recomputes its probabilities and updates the model. With identical weights, the two sides now assign different probabilities to the same token, so training optimizes a policy other than the one that sampled. The gap can grow with updates and destabilize training. In our DeepSeek-V4-Flash-Base experiment (no algorithmic correction such as TIS), the high-performance baseline's train-inference KL rose from 2e-3 to 29.9 while reward fell back.
 
@@ -299,7 +310,7 @@ In vLLM, every operator that might depend on batch composition gets a batch-inva
 
 ### Results: training on SWE-bench Pro
 
-We run agentic RL on SWE-bench Pro in remote sandboxes: 32 tasks × 8 trajectories per step, about 57K tokens per trajectory on average, GRPO, 8 GB200 nodes per run. Both runs use the same image and recipe, without corrections such as TIS or MIS. With 1 update per step, the KL between pre-update rollout logprobs and the training-side recomputation is that step's train-inference KL.
+We run agentic RL on SWE-bench Pro in remote sandboxes: 32 tasks × 8 trajectories per step, about 57K tokens per trajectory on average, GRPO, 8 GB200 nodes per run. The training set is the 375 SWE-bench Pro tasks on which the base model's 4 sampled attempts were neither all right nor all wrong and the gold patch passes in our sandbox, so the scores below are training rewards on this subset. Both runs use the same image and recipe, without corrections such as TIS or MIS. With 1 update per step, the KL between pre-update rollout logprobs and the training-side recomputation is that step's train-inference KL.
 
 ![Nemotron SWE-bench Pro: train-inference KL, training score and entropy](/assets/figures/2026-10-14-train-inference-consistency/nemotron-swe.png)
 
@@ -331,4 +342,10 @@ Next: train-inference consistency for DeepSeek-V4.1 has reached 0 diff; performa
 
 ## Acknowledgments
 
-Thanks to (in alphabetical order): [Jian Hu](https://hijkzzz.notion.site/) of NVIDIA Research, [Mingrui](https://github.com/mingruimingrui) of TikTok, [Nolen Liang](https://github.com/NolenLiang) and [Tomer](https://github.com/TomerBN-Nvidia) of the Nemotron team, the [slime](https://github.com/THUDM/slime) community, [Verda](https://verda.com/) for sandbox support, the [verl](https://github.com/verl-project/verl) team, and the vLLM community.
+Thanks to (organizations in alphabetical order):
+
+- **NVIDIA**: [Jian Hu](https://hijkzzz.notion.site/) of NVIDIA Research, [Nolen Liang](https://github.com/NolenLiang) and [Tomer](https://github.com/TomerBN-Nvidia) of the Nemotron team
+- **slime**: the [slime](https://github.com/THUDM/slime) community
+- **TikTok**: [Mingrui](https://github.com/mingruimingrui)
+- **Verda**: sandbox support
+- **verl**: the [verl](https://github.com/verl-project/verl) team
