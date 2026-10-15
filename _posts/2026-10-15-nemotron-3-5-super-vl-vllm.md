@@ -34,7 +34,7 @@ Nemotron 3.5 Super VL addresses two practical requirements for multimodal, alway
 * **Deployment targets:** 1x GB10, B200, B300, RTX PRO 6000, H200, and 2x H100
 * **Availability:**
   * Download the model weights from Hugging Face: [BF16](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16) and [NVFP4](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4)
-  * Run Nemotron 3.5 Super VL with vLLM using the getting-started [cookbook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/NVIDIA-Nemotron-3.5-Super-VL/vllm_cookbook.ipynb)
+  * Run Nemotron 3.5 Super VL with vLLM using the getting-started [cookbook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-3.5-Super-VL/vllm_cookbook.ipynb)
 
 ## Run High-Throughput Inference with vLLM
 
@@ -152,7 +152,7 @@ Figure 3. Nemotron 3.5 Super on the DGX Spark efficiency frontier.
 Ready to build agents that can see, reason, and act?
 
 * Download the model weights from Hugging Face: [BF16](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16) and [NVFP4](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4)
-* Run Nemotron 3.5 Super VL with vLLM using the getting-started [cookbook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/NVIDIA-Nemotron-3.5-Super-VL/vllm_cookbook.ipynb)
+* Run Nemotron 3.5 Super VL with vLLM using the getting-started [cookbook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-3.5-Super-VL/vllm_cookbook.ipynb)
 
 ### Acknowledgements
 
