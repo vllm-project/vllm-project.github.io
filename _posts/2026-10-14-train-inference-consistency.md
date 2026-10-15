@@ -28,7 +28,7 @@ Unstable training means more crashes, rollbacks and reruns, a smaller share of e
 
 Our approach: on the high-performance numerical path, training and inference produce a **bitwise identical** logprob for every sampled token (diff = 0; Section 2 defines it exactly), which is true on-policy RL. We get there by having the training forward call vLLM's inference kernels directly and modifying those high-performance kernels so results do not change with batch composition, prefill or decode phase, or parallel layout (Sections 3 and 4). An agent skill then lowers the cost of doing this on a new model and makes the process transferable: it tells an agent how to find the first operator where the two sides diverge, reduce it to a minimal repro, fix it and rerun the regressions. On DeepSeek-V4-Flash we reach 0 diff at 91.3% of the high-performance baseline's rollout throughput, and we carried the method over to Nemotron, a Mamba hybrid with NVFP4.
 
-This post measures numerical consistency, training curves and rollout throughput. The end-to-end gain comes from fewer crashes and reruns, which shows only over long runs; that wall-clock comparison is left for later.
+This post measures numerical consistency, training curves and rollout throughput. The end-to-end gain comes from fewer crashes and reruns, which shows only over long runs; that wall-clock comparison is left for later. Also, neither baseline was thoroughly tuned or explored: each ran a single configuration, with R3 but without algorithmic corrections such as TIS or MIS. The baseline collapses shown here reflect that recipe only; with tuning, the baseline may not collapse this easily.
 
 ## 1. Existing approaches: how they trade off the three
 
