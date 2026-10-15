@@ -2,7 +2,6 @@
 layout: post
 title: "Day 0 support for Muse Spark Open on vLLM"
 summary: "Day-0 vLLM support for Muse Spark Open: 816B MoE, 1M context, multimodal inputs, DSpark speculative decoding, NVIDIA and AMD serving, initial TPU support, and LoRA RL."
-published: false
 tags:
   - model-support
   - speculative-decoding
