@@ -3,13 +3,16 @@ layout: post
 title: "Day 0 support for Muse Spark Open on vLLM"
 summary: "Day-0 vLLM support for Muse Spark Open: 816B MoE, 1M context, multimodal inputs, DSpark speculative decoding, NVIDIA and AMD serving, initial TPU support, and LoRA RL."
 image: /assets/figures/2026-10-15-muse-spark-open/hero-vllm-muse-spark-open.png
+social_image: /assets/figures/2026-10-15-muse-spark-open/hero-vllm-muse-spark-open.png
 tags:
   - model-support
   - speculative-decoding
   - reinforcement-learning
 ---
 
-We’re excited to have worked with Meta Superintelligence Labs to bring Muse Spark Open to vLLM on day 0. Muse Spark Open is an open-weight sparse mixture-of-experts (MoE) model, built for long-horizon agentic coding workflows. It is the most capable US open-weights model to date and it is the model Muse Glimmer 30B was distilled from.
+<img src="/assets/figures/2026-10-15-muse-spark-open/hero-vllm-muse-spark-open.png" alt="Day 0 support for Muse Spark Open on vLLM" width="100%">
+
+We're excited to have worked with Meta Superintelligence Labs to bring Muse Spark Open to vLLM on day 0. Muse Spark Open is an open-weight sparse mixture-of-experts (MoE) model, built for long-horizon agentic coding workflows. It is the most capable US open-weights model to date and it is the model Muse Glimmer 30B was distilled from.
 
 ## Highlights
 
