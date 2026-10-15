@@ -153,4 +153,4 @@ Ready to build agents that can see, reason, and act?
 
 ### Acknowledgements
 
-Nirmal Kumar Juluru, Anusha Pant, Faradawn Yang, Pen Chung Li, Alex Steiner, Ran Zilberstein, Nave Assaf
+NVIDIA: Nirmal Kumar Juluru, Anusha Pant, Faradawn Yang, Pen Chung Li, Alex Steiner, Ran Zilberstein, Nave Assaf, Amir Klein
