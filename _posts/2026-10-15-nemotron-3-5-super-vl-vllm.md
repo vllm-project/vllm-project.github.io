@@ -138,6 +138,12 @@ As shown in Figure 2, Nemotron 3.5 Super VL performs tasks 4x faster compared to
 
 Figure 2. Nemotron 3.5 Super VL takes advantage of higher throughput and token efficiency to deliver 4x faster task completion.
 
+For context, Figure 3 shows a DGX Spark comparison for the related Nemotron 3.5 Super model. The chart does not measure Nemotron 3.5 Super VL.
+
+![Intelligence index versus time to complete a task on DGX Spark, with Nemotron 3.5 Super on the efficiency frontier.](/assets/figures/2026-nemotron-3-5-super-vl/figure3-dgx-spark-pareto.png)
+
+Figure 3. Nemotron 3.5 Super on the DGX Spark efficiency frontier.
+
 ### Get Started
 
 Ready to build agents that can see, reason, and act?
