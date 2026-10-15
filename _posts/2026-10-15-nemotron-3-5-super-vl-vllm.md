@@ -128,19 +128,19 @@ Nemotron 3.5 Super VL is designed to deliver high accuracy for specialized multi
 
 As shown in Figure 1, on a single GPU, this model delivers up to 5x faster throughput for agentic tasks compared to other [open models](https://www.nvidia.com/en-us/glossary/open-models/) in its size category.
 
-![Open-model intelligence index versus output speed for Nemotron 3.5 Super VL and comparable models.](/assets/figures/2026-nemotron-3-5-super-vl/figure1-agentic-throughput.png)
+![](/assets/figures/2026-nemotron-3-5-super-vl/figure1-agentic-throughput.png)
 
 *Figure 1. Nemotron 3.5 Super VL delivers over 600 TPS on Artificial Analysis Intelligence Index agentic tasks on Baseten endpoint.*
 
 As shown in Figure 2, Nemotron 3.5 Super VL performs tasks 4x faster compared to other leading open models of similar size.
 
-![Coding accuracy versus time to complete 10,000 tasks on B200 for Nemotron 3.5 Super VL and comparable models.](/assets/figures/2026-nemotron-3-5-super-vl/figure2-b200-task-completion.png)
+![](/assets/figures/2026-nemotron-3-5-super-vl/figure2-b200-task-completion.png)
 
 Figure 2. Nemotron 3.5 Super VL takes advantage of higher throughput and token efficiency to deliver 4x faster task completion.
 
 For context, Figure 3 shows a DGX Spark comparison for the related Nemotron 3.5 Super model. The chart does not measure Nemotron 3.5 Super VL.
 
-![Intelligence index versus time to complete a task on DGX Spark, with Nemotron 3.5 Super on the efficiency frontier.](/assets/figures/2026-nemotron-3-5-super-vl/figure3-dgx-spark-pareto.png)
+![](/assets/figures/2026-nemotron-3-5-super-vl/figure3-dgx-spark-pareto.png)
 
 Figure 3. Nemotron 3.5 Super on the DGX Spark efficiency frontier.
 
