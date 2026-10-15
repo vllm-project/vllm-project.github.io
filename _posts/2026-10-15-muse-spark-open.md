@@ -16,7 +16,7 @@ We’re excited to have worked with Meta Superintelligence Labs to bring Muse Sp
 - Quantization: Meta released the model in both BF16 and NVFP4. MXFP4 weights were released by AMD.
 - Multimodal: Native image and video perception through the same Perception Encoder as Muse Glimmer, with additional audio support.
 - Parallelism: Tensor Parallelism and Pipeline Parallelism on both Nvidia and AMD. EP, TEP, DEP and PD disaggregation on Nvidia. Initial support on TPU is also available.
-- Speculative decoding: We have trained a DSpark draft model, supported on both CUDA and ROCm that accelerates the model performance from xx to xx, tested on the SPEED bench.
+- Speculative decoding: We have trained a DSpark draft model, supported on both CUDA and ROCm that accelerates the model performance, tested on the SPEED bench.
 
 ## Usage
 
