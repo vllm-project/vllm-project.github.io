@@ -127,23 +127,6 @@ We served DeepSeek V4 Pro on 16 GPUs, then gradually increased the incoming requ
 - During preparation, Elastic EP matched the static 16-GPU deployment's serving performance, with no visible degradation from background preparation.
 - After scaling, Elastic EP matched the recovered 20-GPU deployment's performance, with no visible post-scale degradation.
 
-## Padding in expert-kernel inputs
-
-To keep CUDA graphs stable across reconfiguration, we size dispatch outputs (the inputs to expert kernels) for the maximum EP capacity. Expert inputs are padded even in a static deployment, but reserving maximum capacity increases the padding. Backends that do not efficiently skip padded token slots incur more overhead as a result.
-
-In a separate capacity benchmark, we kept 16 workers active and compared a maximum EP capacity of 64 against 16. These measurements use DeepSeek-V3 on 16 GB200 GPUs, with backend-specific weight formats.
-
-| Expert backend | Decode throughput change | Prefill throughput change |
-| --- | ---: | ---: |
-| Batched DeepGEMM | 0.08% higher | 0.97% lower |
-| FlashInfer CuteDSL | 1.21% higher | 0.89% lower |
-| Batched Triton | 18.31% lower | 19.21% lower |
-| Batched CUTLASS FP8 | 77.49% lower | 63.90% lower |
-
-Throughput with DeepGEMM and CuteDSL is effectively unaffected in this comparison. Triton and CUTLASS still process parts of the padded buffers, so their padding overhead grows with the configured maximum EP capacity.
-
-We also plan to reduce NIXL EP's extra memory cost with [CUDA virtual memory management (VMM)](https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/virtual-memory-management.html): reserve stable virtual addresses, but back only the regions needed by the active group with physical HBM. This would let buffers grow without changing the addresses recorded in CUDA graphs or allocating physical HBM for the full maximum capacity up front.
-
 ## Try Elastic EP
 
 Background preparation, CUDA graph reuse, and independent graph capture on joining workers are all available today in the latest [vLLM](https://pypi.org/project/vllm/) and [NIXL](https://pypi.org/project/nixl/) releases. Install them with pip and start using Elastic EP.
