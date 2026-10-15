@@ -25,7 +25,7 @@ Prebuilt images are available for both vendors:
 - Nvidia: vllm/vllm-openai:muse-spark-open
 - AMD: vllm/vllm-openai-rocm:muse-spark-open
 
-Note that the model will only be available at nightly PyPI wheel after the code (PR #xxx) is reviewed and merged, which usually takes about a week.
+Note that the model will only be available at nightly PyPI wheel after the code ([PR #61879](https://github.com/vllm-project/vllm/pull/61879)) is reviewed and merged, which usually takes about a week.
 
 ```bash
 # Rust frontend is recommended
