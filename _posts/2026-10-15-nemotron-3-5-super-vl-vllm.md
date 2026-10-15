@@ -81,7 +81,10 @@ response = client.chat.completions.create(
             "role": "user",
             "content": [
                 {"type": "text", "text": "Describe what happens in this video."},
-                {"type": "video_url", "video_url": {"url": "https://example.com/clip.mp4"}},
+                {
+                    "type": "video_url",
+                    "video_url": {"url": "https://example.com/clip.mp4"}
+                },
             ],
         }
     ],
