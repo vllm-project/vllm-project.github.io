@@ -15,7 +15,7 @@ Rollout dominates RL training time, so training systems adopt low-precision comp
 
 Unstable training means more crashes, rollbacks and reruns, a smaller share of effective training, and more total time to reach the same result. Our goal is to **finish effective RL training faster**: by cutting crashes and reruns, reach a result in less end-to-end time.
 
-Our approach: on the high-performance numerical path, training and inference produce a **bitwise identical** logprob for every sampled token (diff = 0; Section 2 defines it exactly), which is true on-policy RL. An agent skill then lowers the cost of doing this on a new model and makes the process transferable: it tells an agent how to find the first operator where the two sides diverge, reduce it to a minimal repro, fix it and rerun the regressions. On DeepSeek-V4-Flash we reach 0 diff at 91.3% of the high-performance baseline's rollout throughput, and we carried the method over to Nemotron, a Mamba hybrid with NVFP4.
+Our approach: on the high-performance numerical path, training and inference produce a **bitwise identical** logprob for every sampled token (diff = 0; Section 2 defines it exactly), which is true on-policy RL. We get there by having the training forward call vLLM's inference kernels directly and modifying those high-performance kernels so results do not change with batch composition, prefill or decode phase, or parallel layout (Sections 3 and 4). An agent skill then lowers the cost of doing this on a new model and makes the process transferable: it tells an agent how to find the first operator where the two sides diverge, reduce it to a minimal repro, fix it and rerun the regressions. On DeepSeek-V4-Flash we reach 0 diff at 91.3% of the high-performance baseline's rollout throughput, and we carried the method over to Nemotron, a Mamba hybrid with NVFP4.
 
 This post measures numerical consistency, training curves and rollout throughput. The end-to-end gain comes from fewer crashes and reruns, which shows only over long runs; that wall-clock comparison is left for later.
 
@@ -27,7 +27,7 @@ Finishing effective RL training faster needs three properties at once:
 - **B, high consistency**: training and inference compute the same policy for the same weights;
 - **C, low cost and generality**: getting A and B on a new model, precision or hardware takes acceptable development time.
 
-These rarely hold together. Drop B and you optimize freely but risk unstable training. Drop A and you can use consistent kernels, but inference gets much slower (numbers in the table below). Keeping A and B means aligning model by model and operator by operator, which used to need senior engineers, so C fails.
+These rarely hold together. Drop B and you optimize freely but risk unstable training. Drop A and you can use consistent kernels, but inference gets much slower (numbers in the table below). Keeping A and B means aligning model by model and operator by operator, so C fails.
 
 Train-inference mismatch is not new; existing approaches trade off A, B and C differently:
 
@@ -83,6 +83,8 @@ Besides these four dimensions, reaching diff = 0 takes a few more things:
 - **1 update per step (step batch equals mini-batch)**: with several mini-batch updates per step, from the second on, training weights differ from sampling weights, which diff = 0 does not cover, so training stops being strictly true on-policy (on a math task with 4 updates per step, about 7% of tokens switched expert combination after each update).
 - **A correct backward and restore**: the four dimensions give only a consistent forward. Backward must still be correct, and the first step after checkpoint restore must still be consistent.
 
+The main operators in Section 4 each meet one of these requirements: dense GEMM pins kernel selection for batch independence (4.1); the FP8 KV cache unifies the prefill and decode reads for phase consistency (4.2); Top-K fixes ties and order so discrete choices match (4.3); the expert GEMM keeps one numerical contract across two layouts (4.4); and cross-GPU reduction moves off the compared path for cross-GPU consistency (4.5).
+
 **diff = 0 says the two sides compute the same thing, not that it suits training**: with several updates per step, diff = 0 holds while routing drifts between updates. diff = 0 is our engineering target, not a sufficient condition for training quality, which needs separate acceptance.
 
 ## 3. Reference recipe: DeepSeek-V4-Flash
@@ -97,7 +99,7 @@ Relevant structures: **MLA** (multi-head latent attention, which compresses KV b
 
 ### 3.1 Core decision: inference kernels define the values, training adds backward
 
-Two engines agree most easily by running the same code; the question is which side adapts. Rollout dominates RL time, with every operator tuned for throughput; making training the reference would give up those optimizations. Thus, **inference kernels are the numerical reference: training forward calls the same vLLM kernels for its values, and training only adds backward.** Inference does not switch to generic batch-invariant kernels either: it keeps the high-performance deployment kernels and makes them batch-invariant. Every operator in Section 4 follows this trade-off.
+Two engines agree most easily by running the same code; the question is which side adapts. Rollout dominates RL time, with every operator tuned for throughput; making training the reference would give up those optimizations. Thus, **inference kernels are the numerical reference: training forward calls the same vLLM kernels for its values, and training only adds backward.** Inference does not switch to generic batch-invariant kernels either: it keeps the high-performance deployment kernels and modifies them to meet the Section 2 requirements. Every operator in Section 4 follows this trade-off.
 
 The challenge with this decision is that inference kernels have no backward, and FP8 quantization is not differentiable. So forward and backward are handled separately, and forward values always come from the vLLM kernel. Each module wraps the kernel in a custom `autograd.Function` whose backward differentiates against the BF16 master weights, with FP8 quantization treated as identity (the straight-through estimator, STE). Backward mostly reuses existing kernels: Transformer Engine BF16 GEMMs for linear layers and expert GEMMs, the cuDNN frontend DSA backward for sparse attention, and DeepEP's backward for the all-to-all; only small operators such as mHC, RMSNorm and SwiGLU have hand-written FP32 derivatives. A few fused kernels have outputs that cannot be differentiated this way (attention q/k, compressed KV, routing weights, the final logprob); for these we rerun the same computation in PyTorch only for its gradient and keep the kernel's values: `visible + (graph - graph.detach())`. Each backward first checks that the master weights have not changed since forward, so recomputation or asynchronous updates cannot mix weight versions.
 
