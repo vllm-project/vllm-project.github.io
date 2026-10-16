@@ -78,7 +78,9 @@ For multimodal perception:
 
 ### Model architecture
 
-![Muse Spark Open model architecture](/assets/figures/2026-10-15-muse-spark-open/model-architecture.png)
+<iframe class="vllm-embed" src="/assets/interactive_pages/muse-spark-open-decoder-layer.html" title="Each block sits between two normalizations" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+
+*Figure 1: One of the 62 identical decoder layers. Every block is normalized before and after, `x + post_norm(F(norm(x)))`. [Open it full-screen](/assets/interactive_pages/muse-spark-open-decoder-layer.html).*
 
 Muse Spark Open is a mixture-of-experts model with 816B total parameters including the text decoder, plus a 2B vision encoder and a small audio encoder alongside it. The decoder has 62 layers, and every one of them is a mixture-of-experts layer. Here is where the weights sit:
 
@@ -93,15 +95,21 @@ Muse Spark Open is a mixture-of-experts model with 816B total parameters includi
 
 The model architecture is similar to Muse Glimmer. For folks who haven't used Muse Glimmer. There are a few things in this model architecture worth a closer look.
 
-![Attention block with normalization and gating](/assets/figures/2026-10-15-muse-spark-open/sandwich-normalization.png)
+<iframe class="vllm-embed" src="/assets/interactive_pages/muse-spark-open-attention.html" title="Attention normalizes twice more, then gates each head" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+
+*Figure 2: Inside the attention block. Queries and keys are normalized before they meet, and each head's output is normalized before a learned gate scales it. [Open it full-screen](/assets/interactive_pages/muse-spark-open-attention.html).*
 
 **Sandwich normalization.** Most decoders put one normalization layer before each block, giving x + F(norm(x)) Muse Spark Open, similar to Muse Glimmer, place one before and one after, like the two slices of a sandwich with the block sitting in between, giving x + post_norm(F(norm(x)))
 
-![Latent MoE pooler and unpooler](/assets/figures/2026-10-15-muse-spark-open/latent-moe.png)
+<iframe class="vllm-embed" src="/assets/interactive_pages/muse-spark-open-moe.html" title="Experts work at half width" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+
+*Figure 3: The mixture-of-experts block. A shared squeeze halves each token from 8192 to 4096 before the experts and an expand restores 8192 after. [Open it full-screen](/assets/interactive_pages/muse-spark-open-moe.html).*
 
 **Latent MoE**.  Every mixture-of-experts (MoE) layer carries two extra matrices, shared by all 256 experts in that layer. The code calls them the pooler and unpooler, though neither is pooling in the usual sense, instead both are learned projections to squeeze and expand the dimensions. The pooler is an 8192 × 4096 matrix that halves each token's width before it reaches the experts; while the unpooler restores the full width afterwards. The experts therefore work entirely at 4096 rather than 8192, which effectively halved the number of parameters required in the two expert projection layers.
 
-![Hybrid sliding-window and full attention](/assets/figures/2026-10-15-muse-spark-open/hybrid-attention.png)
+<iframe class="vllm-embed" src="/assets/interactive_pages/muse-spark-open-attention-pattern.html" title="Three of every four layers keep only a 2048-token window" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+
+*Figure 4: Which layers attend to what. 46 of the 62 layers keep a 2048-token window of KV and 16 keep every token, so the KV cache at 1M tokens is about a quarter of all-full attention. [Open it full-screen](/assets/interactive_pages/muse-spark-open-attention-pattern.html).*
 
 **Hybrid attention.** Layers alternate between full attention and Sliding Window Attention (SWA) on a repeating cycle of 4 with three attending to a 2048-token window and the fourth looking at the whole context. The cycle is anchored to the end of the stack so the final layer is always a full attention layer. Across 62 layers, that gives 46 narrow layers and 16 wide ones where the narrow layers only hold recent KV. At 1M tokens, this brings the cache to just over ¼ of what all-full attention would need. This is what makes 1M context length affordable.
 
@@ -113,7 +121,9 @@ The model architecture is similar to Muse Glimmer. For folks who haven't used Mu
 
 To accelerate Muse Spark Open inference on vLLM, we trained a speculator using DSpark, a speculative decoding algorithm that uses block diffusion to propose up to seven draft tokens in a single pass. Confidence-based scheduling helps sustain significant speedups even at large batch sizes, where speculative decoding traditionally offers diminishing returns, as shown in the results below.
 
-![DSpark performance results](/assets/figures/2026-10-15-muse-spark-open/dspark-performance.png)
+<iframe class="vllm-embed" src="/assets/interactive_pages/muse-spark-open-dspark-throughput.html" title="Adaptive DSpark keeps its lead at high concurrency" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+
+*Figure 5: Aggregate output throughput against per-user decode speed on 4 × NVIDIA GB300 (TP4), one point per concurrency level from c1 to c256. Hover a point for every series' values, or [open it full-screen](/assets/interactive_pages/muse-spark-open-dspark-throughput.html).*
 
 Our speculator also uses the Muse Spark Open sliding-window attention to keep drafting lightweight, even with a 1M-token context. Together, these choices make it well suited to production workloads spanning a wide range of batch sizes and context lengths.
 
@@ -153,3 +163,19 @@ Contributors:
 - Meta: Beto de Paola, Sidhartha Reddy Potu
 - Nvidia: Cyrus Chang, Duncan Moss, Marek Pikulski, Seong Hee Lee
 - AMD: Andy Luo, Hongxia Yang, Haichen Zhang
+
+<script>
+(function () {
+  // Resize embedded interactive figures to their content height (they post it when framed).
+  window.addEventListener('message', function (event) {
+    var d = event.data;
+    if (!d || d.type !== 'vllm-embed-resize' || typeof d.height !== 'number') return;
+    var frames = document.querySelectorAll('iframe.vllm-embed');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow === event.source) {
+        frames[i].style.height = Math.ceil(d.height) + 'px';
+      }
+    }
+  });
+})();
+</script>
