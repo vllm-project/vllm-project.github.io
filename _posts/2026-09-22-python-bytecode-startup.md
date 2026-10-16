@@ -2,7 +2,7 @@
 layout: post
 title: "Reducing vLLM startup time with one uv flag"
 author: "Nils Matteson"
-summary: "One uv build flag saved 17.6–17.8 seconds per startup for Qwen3-8B and Qwen3-32B on an H100 server, with images and models already local."
+summary: "Shipping Python bytecode saved about 18 seconds per startup in H100 server benchmarks, with images and models already local."
 image: /assets/figures/2026-09-22-python-bytecode-startup/bytecode-server.png
 social_image: /assets/figures/2026-09-22-python-bytecode-startup/bytecode-server.png
 tags:
@@ -10,13 +10,13 @@ tags:
   - deployment
 ---
 
-Building Python bytecode into the image saved **17.6 seconds for Qwen3-8B and 17.8 seconds for Qwen3-32B** in median paired startup time on a Xeon/H100 server. The change is one uv setting, enabled before installing runtime packages:
+Fresh vLLM containers can spend seconds compiling Python source before serving any requests. Shipping that bytecode in the image saved **about 18 seconds per startup in my H100 server benchmarks**, with one uv build setting:
 
 ```dockerfile
 ENV UV_COMPILE_BYTECODE=1
 ```
 
-This tells uv to compile Python source during package installation, so fresh containers can load the prepared `.pyc` files instead of compiling that source at startup.
+Set the flag before installing runtime packages so uv compiles their Python source during the build. This avoids repeated compilation during imports shared across models. Qwen3-8B and Qwen3-32B are two examples: median paired startup savings were 17.6 and 17.8 seconds, respectively.
 
 For official-image users, [PR #55422](https://github.com/vllm-project/vllm/pull/55422) is already included in this [CUDA nightly](https://hub.docker.com/r/vllm/vllm-openai/tags?name=nightly-8cbd5d03006c33185f402249ff2b448efd594986):
 
