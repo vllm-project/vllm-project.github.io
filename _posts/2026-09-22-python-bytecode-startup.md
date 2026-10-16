@@ -24,7 +24,7 @@ For official-image users, [PR #55422](https://github.com/vllm-project/vllm/pull/
 vllm/vllm-openai:nightly-8cbd5d03006c33185f402249ff2b448efd594986
 ```
 
-As of October 14, the latest stable release, [v0.31.0](https://github.com/vllm-project/vllm/releases/tag/v0.31.0), does not include the change.
+The change will be supported in official release images starting with **v0.32.0**.
 
 ## Startup savings on the H100
 
