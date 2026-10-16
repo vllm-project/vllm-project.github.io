@@ -141,6 +141,18 @@ Serving results on TP8, with and without adaptive verification, on the low-entro
 
 Adaptive verification pays off under load. At concurrency 128 it raises output throughput by 10.8% and cuts p99 TPOT by 9%, while verifying fewer draft tokens per step, which lowers acceptance length slightly but saves more compute than it loses. At low concurrency, where extra draft tokens are nearly free, it is neutral.
 
+## AgentX benchmark
+
+<p align="center">
+<img src="/assets/figures/2026-10-16-reflection-beam/agentx.png" alt="Beam 1.0 NVFP4 AgentX on GB300: total token throughput per GPU versus P90 interactivity, with DFlash2 and with speculative decoding off" width="100%">
+</p>
+
+*Figure 5: Beam 1.0 NVFP4 AgentX benchmark showing up to 88K total tok/s per GPU and up to 350 tok/s per user on GB300.*
+
+We also tested Beam on AgentX, which replays multi-turn coding conversations to measure serving performance. With DFlash2, vLLM reached approximately 88K total tokens/s per GPU at 96 concurrent requests. Total throughput counts input and output tokens, including cached input. Input-token cache hit rates ranged from 91.4% to 95.6% across the sweep.
+
+AgentX benchmark configuration: Beam 1.0 NVFP4 on 4× GB300 with TP4/EP1 and FP8 KV cache for both target and drafter. DFlash2 uses real acceptance (average AL 3.6 across measured points), block size 8, and probabilistic sampling. AgentX uses trajectory ratios 0.55–0.75, maximum reasoning effort, temperature 1.0, and 20 minutes per point. Total throughput includes cached input tokens. Source commits: vLLM 8e0922.
+
 ## Getting started
 
 The command at the top of this post is a good default: TP4 on a single GB300 node, with DFlash2 and FP8 KV cache. To enable adaptive verification, add `"enable_adaptive_verification": true` to the `--speculative-config`. Other optimizations above are on by default.
@@ -168,7 +180,7 @@ This work was a close collaboration between the Inferact, Reflection, and Nvidia
 
 - **Inferact:** Woosuk Kwon, Ziqi Zhao, Ao Shen, Tiezhen Wang
 - **Reflection:** Kaixing Wu, Yoni Gozlan, Neil Gollapudi, Thibaut Barroyer, Aymen Kallala, Matthias Reso, Florent Gbelidji
-- **Nvidia:** Siyuan Fu
+- **Nvidia:** Siyuan Fu, Jinze Xue
 
 <script>
 (function () {
