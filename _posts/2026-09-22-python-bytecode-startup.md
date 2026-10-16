@@ -24,7 +24,7 @@ For official-image users, [PR #55422](https://github.com/vllm-project/vllm/pull/
 vllm/vllm-openai:nightly-8cbd5d03006c33185f402249ff2b448efd594986
 ```
 
-The change will be supported in official release images starting with **v0.32.0**.
+The change will be supported in official release images starting with **v0.32.0**. Users of those images do not need to set the build flag themselves.
 
 ## Startup savings on the H100
 
@@ -64,7 +64,7 @@ Running the precompiled image with `-X pycache_prefix` pointing at an empty dire
 
 ## Compiler time explains most of the import saving
 
-In one separately instrumented serving-CLI comparison, valid bytecode cut import time from **12.20 to 5.01 seconds**, a saving of 7.19 seconds. Without the caches, Python spent 6.99 seconds inside 5,118 source-compiler calls; with them, it made zero such calls. Compilation accounts for most of that import gap. This one-run-per-condition diagnostic does not partition the full server-startup saving.
+In a separate vLLM installation outside Docker, valid bytecode cut the instrumented serving-CLI import from **12.20 to 5.01 seconds**, a saving of 7.19 seconds. Without the caches, Python spent 6.99 seconds inside 5,118 source-compiler calls; with them, it made zero such calls. Compilation accounts for most of that import gap. This one-run-per-condition diagnostic does not partition the full server-startup saving.
 
 A separate, repeated study measured imports without compiler instrumentation in a released vLLM 0.28.0 installation outside Docker. Every import root improved:
 
@@ -94,13 +94,13 @@ For this test, I launched `vllm serve` directly from a Linux Python installation
 
 Launch to first correct response took 54.7–60.6 seconds without precompiled package caches and 44.6–48.4 seconds with them. The three paired savings were 10.13, 9.35 and 12.23 seconds. All six launches returned correct responses.
 
-Normal bytecode writes and parent/child cache reuse stayed enabled, so this measures more than the compiler alone. It also uses a different vLLM build, Python build, CPU limit and timing boundary from the Docker experiment. The results are not additive. These are one-host observations; CPU frequency and thermal state were not fixed.
+Normal bytecode writes and parent/child cache reuse stayed enabled, so this measures more than the compiler alone. It also uses a different vLLM build, Python build, CPU limit and timing boundary from the matched-image experiments. The results are not additive. These are one-host observations; CPU frequency and thermal state were not fixed.
 
 ## Using it in an image
 
 For your own image, set `UV_COMPILE_BYTECODE=1` before the uv commands that install runtime packages, then rebuild.
 
-The main trap is an existing base image. `uv pip install` compiles files it installs or reinstalls; enabling the flag before adding one package does not necessarily prepare everything inherited from `FROM`. Compile that existing environment explicitly with the runtime Python's [compileall](https://docs.python.org/3.12/library/compileall.html) if needed. Check the final image, and keep both source and bytecode when copying packages between stages. Adding `-O` or changing the runtime cache path can change which files Python looks for. The [methods supplement](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#final-image-diagnostic) includes the cache-coverage command and compatibility caveats.
+The main trap is an existing base image. Whether a later uv command also compiles packages inherited from `FROM` depends on the command and uv version. Check the final image and use the runtime Python's [compileall](https://docs.python.org/3.12/library/compileall.html) to prepare any missing caches. Keep both source and bytecode when copying packages between stages. Adding `-O` or changing the runtime cache path can change which files Python looks for. The [methods supplement](https://github.com/vllm-project/vllm-project.github.io/blob/main/assets/figures/2026-09-22-python-bytecode-startup/METHODS.md#final-image-diagnostic) includes the cache-coverage command and compatibility caveats.
 
 In the earlier matched-image test, the extra 153 MB can matter on a slow image pull. Nodes with the layers already cached avoid that transfer when starting another container. Build-time overhead was not measured separately. In the earlier isolated installation, the cached serving-CLI import still took about five seconds; module initialization remains work to investigate.
 
