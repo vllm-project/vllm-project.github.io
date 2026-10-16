@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="585" viewBox="0 0 900 585" role="img" aria-labelledby="kda-group-rules-title kda-group-rules-desc" id="kda-group-rules-diagram">
+<title id="kda-group-rules-title">Know the rule before knowing the state</title>
+<desc id="kda-group-rules-desc">A scalar illustration combines halve then add two, followed by halve then add one, into quarter then add two. The rule can be built without the incoming state. Group summaries are composed in sequence order to find group starting states; groups then replay their chunks independently from those starting states. The scan and replay add work. Numbers are a toy, not actual KDA coefficients or a timing prediction.</desc>
+<defs><marker id="kda-group-rules-a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L7 4L1 7" fill="none" stroke="#526677" stroke-width="1.7"/></marker></defs>
+<style>#kda-group-rules-diagram text{font-family:Arial,Helvetica,sans-serif;fill:#16324b;font-size:18px}#kda-group-rules-diagram .title{font-size:27px;font-weight:700}#kda-group-rules-diagram .mt{font-size:24px;font-weight:700}#kda-group-rules-diagram .h{font-size:21px;font-weight:700}#kda-group-rules-diagram .b{font-weight:700}#kda-group-rules-diagram .s{font-size:16px}#kda-group-rules-diagram .m{fill:#526677}</style>
+<rect width="900" height="585" fill="white"/>
+<text x="24" y="38" class="title" text-anchor="start">Know the rule before knowing the state</text>
+<text x="24" y="75" class="m" text-anchor="start">First, combine two updates. The starting value can arrive later.</text>
+<rect x="24" y="99" width="210" height="72" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="129.0" y="129.5" class="b" text-anchor="middle" style="fill:#16324b">Halve, then</text>
+<text x="129.0" y="152.5" class="b" text-anchor="middle" style="fill:#16324b">add 2</text>
+<path d="M237 135H274" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="277" y="99" width="210" height="72" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="382.0" y="129.5" class="b" text-anchor="middle" style="fill:#16324b">Halve, then</text>
+<text x="382.0" y="152.5" class="b" text-anchor="middle" style="fill:#16324b">add 1</text>
+<path d="M17 99H8V171H17" fill="none" stroke="#526677" stroke-width="1.7"/>
+<path d="M505 99H526V171H505" fill="none" stroke="#526677" stroke-width="1.7"/>
+<text x="571" y="143" class="title" text-anchor="middle">=</text>
+<rect x="621" y="99" width="255" height="72" rx="7" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="748.5" y="129.5" class="b" text-anchor="middle" style="fill:#16324b">Combined rule:</text>
+<text x="748.5" y="152.5" class="b" text-anchor="middle" style="fill:#16324b">quarter, then add 2</text>
+<text x="450" y="205" class="s" text-anchor="middle">If the state later arrives as 8: 8 → 6 → 4, or directly 8 ÷ 4 + 2 = 4.</text>
+<rect x="24" y="232" width="852" height="317" rx="7" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="44" y="267" class="h" text-anchor="start">Use the same idea across groups of chunks</text>
+<g id="kda-stage-1" data-stage="1" aria-label="Build group rules"><text x="45" y="307" class="b" text-anchor="start">1. Build group rules</text>
+<rect x="45" y="329" width="228" height="40" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="159.0" y="355.0" class="b" text-anchor="middle" style="fill:#16324b">Group 1 summary</text>
+<rect x="45" y="387" width="228" height="40" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="159.0" y="413.0" class="b" text-anchor="middle" style="fill:#16324b">Group 2 summary</text>
+<rect x="45" y="445" width="228" height="40" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="159.0" y="471.0" class="b" text-anchor="middle" style="fill:#16324b">Group 3 summary</text>
+</g><g id="kda-stage-2" data-stage="2" aria-label="Find starting states with an ordered prefix scan"><text x="344" y="307" class="b" text-anchor="start">2. Find starting states</text>
+<path d="M276 349H299V465H276" fill="none" stroke="#526677" stroke-width="1.7"/>
+<path d="M276 407H299" fill="none" stroke="#526677" stroke-width="1.7"/>
+<path d="M299 436H342" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="345" y="329" width="243" height="36" rx="7" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="466.5" y="353.0" class="s" text-anchor="middle" style="fill:#16324b">Initial state S0</text>
+<path d="M466 367V389" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="345" y="392" width="243" height="87" rx="7" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="466.5" y="430.0" class="b" text-anchor="middle" style="fill:#16324b">Compose summaries</text>
+<text x="466.5" y="453.0" class="b" text-anchor="middle" style="fill:#16324b">in sequence order</text>
+<text x="466" y="512" class="s" text-anchor="middle" style="fill:#526677">The prefix scan</text>
+</g><g id="kda-stage-3" data-stage="3" aria-label="Replay the groups from their starting states"><text x="635" y="307" class="b" text-anchor="start">3. Replay the groups</text>
+<path d="M591 436H613" fill="none" stroke="#526677" stroke-width="1.7"/>
+<path d="M613 349V465" fill="none" stroke="#526677" stroke-width="1.7"/>
+<path d="M613 349H636" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<path d="M613 407H636" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<path d="M613 465H636" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="639" y="329" width="67" height="40" rx="7" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="672.5" y="355.0" class="b" text-anchor="middle" style="fill:#16324b">S0</text>
+<path d="M708 349H732" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="735" y="329" width="118" height="40" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="794.0" y="355.0" class="b" text-anchor="middle" style="fill:#16324b">Group 1</text>
+<rect x="639" y="387" width="67" height="40" rx="7" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="672.5" y="413.0" class="b" text-anchor="middle" style="fill:#16324b">S1</text>
+<path d="M708 407H732" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="735" y="387" width="118" height="40" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="794.0" y="413.0" class="b" text-anchor="middle" style="fill:#16324b">Group 2</text>
+<rect x="639" y="445" width="67" height="40" rx="7" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="672.5" y="471.0" class="b" text-anchor="middle" style="fill:#16324b">S2</text>
+<path d="M708 465H732" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#kda-group-rules-a)"/>
+<rect x="735" y="445" width="118" height="40" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="794.0" y="471.0" class="b" text-anchor="middle" style="fill:#16324b">Group 3</text>
+</g><text x="24" y="578" class="s m" text-anchor="start">Groups become independent after the scan. Chunks inside each group stay ordered.</text>
+</svg>
