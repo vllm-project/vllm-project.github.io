@@ -3,8 +3,8 @@ layout: post
 title: "Hyper Optimizing Kimi K3 in vLLM: Moving Fast and Responsibly"
 author: "Benjamin Chislett (NVIDIA)"
 summary: "How agent-assisted CuTe DSL optimizations accelerate Kimi K3 decode on NVIDIA GB300, and how scoped changes, correctness tests, and reproducible benchmarks help ship them responsibly."
-image: /assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png
-social_image: /assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png
+image: /assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png?v=bc3e36a7c869
+social_image: /assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png?v=bc3e36a7c869
 tags:
   - performance
   - hardware
@@ -38,7 +38,7 @@ Kimi K3 is our first contribution following this approach. This post covers how 
 
 This contribution introduces a new decode path for Kimi K3 which fuses and replaces almost all operations with customized CuTe DSL kernels, tuned for certain subproblems. It targets NVIDIA Blackwell GPUs with 8 or 16 GPUs, decode batches from 1 to 64, and optional decode context parallelism for long contexts. The GPUs share one NVLink domain with multicast support. [For more details, please refer to the PR](https://github.com/vllm-project/vllm/pull/61867#issue-5869895165).
 
-![Kimi K3 kernel timeline: stock vLLM uses 130 microseconds and 23 kernels per layer; specialized decode uses 69 microseconds and 13 kernels.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-kernel-timeline.png)
+![Kimi K3 kernel timeline: stock vLLM uses 130 microseconds and 23 kernels per layer; specialized decode uses 69 microseconds and 13 kernels.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-kernel-timeline.png?v=250506bea01d)
 
 ### 1. Tune shapes for the workload
 
@@ -112,7 +112,7 @@ Reliable validation also takes GPU time. The related [Bring-Your-Own-GPU evaluat
 
 With DSpark, Kimi K3 reaches **842 tokens per second on 16 NVIDIA GB300 GPUs** in the controlled AL=6 benchmark. That is **1.73× faster** than stock vLLM with the same speculative decoding setup. [Refer to the PR for a full results table.](https://github.com/vllm-project/vllm/pull/61867)
 
-![Kimi K3 at batch 1 with TP16, DSpark DL7, and synthetic AL=6: 842 decode tokens/s versus 488 for stock vLLM, a 1.73x speedup.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-dspark-al6.png)
+![Kimi K3 at batch 1 with TP16, DSpark DL7, and synthetic AL=6: 842 decode tokens/s versus 488 for stock vLLM, a 1.73x speedup.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-dspark-al6.png?v=e07b578187b2)
 
 *Setup: TP16, DSpark with seven draft tokens, synthetic acceptance length of 6, DL=7, ISL=1, OSL=1k, batch size 1. TPS measures aggregate decode throughput and excludes prefill.*
 
@@ -138,13 +138,13 @@ Our optimized Kimi K3 implementation also delivers **1.8× higher P90 interactiv
 
 AgentX replays traffic patterns from real coding-agent sessions, including long contexts, multiple conversation turns, tool pauses, parallel subagents, and KV-cache reuse. It preserves these workload patterns while replacing private content with synthetic text, testing the serving system under realistic agent traffic. [AgentX methodology](https://inferencex.semianalysis.com/agentx).
 
-![Kimi K3 AgentX results: P90 interactivity versus total throughput per GPU, comparing the earlier GB300 vLLM curve with specialized decode.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png)
+![Kimi K3 AgentX results: P90 interactivity versus total throughput per GPU, comparing the earlier GB300 vLLM curve with specialized decode.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png?v=bc3e36a7c869)
 
 ## What's Next
 
 For DeepSeek-V4.1-Flash, [#61868](https://github.com/vllm-project/vllm/pull/61868) follows the K3 design patterns: behind the same opt-in `decode_backend: latency_specialized` switch, the implementation also supports up to 64 concurrent requests, seamless fallback for prefills and mixed batches, and speculative decoding. Instead of chasing a single hotspot, that executor cuts kernels and host work: it fuses all-reduce + mHC at every sublayer boundary, replaces the large-batch MoE and GEMMs with CuTe DSL kernels built for low-latency, deduplicates and shards the indexer’s work, and takes per-step work that stock vLLM runs eagerly on the CPU and replays it as a CUDA graph instead.
 
-![DeepSeek AgentX results on four GB300 GPUs: P90 interactivity versus total throughput per GPU with and without optimized decode.](/assets/figures/2026-10-16-kimi-k3-megakernel/deepseek-v41-flash-agentx.png)
+![DeepSeek AgentX results on four GB300 GPUs: P90 interactivity versus total throughput per GPU with and without optimized decode.](/assets/figures/2026-10-16-kimi-k3-megakernel/deepseek-v41-flash-agentx.png?v=fb6493531579)
 
 Within two days of Meta’s [Muse Spark Open](https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B-NVFP4) release, our early results already exceeded **950 tokens per second per user**, with seven draft tokens (K=7) and an acceptance length of six (AL=6). More optimizations are underway.
 
