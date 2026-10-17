@@ -11,6 +11,8 @@ tags:
   - NVIDIA
 ---
 
+![Kimi K3 decode performance on NVIDIA GB300.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-intro-results.png?v=ebcd3c8d4a5a)
+
 Coding agents can now help with some of the hardest parts of model optimization: writing complex GPU kernels, performing cross-operator fusions, overlapping computation with communication, and tuning execution across different batch sizes and GPU configurations. For Kimi K3, we used agent-assisted development to build a unified CuTe DSL decode path on the NVIDIA GB300, covering attention, MoE, and communication across 8 or 16 GPUs. The optimizations deliver over **840 tokens/s** at batch 1 on 16 NVIDIA GB300 GPUs with DSpark (synthetic AL=6), **1.5–2×** higher decode throughput in several tested configurations, and up to **1.8×** higher P90 interactivity on the AgentX workload.
 
 Agent-optimized inference code is outpacing our review and maintenance workflow. The manual review process of understanding every line of every kernel, mapping out potential issues, and testing every supported configuration, is very time-consuming work. On the other hand, if we omit this work then we risk shipping buggy software that could fail in production.
