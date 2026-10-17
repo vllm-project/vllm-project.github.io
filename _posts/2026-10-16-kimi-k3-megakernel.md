@@ -3,8 +3,8 @@ layout: post
 title: "Hyper Optimizing Kimi K3 in vLLM: Moving Fast and Responsibly"
 author: "Benjamin Chislett (NVIDIA)"
 summary: "How agent-assisted CuTe DSL optimizations accelerate Kimi K3 decode on NVIDIA GB300, and how scoped changes, correctness tests, and reproducible benchmarks help ship them responsibly."
-image: /assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png?v=bc3e36a7c869
-social_image: /assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-agentx.png?v=bc3e36a7c869
+image: /assets/figures/2026-10-16-kimi-k3-megakernel/hero.png?v=b4c7d91ec3fc
+social_image: /assets/figures/2026-10-16-kimi-k3-megakernel/social-preview.png?v=1d7f9709fbdf
 tags:
   - performance
   - hardware
@@ -112,7 +112,7 @@ Reliable validation also takes GPU time. The related [Bring-Your-Own-GPU evaluat
 
 With DSpark, Kimi K3 reaches **842 tokens per second on 16 NVIDIA GB300 GPUs** in the controlled AL=6 benchmark. That is **1.73× faster** than stock vLLM with the same speculative decoding setup. [Refer to the PR for a full results table.](https://github.com/vllm-project/vllm/pull/61867)
 
-![Kimi K3 at batch 1 with TP16, DSpark DL7, and synthetic AL=6: 842 decode tokens/s versus 488 for stock vLLM, a 1.73x speedup.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-dspark-al6.png?v=e07b578187b2)
+![Kimi K3 at batch 1 with TP16, DSpark DL7, and synthetic AL=6: 842 decode tokens/s versus 488 for stock vLLM, a 1.73x speedup.](/assets/figures/2026-10-16-kimi-k3-megakernel/kimi-k3-dspark-al6.png?v=f7de47b931f9)
 
 *Setup: TP16, DSpark with seven draft tokens, synthetic acceptance length of 6, DL=7, ISL=1, OSL=1k, batch size 1. TPS measures aggregate decode throughput and excludes prefill.*
 
