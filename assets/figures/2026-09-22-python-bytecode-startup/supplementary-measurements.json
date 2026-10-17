@@ -1,0 +1,363 @@
+{
+  "units": "seconds unless otherwise stated",
+  "data_origin": "Existing recorded experiments; no new measurements for this article",
+  "datasets": {
+    "native_serving_paired": {
+      "scope": "Native Linux vLLM serve launch to first correct HTTP completion; model local; common measured installed .py and .so pages resident; normal bytecode writes and multiprocessing retained.",
+      "unit": "seconds",
+      "pair_order": [
+        "B1",
+        "C1",
+        "C2",
+        "B2",
+        "B3",
+        "C3"
+      ],
+      "arms": {
+        "B": "valid bytecode at start",
+        "C": "zero private-site bytecode at start"
+      },
+      "observations": [
+        {
+          "pair": 1,
+          "with_bytecode_s": 44.618814007844776,
+          "without_starting_bytecode_s": 54.7488415739499,
+          "paired_saving_s": 10.130027566105127
+        },
+        {
+          "pair": 2,
+          "with_bytecode_s": 47.69106455985457,
+          "without_starting_bytecode_s": 57.03940197173506,
+          "paired_saving_s": 9.348337411880493
+        },
+        {
+          "pair": 3,
+          "with_bytecode_s": 48.40544155612588,
+          "without_starting_bytecode_s": 60.63873178977519,
+          "paired_saving_s": 12.233290233649313
+        }
+      ],
+      "summaries": {
+        "median_with_bytecode_s": 47.69106455985457,
+        "median_without_starting_bytecode_s": 57.03940197173506,
+        "median_paired_saving_s": 10.130027566105127
+      },
+      "environment": {
+        "host": "personal rig",
+        "os": "Linux",
+        "cpu_model_recorded": false,
+        "affinity": "logical CPUs 0-3 (four logical CPUs on two SMT cores)",
+        "gpu": "RTX 4090 Laptop",
+        "python": "CPython 3.12.3 (main, Jun 19 2026, 12:46:00) [GCC 13.3.0]",
+        "vllm": "0.28.0",
+        "torch": "2.13.0",
+        "model": "Qwen3-0.6B",
+        "dtype": "bfloat16",
+        "max_model_length": 2048
+      },
+      "cache_details": {
+        "common_files": 23273,
+        "common_bytes": 8852520345,
+        "resident_fraction_each_launch": 1.0,
+        "B_pyc_at_start": 21870,
+        "C_pyc_at_start": 0,
+        "C_pyc_at_completion": 7789
+      }
+    },
+    "standalone_preloaded_compile": {
+      "scope": "Fresh isolated process compiles the exact 5,118 preloaded source byte arrays; no module execution or bytecode writes.",
+      "unit": "seconds",
+      "observations": [
+        {
+          "pass": 1,
+          "wall_s": 6.246119038,
+          "current_thread_cpu_s": 6.245765872
+        },
+        {
+          "pass": 2,
+          "wall_s": 6.303333864,
+          "current_thread_cpu_s": 6.302903434
+        },
+        {
+          "pass": 3,
+          "wall_s": 6.319382935,
+          "current_thread_cpu_s": 6.318963402
+        }
+      ],
+      "summary": {
+        "median_wall_s": 6.303333864,
+        "median_current_thread_cpu_s": 6.302903434
+      },
+      "corpus": {
+        "files": 5118,
+        "source_bytes": 78595607,
+        "newline_bytes": 2159169
+      },
+      "environment": {
+        "host": "same personal rig",
+        "os": "Linux x86-64",
+        "cpu_model_recorded": false,
+        "affinity": "logical CPUs 0-3 (four logical CPUs on two SMT cores)",
+        "python": "CPython 3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+        "python_build_differs_from_native_serving_study": true
+      },
+      "timed_operation": "compile(source_bytes, original_filename, 'exec', dont_inherit=True, optimize=0)"
+    },
+    "diagnostic_serving_cli_import": {
+      "scope": "One separately instrumented serving-CLI import per cache condition on the recovered installation; diagnostic observations, not the primary repeated import series.",
+      "unit": "seconds",
+      "observations": [
+        {
+          "condition": "without_bytecode",
+          "import_wall_s": 12.201944348867983,
+          "compiler_call_wall_s": 6.9879588023759425,
+          "compiler_calls": 5118
+        },
+        {
+          "condition": "with_valid_bytecode",
+          "import_wall_s": 5.009506709873676,
+          "compiler_call_wall_s": 0.0,
+          "compiler_calls": 0
+        }
+      ],
+      "derived": {
+        "import_difference_s": 7.192437638994306,
+        "difference_minus_uncached_compiler_call_wall_s": 0.20447883661836386
+      }
+    },
+    "fresh_process_import_pairs": {
+      "scope": "Fresh child process; clock begins immediately before import and excludes interpreter launch/preparation; common Python/native-library pages 100% resident; no compiler hook in the 24 primary observations.",
+      "unit": "seconds",
+      "environment": {
+        "host": "personal rig",
+        "python": "CPython 3.12.3",
+        "affinity": "logical CPUs 0-3",
+        "pairs_per_root": 3,
+        "cpu_frequency_and_thermal_state_fixed": false
+      },
+      "roots": {
+        "torch": {
+          "with_bytecode_s": [
+            0.7996421339921653,
+            0.8024913389235735,
+            0.819445138797164
+          ],
+          "without_bytecode_s": [
+            2.0274842618964612,
+            2.1305899606086314,
+            2.157925048843026
+          ],
+          "paired_saving_s": [
+            1.227842127904296,
+            1.3280986216850579,
+            1.3384799100458622
+          ],
+          "median_with_s": 0.8024913389235735,
+          "median_without_s": 2.1305899606086314
+        },
+        "transformers": {
+          "with_bytecode_s": [
+            0.6730392170138657,
+            0.6925169290043414,
+            0.6759814117103815
+          ],
+          "without_bytecode_s": [
+            1.2431127508170903,
+            1.294321175199002,
+            1.3720129798166454
+          ],
+          "paired_saving_s": [
+            0.5700735338032246,
+            0.6018042461946607,
+            0.6960315681062639
+          ],
+          "median_with_s": 0.6759814117103815,
+          "median_without_s": 1.294321175199002
+        },
+        "vllm": {
+          "with_bytecode_s": [
+            2.061750660184771,
+            2.106786096934229,
+            2.162029709201306
+          ],
+          "without_bytecode_s": [
+            6.498079162091017,
+            6.707471272908151,
+            6.90405880799517
+          ],
+          "paired_saving_s": [
+            4.436328501906246,
+            4.600685175973922,
+            4.742029098793864
+          ],
+          "median_with_s": 2.106786096934229,
+          "median_without_s": 6.707471272908151
+        },
+        "serve_cli": {
+          "with_bytecode_s": [
+            4.991217206697911,
+            5.0197674180381,
+            5.122801135759801
+          ],
+          "without_bytecode_s": [
+            12.165151939727366,
+            12.26590935094282,
+            12.61171375727281
+          ],
+          "paired_saving_s": [
+            7.173934733029455,
+            7.24614193290472,
+            7.488912621513009
+          ],
+          "median_with_s": 5.0197674180381,
+          "median_without_s": 12.26590935094282
+        }
+      },
+      "rows_are_transitive_and_non_additive": true
+    },
+    "image_delivery_bytecode_gzip": {
+      "scope": "Matched CUDA images from separate empty classic-overlay2 Docker stores through loopback pull/unpack to first correct response; model already local; gzip export in both arms; host/source page cache warm or uncontrolled.",
+      "unit": "seconds",
+      "sequence": [
+        "A1",
+        "B1",
+        "C1",
+        "C2",
+        "A2",
+        "B2",
+        "B3",
+        "C3",
+        "A3"
+      ],
+      "arms": {
+        "A": "control gzip",
+        "B": "bytecode candidate gzip"
+      },
+      "observations": [
+        {
+          "pair": 1,
+          "control_total_s": 149.81561673618853,
+          "bytecode_total_s": 134.4549802299589,
+          "paired_saving_s": 15.360636506229639,
+          "control_pull_s": 81.43408709205687,
+          "bytecode_pull_s": 77.99969018204138,
+          "control_activation_s": 68.32871756330132,
+          "bytecode_activation_s": 56.40410324325785
+        },
+        {
+          "pair": 2,
+          "control_total_s": 155.7265056297183,
+          "bytecode_total_s": 144.51372749218717,
+          "paired_saving_s": 11.212778137531132,
+          "control_pull_s": 83.05713962297887,
+          "bytecode_pull_s": 85.5219409307465,
+          "control_activation_s": 72.6199576118961,
+          "bytecode_activation_s": 58.94648245628923
+        },
+        {
+          "pair": 3,
+          "control_total_s": 162.38497586315498,
+          "bytecode_total_s": 146.28061986528337,
+          "paired_saving_s": 16.104355997871608,
+          "control_pull_s": 86.25043949112296,
+          "bytecode_pull_s": 87.41952822403982,
+          "control_activation_s": 76.08483683085069,
+          "bytecode_activation_s": 58.80859639495611
+        }
+      ],
+      "summary": {
+        "median_paired_saving_s": 15.360636506229639,
+        "median_paired_saving_percent": 9.917392857479047
+      },
+      "image_size": {
+        "control_encoded_layer_bytes": 8511741380,
+        "bytecode_encoded_layer_bytes": 8664824384,
+        "added_bytes": 153083004,
+        "added_percent": 1.79849219056043
+      },
+      "environment": {
+        "host_cpu": "Intel Core i9-13900HX",
+        "gpu": "RTX 4090 Laptop 16 GiB",
+        "docker": "29.1.3",
+        "daemon_affinity": "logical CPUs 0-3",
+        "server_cpu_quota": 4,
+        "python": "3.12.3",
+        "vllm_source_head": "470fe3942ecdb889b2f3c0b57ace4b09d61dd103",
+        "model": "Qwen3-0.6B",
+        "registry": "uncapped loopback"
+      }
+    },
+    "image_cache_identity": {
+      "scope": "Inventory of installed packages and fresh-container serving-CLI import probes in the matched September 7 Docker images. Separate from timing studies in the native vLLM 0.28.0 environment.",
+      "inventory_root": "/usr/local/lib/python3.12/dist-packages",
+      "source_head": "470fe3942ecdb889b2f3c0b57ace4b09d61dd103",
+      "matched_fields": [
+        "python",
+        "python_executable_sha256",
+        "system_packages",
+        "packages",
+        "py_count",
+        "py_source_sha256",
+        "native_count",
+        "native_payload_sha256",
+        "non_bytecode_payload_sha256",
+        "non_bytecode_payload_bytes",
+        "oracle_decoded"
+      ],
+      "matched_python_distributions": 244,
+      "matched_system_packages": 483,
+      "matched_native_payload_files": 44063,
+      "matched_non_bytecode_payload_bytes": 17341585327,
+      "payload_exclusions": [
+        ".pyc files",
+        "distribution RECORD files"
+      ],
+      "observations": [
+        {
+          "arm": "default",
+          "source_files": 26734,
+          "source_cache_states": {
+            "missing": 26327,
+            "valid": 407
+          },
+          "pyc_bytes": 5010861,
+          "serve_source_compilations": 5257
+        },
+        {
+          "arm": "precompiled",
+          "source_files": 26734,
+          "source_cache_states": {
+            "valid": 26734
+          },
+          "pyc_bytes": 423003516,
+          "serve_source_compilations": 0
+        }
+      ],
+      "cache_bypass": {
+        "same_precompiled_image": true,
+        "python_option": "-X pycache_prefix=/tmp/ibz0907-bypass",
+        "serve_source_compilations": 5478,
+        "additional_paths_vs_default": 221,
+        "additional_path_root": "/usr/lib/python3.12/",
+        "note": "Lookup redirection also bypasses standard-library caches. This is a mechanism control, not a third equivalent latency arm."
+      },
+      "probe_conditions": [
+        "fresh read-only containers",
+        "network disabled",
+        "four-CPU quota",
+        "tmpfs for /tmp",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "python3 -B"
+      ],
+      "source_receipts": {
+        "research/ledger/2026-09-07_image-bytecode-zstd/identity-gate.json": "2f89c21b986c2aaa9b23d0da4de3ab4118c8ffb233392368a936c4f85750d897",
+        "research/ledger/2026-09-07_image-bytecode-zstd/inventory-A.json": "edafaaea77c7957b58fd8c1041e54112588d5d1bef2b17fa28cda272e412116d",
+        "research/ledger/2026-09-07_image-bytecode-zstd/inventory-B.json": "a092de0fe9461405788b987c1ae06554cdad428aafadb5f34c9a08ec3fc6710b",
+        "research/ledger/2026-09-07_image-bytecode-zstd/import-A.json": "f68bbd47926d2d4eebb22d7eb4bd2f6a3ba55946b896c98effe3fbfb2e3c5c86",
+        "research/ledger/2026-09-07_image-bytecode-zstd/import-B.json": "c790398979b02b33c38a968d5a6c42263ba57f686dd86fbe6fd8c08c2f77ecd3",
+        "research/ledger/2026-09-07_image-bytecode-zstd/import-bypass-B.json": "d165c8228a5a255a78ce3ddd287c827bc2e0d56d3f94db0ac72dfbbbd64ca752",
+        "research/ledger/2026-09-07_image-bytecode-zstd/inventory.py": "08b622584a4c599ab01024b438ea49d7c3ee590f3a64fcf6a0a996a405d2e31b"
+      }
+    }
+  }
+}
