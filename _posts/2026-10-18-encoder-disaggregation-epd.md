@@ -14,14 +14,15 @@ Multimodal inference adds an encoding stage before language-model execution. Ima
 
 Encoder / Prefill / Decode (EPD) disaggregation separates these stages into independently deployed vLLM instances. Over the past two months, the vLLM community has expanded EPD across model execution, remote embedding transfer, shared caching, multimodal input handling, and request routing.
 
-This post explains the engineering behind that progress, with a focus on four changes:
+This post explains the engineering behind that progress, with a focus on five changes:
 
-- **Dedicated encoder execution** with a separate Model Runner V2 path, encoder-only CUDA Graph support, and reduced checkpoint-loading I/O.
 - **Metadata-only requests** that let downstream instances consume remote embeddings without repeating media preprocessing.
-- **Remote transfer and shared output reuse** through NIXL and Mooncake integrations.
+- **Dedicated encoder execution** with a separate Model Runner V2 path, encoder-only CUDA Graph support, and reduced checkpoint-loading I/O.
+- **Remote embedding transfer** through NIXL and Mooncake integrations.
+- **Cross-encoder output reuse** through Mooncake Store.
 - **Lower orchestration overhead** in the Python EPD proxy and EPD support in vLLM Router.
 
-The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. Features described as merged are available on the corresponding repository's main branch; availability in an installed release depends on its version.
+The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. All vLLM PRs referenced here are merged and included in vLLM v0.32.0. The vLLM Router integration is merged on the router's main branch.
 
 ## Why Separate the Encoder?
 
@@ -39,7 +40,7 @@ EPD supports two deployment patterns: **E+PD**, with a separate encoder and a co
 
 An image-heavy workload may need more encoder capacity without a corresponding increase in decode capacity. A workload with longer responses may require the opposite. Separating the stages allows operators to adjust their instance counts and execution settings independently, while moving encoder computation off the GPUs serving the language model.
 
-The benefit depends on the workload. Remote delivery adds communication and coordination to the request path, so deployment choices should account for media processing, network latency, cache reuse, and the resource balance across stages.
+Separation also has a cost. In an equal-GPU comparison from [#56242](https://github.com/vllm-project/vllm/pull/56242) (six H20 GPUs, InternVL3_5-38B-HF, image workload), a 2E+4PD deployment reduced TPOT p90 from **54.5 to 41.5 ms** compared with six colocated instances, consistent with decode no longer sharing GPUs with encoding. TTFT rose from **1.17 to 1.21 seconds** at p50 and from **1.20 to 1.66 seconds** at p90, as encoding was concentrated on two of the six GPUs. Whether EPD pays off depends on the media mix, network latency, and cache reuse.
 
 ## Metadata-Only Requests: Avoiding Duplicate Preprocessing
 
@@ -49,7 +50,7 @@ A straightforward EPD implementation sends the original media to the encoder, tr
 
 **A metadata-only request replaces the downstream media item with a reference containing the structural information already produced on the encoder side.** The consumer reconstructs placeholders from that metadata and receives the actual embeddings through the EC connector.
 
-“Metadata-only” applies to the multimodal input item in the downstream request. The text prompt and generation settings remain present. Embeddings are still required; their payload travels through the separate EC data path.
+Only the multimodal item changes: the text prompt and generation settings remain, and the embeddings still travel through the EC data path.
 
 ![Raw-media forwarding compared with metadata-only requests](/assets/figures/2026-10-18-encoder-disaggregation-epd/02-control-and-data.png)
 
@@ -64,7 +65,7 @@ For example, Qwen-family image inputs require grid information such as `image_gr
 | Embedding source | EC connector; an available remote embedding avoids another encoder forward | EC connector |
 | Main overhead or requirement | Potentially duplicated fetching, decoding, and preprocessing | A metadata contract consistent with the transferred embedding and input layout |
 
-Without metadata-only forwarding, the encoder neural network does not necessarily run twice: the remote embedding may already satisfy that dependency. The remaining duplication is often in media processing. Its cost depends on input size, preprocessing-cache hits, and how media is delivered. Forwarding a URL, for example, may cause the consumer to fetch the media again rather than sending its bytes through the proxy.
+Without metadata-only forwarding, the encoder does not necessarily run twice, since the remote embedding already covers it. The duplication is in media processing, and forwarding a URL can also make the consumer fetch the media again.
 
 ### JSON Metadata and Audio Support
 
@@ -74,13 +75,13 @@ The audio path follows the same principle. [#57887](https://github.com/vllm-proj
 
 The implementation covers the relevant Qwen2-Audio, AudioFlamingo3, Ultravox, Qwen2.5-Omni, and Qwen3-Omni paths for pure-audio Chat Completions requests. It does not introduce realtime or combined audiovisual input support.
 
-![Audio metadata-only throughput and latency results](/assets/figures/2026-10-18-encoder-disaggregation-epd/04-audio-results.png)
+![Audio metadata-only throughput and latency results](/assets/figures/2026-10-18-encoder-disaggregation-epd/03-audio-results.png)
 
 *Figure 3. Results reported in #57887 on MMAU test-mini: 1,000 samples over two passes, Qwen3-Omni-30B-A3B-Instruct, BF16, TP=1, Model Runner V2, Mooncake TCP, 1E+1PD, concurrency 64, and CUDA Graphs enabled.*
 
 In this evaluation, metadata-only forwarding increased throughput from **62.21 to 73.13 requests/s** and reduced mean latency from **980 to 853 ms**. Accuracy changed from 75.90% to 75.65%; that difference remains to be investigated. The comparison measures two audio input paths within EPD, rather than EPD against colocated serving.
 
-Video processing has also progressed. [#54242](https://github.com/vllm-project/vllm/pull/54242) adds video embedding inputs, while [#53675](https://github.com/vllm-project/vllm/pull/53675) enables GPU NVDEC media processing on encoder-only instances. In the latter PR's 30-frame MMVU workload, end-to-end throughput improved by approximately 94–115% across three GB200 nodes. Each run used Qwen3.5-35B-A3B, a 1E+3PD topology, eager execution, and concurrency 64. The gains include both GPU preprocessing and hardware video decoding; as the encoder became faster, the PD tier became the bottleneck.
+Video processing has also progressed. [#54242](https://github.com/vllm-project/vllm/pull/54242) adds video embedding inputs, while [#53675](https://github.com/vllm-project/vllm/pull/53675) enables GPU NVDEC media processing on encoder-only instances. In the latter PR's 30-frame MMVU workload, end-to-end throughput improved by approximately 94–115% over three runs, each on a separate 4-GPU GB200 node. Each run used Qwen3.5-35B-A3B, a 1E+3PD topology with a shared-storage EC connector, eager execution, and concurrency 64. The gains include both GPU preprocessing and hardware video decoding; as the encoder became faster, the PD tier became the bottleneck.
 
 ## A Dedicated Execution Path for Encoder Instances
 
@@ -94,10 +95,10 @@ Related changes make encoder execution more consistent:
 
 - **Configuration normalization:** producer-only EC instances automatically enter encoder-only mode. [#53656](https://github.com/vllm-project/vllm/pull/53656)
 - **Correct asynchronous execution:** the engine uses `is_mm_encoder_only` to determine whether a step needs the subsequent sampling path. This fixes standalone `--mm-encoder-only` instances incorrectly entering `sample_tokens()` when no EC connector is configured. [#58490](https://github.com/vllm-project/vllm/pull/58490)
-- **Reduced startup I/O:** encoder-only loading skips pure language-model checkpoint shards when the weight layout can be classified safely. This reduces unnecessary checkpoint reads, in addition to the existing savings from not constructing the language model. [#58086](https://github.com/vllm-project/vllm/pull/58086)
+- **Reduced startup I/O:** encoder-only loading skips pure language-model checkpoint shards when the weight layout can be classified safely. On a pruned Kimi-K3 checkpoint, the encoder read 2 of 96 shards and weight loading dropped from 683 s to 0.31 s. [#58086](https://github.com/vllm-project/vllm/pull/58086)
 - **Encoder CUDA Graph capture:** the encoder-only V2 runner supports opt-in ViT graph capture using the existing budget selection, replay, and eager fallback mechanisms. [#56922](https://github.com/vllm-project/vllm/pull/56922)
 
-Encoder graph validation remains sensitive to the model, shapes, and attention backend. The CUDA Graph PR documents backend-specific NaN observations and comparison tests; enabling graph capture should be accompanied by correctness checks for the chosen configuration.
+Encoder graphs currently need a compatible attention backend. In the CUDA Graph PR's tests, FlashAttention 3 and 4 produced all-NaN graph outputs when a smaller image replayed a larger graph, while Triton and FlashInfer matched eager execution. Until [#57136](https://github.com/vllm-project/vllm/issues/57136) is fixed, use `--mm-encoder-attn-backend TRITON_ATTN` or `FLASHINFER` with encoder graphs, and check correctness for your model.
 
 ## Remote Embedding Transfer and Failure Isolation
 
@@ -130,7 +131,7 @@ Instance-local caching leaves a reuse gap. An image encoded by E0 may later be r
 
 [#56242](https://github.com/vllm-project/vllm/pull/56242) adds cross-encoder output reuse with Mooncake Store. On a local miss, the encoder checks the shared Store. A hit supplies the embedding without another forward; a miss follows normal encoding and asynchronously publishes the output. Delivery to the selected P instance continues through Mooncake P2P.
 
-![Cross-encoder embedding reuse with Mooncake Store](/assets/figures/2026-10-18-encoder-disaggregation-epd/03-cross-encoder-cache.png)
+![Cross-encoder embedding reuse with Mooncake Store](/assets/figures/2026-10-18-encoder-disaggregation-epd/04-cross-encoder-cache.png)
 
 *Figure 4. Mooncake Store provides shared output reuse across encoders. ECMooncakeConnector retains the P2P delivery path to the selected consumer.*
 
@@ -138,9 +139,7 @@ Shared reuse validates input identity, model identity, and the output tensor con
 
 A controlled reassignment experiment in the PR used six H20 GPUs, InternVL3_5-38B-HF, a 2E+4PD topology, and same-node Mooncake TCP. After cache population, images were reassigned between encoders to create local misses. Across 128 measured requests containing 512 images, shared reuse reduced repeated image encodings from **512 to zero**. TTFT p50 decreased from **1.209 to 0.819 seconds**, and p90 from **1.656 to 0.891 seconds**, with essentially unchanged TPOT.
 
-This experiment used one run per configuration and a controlled full-reassignment workload; the performance experiment was not repeated after the final refactor. Production savings depend on reuse frequency and the additional Store memory and I/O costs.
-
-Preprocessing caches, encoder-output caches, and prefix KV caches serve different stages. Reusing one does not imply that the next stage's result is available.
+This was a single run of a workload in which every image was reassigned, so it shows the best case for shared reuse. Production savings depend on how often outputs are reused, against the Store's memory and I/O costs.
 
 ## Reducing Proxy Overhead on the Critical Path
 
@@ -154,7 +153,7 @@ Metadata-only requests reduce the amount of media carried downstream. JSON metad
 - Forward final non-streaming response bytes without parsing and re-encoding the JSON body.
 - Forward streaming response bytes directly, removing per-chunk text decoding and using `iter_any()` to receive available data.
 
-Routing and metadata inspection still require structured processing. Final responses that are ready for the client can pass through with fewer conversions. Eliminating this repeated work matters across both high request rates and long streaming responses, even when the GPU execution path is unchanged.
+Routing and metadata inspection still parse JSON, but final responses now pass through without conversion, which matters at high request rates and for long streaming responses.
 
 ### EPD Orchestration in vLLM Router
 
