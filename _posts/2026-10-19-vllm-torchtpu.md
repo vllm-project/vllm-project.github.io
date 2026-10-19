@@ -115,7 +115,6 @@ We want new open models from the major families (Qwen, DeepSeek, GLM, Kimi, Gemm
 * Prefix-, cache-, and session-aware routing, and llm-d TPU memory-tier routing.
 * PyTorch interfaces for [Tokamax](https://github.com/openxla/tokamax) kernels, shared with other projects in the TorchTPU ecosystem.
 * Diffusion model serving through `vllm-omni`.
-* Reproducible Ironwood recipes for Qwen 3.5 397B and Gemma 4 in [AI-Hypercomputer/tpu-recipes](https://github.com/AI-Hypercomputer/tpu-recipes).
 
 [Contributions are welcome!](https://github.com/vllm-project/vllm-torchtpu/blob/main/CONTRIBUTING.md)
 
@@ -130,6 +129,7 @@ We're also opening a Community Contribution TPU Capacity Pool. If you're buildin
 * [Quickstart](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/quickstart.md)
 * [Cloud TPU Setup](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/tpu_setup.md)
 * [TPU v7x (Ironwood) Serving Recipes](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/deployment/v7x_recipes.md)
+* [vLLM TorchTPU Recipes on Ironwood](https://github.com/AI-Hypercomputer/tpu-recipes/tree/main/inference/ironwood/vLLM/vLLM-TorchTPU)
 * [Kubernetes Deployment](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/deployment/kubernetes.md)
 * [Contributing Guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/CONTRIBUTING.md)
 
