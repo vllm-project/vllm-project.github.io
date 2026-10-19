@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introducing vLLM TorchTPU, a New TPU Backend for vLLM"
+title: "Introducing vLLM TorchTPU"
 author: "Inferact and Google Teams"
 summary: "vllm-torchtpu is a new vLLM backend for Google Cloud TPUs built on TorchTPU. It runs vLLM's existing model definitions with Pallas kernels for attention, MoE, and quantization, and supports multi-host parallelism, KV offloading, and P/D disaggregation."
 image: /assets/figures/2026-10-19-vllm-torchtpu/vllm-torchtpu.png
@@ -8,7 +8,6 @@ tags:
   - hardware
 ---
 
-<!-- TODO: confirm author line, publish date, and replace header image if a dedicated launch graphic is available. -->
 
 <p align="center">
 <picture>
@@ -28,7 +27,6 @@ This work comes out of the [engineering partnership between Inferact and Google]
 
 `vllm-torchtpu` is an out-of-tree vLLM platform plugin. Once installed, vLLM picks it up automatically through the `vllm.platform_plugins` entry point.
 
-<!-- TODO: add an architecture diagram (vLLM engine → vllm-torchtpu platform plugin → torch_tpu / Pallas kernels → TPU). -->
 
 Models run through vLLM's standard model runner and are compiled with `torch.compile(backend="tpu")`, which lowers to XLA. Each TPU chip gets its own worker process, the same way vLLM runs on GPUs, and communication between chips goes through `torch.distributed`. This means the scheduler, workers, KV cache manager, and API server are all unmodified upstream vLLM. The TPU-specific work sits underneath them, mostly in a set of JAX/Pallas kernels that are registered as custom ops and called from inside the compiled graph.
 
@@ -55,7 +53,7 @@ Models run through vLLM's standard model runner and are compiled with `torch.com
 
     The first startup compiles TPU graphs for the configured shapes, which can take a few minutes. Set `VLLM_XLA_CACHE_PATH` to reuse compiled artifacts across restarts (see [Compilation & Warmup Cache](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/user_guide/compilation_cache.md)).
 
-Speculative decoding, prefix caching, multi-LoRA, structured outputs, and multimodal inputs are all enabled with the usual vLLM flags.
+Speculative decoding, prefix caching, multi-LoRA, structured outputs, and multimodal inputs are all enabled with the usual vLLM flags. See the [quickstart](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/quickstart.md) for more examples, including offline batch inference, multimodal models, and multi-LoRA.
 
 ### Kernels
 
@@ -125,21 +123,17 @@ We want new open models from the major families (Qwen, DeepSeek, GLM, Kimi, Gemm
 
 We're also opening a Community Contribution TPU Capacity Pool. If you're building on `vllm-torchtpu`, you can apply for free TPU time, and core vLLM maintainers at Inferact will help with design and PR reviews.
 
-<!-- TODO: confirm pool size is OK to publish (roadmap lists 256 v6e / 32 v7x chips). -->
-
 [Apply for contributor TPU access here.](https://docs.google.com/forms/d/1Jm0uUXvcwYJRrvRojfS2RzMLjaqlt2a7lNyALFZs-nQ/viewform)
 
 ## Try It Out
 
-* [vLLM TorchTPU on GitHub](https://github.com/vllm-project/vllm-torchtpu)
 * [Quickstart](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/quickstart.md)
 * [Cloud TPU Setup](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/tpu_setup.md)
 * [TPU v7x (Ironwood) Serving Recipes](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/deployment/v7x_recipes.md)
 * [Kubernetes Deployment](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/deployment/kubernetes.md)
 * [Contributing Guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/CONTRIBUTING.md)
 
-<!-- TODO: link Google's companion announcement. -->
-Google has also published a companion announcement. If you have questions or want to get involved, find us on the [vLLM Forum](https://discuss.vllm.ai/c/hardware-support/google-tpu-support/27) or in `#sig-tpu` on the [vLLM Developer Slack](https://slack.vllm.ai).
+If you have questions or want to get involved, find us in `#sig-tpu` on the [vLLM Developer Slack](https://slack.vllm.ai).
 
 ## Acknowledgment
 
