@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="855" viewBox="0 0 1200 855" role="img" aria-labelledby="title desc">
+<title id="title">Kimi K3 on AgentX: throughput and modeled economics</title>
+<desc id="desc">Side-by-side bar charts compare AMD Instinct MI355X with NVIDIA HGX B300 at 30, 50 and 150 tokens per second per user. Each NVIDIA bar is normalized to 1.0 on the same zero-to-2.1 scale. At 50 the AMD curve has 24.4 percent more total-token throughput per GPU and 87.4 percent more total tokens per modeled dollar. Values interpolate separately scoped public vLLM curves; no gap is extrapolated.</desc>
+<defs><marker id="arrow-muted" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#526677" stroke-width="2.4"/></marker><marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#087f77" stroke-width="2.4"/></marker><marker id="arrow-amber" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#945c00" stroke-width="2.4"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;font-size:24px;fill:#16324b} .title{font-size:36px;font-weight:700}.heading{font-size:28px;font-weight:700}.label{font-size:24px;font-weight:700}.small{font-size:21px}.tiny{font-size:19px}.number{font-size:48px;font-weight:700}</style>
+<rect width="1200" height="855" fill="white"/>
+<text x="30" y="49" class="title" text-anchor="start">Kimi K3 on AgentX</text>
+<text x="30" y="91" class="label" text-anchor="start">At 50 tokens/s/user: +24.4% per GPU · +87.4% per modeled dollar</text>
+<rect x="31" y="121" width="23" height="23" rx="2" fill="#171717" stroke="#171717" stroke-width="1.6"/>
+<text x="67" y="141" class="small" text-anchor="start">AMD Instinct MI355X</text>
+<rect x="390" y="121" width="23" height="23" rx="2" fill="#76b900" stroke="#76b900" stroke-width="1.6"/>
+<text x="427" y="141" class="small" text-anchor="start">NVIDIA HGX B300</text>
+<text x="1170" y="141" class="small" text-anchor="end" style="fill:#526677">Both systems: 8 GPUs · vLLM</text>
+<rect x="24" y="170" width="556" height="502" rx="10" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="48" y="209" class="heading" text-anchor="start">Total-token throughput / GPU</text>
+<rect x="34" y="364" width="536" height="114" rx="6" fill="#f7f9fb" stroke="none" stroke-width="1.6"/>
+<path d="M159.0 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="159.0" y="638" class="tiny" text-anchor="middle" style="fill:#526677">0.0×</text>
+<path d="M240.66666666666666 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="240.66666666666666" y="638" class="tiny" text-anchor="middle" style="fill:#526677">0.5×</text>
+<path d="M322.3333333333333 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<text x="322.3333333333333" y="638" class="tiny" text-anchor="middle" style="fill:#526677">1.0×</text>
+<path d="M404.0 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="404.0" y="638" class="tiny" text-anchor="middle" style="fill:#526677">1.5×</text>
+<path d="M485.66666666666663 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="485.66666666666663" y="638" class="tiny" text-anchor="middle" style="fill:#526677">2.0×</text>
+<text x="54" y="294" class="heading" text-anchor="start">30</text>
+<text x="54" y="321" class="tiny" text-anchor="start" style="fill:#526677">target</text>
+<rect x="159" y="275" width="187.96582380613992" height="27" rx="2" fill="#171717" stroke="#171717" stroke-width="0"/>
+<rect x="353.96582380613995" y="275" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="356.96582380613995" y="298" class="small" text-anchor="start" style="fill:#16324b">1.15×</text>
+<rect x="159" y="314" width="163.33333333333331" height="27" rx="2" fill="#76b900" stroke="#76b900" stroke-width="0"/>
+<rect x="329.3333333333333" y="314" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="332.3333333333333" y="337" class="small" text-anchor="start" style="fill:#16324b">1.00×</text>
+<text x="54" y="419" class="heading" text-anchor="start">50</text>
+<text x="54" y="446" class="tiny" text-anchor="start" style="fill:#526677">target</text>
+<rect x="159" y="400" width="203.1890931273026" height="27" rx="2" fill="#171717" stroke="#171717" stroke-width="0"/>
+<rect x="369.1890931273026" y="400" width="80" height="28" rx="0" fill="#f7f9fb" stroke="none" stroke-width="0"/>
+<text x="372.1890931273026" y="423" class="small" text-anchor="start" style="fill:#16324b">1.24×</text>
+<rect x="159" y="439" width="163.33333333333331" height="27" rx="2" fill="#76b900" stroke="#76b900" stroke-width="0"/>
+<rect x="329.3333333333333" y="439" width="80" height="28" rx="0" fill="#f7f9fb" stroke="none" stroke-width="0"/>
+<text x="332.3333333333333" y="462" class="small" text-anchor="start" style="fill:#16324b">1.00×</text>
+<text x="54" y="544" class="heading" text-anchor="start">150</text>
+<text x="54" y="571" class="tiny" text-anchor="start" style="fill:#526677">target</text>
+<rect x="159" y="525" width="139.17576625628953" height="27" rx="2" fill="#171717" stroke="#171717" stroke-width="0"/>
+<rect x="305.17576625628953" y="525" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="308.17576625628953" y="548" class="small" text-anchor="start" style="fill:#16324b">0.85×</text>
+<rect x="159" y="564" width="163.33333333333331" height="27" rx="2" fill="#76b900" stroke="#76b900" stroke-width="0"/>
+<rect x="329.3333333333333" y="564" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="332.3333333333333" y="587" class="small" text-anchor="start" style="fill:#16324b">1.00×</text>
+<path d="M159 606H502" fill="none" stroke="#526677" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="620" y="170" width="556" height="502" rx="10" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="644" y="209" class="heading" text-anchor="start">Total tokens / modeled dollar</text>
+<rect x="630" y="364" width="536" height="114" rx="6" fill="#f7f9fb" stroke="none" stroke-width="1.6"/>
+<path d="M755.0 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="755.0" y="638" class="tiny" text-anchor="middle" style="fill:#526677">0.0×</text>
+<path d="M836.6666666666666 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="836.6666666666666" y="638" class="tiny" text-anchor="middle" style="fill:#526677">0.5×</text>
+<path d="M918.3333333333333 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<text x="918.3333333333333" y="638" class="tiny" text-anchor="middle" style="fill:#526677">1.0×</text>
+<path d="M1000.0 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1000.0" y="638" class="tiny" text-anchor="middle" style="fill:#526677">1.5×</text>
+<path d="M1081.6666666666665 245V606" fill="none" stroke="#bdcbd6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1081.6666666666665" y="638" class="tiny" text-anchor="middle" style="fill:#526677">2.0×</text>
+<text x="650" y="294" class="heading" text-anchor="start">30</text>
+<text x="650" y="321" class="tiny" text-anchor="start" style="fill:#526677">target</text>
+<rect x="755" y="275" width="283.2018412012508" height="27" rx="2" fill="#171717" stroke="#171717" stroke-width="0"/>
+<rect x="1045.2018412012508" y="275" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="1048.2018412012508" y="298" class="small" text-anchor="start" style="fill:#16324b">1.73×</text>
+<rect x="755" y="314" width="163.33333333333331" height="27" rx="2" fill="#76b900" stroke="#76b900" stroke-width="0"/>
+<rect x="925.3333333333333" y="314" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="928.3333333333333" y="337" class="small" text-anchor="start" style="fill:#16324b">1.00×</text>
+<text x="650" y="419" class="heading" text-anchor="start">50</text>
+<text x="650" y="446" class="tiny" text-anchor="start" style="fill:#526677">target</text>
+<rect x="755" y="400" width="306.138233645136" height="27" rx="2" fill="#171717" stroke="#171717" stroke-width="0"/>
+<rect x="1068.138233645136" y="400" width="80" height="28" rx="0" fill="#f7f9fb" stroke="none" stroke-width="0"/>
+<text x="1071.138233645136" y="423" class="small" text-anchor="start" style="fill:#16324b">1.87×</text>
+<rect x="755" y="439" width="163.33333333333331" height="27" rx="2" fill="#76b900" stroke="#76b900" stroke-width="0"/>
+<rect x="925.3333333333333" y="439" width="80" height="28" rx="0" fill="#f7f9fb" stroke="none" stroke-width="0"/>
+<text x="928.3333333333333" y="462" class="small" text-anchor="start" style="fill:#16324b">1.00×</text>
+<text x="650" y="544" class="heading" text-anchor="start">150</text>
+<text x="650" y="571" class="tiny" text-anchor="start" style="fill:#526677">target</text>
+<rect x="755" y="525" width="209.69148782614286" height="27" rx="2" fill="#171717" stroke="#171717" stroke-width="0"/>
+<rect x="971.6914878261429" y="525" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="974.6914878261429" y="548" class="small" text-anchor="start" style="fill:#16324b">1.28×</text>
+<rect x="755" y="564" width="163.33333333333331" height="27" rx="2" fill="#76b900" stroke="#76b900" stroke-width="0"/>
+<rect x="925.3333333333333" y="564" width="80" height="28" rx="0" fill="white" stroke="none" stroke-width="0"/>
+<text x="928.3333333333333" y="587" class="small" text-anchor="start" style="fill:#16324b">1.00×</text>
+<path d="M755 606H1098" fill="none" stroke="#526677" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="600" y="705" class="small" text-anchor="middle">Target = P90 interactivity, tokens/s/user · NVIDIA HGX B300 = 1.00×</text>
+<text x="30" y="742" class="small" text-anchor="start" style="fill:#526677">Total tokens include reused input. Interactivity excludes time to first token.</text>
+<text x="30" y="774" class="tiny" text-anchor="start" style="fill:#526677">Modeled cost per GPU-hour: AMD $1.50 · NVIDIA $2.26. Public curves interpolated at matching targets.</text>
+<text x="30" y="810" class="tiny" text-anchor="start" style="fill:#526677">Source: SemiAnalysis InferenceX · Retrieved October 9, 2026</text>
+<text x="30" y="837" class="tiny" text-anchor="start" style="fill:#526677">Submissions: AMD September 30, 2026 · NVIDIA August 16, 2026</text>
+</svg>

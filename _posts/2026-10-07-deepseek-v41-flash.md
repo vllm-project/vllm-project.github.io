@@ -16,9 +16,7 @@ tags:
 <img src="/assets/figures/2026-10-07-deepseek-v41-flash/agentx-results.png" alt="Figure 1: SemiAnalysis AgentX results for vLLM from the day-0 model release to Oct 2" width="100%">
 </p>
 
-<p align="center">
-<em>Figure 1: SemiAnalysis AgentX results for vLLM from the day-0 model release to Oct 2 (<a href="https://inferencex.semianalysis.com/inference/deepseek-v41-flash?i_seq=agentic-traces&i_xmode=interactivity&g_model=DeepSeek-V4.1-Flash&i_gpus=gb300_vllm&i_dstart=2026-09-11&i_dend=2026-10-02&i_metric=y_tpPerGpu">source</a>).</em>
-</p>
+*Figure 1: SemiAnalysis AgentX results for vLLM from the day-0 model release to Oct 2 ([source](https://inferencex.semianalysis.com/inference/deepseek-v41-flash?i_seq=agentic-traces&i_xmode=interactivity&g_model=DeepSeek-V4.1-Flash&i_gpus=gb300_vllm&i_dstart=2026-09-11&i_dend=2026-10-02&i_metric=y_tpPerGpu)).*
 
 **TL;DR:** In the three weeks after DeepSeek-V4.1-Flash's release, Inferact and the vLLM community optimized the model, achieving a 1.9× speedup at low concurrency and a 5.3× throughput improvement under a 150 TPS constraint. The performance improvement comes from:
 
@@ -46,9 +44,7 @@ DeepSeek V4.1 introduces SWA bounded replay, which trades exactness for efficien
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-swa-replay.html" title="SWA bounded replay: exact rebuild vs. bounded replay after a prefix hit" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Figure 2: Exact rebuild cascades one window per layer. Bounded replay recomputes only the last window, clipped at the replay start s. Step through it, or <a href="/assets/interactive_pages/dsv41-swa-replay.html">open it full-screen</a>.</em>
-</p>
+*Figure 2: Exact rebuild cascades one window per layer. Bounded replay recomputes only the last window, clipped at the replay start s. Step through it, or [open it full-screen](/assets/interactive_pages/dsv41-swa-replay.html).*
 
 ### Encoder side: rebuild the window on a cache hit
 
@@ -60,9 +56,7 @@ In DeepSeek V4.1's CED architecture, layer 20 computes the decoder's global KV a
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-swa-decoder.html" title="Decoder-side SWA bounded replay: layers 21–39 run only on the last 128 tokens" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Figure 3: In the decoder, only layer 20's global KV is needed for every token. Layers 21–39 run only on the last 128 tokens. Step through it, or <a href="/assets/interactive_pages/dsv41-swa-decoder.html">open it full-screen</a>.</em>
-</p>
+*Figure 3: In the decoder, only layer 20's global KV is needed for every token. Layers 21–39 run only on the last 128 tokens. Step through it, or [open it full-screen](/assets/interactive_pages/dsv41-swa-decoder.html).*
 
 ### CUDA graphs for the trimmed layers
 
@@ -78,9 +72,7 @@ On performance, the encoder side trades one window of prefill per hit for cache 
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-prefill-ttft.html" title="Prefill TTFT with SWA bounded replay on NVIDIA GB200" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Figure 4: Single-request prefill TTFT (ms) of DeepSeek-V4.1-Flash with SWA bounded replay off and on, with and without decoder CUDA graphs. Median of 3 runs on NVIDIA GB200, with prefix caching off. Percentages are relative to replay off (lower is better). Hover a bar for the absolute TTFT, or <a href="/assets/interactive_pages/dsv41-prefill-ttft.html">open it full-screen</a>.</em>
-</p>
+*Figure 4: Single-request prefill TTFT (ms) of DeepSeek-V4.1-Flash with SWA bounded replay off and on, with and without decoder CUDA graphs. Median of 3 runs on NVIDIA GB200, with prefix caching off. Percentages are relative to replay off (lower is better). Hover a bar for the absolute TTFT, or [open it full-screen](/assets/interactive_pages/dsv41-prefill-ttft.html).*
 
 **Decoder replay with CUDA graphs cuts prefill computation time by 30–40%.** CUDA graphs matter most for short prompts, where kernel launches are the bottleneck: without them, launch overhead outweighs the GPU savings and replay is slower than the baseline (up to +12% at 1K on DEP2). For long prompts, the GPU work is large enough to hide launch overhead, so eager replay already captures most of the gain and CUDA graphs add a few more points.
 
@@ -90,9 +82,7 @@ DeepSeek released DeepSeek-V4.1-Flash together with new kernels in three of its 
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-kernel-fusion.html" title="Kernel fusion on the DeepSeek-V4.1 decode path" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Figure 5: Single-layer forward pass of DeepSeek-V4.1. Gold outlines mark the kernel fusions, with their associated vLLM PRs. Step through the low-latency and high-throughput paths, click FULL LAYER for the whole layer, or <a href="/assets/interactive_pages/dsv41-kernel-fusion.html">open it full-screen</a>.</em>
-</p>
+*Figure 5: Single-layer forward pass of DeepSeek-V4.1. Gold outlines mark the kernel fusions, with their associated vLLM PRs. Step through the low-latency and high-throughput paths, click FULL LAYER for the whole layer, or [open it full-screen](/assets/interactive_pages/dsv41-kernel-fusion.html).*
 
 **Mega-mHC ([#56962](https://github.com/vllm-project/vllm/pull/56962)).** Mega-mHC fuses the mHC chain into one kernel: the post step, the delayed-pre step, and RMSNorm. It replaces an existing TileLang fused path that DeepGEMM's implementation now outperforms. The kernel is 1.14–1.51× faster than the TileLang version on NVIDIA GB200.
 
@@ -116,9 +106,7 @@ We measure performance with the SemiAnalysis AgentX benchmark as a representativ
 <img src="/assets/figures/2026-10-07-deepseek-v41-flash/agentx-results.png" alt="Figure 6: SemiAnalysis AgentX results for vLLM from the day-0 model release to Oct 2" width="100%">
 </p>
 
-<p align="center">
-<em>Figure 6: SemiAnalysis AgentX results for vLLM from the day-0 model release to Oct 2 (<a href="https://inferencex.semianalysis.com/inference/deepseek-v41-flash?i_seq=agentic-traces&i_xmode=interactivity&g_model=DeepSeek-V4.1-Flash&i_gpus=gb300_vllm&i_dstart=2026-09-11&i_dend=2026-10-02&i_metric=y_tpPerGpu">source</a>).</em>
-</p>
+*Figure 6: SemiAnalysis AgentX results for vLLM from the day-0 model release to Oct 2 ([source](https://inferencex.semianalysis.com/inference/deepseek-v41-flash?i_seq=agentic-traces&i_xmode=interactivity&g_model=DeepSeek-V4.1-Flash&i_gpus=gb300_vllm&i_dstart=2026-09-11&i_dend=2026-10-02&i_metric=y_tpPerGpu)).*
 
 For low-latency serving, we use TP4 with FlashInfer attention. Small-batch decode is largely memory-bandwidth bound, so sharding the model weights across four GPUs is a good fit. We also tried MegaAttention, but its main advantage is in higher-throughput settings where fusion has more room to help. At TP4, that benefit was much smaller, and FlashInfer ended up being faster in our runs.
 
@@ -132,9 +120,7 @@ SWA bounded replay, together with prefill-side kernel optimizations, greatly imp
 <img src="/assets/figures/2026-10-07-deepseek-v41-flash/ttft-vs-throughput.png" alt="Figure 7: TTFT vs. throughput after the optimizations" width="100%">
 </p>
 
-<p align="center">
-<em>Figure 7: TTFT vs. throughput after the optimizations (<a href="https://inferencex.semianalysis.com/inference/deepseek-v41-flash?i_seq=agentic-traces&i_xmode=ttft&g_model=DeepSeek-V4.1-Flash&i_best=0&i_gpus=gb300_vllm&i_metric=y_tpPerGpu&i_dstart=2026-09-11&i_dend=2026-10-02">source</a>).</em>
-</p>
+*Figure 7: TTFT vs. throughput after the optimizations ([source](https://inferencex.semianalysis.com/inference/deepseek-v41-flash?i_seq=agentic-traces&i_xmode=ttft&g_model=DeepSeek-V4.1-Flash&i_best=0&i_gpus=gb300_vllm&i_metric=y_tpPerGpu&i_dstart=2026-09-11&i_dend=2026-10-02)).*
 
 Figure 7 shows the optimized TTFT–throughput trade-off. At around 100K throughput, TTFT drops by nearly 70% through three optimizations combined:
 
