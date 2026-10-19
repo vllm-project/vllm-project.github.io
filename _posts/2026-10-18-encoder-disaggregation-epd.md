@@ -67,13 +67,17 @@ For example, Qwen-family image inputs require grid information such as `image_gr
 
 Without metadata-only forwarding, the encoder does not necessarily run twice, since the remote embedding already covers it. The duplication is in media processing, and forwarding a URL can also make the consumer fetch the media again.
 
-### JSON Metadata and Audio Support
+### Metadata Across Images, Video, and Audio
 
-Metadata-only forwarding and metadata serialization address different costs. [#56090](https://github.com/vllm-project/vllm/pull/56090) allows model-declared metadata fields to be represented as numeric JSON arrays, avoiding PyTorch tensor serialization and base64 conversion for small structural fields. This also gives the router and other frontends a language-neutral representation.
+The Python EPD path supports metadata-only forwarding for images, video, and audio in supported models. All three use the same handoff: the consumer reconstructs the input layout from encoder-published metadata while receiving the embeddings through an EC connector. The required fields depend on the model and modality:
 
-The audio path follows the same principle. [#57887](https://github.com/vllm-project/vllm/pull/57887) lets the encoder publish audio token counts and required feature lengths. The consumer uses them to rebuild placeholders without repeating audio preprocessing.
+- **Images:** image grids such as `image_grid_thw` let the consumer construct the visual placeholder range without processing the pixels again. [#50390](https://github.com/vllm-project/vllm/pull/50390)
+- **Video:** the frontend accepts `video_embeds` references with the metadata needed to reconstruct the video layout. For Qwen3-VL, this includes `video_grid_thw` and the encoder-published timestamps, which affect the prompt's token layout. [#54242](https://github.com/vllm-project/vllm/pull/54242)
+- **Audio:** audio token counts and required feature lengths let the consumer rebuild placeholders without repeating audio preprocessing. [#57887](https://github.com/vllm-project/vllm/pull/57887)
 
-The implementation covers the relevant Qwen2-Audio, AudioFlamingo3, Ultravox, Qwen2.5-Omni, and Qwen3-Omni paths for pure-audio Chat Completions requests. It does not introduce realtime or combined audiovisual input support.
+Metadata serialization is a separate optimization. [#56090](https://github.com/vllm-project/vllm/pull/56090) allows model-declared metadata fields to be represented as numeric JSON arrays, avoiding PyTorch tensor serialization and base64 conversion for small structural fields. This also gives the router and other frontends a language-neutral representation.
+
+The audio evaluation below illustrates the benefit of this handoff. The audio change covers the relevant Qwen2-Audio, AudioFlamingo3, Ultravox, Qwen2.5-Omni, and Qwen3-Omni paths for pure-audio Chat Completions requests; realtime and combined audiovisual inputs are outside its scope.
 
 ![Audio metadata-only throughput and latency results](/assets/figures/2026-10-18-encoder-disaggregation-epd/03-audio-results.png)
 
@@ -81,7 +85,9 @@ The implementation covers the relevant Qwen2-Audio, AudioFlamingo3, Ultravox, Qw
 
 In this evaluation, metadata-only forwarding increased throughput from **62.21 to 73.13 requests/s** and reduced mean latency from **980 to 853 ms**. Accuracy changed from 75.90% to 75.65%; that difference remains to be investigated. The comparison measures two audio input paths within EPD, rather than EPD against colocated serving.
 
-Video processing has also progressed. [#54242](https://github.com/vllm-project/vllm/pull/54242) adds video embedding inputs, while [#53675](https://github.com/vllm-project/vllm/pull/53675) enables GPU NVDEC media processing on encoder-only instances. In the latter PR's 30-frame MMVU workload, end-to-end throughput improved by approximately 94–115% over three runs, each on a separate 4-GPU GB200 node. Each run used Qwen3.5-35B-A3B, a 1E+3PD topology with a shared-storage EC connector, eager execution, and concurrency 64. The gains include both GPU preprocessing and hardware video decoding; as the encoder became faster, the PD tier became the bottleneck.
+### GPU Video Processing
+
+Beyond avoiding duplicate work on the consumer, [#53675](https://github.com/vllm-project/vllm/pull/53675) accelerates the encoder's own video media processing with GPU NVDEC. In the PR's 30-frame MMVU workload, end-to-end throughput improved by approximately 94–115% over three runs, each on a separate 4-GPU GB200 node. Each run used Qwen3.5-35B-A3B, a 1E+3PD topology with a shared-storage EC connector, eager execution, and concurrency 64. The gains include both GPU preprocessing and hardware video decoding; as the encoder became faster, the PD tier became the bottleneck.
 
 ## A Dedicated Execution Path for Encoder Instances
 
