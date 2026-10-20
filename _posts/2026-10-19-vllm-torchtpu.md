@@ -2,7 +2,7 @@
 layout: post
 title: "Introducing vLLM TorchTPU"
 author: "Inferact and Google Teams"
-summary: "vllm-torchtpu is a new vLLM backend for Google Cloud TPUs built on TorchTPU. It runs vLLM's existing model definitions with Pallas kernels for attention, MoE, and quantization, and supports multi-host parallelism, KV offloading, and P/D disaggregation."
+summary: "vllm-torchtpu is a new vLLM backend for Google Cloud TPUs built on TorchTPU, with Pallas kernels, multi-host parallelism, KV cache offloading, and disaggregated serving."
 image: /assets/figures/2026-10-19-vllm-torchtpu/vllm-torchtpu.png
 tags:
   - hardware
@@ -28,7 +28,7 @@ This work comes out of the [engineering partnership between Inferact and Google]
 `vllm-torchtpu` is an out-of-tree vLLM platform plugin. Once installed, vLLM picks it up automatically through the `vllm.platform_plugins` entry point.
 
 
-Models run through vLLM's standard model runner and are compiled with `torch.compile(backend="tpu")`, which lowers to XLA. Each TPU chip gets its own worker process, the same way vLLM runs on GPUs, and communication between chips goes through `torch.distributed`. This means the scheduler, workers, KV cache manager, and API server are all unmodified upstream vLLM. The TPU-specific work sits underneath them, mostly in a set of JAX/Pallas kernels that are registered as custom ops and called from inside the compiled graph.
+Models run through vLLM's standard model runner and are compiled with `torch.compile(backend="tpu")`, which lowers to XLA. Each TPU device gets its own worker process, the same way vLLM runs on GPUs, and communication between chips goes through `torch.distributed`. This means the scheduler, workers, KV cache manager, and API server are all unmodified upstream vLLM. The TPU-specific work sits underneath them, mostly in a set of JAX/Pallas kernels that are registered as custom ops and called from inside the compiled graph.
 
 #### Getting Started
 
@@ -57,15 +57,13 @@ Speculative decoding, prefix caching, multi-LoRA, structured outputs, and multim
 
 ### Kernels
 
-Much of the performance work in `vllm-torchtpu` lives in its Pallas kernel library:
+`vllm-torchtpu` uses custom Pallas kernels for complex operations that benefit from hand-tuning on TPU. Some examples:
 
-* Ragged Paged Attention v3, the default attention backend for MHA/GQA models, with `bf16` and `fp8` KV cache.
-* Dense and sparse Multi-head Latent Attention (MLA) for DeepSeek, Kimi, and GLM, including SparseCore top-k selection for DeepSeek-V4's sparse attention.
-* Gated DeltaNet (Qwen3.5) and Kimi Delta Attention (Kimi-Linear, Kimi K3) kernels for chunked prefill and recurrent decode. Linear-attention state and the KV cache share a single block pool.
-* Expert-parallel fused MoE, with token routing offloaded to the TPU SparseCores and hierarchical EP dispatch on dual-core TPU v7x.
-* FP8, INT8, MXFP4, and NVFP4 quantized matmuls. Weights are repacked once at load time so the kernels can use the MXU's low-precision paths directly.
-
-Kernels can also be written for a single model. For Moonshot AI's Kimi K3, we added a Pallas [megakernel](https://inferact.ai/blog/tpu-megakernels) that runs an entire decode step as one fused kernel.
+* Ragged Paged Attention v3 for MHA/GQA models
+* Dense and sparse Multi-head Latent Attention (MLA) for DeepSeek, Kimi, and GLM
+* Gated DeltaNet and Kimi Delta Attention for hybrid linear-attention models
+* Fused Mixture-of-Experts with expert parallelism
+* FP8, INT8, MXFP4, and NVFP4 quantized matmuls
 
 ### Scaling Out
 
@@ -84,14 +82,14 @@ All six of vLLM's parallelism dimensions are supported, on both single-host and 
 | Prefill Context Parallelism (PCP) | `--prefill-context-parallel-size` |
 | Decode Context Parallelism (DCP) | `--decode-context-parallel-size` |
 
-For large MoE models, we usually get the best throughput from data-parallel attention with expert parallelism (for example, `DP=8, TP=1` with EP on a single v7x host). This keeps attention local to each chip and spreads the experts across the whole slice. For long contexts, PCP and DCP split prefill and the KV cache across chips. The [parallelism guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/user_guide/parallelism.md) has more detail and example configurations.
+For large MoE models, we usually get the best throughput from data-parallel attention with expert parallelism (for example, `DP=8, TP=1` with EP on a single v7x host). This keeps attention local to each device and spreads the experts across the whole slice. For long contexts, PCP and DCP split prefill and the KV cache across chips. The [parallelism guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/user_guide/parallelism.md) has more detail and example configurations.
 
 #### KV Cache Offloading and Disaggregated Serving
 
 `vllm-torchtpu` uses [TPU Sync](https://github.com/google/tpu-sync), an open-source C++ library that can read TPU device buffers directly, outside the Python runtime. Through vLLM's KV connector interface, this gives us:
 
 * Zero-copy KV cache offloading to host DRAM, so the prefix cache for long multi-turn sessions isn't limited by HBM.
-* Disaggregated prefill/decode serving across TPU hosts without adding transfer latency. Prefill and decode can use different layouts, for example prefill on `PCP=4, TP=2` and decode on `DP=8, TP=1`, and the KV cache is resharded during transfer.
+* Disaggregated prefill/decode serving across TPU hosts with low KV transfer overhead. Prefill and decode can use different layouts, for example prefill on `PCP=4, TP=2` and decode on `DP=8, TP=1`, and the KV cache is resharded during transfer.
 
 See the [disaggregated serving guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/user_guide/disaggregated_serving.md) to set it up.
 
@@ -110,7 +108,6 @@ The [Supported Models & Features](https://github.com/vllm-project/vllm-torchtpu/
 We want new open models from the major families (Qwen, DeepSeek, GLM, Kimi, Gemma, GPT-OSS) to run on TPU on the day they're released. Some of what's coming, from the [public roadmap](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/roadmap.md):
 
 * An automated CI pipeline that onboards, benchmarks, and publishes support matrices for new open-weight models within 24 hours of release.
-* Multi-host xP-yD disaggregation with [llm-d](https://llm-d.ai).
 * KV cache offloading with TPU Sync to host RAM and Google Cloud Managed Lustre, for context windows of 1M+ tokens.
 * Prefix-, cache-, and session-aware routing, and llm-d TPU memory-tier routing.
 * PyTorch interfaces for [Tokamax](https://github.com/openxla/tokamax) kernels, shared with other projects in the TorchTPU ecosystem.
@@ -124,7 +121,7 @@ We're also opening a Community Contribution TPU Capacity Pool. If you're buildin
 
 [Apply for contributor TPU access here.](https://docs.google.com/forms/d/1Jm0uUXvcwYJRrvRojfS2RzMLjaqlt2a7lNyALFZs-nQ/viewform)
 
-## Try It Out
+### Try It Out
 
 * [Quickstart](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/quickstart.md)
 * [Cloud TPU Setup](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/getting_started/tpu_setup.md)
@@ -134,9 +131,3 @@ We're also opening a Community Contribution TPU Capacity Pool. If you're buildin
 * [Contributing Guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/CONTRIBUTING.md)
 
 If you have questions or want to get involved, find us in `#sig-tpu` on the [vLLM Developer Slack](https://slack.vllm.ai).
-
-## Acknowledgment
-
-<!-- TODO: fill in acknowledgments for the Inferact, Google TorchTPU, and vLLM community contributors. -->
-
-Thanks to the vLLM community, the Google TorchTPU team, and everyone who contributed to `tpu-inference`, whose work this builds on.
