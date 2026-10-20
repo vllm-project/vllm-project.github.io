@@ -11,7 +11,7 @@ tags:
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-10-20-vllm-torchtpu/vllm-torchtpu.png" width="80%">
+<img src="/assets/figures/2026-10-20-vllm-torchtpu/vllm-torchtpu.png" width="100%">
 </picture><br>
 </p>
 
