@@ -3,7 +3,7 @@ layout: post
 title: "Introducing vLLM TorchTPU"
 author: "Inferact and Google Teams"
 summary: "vllm-torchtpu is a new vLLM backend for Google Cloud TPUs built on TorchTPU, with Pallas kernels, multi-host parallelism, KV cache offloading, and disaggregated serving."
-image: /assets/figures/2026-10-19-vllm-torchtpu/vllm-torchtpu.png
+image: /assets/figures/2026-10-20-vllm-torchtpu/vllm-torchtpu.png
 tags:
   - hardware
 ---
@@ -11,7 +11,7 @@ tags:
 
 <p align="center">
 <picture>
-<img src="/assets/figures/2026-10-19-vllm-torchtpu/vllm-torchtpu.png" width="80%">
+<img src="/assets/figures/2026-10-20-vllm-torchtpu/vllm-torchtpu.png" width="80%">
 </picture><br>
 </p>
 
@@ -28,7 +28,7 @@ This work comes out of the [engineering partnership between Inferact and Google]
 `vllm-torchtpu` is an out-of-tree vLLM platform plugin. Once installed, vLLM picks it up automatically through the `vllm.platform_plugins` entry point.
 
 
-Models run through vLLM's standard model runner and are compiled with `torch.compile(backend="tpu")`, which lowers to XLA. Each TPU device gets its own worker process, the same way vLLM runs on GPUs, and communication between chips goes through `torch.distributed`. This means the scheduler, workers, KV cache manager, and API server are all unmodified upstream vLLM. The TPU-specific work sits underneath them, mostly in a set of JAX/Pallas kernels that are registered as custom ops and called from inside the compiled graph.
+Models run through vLLM's standard model runner and are compiled with `torch.compile(backend="tpu")`, which lowers to XLA. Each TPU device gets its own worker process, the same way vLLM runs on GPUs, and communication between devices goes through `torch.distributed`. This means the scheduler, workers, KV cache manager, and API server are all unmodified upstream vLLM. The TPU-specific work sits underneath them, mostly in a set of JAX/Pallas kernels that are registered as custom ops and called from inside the compiled graph.
 
 #### Getting Started
 
@@ -82,7 +82,7 @@ All six of vLLM's parallelism dimensions are supported, on both single-host and 
 | Prefill Context Parallelism (PCP) | `--prefill-context-parallel-size` |
 | Decode Context Parallelism (DCP) | `--decode-context-parallel-size` |
 
-For large MoE models, we usually get the best throughput from data-parallel attention with expert parallelism (for example, `DP=8, TP=1` with EP on a single v7x host). This keeps attention local to each device and spreads the experts across the whole slice. For long contexts, PCP and DCP split prefill and the KV cache across chips. The [parallelism guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/user_guide/parallelism.md) has more detail and example configurations.
+For large MoE models, we usually get the best throughput from data-parallel attention with expert parallelism (for example, `DP=8, TP=1` with EP on a single v7x host). This keeps attention local to each device and spreads the experts across the whole slice. For long contexts, PCP and DCP split prefill and the KV cache across devices. The [parallelism guide](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/user_guide/parallelism.md) has more detail and example configurations.
 
 #### KV Cache Offloading and Disaggregated Serving
 
@@ -108,7 +108,6 @@ The [Supported Models & Features](https://github.com/vllm-project/vllm-torchtpu/
 We want new open models from the major families (Qwen, DeepSeek, GLM, Kimi, Gemma, GPT-OSS) to run on TPU on the day they're released. Some of what's coming, from the [public roadmap](https://github.com/vllm-project/vllm-torchtpu/blob/main/docs/roadmap.md):
 
 * An automated CI pipeline that onboards, benchmarks, and publishes support matrices for new open-weight models within 24 hours of release.
-* KV cache offloading with TPU Sync to host RAM and Google Cloud Managed Lustre, for context windows of 1M+ tokens.
 * Prefix-, cache-, and session-aware routing, and llm-d TPU memory-tier routing.
 * PyTorch interfaces for [Tokamax](https://github.com/openxla/tokamax) kernels, shared with other projects in the TorchTPU ecosystem.
 * Diffusion model serving through `vllm-omni`.
