@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1164" viewBox="0 0 1400 1164" role="img" aria-labelledby="title desc">
 <title id="title">Humming: Device Support</title>
-<desc id="desc">Columns show activation types; rows show device architectures. Checks indicate support; unsupported cells are blank. SM75 (Turing): FP16, INT8, INT4; SM80 (Ampere): FP16, BF16, INT8, INT4; SM86 (Ampere): FP16, BF16, INT8, INT4; SM87 (Ampere): FP16, BF16, INT8, INT4; SM89 (Ada Lovelace): FP16, BF16, INT8, INT4, FP8; SM90 (Hopper): FP16, BF16, INT8, FP8; SM100 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM103 (Blackwell): FP16, BF16, FP8, FP4; SM107 (Rubin): FP16, BF16, FP8, FP4; SM110 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM120 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM121 (Blackwell): FP16, BF16, INT8, FP8, FP4; Zhenwu: FP16, BF16, INT8. Example devices: SM75: T4 · RTX 2080 Ti; SM80: A100 · CMP 170HX; SM86: A10 · RTX 3090; SM87: Jetson AGX Orin; SM89: L40S · RTX 4090; SM90: H200 · H20; SM100: B200 · GB200; SM103: B300 · GB300; SM107: Vera Rubin NVL72; SM110: Jetson AGX Thor; SM120: RTX 5090 · RTX PRO 6000; SM121: GB10 (DGX Spark); Zhenwu: Zhenwu 810E</desc>
+<desc id="desc">Columns show activation types; rows show device architectures. Checks indicate support; unsupported cells are blank. SM75 (Turing): FP16, INT8, INT4; SM80 (Ampere): FP16, BF16, INT8, INT4; SM86 (Ampere): FP16, BF16, INT8, INT4; SM87 (Ampere): FP16, BF16, INT8, INT4; SM89 (Ada Lovelace): FP16, BF16, INT8, INT4, FP8; SM90 (Hopper): FP16, BF16, INT8, FP8; SM100 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM103 (Blackwell): FP16, BF16, FP8, FP4; SM107 (Rubin): FP16, BF16, FP8, FP4; SM110 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM120 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM121 (Blackwell): FP16, BF16, INT8, FP8, FP4; T-Head PPU: FP16, BF16, INT8. Example devices: SM75: T4 · RTX 2080 Ti; SM80: A100 · CMP 170HX; SM86: A10 · RTX 3090; SM87: Jetson AGX Orin; SM89: L40S · RTX 4090; SM90: H200 · H20; SM100: B200 · GB200; SM103: B300 · GB300; SM107: Vera Rubin NVL72; SM110: Jetson AGX Thor; SM120: RTX 5090 · RTX PRO 6000; SM121: GB10 (DGX Spark); T-Head PPU: Zhenwu 810E</desc>
 <!-- Source: device/activation support list supplied by the project maintainer.
      Example device sources:
      https://github.com/Consensus-Protocol/cmp170hx/blob/main/docs/hardware/overview.md
@@ -142,7 +142,7 @@
 <g id="device-zhenwu">
 <path d="M58 1048 H1342 V1100 Q1342 1112 1330 1112 H70 Q58 1112 58 1100Z" fill="#F3F8FD"/>
 <path d="M58 1048 H379 V1112 H70 Q58 1112 58 1100Z" fill="#E8F2FB"/>
-<text x="82" y="1076" font-size="25" fill="#285E89" font-weight="550" text-anchor="start">Zhenwu</text>
+<text x="82" y="1076" font-size="25" fill="#285E89" font-weight="550" text-anchor="start">T-Head PPU</text>
 <text x="82" y="1100" font-size="18" fill="#6689A6" font-weight="400" text-anchor="start" data-device-examples="Zhenwu">Zhenwu 810E</text>
 <use href="#supported-blue" x="459.25" y="1080" data-activation="FP16"/>
 <use href="#supported-blue" x="619.75" y="1080" data-activation="BF16"/>
