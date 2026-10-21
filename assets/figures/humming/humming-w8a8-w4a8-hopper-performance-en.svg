@@ -1402,7 +1402,7 @@ z
     </g>
    </g>
    <g id="text_64">
-    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'" transform="translate(880.844414 768.130869)">FlashInfer CUTLASS Humming W4A8 (Grouped)</text>
+    <text style="font-size: 10.5px; font-family: 'DejaVu Sans'" transform="translate(880.844414 768.130869)">FlashInfer CUTLASS W4A8 (Grouped)</text>
     <text style="font-size: 10.5px; font-family: 'DejaVu Sans'" transform="translate(880.844414 780.73374)">Activation Tokenwise + Weight Groupsize 32</text>
    </g>
   </g>
