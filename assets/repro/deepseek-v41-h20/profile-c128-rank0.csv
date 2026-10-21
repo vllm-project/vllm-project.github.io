@@ -1,0 +1,6 @@
+kernel_group,cuda_duration_ms,share_percent
+FlashInfer_MNNVL_AllReduce,65.4,40.0
+DeepGEMM_FP8_GEMMs,35.9,21.9
+NCCL_AllGather,10.4,6.4
+Sparse_MLA,7.6,4.6
+Other_summed_kernels,44.5,27.1
