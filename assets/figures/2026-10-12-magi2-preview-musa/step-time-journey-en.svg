@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" viewBox="0 0 1320 572" width="1320" height="572" role="img" aria-label="Per-step time across two optimization phases on a log scale: September on the v0.28 branch from 15.6 s to 770 ms, October on upstream main from 4.0 s to 565 ms">
+<title>Per-step time across two optimization phases</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/></marker></defs>
+<rect width="1320" height="572" fill="#ffffff"/>
+<text x="24" y="28" font-size="18" fill="#1f2937" text-anchor="start" font-weight="600">Per-step time across two optimization phases (different code trees)</text>
+<text x="24" y="47" font-size="11.5" fill="#4b5563" text-anchor="start">Log-scale vertical axis. September: the v0.28 bring-up branch. October: the same MUSA changes re-done as PRs on upstream main.</text>
+<rect x="16" y="78" width="594" height="424" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="28" y="97" font-size="12" fill="#9ca3af" text-anchor="start" font-weight="600">September · v0.28 bring-up branch</text>
+<rect x="622" y="78" width="688" height="424" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="634" y="97" font-size="12" fill="#2563eb" text-anchor="start" font-weight="600">October · upstream main</text>
+<line x1="40" y1="200.0" x2="600" y2="200.0" stroke="#e5e7eb" stroke-width="1.0"/>
+<line x1="646" y1="200.0" x2="1300" y2="200.0" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="24" y="194.0" font-size="11" fill="#4b5563" text-anchor="start">10 s</text>
+<line x1="40" y1="304.5757490560675" x2="600" y2="304.5757490560675" stroke="#e5e7eb" stroke-width="1.0"/>
+<line x1="646" y1="304.5757490560675" x2="1300" y2="304.5757490560675" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="24" y="298.5757490560675" font-size="11" fill="#4b5563" text-anchor="start">3 s</text>
+<line x1="40" y1="400.0" x2="600" y2="400.0" stroke="#e5e7eb" stroke-width="1.0"/>
+<line x1="646" y1="400.0" x2="1300" y2="400.0" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="24" y="394.0" font-size="11" fill="#4b5563" text-anchor="start">1 s</text>
+<polyline points="110.0,161.4 184.0,324.2 258.0,349.2 332.0,404.2 406.0,416.9 480.0,421.8 554.0,422.7" fill="none" stroke="#9ca3af" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="110.0" cy="161.4" r="5" fill="#9ca3af"/>
+<text x="114" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 114 394)">Bring-up</text>
+<circle cx="184.0" cy="324.2" r="5" fill="#9ca3af"/>
+<text x="188" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 188 394)">MATE grouped MoE</text>
+<circle cx="258.0" cy="349.2" r="5" fill="#9ca3af"/>
+<text x="262" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 262 394)">Fused mHC</text>
+<circle cx="332.0" cy="404.2" r="5" fill="#9ca3af"/>
+<text x="336" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 336 394)">EP4 + fused MoE</text>
+<circle cx="406.0" cy="416.9" r="5" fill="#9ca3af"/>
+<text x="410" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 410 394)">On-device routing</text>
+<circle cx="480.0" cy="421.8" r="5" fill="#9ca3af"/>
+<text x="484" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 484 394)">Pre-laid-out W13</text>
+<circle cx="554.0" cy="422.7" r="5" fill="#9ca3af"/>
+<text x="558" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 558 394)">Regional compile</text>
+<text x="110" y="150.37508032910767" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="600">15.6 s</text>
+<text x="584" y="411.7018549655036" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="600">770 ms</text>
+<polyline points="646.0,280.0 720.0,307.6 794.0,388.9 868.0,414.4 942.0,424.4 1016.0,426.9 1090.0,429.0 1164.0,435.2 1238.0,449.6" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="646.0" cy="280.0" r="5" fill="#2563eb"/>
+<text x="650" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 650 394)">main start</text>
+<circle cx="720.0" cy="307.6" r="5" fill="#2563eb"/>
+<text x="724" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 724 394)">int32 histogram</text>
+<circle cx="794.0" cy="388.9" r="5" fill="#2563eb"/>
+<text x="798" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 798 394)">isfinite fix</text>
+<circle cx="868.0" cy="414.4" r="5" fill="#2563eb"/>
+<text x="872" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 872 394)">FP32 mHC contraction</text>
+<circle cx="942.0" cy="424.4" r="5" fill="#2563eb"/>
+<text x="946" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 946 394)">Split sizes + static</text>
+<circle cx="1016.0" cy="426.9" r="5" fill="#2563eb"/>
+<text x="1020" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 1020 394)">K64 tile</text>
+<circle cx="1090.0" cy="429.0" r="5" fill="#2563eb"/>
+<text x="1094" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 1094 394)">EP4</text>
+<circle cx="1164.0" cy="435.2" r="5" fill="#2563eb"/>
+<text x="1168" y="394" font-size="10.5" fill="#4b5563" text-anchor="end" transform="rotate(-50 1168 394)">#8592–#8595</text>
+<circle cx="1238.0" cy="449.6" r="5" fill="#2563eb"/>
+<text x="646" y="269.0233855852624" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">4.0 s</text>
+<text x="794" y="377.924333725" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">1.1 s</text>
+<text x="1173" y="424.1748332166902" font-size="12.5" fill="#2563eb" text-anchor="start" font-weight="600">668 ms</text>
+<text x="1232" y="438.5903104361123" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">565 ms</text>
+<text x="1238" y="484" font-size="10.5" fill="#4b5563" text-anchor="middle">full PR stack</text>
+<text x="24" y="546" font-size="11.5" fill="#4b5563" text-anchor="start">The last point is the full PR stack, measured on 19 October with every PR applied. Section 5.2's 591 ms comes from a different tree and is not plotted here.</text>
+</svg>
