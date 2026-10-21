@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interfaces, interaction modes and model execution | vLLM-Omni</title>
+<link rel="stylesheet" href="figure.css">
+<style>.taxonomy svg text { font-size: 19px; } .taxonomy svg .label { font-size: 22px; } .taxonomy svg .small, .taxonomy svg .meta { font-size: 18px; }</style>
+</head>
+<body>
+<main class="taxonomy">
+  <div class="kicker">vLLM-Omni · interfaces and interaction</div>
+  <header class="head"><div><h1>Interfaces, interaction modes and model execution</h1><p class="sub">A duplex session can run either native duplex or turn-based inference.</p></div><a href="interfaces.html" target="_blank" rel="noopener">Open separately ↗</a></header>
+  <div class="scroll" tabindex="0" role="region" aria-label="Interface and execution paths; scroll horizontally on narrow screens">
+  <svg viewBox="0 0 1000 568" role="group" aria-labelledby="diagram-title diagram-desc">
+    <title id="diagram-title">Interfaces, interaction modes and model execution</title>
+    <desc id="diagram-desc">Chat Completions uses request-response interaction. Realtime Duplex provides a live duplex session with either native duplex execution or turn-based execution. Model examples appear beneath each path. Select a path to see how the layers differ.</desc>
+    <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="context-stroke"/></marker></defs>
+    <text x="18" y="60" class="meta">INTERFACE</text>
+    <text x="18" y="169" class="meta">INTERACTION</text>
+    <text x="18" y="300" class="meta">EXECUTION</text>
+    <text x="18" y="461" class="meta">EXAMPLES</text>
+    <g id="chat-api" class="node" data-path="chat" role="button" tabindex="0" aria-label="Chat Completions interface">
+      <rect x="142" y="20" width="224" height="84" rx="4"/><text x="254" y="53" class="label" text-anchor="middle">Chat Completions</text><text x="254" y="81" text-anchor="middle">/v1/chat/completions</text>
+    </g>
+    <g id="duplex-api" class="node" data-path="duplex" role="button" tabindex="0" aria-label="Realtime Duplex interface">
+      <rect x="396" y="20" width="580" height="84" rx="4"/><text x="686" y="51" class="label" text-anchor="middle">Realtime / Duplex</text><text x="686" y="79" text-anchor="middle">/v1/duplex  or  /v1/realtime?duplex=1</text>
+    </g>
+    <g id="request" class="node" data-path="chat" role="button" tabindex="0" aria-label="Request-response interaction">
+      <rect x="142" y="137" width="224" height="58" rx="4"/><text x="254" y="172" class="label" text-anchor="middle">Request–response</text>
+    </g>
+    <g id="session" class="node" data-path="duplex" role="button" tabindex="0" aria-label="Duplex session interaction">
+      <rect x="396" y="137" width="580" height="58" rx="4"/><text x="686" y="172" class="label" text-anchor="middle">Duplex session</text>
+    </g>
+    <g id="request-execution" class="node" data-path="chat" role="button" tabindex="0" aria-label="Generate a response from an input snapshot">
+      <rect x="142" y="257" width="224" height="118" rx="4"/><text x="254" y="290" text-anchor="middle">One input snapshot</text><text x="254" y="318" text-anchor="middle">→ one response</text><text x="254" y="350" class="small" text-anchor="middle">Output may stream.</text>
+    </g>
+    <g id="native" class="node" data-path="native" role="button" tabindex="0" aria-label="Native duplex execution">
+      <rect x="396" y="257" width="270" height="118" rx="4"/><text x="531" y="287" class="label" text-anchor="middle">Native duplex execution</text><text x="531" y="320" text-anchor="middle">Continuing input updates</text><text x="531" y="345" text-anchor="middle">ongoing model computation.</text>
+    </g>
+    <g id="turn" class="node" data-path="turn" role="button" tabindex="0" aria-label="Turn-based execution within a duplex session">
+      <rect x="706" y="257" width="270" height="118" rx="4"/><text x="841" y="287" class="label" text-anchor="middle">Turn-based execution</text><text x="841" y="320" text-anchor="middle">A new request per response</text><text x="841" y="345" text-anchor="middle">Current input + history</text>
+    </g>
+    <g id="chat-models" class="node" data-path="chat" role="button" tabindex="0" aria-label="Request-response examples: Qwen3-Omni and MiniCPM-o 4.5 in turn mode">
+      <rect x="142" y="415" width="224" height="117" rx="4"/><text x="254" y="446" class="label" text-anchor="middle">Qwen3-Omni</text><text x="254" y="474" class="label" text-anchor="middle">MiniCPM-o 4.5</text><text x="254" y="501" class="small" text-anchor="middle">(turn mode)</text>
+    </g>
+    <g id="native-models" class="node" data-path="native" role="button" tabindex="0" aria-label="Native duplex examples: PersonaPlex, MiniCPM-o 4.5, and Nemotron VoiceChat">
+      <rect x="396" y="415" width="270" height="117" rx="4"/><text x="531" y="446" class="label" text-anchor="middle">PersonaPlex</text><text x="531" y="475" class="label" text-anchor="middle">MiniCPM-o 4.5</text><text x="531" y="504" class="label" text-anchor="middle">Nemotron VoiceChat</text>
+    </g>
+    <g id="turn-models" class="node" data-path="turn" role="button" tabindex="0" aria-label="Turn-based duplex examples: Qwen3-Omni with Server VAD and AURA">
+      <rect x="706" y="415" width="270" height="117" rx="4"/><text x="841" y="446" class="label" text-anchor="middle">Qwen3-Omni</text><text x="841" y="472" class="small" text-anchor="middle">+ Server VAD</text><text x="841" y="504" class="label" text-anchor="middle">AURA</text>
+    </g>
+    <g marker-end="url(#arrow)">
+      <path id="chat-a" class="edge" d="M254 104V135"/><path id="chat-b" class="edge" d="M254 195V255"/><path id="chat-c" class="edge" d="M254 375V413"/>
+      <path id="duplex-a" class="edge" d="M686 104V135"/>
+      <path id="native-a" class="edge" d="M686 195V226H531V255"/><path id="turn-a" class="edge" d="M686 195V226H841V255"/>
+      <path id="native-b" class="edge" d="M531 375V413"/><path id="turn-b" class="edge" d="M841 375V413"/>
+    </g>
+    <text x="142" y="554" class="small">Examples show serving profiles; a model may support more than one interface.</text>
+  </svg>
+  </div>
+  <p class="hint">Scroll the diagram horizontally on a narrow screen, or open it separately.</p>
+  <div class="steps" role="group" aria-label="Compare interface and execution paths">
+    <button type="button" data-path="all" aria-pressed="true">All paths</button>
+    <button type="button" data-path="chat" aria-pressed="false">Request–response</button>
+    <button type="button" data-path="duplex" aria-pressed="false">Duplex session</button>
+    <button type="button" data-path="native" aria-pressed="false">Native duplex</button>
+    <button type="button" data-path="turn" aria-pressed="false">Turn-based execution</button>
+  </div>
+  <section class="explain" aria-live="polite" aria-atomic="true"><h2>One duplex session framework, two execution modes</h2><p>The interface carries the conversation. The execution mode determines how the model processes continuing input. Streaming a response is possible in every path shown here; native duplex additionally incorporates continuing input into ongoing model computation.</p></section>
+  <p class="note">Realtime / Duplex uses OpenAI Realtime event conventions with vLLM-Omni extensions. Video, playback feedback, and session resume depend on the model.</p>
+  <p class="note">The separate turn-based Realtime handler at <code>/v1/realtime</code> requires an enabled Chat service (for example, in a <code>session_mode: turn</code> deployment). It is distinct from turn-based execution within a unified duplex session.</p>
+  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/serving/realtime_duplex_api.md" target="_blank" rel="noopener">API guide ↗</a></p>
+  <noscript><p>The full diagram is shown above. Enable JavaScript to highlight individual paths.</p></noscript>
+</main>
+<script src="player.js"></script>
+<script>
+"use strict";
+const shared = {nodes: ["duplex-api", "session"], edges: ["duplex-a"]};
+const routes = {
+  all: {nodes: [], edges: [], title: "One duplex session framework, two execution modes", text: "The interface carries the conversation. The execution mode determines how the model processes continuing input. Streaming a response is possible in every path shown here; native duplex additionally incorporates continuing input into ongoing model computation."},
+  chat: {nodes: ["chat-api", "request", "request-execution", "chat-models"], edges: ["chat-a", "chat-b", "chat-c"], title: "Chat Completions · a request and its response", text: "The application submits an input snapshot. The response can stream back as text or audio, but output streaming alone does not provide an ongoing duplex session. The same model may have another serving profile on a different interface."},
+  duplex: {...shared, title: "Duplex session · shared interaction, different execution", text: "The connection remains open for input, output, and session control. Both execution branches share this session interface. Model capabilities determine which inputs, playback operations, and recovery features are available."},
+  native: {nodes: ["native", "native-models", ...shared.nodes], edges: [...shared.edges, "native-a", "native-b"], title: "Native duplex · new input participates in ongoing inference", text: "PersonaPlex, MiniCPM-o 4.5, and Nemotron VoiceChat use native duplex execution. Continuing input can affect subsequent model output during an ongoing interaction. Input granularity, speech decisions, and retained state remain model-specific."},
+  turn: {nodes: ["turn", "turn-models", ...shared.nodes], edges: [...shared.edges, "turn-a", "turn-b"], title: "Turn-based execution · a new request for each response", text: "Qwen3-Omni with Server VAD and AURA use the live duplex session to collect and coordinate input. Each response starts a new inference request assembled from current input and retained history. Committing input and requesting a response can be separate operations; commit does not always start generation immediately."}
+};
+function selectPath(key) {
+  const route = routes[key];
+  document.querySelectorAll("button[data-path]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.path === key)));
+  document.querySelector(".explain h2").textContent = route.title;
+  document.querySelector(".explain p").textContent = route.text;
+  highlightDiagram(document.querySelector("svg"), route);
+}
+document.querySelectorAll("[data-path]").forEach(node => {
+  node.addEventListener("click", () => selectPath(node.dataset.path));
+  if (node.tagName.toLowerCase() === "g") node.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectPath(node.dataset.path); }
+  });
+});
+</script>
+</body>
+</html>
