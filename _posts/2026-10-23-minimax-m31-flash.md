@@ -31,7 +31,7 @@ vLLM supports MiniMax-M3.1-Flash on day 0 on NVIDIA Blackwell GPUs, on NVIDIA Ru
 - **FlashInfer PrimiTS** backend for the DSpark drafter attention: **1.3–2× faster** than FlashAttention 4, **5% lower** total forward time.
 - **Rubin (SM107) MSA kernels** are also integrated into vLLM with state-of-the-art performance.
 - **AMD MI350 series**: the NVFP4-native MSA kernel, indexer decode context parallelism, dual-batch overlap, and the mono kernel deliver a **2–3×** performance boost across the board.
-- **Agentic Serving**: on NVIDIA GB300, up to **418.9 tok/s per user** at the latency-sensitive end and **153.8K total tok/s per GPU** at the throughput end; on NVIDIA Rubin, up to **724.9 tok/s per user** and **191.5K total tok/s per GPU**; on AMD MI355X, up to **133.3M total tokens per dollar** of TCO on the SemiAnalysis AgentX benchmark.
+- **Agentic Serving**: on NVIDIA GB300, up to **418.9 tok/s per user** at the latency-sensitive end; on NVIDIA Rubin, up to **724.9 tok/s per user** and **191.5K total tok/s per GPU**; on AMD MI355X, up to **133.3M total tokens per dollar** of TCO on the SemiAnalysis AgentX benchmark.
 - **Day-0 RL support**: end-to-end RL with veRL, FSDP2, and LoRA on the NVFP4 checkpoint.
 
 ## Quick start
