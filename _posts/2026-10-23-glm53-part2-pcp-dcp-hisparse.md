@@ -116,7 +116,7 @@ Every configuration here runs on [Model Runner V2](/blog/2026-03-24-mrv2). It ke
 
 ## Try it
 
-Everything runs on the `vllm/vllm-openai:nightly` image, any build from October 6 on. The results above were measured on vLLM main at `9e38b4111a`. The [reproduction gist](https://gist.github.com/LucasWilkinson/b39792adeea1cc2b1505fb6b7a2a2654) pins `2537629eb2`, which we re-checked on three AgentX points, and has the full commands for both nodes, the router, and the benchmark. The prefill engine's key flags:
+Everything runs on the `vllm/vllm-openai:nightly` image, any build from October 6 on. The results above were measured on vLLM main at `9e38b4111a`. The [reproduction gist](https://gist.github.com/LucasWilkinson/b39792adeea1cc2b1505fb6b7a2a2654) pins `2537629eb2`. The prefill engine's key flags:
 
 ```bash
 --prefill-context-parallel-size 8 \
@@ -137,5 +137,5 @@ This work was done by Roberto L. Castro (Red Hat), Simon Veitner (Red Hat), Matt
 ## Notes
 
 [^intensity]: Per query, sparse MLA reads 2,048 selected KV rows of 660 bytes each (656 of FP8 KV in FlashMLA's `fp8_ds_mla` format, plus a 4-byte index), about 1.35 MB. Each head adds 2,176 bytes for its BF16 query and output, and does 2,176 FLOPs per row (QK over 576 dims, PV over 512). So 8 heads do 35.7 MFLOPs over 1.37 MB, about 26 FLOPs per byte, and 64 heads do 285 MFLOPs over 1.49 MB, about 191.
-[^ridge]: For the H200 SXM: 989 dense BF16 TFLOP/s $\div$ 4.8 TB/s $\approx$ 206 FLOPs per byte ([NVIDIA H200 datasheet](https://resources.nvidia.com/en-us-hopper-architecture/hpc-datasheet-sc23)).
+[^ridge]: For the H200 SXM: 989 dense BF16 TFLOP/s (the datasheet's 1,979 assumes 2:4 sparsity) $\div$ 4.8 TB/s $\approx$ 206 FLOPs per byte ([NVIDIA H200 datasheet](https://resources.nvidia.com/en-us-hopper-architecture/hpc-datasheet-sc23)).
 [^kvsize]: Per token: 78 layers $\times$ 656 B of MLA KV, 21 indexer layers $\times$ 132 B of indexer keys (128 FP8 values plus a 4-byte scale), and 788 B for the MTP layer, or 54,728 B in total. For $2^{20}$ = 1,048,576 tokens, that is 54,728 MiB $\approx$ 53.4 GiB.
