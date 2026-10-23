@@ -3,7 +3,7 @@ layout: post
 title: "GLM-5.3 Optimizations, Part 2: PCP, DCP, and Hybrid HiSparse on 16 H200s"
 math: true
 author: "vLLM Team"
-summary: "Splitting each prompt across GPUs by token (PCP) instead of by head (TP) removes GLM-5.3's replicated indexer work and runs sparse MLA at 8× the arithmetic intensity; sharding the KV by token (DCP) lets one prefill engine hold a 1M-token request. Paired with a Hybrid HiSparse decode node, it gives 1.7–3.2× the per-user speed of data-parallel prefill at the same throughput on an agentic workload."
+summary: "Splitting each prompt across GPUs by token (PCP) instead of by head (TP) removes GLM-5.3's replicated indexer work and runs sparse MLA at ~7× the arithmetic intensity; sharding the KV by token (DCP) lets one prefill engine hold a 1M-token request. Paired with a Hybrid HiSparse decode node, it gives 1.7–3.2× the per-user speed of data-parallel prefill at the same throughput on an agentic workload."
 image: /assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/agentx-pareto.svg
 social_image: /assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/agentx-pareto.png
 tags:
