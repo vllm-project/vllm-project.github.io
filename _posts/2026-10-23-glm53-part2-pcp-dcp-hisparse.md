@@ -22,7 +22,7 @@ tags:
 
 Agentic contexts are long and grow every turn, so prefill matters: without an efficient prefill deployment, the whole system bottlenecks on the prefill engines. Two standard ways to run GLM-5.3 prefill on an $8\times$ H200 node are DP8 and TP8:
 
-* **DP8** assigns each prompt to a single GPU, so its attention cannot use the other seven. This limits time to first token (TTFT) for long prompts, and the prompt's KV cache must fit in that GPU's memory. <!--: about 300K tokens.--> <!--RLC: where is the 300K number comming from? our glm5.3+h200+vllm setup specifically, considering gpu_memory_utilization etc? in other words, is this the number we empirically see in the vLLM startup log? -->
+* **DP8** assigns each prompt to a single GPU, so its attention cannot use the other seven. This limits time to first token (TTFT) for long prompts, and the prompt's KV cache must fit in that GPU's memory.
 * **TP8** partitions the attention heads across GPUs. Because MLA's latent KV is shared by all 64 heads, every GPU stores the full cache and reads it to serve only 8 heads. The indexer, which scores every earlier token to select the 2,048 that sparse MLA attends to, is not partitioned at all, so its quadratic cost is repeated on every GPU.
 
 Neither scheme spreads one long prompt's attention work across the eight GPUs without also keeping its whole KV on each GPU that serves it. The next two sections fix each half: PCP splits a prompt's queries across GPUs, and DCP splits its KV.
