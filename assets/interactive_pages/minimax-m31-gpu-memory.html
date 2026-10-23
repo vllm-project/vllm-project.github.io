@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>M3.1-Flash GPU memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── figkit tokens (Inferact blog-figures kit) ───────────────────────── */
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f7f5f2;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e6e1da; --line: #8f8a84;
+  --blue-line: #4d7ba6; --gold-line: #b5873a; --green-line: #6a8a5e; --stone-line: #9a958f;
+  --blue-text: #3e6890; --gold-text: #8a6420; --green-text: #4f6b45;
+  --ease: cubic-bezier(.4, 0, .2, 1); --dur: 520ms;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+    --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+  --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+}
+:root {
+  --blue-t: color-mix(in srgb, var(--blue-line) 13%, var(--bg));
+  --blue-ts: color-mix(in srgb, var(--blue-line) 50%, var(--bg));
+  --blue-m: color-mix(in srgb, var(--blue-line) 30%, var(--bg));
+  --blue-ms: var(--blue-line);
+  --gold-t: color-mix(in srgb, var(--gold-line) 14%, var(--bg));
+  --gold-ts: color-mix(in srgb, var(--gold-line) 50%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 34%, var(--bg));
+  --gold-ms: var(--gold-line);
+  --green-t: color-mix(in srgb, var(--green-line) 15%, var(--bg));
+  --green-ts: color-mix(in srgb, var(--green-line) 55%, var(--bg));
+  --green-m: color-mix(in srgb, var(--green-line) 32%, var(--bg));
+  --green-ms: var(--green-line);
+  --slate-t: color-mix(in srgb, var(--stone-line) 11%, var(--bg));
+  --slate: color-mix(in srgb, var(--stone-line) 60%, var(--bg));
+  --hatch-bg: var(--bg);
+  --hatch-line: color-mix(in srgb, var(--stone-line) 30%, var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+    --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+    --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+    --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+  }
+}
+:root[data-theme="dark"] {
+  --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+  --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+  --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { background: var(--bg); scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+.page { padding: 28px 16px 56px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig + .fig { margin-top: 64px; }
+
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-lab { font-size: 13px; fill: var(--ink); }
+.t-lab-b { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-head { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted) !important; }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-blue { font-size: 13px; fill: var(--blue-text); font-weight: 500; }
+.t-gold { font-size: 13px; fill: var(--gold-text); font-weight: 600; }
+.t-green { font-size: 13px; fill: var(--green-text); font-weight: 600; }
+.t-mono { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; }
+
+.fig-stage rect { rx: 0; ry: 0; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage polyline { stroke-width: var(--hair); }
+.m-global { fill: var(--blue-t); stroke: var(--blue-ts); }
+.m-global-new { fill: var(--blue-m); stroke: var(--blue-ms); }
+.m-accent { fill: var(--gold-m); stroke: var(--gold-ms); }
+.m-green { fill: var(--green-t); stroke: var(--green-ts); }
+.m-green-strong { fill: var(--green-m); stroke: var(--green-ms); }
+.m-computed { fill: var(--slate-t); stroke: var(--slate); }
+.m-skipped { fill: url(#fk-hatch); stroke: var(--rule); }
+.m-empty { fill: var(--bg); stroke: var(--slate); stroke-dasharray: 3 2; }
+.m-focus { fill: none; stroke: var(--gold-ms); stroke-width: 2 !important; }
+.m-rule { stroke: var(--rule); fill: none; }
+.m-line { stroke: var(--line); fill: none; }
+.m-path { stroke: var(--gold-ms); fill: none; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage text, .fig-stage g {
+  transition: opacity var(--dur) var(--ease), fill var(--dur) var(--ease), stroke var(--dur) var(--ease);
+}
+
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend i { width: 14px; height: 10px; border: var(--hair) solid; display: inline-block; }
+.fig-legend i.m-global { background: var(--blue-t); border-color: var(--blue-ts); }
+.fig-legend i.m-accent { background: var(--gold-m); border-color: var(--gold-ms); }
+.fig-legend i.m-green { background: var(--green-t); border-color: var(--green-ts); }
+.fig-legend i.m-computed { background: var(--slate-t); border-color: var(--slate); }
+.fig-legend i.m-skipped { border-color: var(--rule); background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--hatch-line) 3px 4.5px); }
+.fig-legend i.ref-line { width: 18px; height: 0; border: 0; border-top: var(--hair) dashed var(--ink); }
+
+.fig-player { background: var(--card); border: var(--hair) solid var(--rule); padding: 14px 16px 16px; margin-top: 14px; }
+.fig-controls { display: flex; align-items: center; gap: 6px; }
+.fig-btn {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0;
+  height: 28px; min-width: 28px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+}
+.fig-btn:hover { border-color: var(--line); }
+.fig-btn:focus-visible, .fig-pill:focus-visible, .fig-pglabel:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-btn svg { width: 10px; height: 10px; fill: currentColor; }
+.fig-btn.play { min-width: 84px; }
+.fig-pills { display: flex; gap: 4px; flex: 1; min-width: 0; margin-left: 8px; }
+.fig-pills.grouped { gap: 12px; }
+.fig-pgroup { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.fig-pglabel { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint);
+  background: none; border: 0; padding: 0; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pgroup.on .fig-pglabel { color: var(--ink); }
+.fig-pgpills { display: flex; gap: 4px; }
+.fig-pill { flex: 1; min-width: 0; position: relative; height: 28px; border: 0; padding: 0; background: none; cursor: pointer;
+  font: 500 12.5px/1 var(--font); color: var(--muted); text-align: left; }
+.fig-pills.grouped .fig-pill { height: 10px; }
+.fig-pills.grouped .fig-pill .lbl { display: none; }
+.fig-pill::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--rule); }
+.fig-pill .fill { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--gold-line); }
+.fig-pill.done .fill { width: 100%; }
+.fig-pill .lbl { position: absolute; left: 0; right: 2px; top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pill.on .lbl { color: var(--ink); font-weight: 600; }
+.fig-count { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; color: var(--muted); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.fig-explain { margin-top: 14px; min-height: 66px; }
+.fig-explain h3 { font-size: 15px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.005em; }
+.fig-explain p { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+.fig-explain b { color: var(--ink); font-weight: 600; }
+.fig-explain .gold { color: var(--gold-text); font-weight: 600; }
+.fig-explain code { font-family: var(--mono); font-size: 12.5px; }
+
+.fig-seg { display: flex; border: var(--hair) solid var(--rule); }
+.fig-seg button { flex: 1; font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 30px; padding: 0 8px; cursor: pointer; white-space: nowrap; }
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none; }
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.stage-scroll { overflow-x: auto; }
+@media (max-width: 660px) { .stage-scroll .fig-stage { min-width: 620px; } }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--muted); margin: 8px 0 0; }
+
+@media (max-width: 560px) {
+  .fig-pill .lbl { display: none; }
+  .fig-pill { height: 12px; }
+  .fig-explain { min-height: 88px; }
+  .fig-btn.play { min-width: 28px; }
+  .fig-btn.play .t { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; } }
+
+/* ── figure 2: GPU memory ──────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: var(--hair) solid var(--rule); border-bottom: var(--hair) solid var(--rule); margin: 0 0 16px; }
+.stats div { padding: 9px 8px 9px 0; min-width: 0; }
+.stats b { display: block; font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stats span { display: block; font: 500 11px/1.3 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.ctl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 18px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ctl-lab { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.ctl input[type="text"], .ctl input[type="number"] { font: 500 16px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0; height: 32px; padding: 0 10px; width: 100%; }
+.ctl input:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 1px; }
+.ctl input[aria-invalid="true"] { border-color: var(--gold-line); }
+.ctl small { font: 400 12px/1.3 var(--mono); color: var(--muted); min-height: 1.3em; }
+.ctl small.err { color: var(--gold-text); }
+.chk { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.chk input { accent-color: var(--green-line); width: 14px; height: 14px; margin: 0; }
+.mem-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.mem-head .t { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mem-head b { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hbar { position: relative; height: 28px; border: var(--hair) solid var(--rule); background: var(--bg); overflow: hidden; }
+.hbar i { position: absolute; top: 0; bottom: 0; transition: width var(--dur) var(--ease), left var(--dur) var(--ease); }
+.hbar .w { left: 0; background: var(--slate-t); box-shadow: inset 0 0 0 var(--hair) var(--slate); }
+.hbar .kv { background: var(--blue-t); box-shadow: inset 0 0 0 var(--hair) var(--blue-ts); }
+.hbar .ix { background: var(--green-t); box-shadow: inset 0 0 0 var(--hair) var(--green-ts); }
+.hbar .ov { left: 95%; width: 0; background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--line) 3px 4.5px); }
+.hbar .lim { left: 95%; width: 0; border-left: var(--hair) dashed var(--ink); }
+.mem-leg { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.mem-leg b { color: var(--ink); font-weight: 600; }
+.verdict { font-size: 14px; margin: 12px 0 18px; color: var(--muted); }
+.verdict b { color: var(--ink); font-weight: 600; }
+.cmp-head { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.cmp { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; font-size: 13px; }
+.cmp .nm { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.cmp .nm.cur { color: var(--gold-text); }
+.cmp .tr { height: 12px; position: relative; }
+.cmp .tr i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue-t); box-shadow: inset 0 0 0 var(--hair) var(--blue-ts); transition: width var(--dur) var(--ease); }
+.cmp .tr i.cur { background: var(--gold-m); box-shadow: inset 0 0 0 var(--hair) var(--gold-ms); }
+.cmp .v { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cmp .v b { color: var(--ink); font-weight: 600; }
+details.fig-note summary { cursor: pointer; }
+details.fig-note p { margin: 6px 0 0; }
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ctl-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<!-- ── Figure 2 ─────────────────────────────────────────────────────── -->
+<div class="fig" id="fig2">
+  <div class="fig-head">
+    <p class="fig-kicker">Figure 2 · GPU memory</p>
+    <h1 class="fig-title">How many sequences fit on each GPU</h1>
+    <p class="fig-sub">MiniMax M3.1-Flash, real config. Changing dtype, parallelism or GPU refits the sequence count. MI350X has the same 288 GB as MI355X.</p>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <div class="stats">
+      <div><b>60</b><span>layers</span></div>
+      <div><b>4</b><span>KV heads</span></div>
+      <div><b>64</b><span>query heads</span></div>
+      <div><b>128</b><span>head dim</span></div>
+      <div><b>60</b><span>index-K layers</span></div>
+      <div><b>250.1</b><span>GB weights</span></div>
+    </div>
+    <div class="ctl-grid">
+      <div class="ctl"><span class="ctl-lab" id="l-dt">KV cache dtype</span>
+        <div class="fig-seg" data-name="dt" role="group" aria-labelledby="l-dt">
+          <button type="button" data-v="bf16">BF16</button><button type="button" data-v="fp8" aria-pressed="true">FP8</button><button type="button" data-v="fp4">NVFP4</button></div></div>
+      <div class="ctl"><span class="ctl-lab" id="l-pp">Parallelism</span>
+        <div class="fig-seg" data-name="pp" role="group" aria-labelledby="l-pp">
+          <button type="button" data-v="tp4" aria-pressed="true">TP4</button><button type="button" data-v="tp2">TP2</button><button type="button" data-v="dep4">DEP4</button></div></div>
+      <div class="ctl"><span class="ctl-lab" id="l-gpu">GPU</span>
+        <div class="fig-seg" data-name="gpu" role="group" aria-labelledby="l-gpu">
+          <button type="button" data-v="b200">B200 180G</button><button type="button" data-v="b300" aria-pressed="true">B300 288G</button><button type="button" data-v="mi35x" title="MI350X has the same 288 GB">MI355X 288G</button></div></div>
+      <div class="ctl"><span class="ctl-lab">Index K cache</span>
+        <label class="chk"><input type="checkbox" id="idx" checked>Count it (1 head × 128 per layer)</label></div>
+      <label class="ctl"><span class="ctl-lab">Context length</span>
+        <input type="text" id="ctx" value="256K" autocomplete="off" spellcheck="false" aria-describedby="ctxo"><small id="ctxo"></small></label>
+      <label class="ctl"><span class="ctl-lab">Sequences</span>
+        <input type="number" id="seq" value="32" min="1" step="1" inputmode="numeric" aria-describedby="seqo"><small id="seqo"></small></label>
+    </div>
+    <div class="mem-head"><span class="t" id="memsub">Memory per GPU</span><b id="memtot"></b></div>
+    <div class="hbar" id="hbar" role="img" aria-label=""><i class="w"></i><i class="kv"></i><i class="ix"></i><i class="ov"></i><i class="lim"></i></div>
+    <div class="mem-leg" id="memleg"></div>
+    <p class="verdict" id="verdict" aria-live="polite"></p>
+    <p class="cmp-head">Each KV dtype, same workload: KV per GPU, max sequences</p>
+    <div class="cmp" id="cmp"></div>
+    <details class="fig-note">
+      <summary>Notes and assumptions</summary>
+      <p id="pertok"></p>
+      <p>MSA cuts what each query reads (2,048 keys per layer), not what the cache stores: every token’s K and V stay resident.</p>
+      <p>TP splits K/V by head; index K has one head, so every TP rank keeps a full copy. Index K uses the KV dtype. NVFP4 = 4-bit values + one FP8 scale per 16 (4.5 bits).</p>
+      <p>Weights = safetensors total_size, 250.1 GB (routed experts NVFP4 ≈ 232 GB, rest ≈ 18 GB). Routed experts split by TP/EP; under DEP the rest sits on every GPU. 95% of HBM usable. 1 GB = 10⁹ B.</p>
+    </details>
+  </div>
+  <div class="fig-legend">
+    <span><i class="m-computed"></i>weights</span>
+    <span><i class="m-global"></i>K + V cache</span>
+    <span><i class="m-green"></i>index K cache</span>
+    <span><i class="m-skipped"></i>over capacity</span>
+    <span><i class="ref-line"></i>95% usable</span>
+    <span><i class="m-accent"></i>selected dtype</span>
+  </div>
+</div>
+
+</main>
+
+<script>
+/* ── FK: figkit helpers (inlined from the kit; embed resize removed) ───── */
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function svg(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) { if (attrs[k] == null) continue; n.setAttribute(k, attrs[k]); }
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, str, cls, attrs) {
+    const t = svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+    t.textContent = str; return t;
+  }
+  function defs(root) {
+    const d = svg("defs", {}, root);
+    const p = svg("pattern", { id: "fk-hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, d);
+    svg("rect", { width: 6, height: 6, style: "fill: var(--hatch-bg)" }, p);
+    svg("line", { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke: var(--hatch-line); stroke-width: 2" }, p);
+    const m = svg("marker", { id: "fk-arrow", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--line)" }, m);
+    const g = svg("marker", { id: "fk-arrow-gold", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--gold-ms)" }, g);
+    return d;
+  }
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  function tween(el, to, ms) {
+    ms = reduced() ? 0 : ms == null ? 520 : ms;
+    if (el._fkRaf) cancelAnimationFrame(el._fkRaf);
+    const from = {};
+    for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
+    return new Promise((res) => {
+      if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
+      const t0 = performance.now();
+      const tick = (now) => {
+        const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = ease(t);
+        for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
+        if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
+      };
+      el._fkRaf = requestAnimationFrame(tick);
+    });
+  }
+  const ICON_PLAY = '<svg viewBox="0 0 12 12"><path d="M2 1.2v9.6L10.4 6z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 12 12"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>';
+  const ICON_PREV = '<svg viewBox="0 0 12 12"><path d="M8.5 1.5 3.5 6l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const ICON_NEXT = '<svg viewBox="0 0 12 12"><path d="M3.5 1.5 8.5 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  function player(host, opts) {
+    const steps = opts.steps, n = steps.length;
+    const dwell = (i) => steps[i].ms || opts.ms || 4200;
+    host.classList.add("fig-player");
+    host.innerHTML =
+      '<div class="fig-controls">' +
+      '<button class="fig-btn play" type="button"></button>' +
+      '<button class="fig-btn prev" type="button" aria-label="Previous step">' + ICON_PREV + "</button>" +
+      '<button class="fig-btn next" type="button" aria-label="Next step">' + ICON_NEXT + "</button>" +
+      '<div class="fig-pills" role="tablist"></div><span class="fig-count"></span></div>' +
+      '<div class="fig-explain" aria-live="polite"><h3></h3><p></p></div>';
+    const $ = (s) => host.querySelector(s);
+    const grouped = steps.some((s) => s.group);
+    const groups = {};
+    if (grouped) $(".fig-pills").classList.add("grouped");
+    const pills = steps.map((s, i) => {
+      const b = document.createElement("button");
+      b.className = "fig-pill"; b.type = "button"; b.setAttribute("role", "tab");
+      b.setAttribute("aria-label", (s.group ? s.group + ", " : "") + "step " + (i + 1) + ": " + s.label);
+      b.innerHTML = '<span class="fill"></span><span class="lbl">' + s.label + "</span>";
+      b.onclick = () => { stop(); go(i); };
+      let parent = $(".fig-pills");
+      if (grouped) {
+        const key = s.group || "";
+        if (!groups[key]) {
+          const g = document.createElement("div");
+          g.className = "fig-pgroup";
+          g.innerHTML = '<button type="button" class="fig-pglabel"></button><div class="fig-pgpills"></div>';
+          g.querySelector(".fig-pglabel").textContent = key;
+          g.querySelector(".fig-pglabel").onclick = () => { stop(); go(i); };
+          $(".fig-pills").appendChild(g);
+          groups[key] = { el: g, n: 0 };
+        }
+        groups[key].n++;
+        groups[key].el.style.flex = String(groups[key].n);
+        parent = groups[key].el.querySelector(".fig-pgpills");
+      }
+      parent.appendChild(b);
+      return b;
+    });
+    let cur = -1, playing = false, timer = 0, started = false;
+    function setPlayBtn() {
+      $(".play").innerHTML = playing ? ICON_PAUSE + '<span class="t">Pause</span>'
+        : ICON_PLAY + '<span class="t">' + (cur === n - 1 ? "Replay" : "Play") + "</span>";
+      $(".play").setAttribute("aria-label", playing ? "Pause" : "Play");
+    }
+    function go(i) {
+      const prev = cur;
+      cur = (i + n) % n;
+      pills.forEach((p, k) => {
+        p.classList.toggle("on", k === cur); p.classList.toggle("done", k < cur);
+        p.setAttribute("aria-selected", k === cur);
+        const f = p.querySelector(".fill"); f.style.transition = "none"; f.style.width = k < cur ? "100%" : "0";
+      });
+      if (grouped) for (const k in groups) groups[k].el.classList.toggle("on", k === (steps[cur].group || ""));
+      $(".fig-explain h3").innerHTML = steps[cur].title;
+      $(".fig-explain p").innerHTML = steps[cur].text;
+      const pad = (k) => String(k).padStart(2, "0");
+      $(".fig-count").textContent = pad(cur + 1) + " / " + pad(n);
+      opts.render(cur, prev);
+      if (playing) schedule();
+      setPlayBtn();
+    }
+    function schedule() {
+      clearTimeout(timer);
+      const f = pills[cur].querySelector(".fill");
+      requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = "width " + dwell(cur) + "ms linear"; f.style.width = "100%"; }));
+      timer = setTimeout(() => {
+        if (cur === n - 1) { playing = false; setPlayBtn(); return; }
+        go(cur + 1);
+      }, dwell(cur));
+    }
+    function play() { playing = true; started = true; if (cur === n - 1) go(0); else { schedule(); setPlayBtn(); } }
+    function stop() {
+      playing = false; clearTimeout(timer);
+      const f = pills[cur] && pills[cur].querySelector(".fill");
+      if (f) { f.style.transition = "none"; f.style.width = "0"; }
+      setPlayBtn();
+    }
+    $(".play").onclick = () => (playing ? stop() : play());
+    $(".prev").onclick = () => { stop(); go(Math.max(0, cur - 1)); };
+    $(".next").onclick = () => { stop(); go(Math.min(n - 1, cur + 1)); };
+    host.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { stop(); go(Math.min(n - 1, cur + 1)); }
+      if (e.key === "ArrowLeft") { stop(); go(Math.max(0, cur - 1)); }
+    });
+    go(0);
+    const auto = opts.autoplay !== false && !reduced();
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((es) => {
+        const visible = es[0].isIntersecting;
+        if (visible && auto && !started) play();
+        if (!visible && playing) { stop(); started = false; }
+      }, { threshold: 0.5 }).observe(host.parentElement || host);
+    } else if (auto) play();
+    return { go, play, stop, get step() { return cur; } };
+  }
+  window.FK = { svg, text, defs, tween, player, reduced };
+})();
+
+/* text with _{sub} and ^{sup} */
+function TX(parent, x, y, s, cls, attrs) {
+  const t = FK.svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+  const re = /([_^])\{([^}]*)\}/g; let last = 0, m, shift = 0;
+  const add = (txt, dy, small) => { const ts = FK.svg("tspan", {}, t); ts.textContent = txt; if (dy) ts.setAttribute("dy", dy); if (small) ts.setAttribute("font-size", "0.75em"); };
+  while ((m = re.exec(s))) {
+    if (m.index > last) { add(s.slice(last, m.index), -shift, false); shift = 0; }
+    const d = m[1] === "_" ? 3.5 : -5; add(m[2], d - shift, true); shift = d; last = re.lastIndex;
+  }
+  if (last < s.length) add(s.slice(last), -shift, false);
+  return t;
+}
+
+/* ── Figure 2: GPU memory calculator ─────────────────────────────── */
+(function () {
+  const L = 60, HKV = 4, D = 128, IDXD = 128, SPARSE = 60;
+  const EX = 232.38e9, NE = 17.72e9;                      // routed experts / rest, bytes
+  const GPU = { b200: 180, b300: 288, mi35x: 288 };
+  const bytes = (dt) => (dt === "bf16" ? 2 : dt === "fp8" ? 1 : 4.5 / 8);
+  const NAME = { bf16: "BF16", fp8: "FP8", fp4: "NVFP4" };
+  const PP = { tp4: { gpus: 4, tp: 4 }, tp2: { gpus: 2, tp: 2 }, dep4: { gpus: 4, tp: 1 } };
+  const $ = (id) => document.getElementById(id);
+  const val = (n) => document.querySelector(`.fig-seg[data-name="${n}"] [aria-pressed="true"]`).dataset.v;
+  const gb = (x) => { const v = x / 1e9; return v >= 100 ? Math.round(v).toLocaleString("en-US") : v >= 10 ? v.toFixed(1) : v.toFixed(2); };
+  const fmt = (n) => n.toLocaleString("en-US");
+  const MAXCTX = 1048576; let lastCtx = 262144, lastSeq = 32;
+  function note(id, inp, msg, err) { const o = $(id); o.textContent = msg; o.classList.toggle("err", !!err); inp.setAttribute("aria-invalid", err ? "true" : "false"); }
+  function readCtx() {
+    const inp = $("ctx"), m = inp.value.trim().replace(/[,_\s]/g, "").match(/^(\d*\.?\d+)([kKmM]?)$/);
+    if (!m) { note("ctxo", inp, "e.g. 131072, 128K or 1M", true); return lastCtx; }
+    let v = parseFloat(m[1]); const u = m[2].toLowerCase(); if (u === "k") v *= 1024; else if (u === "m") v *= MAXCTX; v = Math.round(v);
+    if (v < 1) { note("ctxo", inp, "at least 1 token", true); return lastCtx; }
+    if (v > MAXCTX) { note("ctxo", inp, "max 1M (1,048,576)", true); return (lastCtx = MAXCTX); }
+    note("ctxo", inp, fmt(v) + " tokens", false); return (lastCtx = v);
+  }
+  function readSeq() {
+    const inp = $("seq"), v = Number(inp.value);
+    if (!Number.isInteger(v) || v < 1) { note("seqo", inp, "whole number, 1 or more", true); return lastSeq; }
+    note("seqo", inp, v === 1 ? "1 sequence" : fmt(v) + " sequences", false); return (lastSeq = v);
+  }
+  function calc(dt, pp, cap, ctx, seqs, useIdx) {
+    const c = PP[pp], main = L * 2 * HKV * D * bytes(dt), idx = useIdx ? SPARSE * IDXD * bytes(dt) : 0;
+    const w = pp === "dep4" ? NE + EX / 4 : (NE + EX) / c.tp;
+    const usable = cap * 1e9 * 0.95, free = usable - w;
+    let per, n, wMain, wIdx, max;
+    if (pp === "dep4") { n = Math.ceil(seqs / 4); per = (main + idx) * ctx; wMain = n * main * ctx; wIdx = n * idx * ctx; max = free > 0 ? 4 * Math.floor(free / per) : 0; }
+    else { per = (main / c.tp + idx) * ctx; wMain = seqs * main / c.tp * ctx; wIdx = seqs * idx * ctx; max = free > 0 ? Math.floor(free / per) : 0; }
+    return { main, idx, w, usable, free, wMain, wIdx, worst: wMain + wIdx, max, gpus: c.gpus, tp: c.tp, total: (main + idx) * ctx * seqs };
+  }
+  const bar = $("hbar"), bw = bar.querySelector(".w"), bk = bar.querySelector(".kv"), bx = bar.querySelector(".ix"), bo = bar.querySelector(".ov");
+  function update() {
+    const dt = val("dt"), pp = val("pp"), cap = GPU[val("gpu")], useIdx = $("idx").checked;
+    const ctx = readCtx(), seqs = readSeq(), r = calc(dt, pp, cap, ctx, seqs, useIdx), C = cap * 1e9;
+    const wp = Math.min(100, r.w / C * 100), kp = Math.min(100 - wp, r.wMain / C * 100), xp = Math.min(100 - wp - kp, r.wIdx / C * 100);
+    const over = r.w + r.worst - r.usable;
+    bw.style.width = wp + "%"; bk.style.left = wp + "%"; bk.style.width = kp + "%"; bx.style.left = wp + kp + "%"; bx.style.width = xp + "%";
+    bo.style.width = over > 0 ? "5%" : "0";
+    $("memsub").textContent = "Memory per GPU, " + (pp === "dep4" ? "fullest of 4" : "each of " + r.gpus);
+    $("memtot").textContent = gb(r.w + r.worst) + " / " + cap + " GB";
+    $("memleg").innerHTML = `<span>weights <b>${gb(r.w)} GB</b></span><span>K + V <b>${gb(r.wMain)} GB</b>${r.tp > 1 ? ` (1/${r.tp} of heads)` : ""}</span>` +
+      (useIdx ? `<span>index K <b>${gb(r.wIdx)} GB</b>${r.tp > 1 ? " (full copy)" : ""}</span>` : "");
+    bar.setAttribute("aria-label", `${gb(r.w)} GB weights, ${gb(r.wMain)} GB K and V, ${gb(r.wIdx)} GB index K, on a ${cap} GB GPU`);
+    const v = $("verdict");
+    if (r.free <= 0) v.innerHTML = `<b>Weights alone</b> (${gb(r.w)} GB) exceed 95% of ${cap} GB.`;
+    else if (r.worst > r.free) v.innerHTML = `<b>Over by ${gb(r.worst - r.free)} GB</b> per GPU. At most ${fmt(r.max)} sequences fit at this context.`;
+    else v.innerHTML = `<b>Fits</b>, ${gb(r.free - r.worst)} GB spare per GPU. Room for ${fmt(r.max)} sequences at this context.`;
+    const all = ["bf16", "fp8", "fp4"].map((d) => ({ d, r: calc(d, pp, cap, ctx, seqs, useIdx) }));
+    const mx = Math.max(...all.map((a) => a.r.worst));
+    $("cmp").innerHTML = all.map((a) => { const cur = a.d === dt ? " cur" : "";
+      return `<span class="nm${cur}">${NAME[a.d]}</span><span class="tr"><i class="${cur}" style="width:${mx ? a.r.worst / mx * 100 : 0}%"></i></span><span class="v"><b>${gb(a.r.worst)} GB</b>, max ${fmt(a.r.max)}</span>`; }).join("");
+    $("pertok").textContent = `Per token: ${(r.main / 1e3).toFixed(1)} KB K + V` + (useIdx ? ` + ${(r.idx / 1e3).toFixed(1)} KB index K` : "") + `. Whole workload before sharding: ${gb(r.total)} GB.`;
+  }
+  function autofit() {
+    const r = calc(val("dt"), val("pp"), GPU[val("gpu")], readCtx(), 1, $("idx").checked);
+    $("seq").value = Math.max(1, r.max); update();
+    $("seqo").textContent += r.max > 0 ? " (fit to max)" : " (nothing fits)";
+  }
+  document.querySelectorAll("#fig2 .fig-seg").forEach((seg) => seg.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || b.getAttribute("aria-pressed") === "true") return;
+    seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    autofit();
+  }));
+  document.querySelectorAll("#fig2 .fig-seg button:not([aria-pressed])").forEach((b) => b.setAttribute("aria-pressed", "false"));
+  ["ctx", "seq", "idx"].forEach((id) => $(id).addEventListener("input", update));
+  update();
+})();
+</script>
+<script>
+/* Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = "hidden";
+  var last = 0;
+  function report() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  }
+  if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+  window.addEventListener("load", report);
+  window.addEventListener("resize", report);
+  setTimeout(report, 300); setTimeout(report, 1500);
+  report();
+})();
+</script>
+</body>
+</html>
