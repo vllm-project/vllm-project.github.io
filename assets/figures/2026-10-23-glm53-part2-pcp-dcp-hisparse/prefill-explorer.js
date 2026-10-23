@@ -95,7 +95,7 @@ root.innerHTML=`<div class="ppx-modes" role="group" aria-label="Parallelism sche
 </div>
 <div class="ppx-panel" tabindex="0" aria-label="Step-by-step view; use the left and right arrow keys to change step">
 <div class="ppx-timeline" id="ppx-timeline"></div>
-<div class="ppx-cap" aria-live="polite"><p class="ppx-t" id="ppx-t"></p><div class="ppx-nav"><button class="ppx-btn" id="ppx-prev" aria-label="Previous step">← Prev</button><button class="ppx-btn" id="ppx-next" aria-label="Next step">Next →</button></div><p class="ppx-d" id="ppx-d"></p></div>
+<div class="ppx-cap" aria-live="polite"><p class="ppx-t" id="ppx-t"></p><div class="ppx-nav"><button class="ppx-btn" id="ppx-play" aria-pressed="true">Pause</button><button class="ppx-btn" id="ppx-prev" aria-label="Previous step">← Prev</button><button class="ppx-btn" id="ppx-next" aria-label="Next step">Next →</button></div><p class="ppx-d" id="ppx-d"></p></div>
 <div class="ppx-scroll"><div class="ppx-grid" id="ppx-grid"></div></div>
 <div class="ppx-legend"><span data-k="kv"><i class="sw kv"></i>in KV cache</span><span data-k="new"><i class="sw new"></i>new KV, not yet in cache</span><span data-k="tmp"><i class="sw tmp"></i>temporary copy, freed after the layer</span><span data-k="q"><i class="sw q"></i>queries computed here</span><span data-k="h"><i class="sw h"></i>heads computed here</span><span data-k="rx"><i class="sw rx"></i>received from other GPUs</span></div>
 </div>
@@ -196,7 +196,7 @@ function render(fresh){
     +(comm?'<span class="ppx-tag">'+comm[0]+'</span><span class="ppx-vol">'+comm[1]+"</span>":"<span>No communication in this step</span>")
     +'<span class="ppx-pips"></span></div></div>';
   $("ppx-grid").innerHTML=h;
-  root.querySelectorAll(".ppx-pill").forEach(function(p){p.onclick=function(){step=+p.dataset.s;render(true)}});
+  root.querySelectorAll(".ppx-pill").forEach(function(p){p.onclick=function(){manual();step=+p.dataset.s;render(true)}});
 }
 function legend(){
   var m=MODES[mode],u={},s,g,r,i,c;
@@ -208,14 +208,35 @@ function legend(){
   root.querySelectorAll(".ppx-legend [data-k]").forEach(function(e){e.hidden=!u[e.getAttribute("data-k")]});
 }
 function go(d){var n=MODES[mode].steps.length;step=(step+d+n)%n;render(true)}
-$("ppx-prev").onclick=function(){go(-1)};$("ppx-next").onclick=function(){go(1)};
-root.querySelectorAll(".ppx-mode").forEach(function(b){b.onclick=function(){mode=+b.dataset.m;step=0;prev={};legend();render(false)}});
+$("ppx-prev").onclick=function(){manual();go(-1)};$("ppx-next").onclick=function(){manual();go(1)};
+root.querySelectorAll(".ppx-mode").forEach(function(b){b.onclick=function(){mode=+b.dataset.m;step=0;prev={};legend();render(false);schedule()}});
 root.addEventListener("keydown",function(e){
-  if(e.key==="ArrowRight"){go(1);e.preventDefault()}
-  if(e.key==="ArrowLeft"){go(-1);e.preventDefault()}
+  if(e.key==="ArrowRight"){manual();go(1);e.preventDefault()}
+  if(e.key==="ArrowLeft"){manual();go(-1);e.preventDefault()}
 });
+// Autoplay: step through the scheme while the figure is on screen; any manual
+// step pauses it, and reduced-motion users start paused.
+var playing=!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches),visible=!("IntersectionObserver" in window),timer=null;
+function schedule(){
+  clearTimeout(timer);timer=null;
+  if(!playing||!visible||document.hidden||!root.isConnected)return;
+  var last=step===MODES[mode].steps.length-1;
+  timer=setTimeout(function(){timer=null;if(!root.isConnected)return;go(1);schedule()},last?2600:1700);
+}
+function setPlaying(p){
+  playing=p;var b=$("ppx-play");
+  b.textContent=p?"Pause":"Play";b.setAttribute("aria-pressed",String(p));
+  b.setAttribute("aria-label",p?"Pause autoplay":"Play the steps automatically");
+  root.querySelector(".ppx-cap").setAttribute("aria-live",p?"off":"polite");
+  schedule();
+}
+function manual(){if(playing)setPlaying(false)}
+$("ppx-play").onclick=function(){setPlaying(!playing)};
+if("IntersectionObserver" in window)new IntersectionObserver(function(es){visible=es[0].isIntersecting;schedule()},{threshold:0.3}).observe(root);
+document.addEventListener("visibilitychange",schedule);
 legend();
 render(false);
+setPlaying(playing);
 }
 init();
 new MutationObserver(init).observe(document.documentElement,{childList:true,subtree:true});

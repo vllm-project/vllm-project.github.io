@@ -64,7 +64,7 @@ Figure 3 puts it all together. Step through one layer of PCP8 $\times$ DCP8 to s
 
 <div id="ppx" role="figure" aria-label="Figure 3: interactive view of one prefill layer on 8 GPUs under DP8, TP8, PCP8 and PCP8 × DCP8"></div>
 
-<script src="/assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/prefill-explorer.js?v=3"></script>
+<script src="/assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/prefill-explorer.js?v=4"></script>
 
 <p align="center"><em>Figure 3. One prefill layer on 8 GPUs under each scheme. Pick a scheme and step through to see which queries each GPU computes, which KV it keeps, and what crosses the interconnect.</em></p>
 
