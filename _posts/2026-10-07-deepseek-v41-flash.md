@@ -44,7 +44,7 @@ DeepSeek V4.1 introduces SWA bounded replay, which trades exactness for efficien
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-swa-replay.html" title="SWA bounded replay: exact rebuild vs. bounded replay after a prefix hit" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 2: Exact rebuild cascades one window per layer. Bounded replay recomputes only the last window, clipped at the replay start s. Step through it, or [open it full-screen](/assets/interactive_pages/dsv41-swa-replay.html).*
+*Figure 2: Exact rebuild cascades one window per layer. Bounded replay recomputes only the last window, clipped at the replay start s. Step through it, or [open it full-screen](https://vllm.ai/blog-assets/interactive_pages/dsv41-swa-replay.html).*
 
 ### Encoder side: rebuild the window on a cache hit
 
@@ -56,7 +56,7 @@ In DeepSeek V4.1's CED architecture, layer 20 computes the decoder's global KV a
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-swa-decoder.html" title="Decoder-side SWA bounded replay: layers 21–39 run only on the last 128 tokens" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 3: In the decoder, only layer 20's global KV is needed for every token. Layers 21–39 run only on the last 128 tokens. Step through it, or [open it full-screen](/assets/interactive_pages/dsv41-swa-decoder.html).*
+*Figure 3: In the decoder, only layer 20's global KV is needed for every token. Layers 21–39 run only on the last 128 tokens. Step through it, or [open it full-screen](https://vllm.ai/blog-assets/interactive_pages/dsv41-swa-decoder.html).*
 
 ### CUDA graphs for the trimmed layers
 
@@ -72,7 +72,7 @@ On performance, the encoder side trades one window of prefill per hit for cache 
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-prefill-ttft.html" title="Prefill TTFT with SWA bounded replay on NVIDIA GB200" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 4: Single-request prefill TTFT (ms) of DeepSeek-V4.1-Flash with SWA bounded replay off and on, with and without decoder CUDA graphs. Median of 3 runs on NVIDIA GB200, with prefix caching off. Percentages are relative to replay off (lower is better). Hover a bar for the absolute TTFT, or [open it full-screen](/assets/interactive_pages/dsv41-prefill-ttft.html).*
+*Figure 4: Single-request prefill TTFT (ms) of DeepSeek-V4.1-Flash with SWA bounded replay off and on, with and without decoder CUDA graphs. Median of 3 runs on NVIDIA GB200, with prefix caching off. Percentages are relative to replay off (lower is better). Hover a bar for the absolute TTFT, or [open it full-screen](https://vllm.ai/blog-assets/interactive_pages/dsv41-prefill-ttft.html).*
 
 **Decoder replay with CUDA graphs cuts prefill computation time by 30–40%.** CUDA graphs matter most for short prompts, where kernel launches are the bottleneck: without them, launch overhead outweighs the GPU savings and replay is slower than the baseline (up to +12% at 1K on DEP2). For long prompts, the GPU work is large enough to hide launch overhead, so eager replay already captures most of the gain and CUDA graphs add a few more points.
 
@@ -82,7 +82,7 @@ DeepSeek released DeepSeek-V4.1-Flash together with new kernels in three of its 
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv41-kernel-fusion.html" title="Kernel fusion on the DeepSeek-V4.1 decode path" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-*Figure 5: Single-layer forward pass of DeepSeek-V4.1. Gold outlines mark the kernel fusions, with their associated vLLM PRs. Step through the low-latency and high-throughput paths, click FULL LAYER for the whole layer, or [open it full-screen](/assets/interactive_pages/dsv41-kernel-fusion.html).*
+*Figure 5: Single-layer forward pass of DeepSeek-V4.1. Gold outlines mark the kernel fusions, with their associated vLLM PRs. Step through the low-latency and high-throughput paths, click FULL LAYER for the whole layer, or [open it full-screen](https://vllm.ai/blog-assets/interactive_pages/dsv41-kernel-fusion.html).*
 
 **Mega-mHC ([#56962](https://github.com/vllm-project/vllm/pull/56962)).** Mega-mHC fuses the mHC chain into one kernel: the post step, the delayed-pre step, and RMSNorm. It replaces an existing TileLang fused path that DeepGEMM's implementation now outperforms. The kernel is 1.14–1.51× faster than the TileLang version on NVIDIA GB200.
 
