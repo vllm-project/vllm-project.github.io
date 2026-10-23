@@ -89,7 +89,6 @@ A prefix-aware [llm-d](https://github.com/llm-d/llm-d) router sends each request
 
 We compare PCP8 × DCP8 prefill against DP8 prefill (eight DP ranks with EP8 and 64 GiB of CPU KV offload each, the same 512 GiB in total), and Hybrid HiSparse against plain CPU KV offloading on the decode node, with the same 512 GiB of host memory either way (8 $\times$ 48 GiB of HiSparse pool + 8 $\times$ 16 GiB of offload for HiSparse). Every configuration uses the same 16 GPUs, host memory, and vLLM build.
 
-<!--RLC: "(eight DP ranks with EP8 and 64 GiB of CPU KV offload each, the same 512 GiB in total)" Lucas, can you double-check this is right? It is a bit unclear -->
 
 ## Results
 
