@@ -1,4 +1,4 @@
-// Interactive Figure 4 for the GLM-5.3 Part 2 post: one prefill layer on 8 GPUs under DP8, TP8, PCP8 and PCP8 x DCP8.
+// Interactive Figure 3 for the GLM-5.3 Part 2 post: one prefill layer on 8 GPUs under DP8, TP8, PCP8 and PCP8 x DCP8.
 (function(){
 var root=document.getElementById("ppx");if(!root)return;
 var me=document.currentScript;
