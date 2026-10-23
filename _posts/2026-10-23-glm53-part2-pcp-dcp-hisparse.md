@@ -63,7 +63,9 @@ As a result of this sharding, most of the KV that each GPU’s queries need now 
 Figure 3 puts it all together. Step through one layer of PCP8 $\times$ DCP8 to see which KV each GPU stores, which queries it computes, and what crosses the interconnect. Switch to DP8, TP8 or PCP8 to compare. Note that the two layouts do not line up: GPU $g$ stores every eighth token but computes the queries of chunks $g$ and $15 − g$, which is why every layer needs the all-gather.
 
 <div id="ppx" role="figure" aria-label="Figure 3: interactive view of one prefill layer on 8 GPUs under DP8, TP8, PCP8 and PCP8 × DCP8"></div>
+
 <script src="/assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/prefill-explorer.js?v=3"></script>
+
 <p align="center"><em>Figure 3. One prefill layer on 8 GPUs under each scheme. Pick a scheme and step through to see which queries each GPU computes, which KV it keeps, and what crosses the interconnect.</em></p>
 
 That all-gather is not free: every layer, it re-sends the whole cached context, so its cost grows with context length. Figure 4 isolates it by running the same 2K-token prefill chunk on one PCP8 node with and without DCP8, at equal cached context. DCP8 adds about 6% per step up to 64K tokens of context, rising to 15% at 248K. That is the price of an 8× larger KV pool. This overhead could be reduced by overlapping each layer's all-gather with the previous layer's compute, an optimization we are currently working on.
