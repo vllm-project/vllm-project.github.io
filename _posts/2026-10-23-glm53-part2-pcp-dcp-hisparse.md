@@ -45,7 +45,7 @@ Together, these make PCP a great fit to prefill long prompts. But PCP still has 
 
 ## DCP: shard the KV cache too
 
-To be more specific, a 1M-token GLM-5.3 request needs 53.4 GiB of FP8 KV,[^kvsize] but each GPU has room for only about 15 GiB. [Decode Context Parallelism](/blog/2026-08-07-decode-context-parallelism) (DCP) fixes this by splitting the cache itself: tokens are dealt round-robin across the eight GPUs, so each GPU stores every eighth token, and the same request needs only 6.7 GiB (=53.4/8) per GPU. Figure 2 compares this with DP8 and TP8.
+A 1M-token GLM-5.3 request needs 53.4 GiB of FP8 KV,[^kvsize] but each GPU has room for only about 15 GiB. [Decode Context Parallelism](/blog/2026-08-07-decode-context-parallelism) (DCP) fixes this by splitting the cache itself: tokens are dealt round-robin across the eight GPUs, so each GPU stores every eighth token, and the same request needs only 6.7 GiB (=53.4/8) per GPU. Figure 2 compares this with DP8 and TP8.
 
 <!--RLC: where is the 15 GiB number of KV room per GPU coming from? vLLM logs? -->
 
