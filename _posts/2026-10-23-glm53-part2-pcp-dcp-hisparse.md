@@ -3,7 +3,7 @@ layout: post
 title: "GLM-5.3 Optimizations, Part 2: PCP, DCP, and Hybrid HiSparse on 16 H200s"
 math: true
 author: "vLLM Team"
-summary: "Splitting each prompt across GPUs by token (PCP) instead of by head (TP) removes GLM-5.3's replicated indexer work and runs sparse MLA at ~7× the arithmetic intensity; sharding the KV by token (DCP) lets one prefill engine hold a 1M-token request. Paired with a Hybrid HiSparse decode node, it gives 1.7–3.2× the per-user speed of data-parallel prefill at the same throughput on an agentic workload."
+summary: "vLLM serves GLM-5.3 on 16 H200s with PCP and DCP prefill and Hybrid HiSparse decode, reaching 1M-token contexts and 1.7–3.2× the per-user speed of data-parallel P/D on the AgentX agentic benchmark."
 image: /assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/agentx-pareto.svg
 social_image: /assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/agentx-pareto.png
 tags:
@@ -14,22 +14,31 @@ tags:
   - performance
 ---
 
-**TL;DR:** Long agentic contexts push GLM-5.3 against two limits on H200s: KV cache memory and prefill speed. We address both on 16 H200s, split into one prefill node and one decode node. **Prefill Context Parallelism (PCP)** splits each prompt across GPUs by token instead of by head, which suits GLM-5.3's sparse attention far better than tensor parallelism. **Decode Context Parallelism (DCP)** shards the prefill engine's KV cache by token, and **Hybrid HiSparse** lets decode keep KV in host memory, so a 1M-token request fits. The hard part is making them compose: PCP, DCP, Hybrid HiSparse, expert parallelism, CPU KV offloading, MTP speculative decoding, and P/D disaggregation over NIXL all have to work together in one deployment. vLLM's [Model Runner V2](/blog/2026-03-24-mrv2) core makes that much easier. On AgentX, our full setup (PCP8 $\times$ DCP8 prefill with Hybrid HiSparse decode) gives $1.7–3.2\times$ the per-user speed of the same deployment with data-parallel prefill at the same throughput, and it is the only configuration we tested that serves 1M-token contexts.
+**TL;DR:** Long agentic contexts push GLM-5.3 against two limits on H200s: KV cache memory and prefill speed. We address both on 16 H200s, split into one prefill node and one decode node:
 
-[Part 1](/blog/2026-09-08-glm53-part1-hybrid-sparse-offloading) showed how Hybrid HiSparse keeps GLM-5.3 requests decoding after their KV outgrows the GPU, on a single $8\times$ H200 node that is tight on memory for a model this size. This post scales up to a prefill/decode deployment on two nodes. On the prefill engine, PCP makes long prompts prefill fast and DCP makes their KV fit; on the decode node, Hybrid HiSparse keeps them decoding.
+* **Prefill Context Parallelism (PCP)** splits each prompt across GPUs by token instead of by head, which suits GLM-5.3's sparse attention far better than tensor parallelism.
+* **Decode Context Parallelism (DCP)** shards the prefill engine's KV cache by token, so a 1M context fits on the prefill node.
+* **Hybrid HiSparse** lets decode keep KV in host memory, so a 1M-token request fits.
+* On AgentX, PCP8 × DCP8 prefill with Hybrid HiSparse decode gives 1.7–3.2× the per-user speed of a data-parallel deployment at the same throughput, and it is the only configuration we tested that serves 1M-token contexts.
 
-## Why not TP or DP?
+## Serving long contexts in memory-constrained deployments
 
-Agentic contexts are long and grow every turn, so prefill matters: without an efficient prefill deployment, the whole system bottlenecks on the prefill engines. Two standard ways to run GLM-5.3 prefill on an $8\times$ H200 node are DP8 and TP8:
+Agentic workloads have long contexts that grow with every turn, which puts pressure on both GPU memory and prefill. On H200s, GLM-5.3's weights take up most of each GPU's memory, leaving little room for the KV cache of those long contexts. And because every turn adds more tool output and file contents to prefill, under load the prefill engines can become the bottleneck for the whole deployment.
+
+[Part 1](/blog/2026-09-08-glm53-part1-hybrid-sparse-offloading) showed how Hybrid HiSparse lets long contexts fit in an aggregated deployment on a single 8× H200 node. Prefill/decode disaggregation takes more than that. On the prefill node, we use PCP to speed up long prompts by parallelizing across the prompt's tokens. With MLA, however, this leaves every PCP rank holding a full copy of the KV cache, so we combine it with DCP to remove that replication. On the decode node, Hybrid HiSparse allows higher concurrency at long contexts. vLLM's new modular core ([Model Runner V2](/blog/2026-03-24-mrv2)) makes composing all of this much easier.
+
+### Why not TP or DP?
+
+Two standard ways to run GLM-5.3 prefill on an 8× H200 node are DP8 and TP8:
 
 * **DP8** assigns each prompt to a single GPU, so its attention cannot use the other seven. This limits time to first token (TTFT) for long prompts, and the prompt's KV cache must fit in that GPU's memory.
 * **TP8** partitions the attention heads across GPUs. Because MLA's latent KV is shared by all 64 heads, every GPU stores the full cache and reads it to serve only 8 heads. The indexer, which scores every earlier token to select the 2,048 that sparse MLA attends to, is not partitioned at all, so its quadratic cost is repeated on every GPU.
 
-Neither scheme spreads one long prompt's attention work across the eight GPUs without also keeping its whole KV on each GPU that serves it. The next two sections fix each half: PCP splits a prompt's queries across GPUs, and DCP splits its KV.
+Neither scheme spreads one long prompt's attention work across the eight GPUs without also keeping its whole KV on each GPU that serves it. The next two sections address each half. PCP splits a prompt's queries across GPUs, and DCP splits its KV.
 
 ## PCP: split the tokens, not the heads
 
-In our $8\times$ H200 prefill engine, PCP splits each prompt across the eight GPUs by token: every GPU computes the queries for one eighth of the prompt, with all 64 heads. A naive split would be unbalanced. Under causal attention a token attends to every token before it, so the GPU holding the end of the prompt would do far more work than the one holding the start. PCP instead cuts the prompt into 16 chunks and pairs them up: GPU $r$ takes chunk $r$ from the front and chunk $15 − r$ from the back, so every GPU gets the same mix of cheap and expensive tokens (Figure 3 shows this as a V-shaped pattern across the eight GPUs). This is the load-balanced sharding from [Context Parallelism for Scalable Million-Token Inference](https://arxiv.org/abs/2411.01783). Finally, each GPU's new KV is all-gathered, so every query can still attend to the full context.
+In our 8× H200 prefill engine, PCP splits each prompt across the eight GPUs by token: every GPU computes the queries for one eighth of the prompt, with all 64 heads. A naive split would be unbalanced. Under causal attention a token attends to every token before it, so the GPU holding the end of the prompt would do far more work than the one holding the start. PCP instead cuts the prompt into 16 chunks and pairs them up: GPU $r$ takes chunk $r$ from the front and chunk $15 − r$ from the back, so every GPU gets the same mix of cheap and expensive tokens (Figure 3 shows this as a V-shaped pattern across the eight GPUs). This is the load-balanced sharding from [Context Parallelism for Scalable Million-Token Inference](https://arxiv.org/abs/2411.01783). Finally, each GPU's new KV is all-gathered, so every query can still attend to the full context.
 
 <p align="center">
 <img src="/assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/tp-vs-pcp-prefill.svg" alt="Token chunks by heads for one prefill on 8 GPUs, shaded by owning GPU. TP8: each GPU owns 8 heads of every token and computes the full indexer, so sparse MLA does 26 FLOPs per byte moved and is memory-bound on H200. PCP8: each GPU owns token chunks r and 15 minus r with all 64 heads and indexes only those tokens, so sparse MLA does 191 FLOPs per byte moved, near the H200 ridge of 206" width="100%">
@@ -60,7 +69,7 @@ A 1M-token GLM-5.3 request needs 53.4 GiB of FP8 KV,[^kvsize] but each GPU has r
 
 As a result of this sharding, most of the KV that each GPU’s queries need now lives on other GPUs. In decode, DCP sends the queries to the KV: each GPU attends over its own shard, and the partial results are merged with their log-sum-exp. In this prefill engine it does the reverse: every layer, each GPU all-gathers the shards into a temporary full-context copy, attends for its own queries, and frees the copy. Only the persistent cache is divided by eight.
 
-Figure 3 puts it all together. Step through one layer of PCP8 $\times$ DCP8 to see which KV each GPU stores, which queries it computes, and what crosses the interconnect. Switch to DP8, TP8 or PCP8 to compare. Note that the two layouts do not line up: GPU $g$ stores every eighth token but computes the queries of chunks $g$ and $15 − g$, which is why every layer needs the all-gather.
+Figure 3 puts it all together. Step through one layer of PCP8 × DCP8 to see which KV each GPU stores, which queries it computes, and what crosses the interconnect. Switch to DP8, TP8 or PCP8 to compare. Note that the two layouts do not line up: GPU $g$ stores every eighth token but computes the queries of chunks $g$ and $15 − g$, which is why every layer needs the all-gather.
 
 <div id="ppx" role="figure" aria-label="Figure 3: interactive view of one prefill layer on 8 GPUs under DP8, TP8, PCP8 and PCP8 × DCP8"></div>
 
@@ -76,7 +85,7 @@ That all-gather is not free: every layer, it re-sends the whole cached context, 
 <em>Figure 4. DCP8's per-step overhead for a 2K-token chunk on one 8× H200 PCP8 engine. The band spans 1K, 4K, and 8K chunks.</em>
 </p>
 
-Beyond roughly 250K tokens, PCP8 alone cannot hold the KV cache; there, DCP is not an overhead but what makes long prompts possible. Together, PCP8 $\times$ DCP8 gives the prefill engine both speed and room.
+Beyond roughly 250K tokens, PCP8 alone cannot hold the KV cache; there, DCP is not an overhead but what makes long prompts possible. Together, PCP8 × DCP8 gives the prefill engine both speed and room.
 
 ## The deployment
 
@@ -87,7 +96,7 @@ We serve it as a prefill/decode (P/D) disaggregated deployment on two 8× H200 n
 
 A prefix-aware [llm-d](https://github.com/llm-d/llm-d) router sends each request to the prefill engine, the NIXL connector moves its KV cache to a decode rank, and the decode rank streams the tokens back.
 
-We compare PCP8 × DCP8 prefill against DP8 prefill (eight DP ranks with EP8 and 64 GiB of CPU KV offload each, the same 512 GiB in total), and Hybrid HiSparse against plain CPU KV offloading on the decode node, with the same 512 GiB of host memory either way (8 $\times$ 48 GiB of HiSparse pool + 8 $\times$ 16 GiB of offload for HiSparse). Every configuration uses the same 16 GPUs, host memory, and vLLM build.
+We compare PCP8 × DCP8 prefill against DP8 prefill (eight DP ranks with EP8 and 64 GiB of CPU KV offload each, the same 512 GiB in total), and Hybrid HiSparse against plain CPU KV offloading on the decode node, with the same 512 GiB of host memory either way (8 × 48 GiB of HiSparse pool + 8 × 16 GiB of offload for HiSparse). Every configuration uses the same 16 GPUs, host memory, and vLLM build.
 
 
 ## Results
@@ -116,7 +125,7 @@ Every configuration here runs on [Model Runner V2](/blog/2026-03-24-mrv2). It ke
 
 ## Try it
 
-Everything runs on the `vllm/vllm-openai:nightly` image, any build from October 6 on. The results above were measured on vLLM main at `9e38b4111a`. The [reproduction gist](https://gist.github.com/LucasWilkinson/b39792adeea1cc2b1505fb6b7a2a2654) pins `2537629eb2`. The prefill engine's key flags:
+Everything runs on vLLM v0.32.0 or later (the `vllm/vllm-openai:v0.32.0` image). The results above were measured on vLLM main at `9e38b4111a`. The [reproduction gist](https://gist.github.com/LucasWilkinson/b39792adeea1cc2b1505fb6b7a2a2654) pins `2537629eb2`. The prefill engine's key flags:
 
 ```bash
 --prefill-context-parallel-size 8 \
@@ -136,4 +145,4 @@ This work was done by Roberto L. Castro (Red Hat), Simon Veitner (Red Hat), Matt
 
 [^intensity]: Per query, sparse MLA reads 2,048 selected KV rows of 660 bytes each (656 of FP8 KV in FlashMLA's `fp8_ds_mla` format, plus a 4-byte index), about 1.35 MB. Each head adds 2,176 bytes for its BF16 query and output, and does 2,176 FLOPs per row (QK over 576 dims, PV over 512). So 8 heads do 35.7 MFLOPs over 1.37 MB, about 26 FLOPs per byte, and 64 heads do 285 MFLOPs over 1.49 MB, about 191.
 [^ridge]: For the H200 SXM: 989 dense BF16 TFLOP/s (the datasheet's 1,979 assumes 2:4 sparsity) $\div$ 4.8 TB/s $\approx$ 206 FLOPs per byte ([NVIDIA H200 datasheet](https://resources.nvidia.com/en-us-hopper-architecture/hpc-datasheet-sc23)).
-[^kvsize]: Per token: 78 layers $\times$ 656 B of MLA KV, 21 indexer layers $\times$ 132 B of indexer keys (128 FP8 values plus a 4-byte scale), and 788 B for the MTP layer, or 54,728 B in total. For $2^{20}$ = 1,048,576 tokens, that is 54,728 MiB $\approx$ 53.4 GiB.
+[^kvsize]: Per token: 78 layers × 656 B of MLA KV, 21 indexer layers × 132 B of indexer keys (128 FP8 values plus a 4-byte scale), and 788 B for the MTP layer, or 54,728 B in total. For $2^{20}$ = 1,048,576 tokens, that is 54,728 MiB $\approx$ 53.4 GiB.
