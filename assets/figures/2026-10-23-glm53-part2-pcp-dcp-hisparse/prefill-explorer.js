@@ -104,7 +104,7 @@ root.innerHTML=`<div class="ppx-modes" role="group" aria-label="Parallelism sche
 <table>
 <thead><tr><th>Scheme</th><th>Splits</th><th>KV per GPU</th><th>Query work per GPU</th><th>Attention traffic per layer</th><th>1M-token prompt</th></tr></thead>
 <tbody id="ppx-cmp">
-<tr><td>DP8</td><td>requests</td><td>full, on one GPU</td><td>all tokens, 64 heads, on one GPU</td><td>none</td><td class="no">does not fit (~300K tokens)</td></tr>
+<tr><td>DP8</td><td>requests</td><td>full, on one GPU</td><td>all tokens, 64 heads, on one GPU</td><td>none</td><td class="no">does not fit</td></tr>
 <tr><td>TP8</td><td>heads</td><td>full, replicated 8×</td><td>all tokens, 8 heads; indexer repeated 8×</td><td>all-reduce of outputs</td><td class="no">does not fit</td></tr>
 <tr><td>PCP8</td><td>query tokens</td><td>full, replicated 8×</td><td>1/8 of tokens, 64 heads</td><td>all-gather of new KV</td><td class="no">does not fit</td></tr>
 <tr><td>PCP8 × DCP8</td><td>queries and KV</td><td>1/8 (6.7 GiB at 1M)</td><td>1/8 of tokens, 64 heads</td><td>new KV + whole-context gather</td><td class="ok">fits</td></tr>
