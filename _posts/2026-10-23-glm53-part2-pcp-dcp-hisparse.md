@@ -92,7 +92,6 @@ We compare PCP8 × DCP8 prefill against DP8 prefill (eight DP ranks with EP8 and
 ## Results
 
 We ran the SemiAnalysis [AgentX](https://vllm.ai/blog/2026-09-08-vllm-agentx) benchmark: Claude Code traces replayed with prefix reuse, a fresh server per concurrency, one-hour runs, and MTP3 with a synthetic acceptance length fixed at 2.99, so every configuration gets the same speculative speedup. Throughput is logical tok/s per GPU (including cached): input plus output tokens, counting prefix-cached input, over all 16 GPUs. Interactivity is AgentX's P90 E2E-normalized output tokens/s per user, the x-axis of Figure 5.
-<!--RLC: add `--max-model-len 142000` and `--max-model-len 1048576` for left and right figure, respectively? -->
 
 <p align="center">
 <img src="/assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/agentx-pareto.svg" alt="AgentX throughput per GPU against interactivity at 142K and 1M context for the four prefill and decode combinations" width="100%">
