@@ -98,7 +98,7 @@ We ran the SemiAnalysis [AgentX](https://vllm.ai/blog/2026-09-08-vllm-agentx) be
 <p align="center">
 <img src="/assets/figures/2026-10-23-glm53-part2-pcp-dcp-hisparse/agentx-pareto.svg" alt="AgentX throughput per GPU against interactivity at 142K and 1M context for the four prefill and decode combinations" width="100%">
 <br>
-<em>Figure 5. One point per concurrency, each on a fresh deployment: c8–c64 at 142K and c8–c32 at 1M. Labels give the concurrency for PCP8 prefill with HiSparse decode; the other configurations run the same concurrencies, right to left. Hollow points are off their own configuration's Pareto frontier.</em>
+<em>Figure 5. One point per concurrency, each on a fresh deployment, at two context limits: c8–c64 at 142K and c8–c32 at 1M. Labels give the concurrency for PCP8 × DCP8 prefill with HiSparse decode; the other configurations run the same concurrencies, right to left. Hollow points are off their own configuration's Pareto frontier.</em>
 </p>
 
 Up to c32, the deployment is mostly prefill-bound, so the prefiller makes the bigger difference. With HiSparse decode in both setups, PCP8 × DCP8 prefill gives 1.7–3.2× the interactivity of DP8 at the same throughput and cuts median TTFT from 1.5–5.2 s to 0.8–0.9 s. The decoder makes little difference at this load: at c8 and c16 the two PCP8 × DCP8 configurations are within a few percent of each other, and offload-only decode is slightly ahead at c8.
