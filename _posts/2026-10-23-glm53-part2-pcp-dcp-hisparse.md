@@ -100,11 +100,11 @@ We ran the SemiAnalysis [AgentX](https://vllm.ai/blog/2026-09-08-vllm-agentx) be
 <em>Figure 5. One point per concurrency, each on a fresh deployment: c8–c64 at 142K and c8–c32 at 1M. Labels give the concurrency for PCP8 prefill with HiSparse decode; the other configurations run the same concurrencies, right to left. Hollow points are off their own configuration's Pareto frontier.</em>
 </p>
 
-Up to c32, prefill makes the bigger difference. With HiSparse decode in both setups, PCP8 prefill gives 1.7–3.2× the interactivity of DP8 at the same throughput and cuts median TTFT from 1.5–5.2 s to 0.8–0.9 s. Decode makes little difference at this load: at c8 and c16 the two PCP8 configurations are within a few percent of each other, and offload-only decode is slightly ahead at c8.
+Up to c32, the deployment is mostly prefill-bound, so the prefiller makes the bigger difference. With HiSparse decode in both setups, PCP8 prefill gives 1.7–3.2× the interactivity of DP8 at the same throughput and cuts median TTFT from 1.5–5.2 s to 0.8–0.9 s. The decoder makes little difference at this load: at c8 and c16 the two PCP8 configurations are within a few percent of each other, and offload-only decode is slightly ahead at c8.
 
-At c32 decode starts to matter as well, and HiSparse decode pulls ahead. At c64 it nearly doubles throughput, to 8,340 logical tok/s/GPU at 29.6 tok/s/user, while every other configuration drops to 1–2 tok/s/user.
+From c32 the deployment becomes more decode-bound, and HiSparse decode pulls ahead. At c64 it nearly doubles throughput, to 8,340 logical tok/s/GPU at 29.6 tok/s/user, while every other configuration drops to 1–2 tok/s/user.
 
-At 1M context, the deployment needs both. A DP8 prefill rank cannot hold one 1M-token request, and neither can an offload-only decode rank. Together, PCP8 prefill and HiSparse decode serve the 1M trace at 2,170–8,220 logical tok/s/GPU and 26–47 tok/s/user.
+At 1M context, the deployment needs both. A DP8 prefill rank cannot hold one 1M-token request, and neither can an offload-only decode rank.
 
 ## Making it all compose
 
@@ -125,8 +125,6 @@ Everything runs on the `vllm/vllm-openai:nightly` image, any build from October 
 --enable-expert-parallel \
 --attention-config '{"sparse_mla_force_mqa":true}'
 ```
-
-`--dcp-comm-backend ag_rs` selects DCP's all-gather + reduce-scatter communication pattern, rather than `a2a`, which exchanges partial outputs and log-sum-exps with a single all-to-all.
 
 Without `sparse_mla_force_mqa`, prefill batches whose prompts fit within the 2,048-token top-k take the dense MHA path. The flag keeps them on the sparse-MLA (MQA) kernel too, so every KV row serves all heads.
 
