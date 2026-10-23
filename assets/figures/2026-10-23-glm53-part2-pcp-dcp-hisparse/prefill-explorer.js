@@ -1,7 +1,10 @@
 // Interactive Figure 3 for the GLM-5.3 Part 2 post: one prefill layer on 8 GPUs under DP8, TP8, PCP8 and PCP8 x DCP8.
 (function(){
-var root=document.getElementById("ppx");if(!root)return;
-if(!document.querySelector("style[data-ppx]")){var st=document.createElement("style");st.setAttribute("data-ppx","");st.textContent=String.raw`@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
+// Client-side navigation can mount #ppx after this script has already run, so
+// (re)initialise whenever an uninitialised #ppx appears.
+function init(){
+var root=document.getElementById("ppx");if(!root||root.classList.contains("ppx"))return;
+var st=document.createElement("style");st.setAttribute("data-ppx","");st.textContent=String.raw`@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 .ppx{--bg:#ffffff;--fg:#17202b;--muted:#5b6878;--faint:#8a96a5;--line:#dde3ea;--cell:#eef2f6;--kv:#13897a;--new:#4f8fd6;--q:#5b4fd1;--tmp:#e08a4c;--tmp-soft:#f7d9c3;--wire:#d4762f;--wire-soft:#fdf0e5;--cur:#efedfc;--dot:#1d1640;--mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg);font-size:15px;line-height:1.55;margin:28px 0 8px;display:grid;gap:14px}
 @media (prefers-color-scheme:dark){.ppx{--bg:#161d25;--fg:#e6ebf1;--muted:#9aa7b6;--faint:#6c7887;--line:#2a3440;--cell:#1f2832;--kv:#2bb5a2;--new:#5d9fe2;--q:#b3a9ff;--tmp:#f0a06a;--tmp-soft:#5a3a24;--wire:#f0a06a;--wire-soft:#2d2119;--cur:#252244;--dot:#f4f1ff}}
 .ppx *{box-sizing:border-box}
@@ -82,7 +85,7 @@ if(!document.querySelector("style[data-ppx]")){var st=document.createElement("st
 .ppx .ok{color:var(--kv);font-weight:500}.ppx .no{color:var(--muted)}
 .ppx .ppx-foot{font-size:12px;color:var(--faint);margin:0}
 @media (max-width:640px){.ppx .ppx-modes{grid-template-columns:repeat(2,minmax(0,1fr))}.ppx .ppx-cap{grid-template-columns:1fr}.ppx .ppx-nav{grid-column:1;grid-row:3}.ppx .ppx-d{grid-column:1}.ppx .ppx-btn{flex:1;text-align:center}}
-.ppx [hidden]{display:none!important}`;document.head.appendChild(st)}
+.ppx [hidden]{display:none!important}`;
 root.classList.add("ppx");
 root.innerHTML=`<div class="ppx-modes" role="group" aria-label="Parallelism scheme">
 <button class="ppx-mode" data-m="0"><b>DP8</b><span>splits requests</span></button>
@@ -110,6 +113,7 @@ root.innerHTML=`<div class="ppx-modes" role="group" aria-label="Parallelism sche
 </div>
 <p class="ppx-foot">C = tokens prefilled in earlier steps; N = this step's tokens, up to 16,384 (the prefill engine's max-num-batched-tokens). A 1M-token prompt takes 64 steps, and C grows by N each step. Each cell stands for a group of tokens; DCP actually deals single tokens round-robin (token i on GPU i mod 8). MoE expert-parallel traffic is the same in all four schemes and is left out.</p>
 </div>`;
+root.insertBefore(st,root.firstChild);
 var own=function(g,i){return i===g||i===15-g};
 var ALL=[0,1,2,3,4,5,6,7];
 var MODES=[
@@ -212,4 +216,7 @@ root.addEventListener("keydown",function(e){
 });
 legend();
 render(false);
+}
+init();
+new MutationObserver(init).observe(document.documentElement,{childList:true,subtree:true});
 })();
