@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "vLLM Delivers Day-0 Acceleration for MiniMax-M3.1-Flash"
+title: "vLLM Delivers Day-0 Support for MiniMax-M3.1-Flash"
 author: "Inferact and the vLLM Team"
 summary: "Day-0 vLLM support for MiniMax-M3.1-Flash on NVIDIA Blackwell, NVIDIA Rubin, and AMD MI350-series GPUs, with NVFP4 MSA kernels, NVFP4 MegaMoE, DSpark speculative decoding, AgentX results, and day-0 RL."
 image: /assets/figures/2026-10-23-minimax-m31-flash/hero.png
