@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="940" viewBox="0 0 1600 940"><rect width="1600" height="940" fill="#F5F5F1"/>
+<text x="48" y="40.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">vLLM  /  EPD ENGINEERING NOTES</text>
+<text x="1490" y="43.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#117E70">02</text>
+<text x="48" y="104.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="40" fill="#172735">Metadata-only requests avoid repeated preprocessing</text>
+<text x="48" y="146.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">Only the downstream media item changes. Text and generation settings remain; embeddings still transfer.</text>
+<polyline points="48,175 1552,175" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<rect x="48" y="204" width="1504" height="260" rx="14" fill="#ECEDE8"/>
+<rect x="66" y="221" width="36" height="32" rx="7" fill="#FFFFFF"/>
+<text x="78" y="241.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">A</text>
+<text x="115" y="241.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="24" fill="#172735">Forward raw media</text>
+<text x="655" y="240.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Remote embeddings can be reused; media preprocessing may repeat.</text>
+<rect x="68" y="277" width="420" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="86" y="297" width="4" height="26" rx="2" fill="#117E70"/>
+<text x="103" y="309.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">E</text>
+<text x="90" y="359.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Preprocess and encode</text>
+<text x="90" y="398.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Decode / preprocess → encoder forward</text>
+<rect x="1080" y="277" width="452" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="1098" y="297" width="4" height="26" rx="2" fill="#4165D5"/>
+<text x="1115" y="309.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">P / PD</text>
+<text x="1102" y="359.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Rebuild the input layout</text>
+<text x="1102" y="399.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Raw media → processing → placeholders</text>
+<polyline points="508,350 1058,350" fill="none" stroke="#65717B" stroke-width="3"/>
+<polygon points="1058,350 1047.1946347717678,355.21958640933474 1047.1946347717678,344.78041359066526" fill="#65717B"/>
+<rect x="565" y="303" width="364" height="32" rx="7" fill="#FFFFFF"/>
+<text x="577" y="323.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">Raw image / audio / URL</text>
+<text x="570" y="393.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Orchestrated by the router / proxy</text>
+<rect x="48" y="490" width="1504" height="260" rx="14" fill="#E5EFEA"/>
+<rect x="66" y="507" width="36" height="32" rx="7" fill="#FFFFFF"/>
+<text x="78" y="527.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">B</text>
+<text x="115" y="527.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="24" fill="#172735">Forward a metadata reference</text>
+<text x="655" y="526.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Use metadata already produced by E to rebuild placeholders.</text>
+<rect x="68" y="563" width="420" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="86" y="583" width="4" height="26" rx="2" fill="#117E70"/>
+<text x="103" y="595.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">E</text>
+<text x="90" y="645.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Preprocess and encode</text>
+<text x="90" y="684.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Decode / preprocess → encoder forward</text>
+<rect x="1080" y="563" width="452" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="1098" y="583" width="4" height="26" rx="2" fill="#4165D5"/>
+<text x="1115" y="595.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">P / PD</text>
+<text x="1102" y="645.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Rebuild the input layout</text>
+<text x="1102" y="685.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Metadata → placeholders</text>
+<polyline points="508,636 1058,636" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="1058,636 1047.1946347717678,641.2195864093347 1047.1946347717678,630.7804135906653" fill="#117E70"/>
+<rect x="565" y="589" width="364" height="32" rx="7" fill="#FFFFFF"/>
+<text x="577" y="609.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">UUID + grid / token count / lengths</text>
+<text x="570" y="679.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Orchestrated by the router / proxy</text>
+<rect x="48" y="775" width="1504" height="94" rx="14" fill="#192C3B"/>
+<text x="70" y="806.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#BBCAD1">Required in both paths</text>
+<text x="70" y="844.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="24" fill="#FFFFFF">Embedding payload</text>
+<polyline points="340,825 1120,825" fill="none" stroke="#78C4B2" stroke-width="3"/>
+<polygon points="1120,825 1109.1946347717678,830.2195864093347 1109.1946347717678,819.7804135906653" fill="#78C4B2"/>
+<text x="540" y="807.9" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="21" fill="#C8E6DC">Delivered separately by the EC connector</text>
+<text x="1144" y="829.8" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="22" fill="#FFFFFF">P consumes embeddings</text>
+<polyline points="48,891 1552,891" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<text x="48" y="920.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="15" fill="#65717B">Sources: vLLM #50390 / #56090 / #57887. Preprocessing cache hits can reuse existing results.</text>
+<text x="1410" y="919.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="14" fill="#117E70">INFERENCE / EPD</text>
+</svg>
