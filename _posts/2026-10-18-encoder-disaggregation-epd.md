@@ -24,7 +24,7 @@ This post explains the engineering behind that progress, with a focus on five ch
 - **Cross-encoder output reuse** through Mooncake Store.
 - **Lower orchestration overhead** in the Python EPD proxy and EPD support in vLLM Router.
 
-The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). Router EPD requires router main with [#266](https://github.com/vllm-project/router/pull/266), not release v0.1.16.
+The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). Router EPD requires router main with [#266](https://github.com/vllm-project/router/pull/266).
 
 ## Why Separate the Encoder?
 
@@ -167,7 +167,7 @@ The Python example proxy supports launcher-managed dynamic registration. Registe
 
 vLLM Router now supports EPD orchestration through `--epd-config`. The router selects P/PD before encoding, distributes media to encoder workers, and forwards JSON metadata references. EC backends handle embedding delivery, while separate P/D deployments reuse the existing KV handoff.
 
-The initial integration is experimental and supports the native CLI, static worker configuration, and DP=1. Use router main with [#266](https://github.com/vllm-project/router/pull/266); release v0.1.16 does not include EPD orchestration. The [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) describes its current scope and backend constraints.
+The initial integration is experimental and supports the native CLI, static worker configuration, and DP=1. Use router main with [#266](https://github.com/vllm-project/router/pull/266). The [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) describes its current scope and backend constraints.
 
 ## DeepSeek V4.1 Flash: EPD in Practice
 
