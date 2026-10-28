@@ -52,9 +52,9 @@ A straightforward EPD implementation sends the original media to the encoder, tr
 
 Only the multimodal item changes: the text prompt and generation settings remain, and the embeddings still travel through the EC data path.
 
-![Raw-media forwarding compared with metadata-only requests](/assets/figures/2026-10-18-encoder-disaggregation-epd/02-control-and-data.png)
+![The router forwards raw-media or metadata-only requests while EC connectors deliver embeddings separately](/assets/figures/2026-10-18-encoder-disaggregation-epd/02-control-and-data.png)
 
-*Figure 2. Both paths can reuse remote embeddings. Metadata-only forwarding additionally avoids downstream media preprocessing performed solely to reconstruct the input layout. The router/proxy handles request orchestration; EC connectors deliver embedding tensors.*
+*Figure 2. The router/proxy dispatches media to E and forwards requests to P/PD. In the metadata-only path, E returns layout metadata to the router, which replaces the downstream media item. Embeddings travel separately through the EC connector in both paths. Arrows show logical data flow, not an execution timeline.*
 
 For example, Qwen-family image inputs require grid information such as `image_grid_thw` to construct the appropriate multimodal layout. The encoder can publish the grid it already computed, allowing P to use it directly.
 

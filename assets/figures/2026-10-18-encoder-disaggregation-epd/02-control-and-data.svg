@@ -1,57 +1,201 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="940" viewBox="0 0 1600 940"><rect width="1600" height="940" fill="#F5F5F1"/>
-<text x="48" y="40.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">vLLM  /  EPD ENGINEERING NOTES</text>
-<text x="1490" y="43.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#117E70">02</text>
-<text x="48" y="104.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="40" fill="#172735">Metadata-only requests avoid repeated preprocessing</text>
-<text x="48" y="146.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">Only the downstream media item changes. Text and generation settings remain; embeddings still transfer.</text>
-<polyline points="48,175 1552,175" fill="none" stroke="#DBDFDB" stroke-width="1"/>
-<rect x="48" y="204" width="1504" height="260" rx="14" fill="#ECEDE8"/>
-<rect x="66" y="221" width="36" height="32" rx="7" fill="#FFFFFF"/>
-<text x="78" y="241.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">A</text>
-<text x="115" y="241.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="24" fill="#172735">Forward raw media</text>
-<text x="655" y="240.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Remote embeddings can be reused; media preprocessing may repeat.</text>
-<rect x="68" y="277" width="420" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
-<rect x="86" y="297" width="4" height="26" rx="2" fill="#117E70"/>
-<text x="103" y="309.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">E</text>
-<text x="90" y="359.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Preprocess and encode</text>
-<text x="90" y="398.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Decode / preprocess → encoder forward</text>
-<rect x="1080" y="277" width="452" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
-<rect x="1098" y="297" width="4" height="26" rx="2" fill="#4165D5"/>
-<text x="1115" y="309.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">P / PD</text>
-<text x="1102" y="359.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Rebuild the input layout</text>
-<text x="1102" y="399.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Raw media → processing → placeholders</text>
-<polyline points="508,350 1058,350" fill="none" stroke="#65717B" stroke-width="3"/>
-<polygon points="1058,350 1047.1946347717678,355.21958640933474 1047.1946347717678,344.78041359066526" fill="#65717B"/>
-<rect x="565" y="303" width="364" height="32" rx="7" fill="#FFFFFF"/>
-<text x="577" y="323.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">Raw image / audio / URL</text>
-<text x="570" y="393.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Orchestrated by the router / proxy</text>
-<rect x="48" y="490" width="1504" height="260" rx="14" fill="#E5EFEA"/>
-<rect x="66" y="507" width="36" height="32" rx="7" fill="#FFFFFF"/>
-<text x="78" y="527.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">B</text>
-<text x="115" y="527.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="24" fill="#172735">Forward a metadata reference</text>
-<text x="655" y="526.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Use metadata already produced by E to rebuild placeholders.</text>
-<rect x="68" y="563" width="420" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
-<rect x="86" y="583" width="4" height="26" rx="2" fill="#117E70"/>
-<text x="103" y="595.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">E</text>
-<text x="90" y="645.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Preprocess and encode</text>
-<text x="90" y="684.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Decode / preprocess → encoder forward</text>
-<rect x="1080" y="563" width="452" height="166" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
-<rect x="1098" y="583" width="4" height="26" rx="2" fill="#4165D5"/>
-<text x="1115" y="595.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">P / PD</text>
-<text x="1102" y="645.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Rebuild the input layout</text>
-<text x="1102" y="685.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Metadata → placeholders</text>
-<polyline points="508,636 1058,636" fill="none" stroke="#117E70" stroke-width="3"/>
-<polygon points="1058,636 1047.1946347717678,641.2195864093347 1047.1946347717678,630.7804135906653" fill="#117E70"/>
-<rect x="565" y="589" width="364" height="32" rx="7" fill="#FFFFFF"/>
-<text x="577" y="609.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">UUID + grid / token count / lengths</text>
-<text x="570" y="679.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Orchestrated by the router / proxy</text>
-<rect x="48" y="775" width="1504" height="94" rx="14" fill="#192C3B"/>
-<text x="70" y="806.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#BBCAD1">Required in both paths</text>
-<text x="70" y="844.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="24" fill="#FFFFFF">Embedding payload</text>
-<polyline points="340,825 1120,825" fill="none" stroke="#78C4B2" stroke-width="3"/>
-<polygon points="1120,825 1109.1946347717678,830.2195864093347 1109.1946347717678,819.7804135906653" fill="#78C4B2"/>
-<text x="540" y="807.9" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="21" fill="#C8E6DC">Delivered separately by the EC connector</text>
-<text x="1144" y="829.8" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="22" fill="#FFFFFF">P consumes embeddings</text>
-<polyline points="48,891 1552,891" fill="none" stroke="#DBDFDB" stroke-width="1"/>
-<text x="48" y="920.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="15" fill="#65717B">Sources: vLLM #50390 / #56090 / #57887. Preprocessing cache hits can reuse existing results.</text>
-<text x="1410" y="919.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="14" fill="#117E70">INFERENCE / EPD</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1160" viewBox="0 0 1200 1160" role="img" aria-labelledby="title description">
+<title id="title">Raw-media and metadata-only EPD request forwarding</title>
+<desc id="description">The router forwards requests to E and P/PD. With metadata-only forwarding, E returns layout metadata to the router, which replaces the downstream media item. In both paths, EC connectors deliver embeddings separately, bypassing the router.</desc>
+<style>
+  text { font-family: Arial, sans-serif; fill: #192e3c; }
+  .node { fill: #fff; stroke: #d6dfda; stroke-width: 1.2; }
+  .router-node { fill: #f8fafc; stroke: #c8d2df; stroke-width: 1.4; }
+  .node-role { font-size: 12px; font-weight: 700; letter-spacing: 1px; fill: #697a86; }
+  .node-title { font-size: 20px; font-weight: 600; }
+  .node-detail { font-size: 12px; fill: #697a86; }
+  .edge-label { font-size: 13px; fill: #697a86; }
+  .edge-note { font-size: 11px; fill: #697a86; }
+  .teal-text { fill: #008575; }
+  .blue-text { fill: #4964dc; }
+  .amber-text { fill: #a87632; }
+  .request-edge { fill: none; stroke: #74828c; stroke-width: 2; }
+  .metadata-edge { fill: none; stroke: #008575; stroke-width: 2.3; stroke-dasharray: 7 5; }
+  .embedding-edge { fill: none; stroke: #4964dc; stroke-width: 4; }
+</style>
+<rect width="1200" height="1160" fill="#f5f6f3"/>
+<text x="44" y="34" font-size="12" font-weight="700" letter-spacing="2" class="teal-text">vLLM / EPD ENGINEERING NOTES</text>
+<text x="44" y="80" font-size="32" font-weight="700">Metadata-only requests avoid repeated preprocessing</text>
+<text x="44" y="112" font-size="17" fill="#697a86">The router forwards requests; EC connectors deliver embeddings.</text>
+<path class="request-edge" d="M44 148 H80" marker-end="url(#arrow-request-a)"/>
+<text x="94" y="152" font-size="13">Request dispatch / forwarding</text>
+<path class="metadata-edge" d="M428 148 H464" marker-end="url(#arrow-metadata-b)"/>
+<text x="478" y="152" font-size="13">Encoder-published metadata</text>
+<path class="embedding-edge" d="M800 148 H836" marker-end="url(#arrow-embedding-a)"/>
+<text x="850" y="152" font-size="13">Embeddings · EC data path</text>
+<rect x="30" y="174" width="1140" height="448" rx="18" fill="#eef0ed" stroke="#dce3df"/>
+<text x="56" y="207" font-size="19" font-weight="700">A · Forward the original media item</text>
+<text x="1144" y="206" text-anchor="end" font-size="13" class="amber-text">Downstream preprocessing may repeat</text>
+<g transform="translate(50 220)">
+<title id="before-svg-title">
+  Raw-media forwarding: the router sends media inputs to E and P/PD
+</title>
+<desc id="before-svg-desc">
+  The client sends a request to the router. The router dispatches media
+  to the encoder and forwards a request containing the original media
+  item to P/PD. The encoder delivers embeddings through an EC connector;
+  it does not forward the original request. P/PD may repeat media
+  preprocessing to reconstruct the placeholder layout.
+</desc>
+<defs>
+  <marker id="arrow-request-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M 0 0 L 10 5 L 0 10 Z" fill="#74828c"></path>
+  </marker>
+  <marker id="arrow-embedding-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4964dc"></path>
+  </marker>
+</defs>
+<path class="request-edge" d="M260 85 H400" marker-end="url(#arrow-request-a)"></path>
+<path class="request-edge" d="M445 130 L215 195 V245" marker-end="url(#arrow-request-a)"></path>
+<path class="request-edge" d="M700 85 H875 V245" marker-end="url(#arrow-request-a)"></path>
+<path class="embedding-edge" d="M370 320 H700" marker-end="url(#arrow-embedding-a)"></path>
+<rect class="node" x="40" y="40" width="220" height="90" rx="13"></rect>
+<text class="node-role" x="60" y="64">CLIENT</text>
+<text class="node-title" x="60" y="90">Original request</text>
+<text class="node-detail" x="60" y="113">
+  Text + media + settings
+</text>
+<rect class="router-node" x="400" y="40" width="300" height="90" rx="13"></rect>
+<text class="node-role" x="420" y="64">ORCHESTRATION</text>
+<text class="node-title" x="420" y="90">Router / Proxy</text>
+<text class="node-detail" x="420" y="113">
+  Dispatch media · Forward request
+</text>
+<rect class="node" x="60" y="245" width="310" height="110" rx="13"></rect>
+<text class="node-role teal-text" x="80" y="270">ENCODER · E</text>
+<text class="node-title" x="80" y="298">Preprocess and encode</text>
+<text class="node-detail" x="80" y="323">
+  Decode / preprocess → Encoder forward
+</text>
+<text class="node-detail" x="80" y="343">
+  Produce multimodal embeddings
+</text>
+<rect class="node" x="700" y="245" width="350" height="110" rx="13"></rect>
+<text class="node-role blue-text" x="720" y="270">CONSUMER · P / PD</text>
+<text class="node-title" x="720" y="298">Rebuild layout from media</text>
+<text class="node-detail amber-text" x="720" y="323">
+  Raw media → Preprocessing → Placeholders
+</text>
+<text class="node-detail" x="720" y="343">
+  Consume embeddings delivered through EC
+</text>
+<text class="edge-label" x="330" y="73" text-anchor="middle">
+  Request
+</text>
+<rect x="174" y="166" width="184" height="25" rx="6" fill="#eef0ed"></rect>
+<text class="edge-label" x="266" y="183" text-anchor="middle">
+  Media input / reference
+</text>
+<text class="edge-label" x="894" y="146">Original media item</text>
+<text class="edge-note" x="894" y="168">URL / Base64 / other inputs</text>
+<text class="edge-note" x="894" y="190">Text and settings unchanged</text>
+<text class="edge-label blue-text" x="535" y="302" text-anchor="middle">
+  Embeddings via EC connector
+</text>
+<text class="edge-note" x="535" y="344" text-anchor="middle">
+  Separate data path · Bypasses the router
+</text>
+</g>
+<rect x="30" y="646" width="1140" height="448" rx="18" fill="#eaf6f1" stroke="#cbe4da"/>
+<text x="56" y="679" font-size="19" font-weight="700">B · Replace the media item with a metadata reference</text>
+<text x="1144" y="678" text-anchor="end" font-size="13" class="teal-text">Build placeholders from metadata</text>
+<g transform="translate(50 692)">
+<title id="after-svg-title">
+  Metadata-only forwarding: E returns metadata and the router rewrites the request
+</title>
+<desc id="after-svg-desc">
+  The client sends the original request, and the router dispatches media
+  to the encoder. The encoder returns input identity and layout metadata.
+  The router replaces the downstream media item with a metadata reference,
+  preserving text and generation settings. P/PD constructs placeholders
+  from this metadata without repeating media preprocessing. Embeddings
+  still arrive through a separate EC data path, bypassing the router.
+</desc>
+<defs>
+  <marker id="arrow-request-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M 0 0 L 10 5 L 0 10 Z" fill="#74828c"></path>
+  </marker>
+  <marker id="arrow-metadata-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+    <path d="M 0 0 L 10 5 L 0 10 Z" fill="#008575"></path>
+  </marker>
+  <marker id="arrow-embedding-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M 0 0 L 10 5 L 0 10 Z" fill="#4964dc"></path>
+  </marker>
+</defs>
+<path class="request-edge" d="M260 85 H400" marker-end="url(#arrow-request-b)"></path>
+<path class="request-edge" d="M445 130 L215 195 V245" marker-end="url(#arrow-request-b)"></path>
+<path class="request-edge" d="M700 85 H875 V245" marker-end="url(#arrow-request-b)"></path>
+<path class="metadata-edge" d="M370 270 C480 270 550 210 550 130" marker-end="url(#arrow-metadata-b)"></path>
+<path class="embedding-edge" d="M370 320 H700" marker-end="url(#arrow-embedding-b)"></path>
+<rect class="node" x="40" y="40" width="220" height="90" rx="13"></rect>
+<text class="node-role" x="60" y="64">CLIENT</text>
+<text class="node-title" x="60" y="90">Original request</text>
+<text class="node-detail" x="60" y="113">
+  Text + media + settings
+</text>
+<rect class="router-node" x="400" y="40" width="300" height="90" rx="13"></rect>
+<text class="node-role" x="420" y="64">ORCHESTRATION</text>
+<text class="node-title" x="420" y="90">Router / Proxy</text>
+<text class="node-detail teal-text" x="420" y="113">
+  Collect E metadata · Rewrite the media item
+</text>
+<rect class="node" x="60" y="245" width="310" height="110" rx="13"></rect>
+<text class="node-role teal-text" x="80" y="270">ENCODER · E</text>
+<text class="node-title" x="80" y="298">Preprocess and encode</text>
+<text class="node-detail" x="80" y="323">
+  Decode / preprocess → Encoder forward
+</text>
+<text class="node-detail teal-text" x="80" y="343">
+  Provide embeddings and layout metadata
+</text>
+<rect class="node" x="700" y="245" width="350" height="110" rx="13"></rect>
+<text class="node-role blue-text" x="720" y="270">CONSUMER · P / PD</text>
+<text class="node-title" x="720" y="298">Rebuild layout from metadata</text>
+<text class="node-detail teal-text" x="720" y="323">
+  Metadata → Placeholders · No media reprocessing
+</text>
+<text class="node-detail" x="720" y="343">
+  Consume embeddings delivered through EC
+</text>
+<text class="edge-label" x="330" y="73" text-anchor="middle">
+  Request
+</text>
+<rect x="174" y="166" width="184" height="25" rx="6" fill="#eaf6f1"></rect>
+<text class="edge-label" x="266" y="183" text-anchor="middle">
+  Media input / reference
+</text>
+<text class="edge-label teal-text" x="576" y="161">
+  Encoder-published metadata
+</text>
+<text class="edge-note" x="576" y="182">
+  Input identity + model-required layout
+</text>
+<text class="edge-note" x="576" y="202">
+  Grids / timestamps / token counts /
+</text>
+<text class="edge-note" x="576" y="218">
+  feature lengths
+</text>
+<text class="edge-label teal-text" x="894" y="146">
+  Metadata reference
+</text>
+<text class="edge-note" x="894" y="168">
+  Replaces the original media item
+</text>
+<text class="edge-note" x="894" y="190">
+  Text and settings unchanged
+</text>
+<text class="edge-label blue-text" x="535" y="302" text-anchor="middle">
+  Embeddings via EC connector
+</text>
+<text class="edge-note" x="535" y="344" text-anchor="middle">
+  Separate data path · Bypasses the router
+</text>
+</g>
+<text x="44" y="1126" font-size="13">Both paths reuse remote embeddings. Preprocessing cache hits can also avoid repeated work.</text>
+<text x="44" y="1148" font-size="12" fill="#697a86">Arrows show logical data flow, not a strict execution timeline.</text>
 </svg>
