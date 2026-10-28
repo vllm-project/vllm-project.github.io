@@ -139,7 +139,7 @@ Without `sparse_mla_force_mqa`, prefill batches whose prompts fit within the 2,0
 
 ## Acknowledgements
 
-This work was done by Roberto L. Castro (Red Hat), Simon Veitner (Red Hat), Matthew Bonanni (Red Hat), Lucas Wilkinson (Red Hat), and Nicolò Lucchesi (Mistral). We thank Maroon Ayoub (Red Hat) and Robert Shaw (Red Hat) for stress testing the deployment, reporting errors, and fixing bugs.
+This work was done by Roberto L. Castro (Red Hat), Simon Veitner (Red Hat), Matthew Bonanni (Red Hat), Lucas Wilkinson (Red Hat), and Nicolò Lucchesi (Mistral). We thank Maroon Ayoub (Red Hat) and Robert Shaw (Red Hat) for stress testing the deployment, reporting errors, and fixing bugs, as well as Wentao Ye (Red Hat) for other GLM-5.3 performance optimizations (see [#57406](https://github.com/vllm-project/vllm/issues/57406)).
 
 ## Notes
 
