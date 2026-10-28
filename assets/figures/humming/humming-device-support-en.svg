@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1164" viewBox="0 0 1400 1164" role="img" aria-labelledby="title desc">
+<title id="title">Humming: Device Support</title>
+<desc id="desc">Columns show activation types; rows show device architectures. Checks indicate support; unsupported cells are blank. SM75 (Turing): FP16, INT8, INT4; SM80 (Ampere): FP16, BF16, INT8, INT4; SM86 (Ampere): FP16, BF16, INT8, INT4; SM87 (Ampere): FP16, BF16, INT8, INT4; SM89 (Ada Lovelace): FP16, BF16, INT8, INT4, FP8; SM90 (Hopper): FP16, BF16, INT8, FP8; SM100 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM103 (Blackwell): FP16, BF16, FP8, FP4; SM107 (Rubin): FP16, BF16, FP8, FP4; SM110 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM120 (Blackwell): FP16, BF16, INT8, FP8, FP4; SM121 (Blackwell): FP16, BF16, INT8, FP8, FP4; T-Head PPU: FP16, BF16, INT8. Example devices: SM75: T4 · RTX 2080 Ti; SM80: A100 · CMP 170HX; SM86: A10 · RTX 3090; SM87: Jetson AGX Orin; SM89: L40S · RTX 4090; SM90: H200 · H20; SM100: B200 · GB200; SM103: B300 · GB300; SM107: Vera Rubin NVL72; SM110: Jetson AGX Thor; SM120: RTX 5090 · RTX PRO 6000; SM121: GB10 (DGX Spark); T-Head PPU: Zhenwu 810E</desc>
+<!-- Source: device/activation support list supplied by the project maintainer.
+     Example device sources:
+     https://github.com/Consensus-Protocol/cmp170hx/blob/main/docs/hardware/overview.md
+     https://docs.nvidia.com/jetson/agx-thor-devkit/user-guide/latest/
+     https://developer.nvidia.com/cuda/gpus
+     https://docs.nvidia.com/cutlass/latest/overview.html (Rubin SM107)
+     https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/
+     Columns use the same order as humming-quantization-support.svg.
+     This is Humming support, not a list of all instructions available on the hardware. -->
+<defs>
+  <g id="supported"><rect x="-16" y="-16" width="32" height="32" rx="7" fill="#168477"/><path d="M-8 0 L-2 6 L9 -7" fill="none" stroke="white" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g id="supported-blue"><rect x="-16" y="-16" width="32" height="32" rx="7" fill="#347DB6"/><path d="M-8 0 L-2 6 L9 -7" fill="none" stroke="white" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+</defs>
+<rect width="1400" height="1164" fill="white"/>
+<g font-family="Noto Sans CJK SC, Microsoft YaHei, PingFang SC, sans-serif">
+<text x="58" y="60" font-size="32" fill="#203747" font-weight="700" text-anchor="start">Humming</text>
+<path d="M242 32 V66" stroke="#C7D4DA" stroke-width="1.4"/>
+<text x="268" y="60" font-size="32" fill="#203747" font-weight="700" text-anchor="start">Device Support</text>
+<text x="58" y="101" font-size="20" fill="#6B7C87" font-weight="400" text-anchor="start">Device architecture × activation type</text>
+<text x="860.5" y="169" font-size="23" fill="#77639E" font-weight="600" text-anchor="middle">Activation type</text>
+<path d="M395 178 H1326" stroke="#DCD4E9" stroke-width="1.5"/>
+<rect x="58" y="200" width="1284" height="912" rx="12" fill="white"/>
+<path d="M70 200 H1330 Q1342 200 1342 212 V280 H58 V212 Q58 200 70 200Z" fill="#F5F2F9"/>
+<path d="M70 200 H379 V1112 H70 Q58 1112 58 1100 V212 Q58 200 70 200Z" fill="#EFF7F5"/>
+<text x="218.5" y="250" font-size="23" fill="#147D79" font-weight="650" text-anchor="middle">Device architecture</text>
+<text x="459.25" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">FP16</text>
+<text x="619.75" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">BF16</text>
+<text x="780.25" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">INT4</text>
+<text x="940.75" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">INT8</text>
+<text x="1101.25" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">FP8</text>
+<text x="1261.75" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">FP4</text>
+<g id="device-sm75">
+<text x="82" y="308" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM75<tspan dx="10" font-size="21" fill="#8A98A2">Turing</tspan></text>
+<text x="82" y="332" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM75">T4 · RTX 2080 Ti</text>
+<use href="#supported" x="459.25" y="312" data-activation="FP16"/>
+<use href="#supported" x="780.25" y="312" data-activation="INT4"/>
+<use href="#supported" x="940.75" y="312" data-activation="INT8"/>
+</g>
+<g id="device-sm80">
+<rect x="379" y="344" width="963" height="64" fill="#F8FAFB"/>
+<text x="82" y="372" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM80<tspan dx="10" font-size="21" fill="#8A98A2">Ampere</tspan></text>
+<text x="82" y="396" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM80">A100 · CMP 170HX</text>
+<use href="#supported" x="459.25" y="376" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="376" data-activation="BF16"/>
+<use href="#supported" x="780.25" y="376" data-activation="INT4"/>
+<use href="#supported" x="940.75" y="376" data-activation="INT8"/>
+</g>
+<g id="device-sm86">
+<text x="82" y="436" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM86<tspan dx="10" font-size="21" fill="#8A98A2">Ampere</tspan></text>
+<text x="82" y="460" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM86">A10 · RTX 3090</text>
+<use href="#supported" x="459.25" y="440" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="440" data-activation="BF16"/>
+<use href="#supported" x="780.25" y="440" data-activation="INT4"/>
+<use href="#supported" x="940.75" y="440" data-activation="INT8"/>
+</g>
+<g id="device-sm87">
+<rect x="379" y="472" width="963" height="64" fill="#F8FAFB"/>
+<text x="82" y="500" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM87<tspan dx="10" font-size="21" fill="#8A98A2">Ampere</tspan></text>
+<text x="82" y="524" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM87">Jetson AGX Orin</text>
+<use href="#supported" x="459.25" y="504" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="504" data-activation="BF16"/>
+<use href="#supported" x="780.25" y="504" data-activation="INT4"/>
+<use href="#supported" x="940.75" y="504" data-activation="INT8"/>
+</g>
+<g id="device-sm89">
+<text x="82" y="564" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM89<tspan dx="10" font-size="21" fill="#8A98A2">Ada Lovelace</tspan></text>
+<text x="82" y="588" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM89">L40S · RTX 4090</text>
+<use href="#supported" x="459.25" y="568" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="568" data-activation="BF16"/>
+<use href="#supported" x="780.25" y="568" data-activation="INT4"/>
+<use href="#supported" x="940.75" y="568" data-activation="INT8"/>
+<use href="#supported" x="1101.25" y="568" data-activation="FP8"/>
+</g>
+<g id="device-sm90">
+<rect x="379" y="600" width="963" height="64" fill="#F8FAFB"/>
+<text x="82" y="628" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM90<tspan dx="10" font-size="21" fill="#8A98A2">Hopper</tspan></text>
+<text x="82" y="652" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM90">H200 · H20</text>
+<use href="#supported" x="459.25" y="632" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="632" data-activation="BF16"/>
+<use href="#supported" x="940.75" y="632" data-activation="INT8"/>
+<use href="#supported" x="1101.25" y="632" data-activation="FP8"/>
+</g>
+<g id="device-sm100">
+<text x="82" y="692" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM100<tspan dx="10" font-size="21" fill="#8A98A2">Blackwell</tspan></text>
+<text x="82" y="716" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM100">B200 · GB200</text>
+<use href="#supported" x="459.25" y="696" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="696" data-activation="BF16"/>
+<use href="#supported" x="940.75" y="696" data-activation="INT8"/>
+<use href="#supported" x="1101.25" y="696" data-activation="FP8"/>
+<use href="#supported" x="1261.75" y="696" data-activation="FP4"/>
+</g>
+<g id="device-sm103">
+<rect x="379" y="728" width="963" height="64" fill="#F8FAFB"/>
+<text x="82" y="756" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM103<tspan dx="10" font-size="21" fill="#8A98A2">Blackwell</tspan></text>
+<text x="82" y="780" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM103">B300 · GB300</text>
+<use href="#supported" x="459.25" y="760" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="760" data-activation="BF16"/>
+<use href="#supported" x="1101.25" y="760" data-activation="FP8"/>
+<use href="#supported" x="1261.75" y="760" data-activation="FP4"/>
+</g>
+<g id="device-sm107">
+<text x="82" y="820" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM107<tspan dx="10" font-size="21" fill="#8A98A2">Rubin</tspan></text>
+<text x="82" y="844" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM107">Vera Rubin NVL72</text>
+<use href="#supported" x="459.25" y="824" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="824" data-activation="BF16"/>
+<use href="#supported" x="1101.25" y="824" data-activation="FP8"/>
+<use href="#supported" x="1261.75" y="824" data-activation="FP4"/>
+</g>
+<g id="device-sm110">
+<rect x="379" y="856" width="963" height="64" fill="#F8FAFB"/>
+<text x="82" y="884" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM110<tspan dx="10" font-size="21" fill="#8A98A2">Blackwell</tspan></text>
+<text x="82" y="908" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM110">Jetson AGX Thor</text>
+<use href="#supported" x="459.25" y="888" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="888" data-activation="BF16"/>
+<use href="#supported" x="940.75" y="888" data-activation="INT8"/>
+<use href="#supported" x="1101.25" y="888" data-activation="FP8"/>
+<use href="#supported" x="1261.75" y="888" data-activation="FP4"/>
+</g>
+<g id="device-sm120">
+<text x="82" y="948" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM120<tspan dx="10" font-size="21" fill="#8A98A2">Blackwell</tspan></text>
+<text x="82" y="972" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM120">RTX 5090 · RTX PRO 6000</text>
+<use href="#supported" x="459.25" y="952" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="952" data-activation="BF16"/>
+<use href="#supported" x="940.75" y="952" data-activation="INT8"/>
+<use href="#supported" x="1101.25" y="952" data-activation="FP8"/>
+<use href="#supported" x="1261.75" y="952" data-activation="FP4"/>
+</g>
+<g id="device-sm121">
+<rect x="379" y="984" width="963" height="64" fill="#F8FAFB"/>
+<text x="82" y="1012" font-size="25" fill="#203747" font-weight="550" text-anchor="start">SM121<tspan dx="10" font-size="21" fill="#8A98A2">Blackwell</tspan></text>
+<text x="82" y="1036" font-size="18" fill="#8A98A2" font-weight="400" text-anchor="start" data-device-examples="SM121">GB10 (DGX Spark)</text>
+<use href="#supported" x="459.25" y="1016" data-activation="FP16"/>
+<use href="#supported" x="619.75" y="1016" data-activation="BF16"/>
+<use href="#supported" x="940.75" y="1016" data-activation="INT8"/>
+<use href="#supported" x="1101.25" y="1016" data-activation="FP8"/>
+<use href="#supported" x="1261.75" y="1016" data-activation="FP4"/>
+</g>
+<g id="device-zhenwu">
+<path d="M58 1048 H1342 V1100 Q1342 1112 1330 1112 H70 Q58 1112 58 1100Z" fill="#F3F8FD"/>
+<path d="M58 1048 H379 V1112 H70 Q58 1112 58 1100Z" fill="#E8F2FB"/>
+<text x="82" y="1076" font-size="25" fill="#285E89" font-weight="550" text-anchor="start">T-Head PPU</text>
+<text x="82" y="1100" font-size="18" fill="#6689A6" font-weight="400" text-anchor="start" data-device-examples="Zhenwu">Zhenwu 810E</text>
+<use href="#supported-blue" x="459.25" y="1080" data-activation="FP16"/>
+<use href="#supported-blue" x="619.75" y="1080" data-activation="BF16"/>
+<use href="#supported-blue" x="940.75" y="1080" data-activation="INT8"/>
+</g>
+<path d="M58 280 H1342" stroke="#A5C5C2" stroke-width="1.6"/>
+<path d="M58 344 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 408 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 472 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 536 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 600 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 664 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 728 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 792 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 856 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 920 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 984 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 1048 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M379 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M539.5 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M700 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M860.5 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M1021 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M1181.5 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<rect x="58" y="200" width="1284" height="912" rx="12" fill="none" stroke="#C7D4DA" stroke-width="1.5"/>
+</g>
+</svg>

@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefill curve: vLLM DEP2 vs. DeepInfer EP4DP4</title>
+<style>
+/* figkit.css — shared look for vLLM blog figures.
+   Every figure page links this file; build.py inlines it. Do not restyle these
+   tokens in a page: add a role here so all figures change together.
+
+   Design: Swiss-style grid and type (flush left, one grotesk, uppercase mono
+   for meta labels), a Morandi palette in the vLLM logo hues (greyed sky blue,
+   greyed amber), 1.2px hairlines, square corners, no shadows (cf. zero-to-vllm). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+
+  /* surfaces and text: warm greys */
+  --bg: #ffffff;
+  --card: #f7f5f2;          /* player panel */
+  --ink: #23201e;
+  --muted: #605b56;
+  --faint: #8e8881;   /* still >= 3:1 on white: faint text must stay readable */
+  --rule: #e6e1da;          /* hairlines, gridlines */
+  --line: #8f8a84;          /* arrows, connectors */
+
+  /* Morandi line colors in the vLLM hues; fills are tints of the same line */
+  --blue-line: #4d7ba6;     /* vLLM sky blue, greyed: global KV, long-lived state */
+  --gold-line: #b5873a;     /* vLLM amber, greyed: the concept the figure introduces */
+  --green-line: #6a8a5e;    /* sage: third category (side stream) */
+  --stone-line: #9a958f;    /* ordinary work */
+  --blue-text: #3e6890;
+  --gold-text: #8a6420;
+  --green-text: #4f6b45;
+
+  /* data-chart series (dataviz validator: CVD + normal-vision separation pass) */
+  --series-blue: #5a87b3;
+  --series-gold: #c99a45;
+
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --dur: 520ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+    --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+    --series-blue: #6b93bb; --series-gold: #b08a45;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+  --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+  --series-blue: #6b93bb; --series-gold: #b08a45;
+}
+
+/* derived tints: soft (-t) for areas, main (-m) for emphasis, stroke (-ts) half strength */
+:root {
+  --blue-t: color-mix(in srgb, var(--blue-line) 13%, var(--bg));
+  --blue-ts: color-mix(in srgb, var(--blue-line) 50%, var(--bg));
+  --blue-m: color-mix(in srgb, var(--blue-line) 30%, var(--bg));
+  --blue-ms: var(--blue-line);
+  --gold-t: color-mix(in srgb, var(--gold-line) 14%, var(--bg));
+  --gold-ts: color-mix(in srgb, var(--gold-line) 50%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 34%, var(--bg));
+  --gold-ms: var(--gold-line);
+  --green-t: color-mix(in srgb, var(--green-line) 15%, var(--bg));
+  --green-ts: color-mix(in srgb, var(--green-line) 55%, var(--bg));
+  --green-m: color-mix(in srgb, var(--green-line) 32%, var(--bg));
+  --green-ms: var(--green-line);
+  --slate-t: color-mix(in srgb, var(--stone-line) 11%, var(--bg));
+  --slate: color-mix(in srgb, var(--stone-line) 60%, var(--bg));
+  --hatch-bg: var(--bg);
+  --hatch-line: color-mix(in srgb, var(--stone-line) 30%, var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+    --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+    --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+    --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+  }
+}
+:root[data-theme="dark"] {
+  --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+  --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+  --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body {
+  font: 400 15px/1.5 var(--font);
+  /* no global "tnum": in Inter it also widens hyphens ("V4.1-Flash"); numbers opt in via .tnum / .t-num */
+  -webkit-font-smoothing: antialiased;
+  padding: 4px 0 8px;
+}
+.fig { max-width: 760px; margin: 0 auto; }
+
+/* header: an uppercase mono kicker (optional), a sentence-case title, a muted subtitle */
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+.fig-head-row { display: flex; gap: 12px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+
+/* the drawing; SVG text uses these classes, never inline font sizes */
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-lab { font-size: 13px; fill: var(--ink); }
+.t-lab-b { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-head { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted) !important; }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-blue { font-size: 13px; fill: var(--blue-text); font-weight: 500; }
+.t-gold { font-size: 13px; fill: var(--gold-text); font-weight: 600; }
+.t-mono { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; }
+/* ellipses: draw them with FK.dots (filled circles); a text "…" / "⋮" glyph is too thin to see */
+.fk-dots { fill: var(--muted); stroke: none; }
+.t-num { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-num, .tnum, /* grouped steps: a mono group label over its segments; step labels move to the explanation */
+.fig-pills.grouped { gap: 12px; }
+.fig-pgroup { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.fig-pglabel { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint);
+  background: none; border: 0; padding: 0; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pgroup.on .fig-pglabel { color: var(--ink); }
+.fig-pgpills { display: flex; gap: 4px; }
+.fig-pills.grouped .fig-pill { height: 10px; }
+.fig-pills.grouped .fig-pill .lbl { display: none; }
+.fig-count { font-variant-numeric: tabular-nums; }
+
+/* marks by role (fill + hairline stroke). Square corners everywhere. */
+.fig-stage rect { rx: 0; ry: 0; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage polyline { stroke-width: var(--hair); }
+.m-global     { fill: var(--blue-t);  stroke: var(--blue-ts); }
+.m-global-new { fill: var(--blue-m);  stroke: var(--blue-ms); }
+.m-window     { fill: var(--gold-t);  stroke: var(--gold-ts); }
+.m-accent     { fill: var(--gold-m);  stroke: var(--gold-ms); }
+.m-green      { fill: var(--green-t); stroke: var(--green-ts); }
+.m-green-strong { fill: var(--green-m); stroke: var(--green-ms); }
+.m-computed   { fill: var(--slate-t); stroke: var(--slate); }
+.m-skipped    { fill: url(#fk-hatch); stroke: var(--rule); }
+.m-empty      { fill: var(--bg); stroke: var(--slate); stroke-dasharray: 3 2; }
+.m-ghost      { fill: none; stroke: var(--faint); stroke-dasharray: 4 3; }
+.m-focus      { fill: none; stroke: var(--gold-ms); stroke-width: 2 !important; }
+.m-rule       { stroke: var(--rule); fill: none; }
+.m-line       { stroke: var(--line); fill: none; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage text, .fig-stage g {
+  transition: opacity var(--dur) var(--ease), fill var(--dur) var(--ease), stroke var(--dur) var(--ease);
+}
+.fade-out { opacity: 0; }
+.dim { opacity: .28; }
+
+/* legend: square swatches, sentence case */
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span, .fig-legend button { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend i { width: 14px; height: 10px; border: var(--hair) solid; display: inline-block; }
+.fig-legend i.m-global     { background: var(--blue-t);  border-color: var(--blue-ts); }
+.fig-legend i.m-global-new { background: var(--blue-m);  border-color: var(--blue-ms); }
+.fig-legend i.m-window     { background: var(--gold-t);  border-color: var(--gold-ts); }
+.fig-legend i.m-accent     { background: var(--gold-m);  border-color: var(--gold-ms); }
+.fig-legend i.m-green      { background: var(--green-t); border-color: var(--green-ts); }
+.fig-legend i.m-green-strong { background: var(--green-m); border-color: var(--green-ms); }
+.fig-legend i.m-computed   { background: var(--slate-t); border-color: var(--slate); }
+.fig-legend i.m-empty      { background: var(--bg); border: var(--hair) dashed var(--slate); }
+.fig-legend i.m-ghost      { background: none; border: var(--hair) dashed var(--faint); }
+.fig-legend i.m-skipped    { border-color: var(--rule);
+  background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--hatch-line) 3px 4.5px); }
+.fig-legend i.s-blue { background: var(--series-blue); border-color: transparent; }
+.fig-legend i.s-gold { background: var(--series-gold); border-color: transparent; }
+.fig-legend i.ref-line { width: 18px; height: 0; border: 0; border-top: var(--hair) dashed var(--line); }
+
+/* step player: hairline panel, square controls, segmented progress */
+.fig-player { background: var(--card); border: var(--hair) solid var(--rule); padding: 14px 16px 16px; margin-top: 14px; }
+.fig-controls { display: flex; align-items: center; gap: 6px; }
+.fig-btn {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0;
+  height: 28px; min-width: 28px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+}
+.fig-btn:hover { border-color: var(--line); }
+.fig-btn:focus-visible, .fig-pill:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-btn svg { width: 10px; height: 10px; fill: currentColor; }
+.fig-btn.play { min-width: 84px; }
+.fig-pills { display: flex; gap: 4px; flex: 1; min-width: 0; margin-left: 8px; }
+.fig-pill {
+  flex: 1; min-width: 0; position: relative; height: 28px; border: 0; padding: 0; background: none; cursor: pointer;
+  font: 500 12.5px/1 var(--font); color: var(--muted); text-align: left;
+}
+.fig-pill::before {  /* progress segment */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--rule);
+}
+.fig-pill .fill { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--gold-line); }
+.fig-pill.done .fill { width: 100%; }
+.fig-pill .lbl { position: absolute; left: 0; right: 2px; top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pill.on .lbl { color: var(--ink); font-weight: 600; }
+.fig-count { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; color: var(--muted); min-width: 44px; text-align: right; }
+.fig-explain { margin-top: 14px; min-height: 66px; }
+.fig-explain h3 { font-size: 15px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.005em; }
+.fig-explain p { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+.fig-explain b, .fig-explain strong { color: var(--ink); font-weight: 600; }
+.fig-explain .gold { color: var(--gold-text); font-weight: 600; }
+.fig-explain code, .fig-sub code { font-family: var(--mono); font-size: 12.5px; }
+
+/* segmented toggle */
+.fig-seg { display: inline-flex; border: var(--hair) solid var(--rule); }
+.fig-seg button {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 28px; padding: 0 12px; cursor: pointer;
+}
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* text button (e.g. "Show table") */
+.fig-link { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: none; border: var(--hair) solid var(--rule); border-radius: 0; height: 28px; padding: 0 10px; cursor: pointer; }
+
+/* tooltip */
+.fig-tip {
+  position: fixed; pointer-events: none; z-index: 10; background: var(--bg); color: var(--ink);
+  border: var(--hair) solid var(--line); padding: 8px 10px; font-size: 12.5px; line-height: 1.45;
+  opacity: 0; transition: opacity 120ms;
+}
+.fig-tip.show { opacity: 1; }
+
+@media (max-width: 560px) {
+  .fig-pill .lbl { display: none; }
+  .fig-pill { height: 12px; }
+  .fig-explain { min-height: 88px; }
+  .fig-btn.play { min-width: 28px; }
+  .fig-btn.play .t { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; }
+}
+
+/* ---- motion.js (zero-to-vllm) support ---------------------------------- */
+/* tone classes that motion.js creates (merge/split/ripple/glow/flow), mapped to our roles */
+.tone-gold, .tone-oat  { fill: var(--gold-m);  stroke: var(--gold-ms); }
+.tone-mist, .tone-blue { fill: var(--blue-t);  stroke: var(--blue-ts); }
+.tone-sage, .tone-green { fill: var(--green-t); stroke: var(--green-ts); }
+.tone-stone { fill: var(--slate-t); stroke: var(--slate); }
+.line-gold, .line-oat { stroke: var(--gold-ms); fill: none; }
+.line-mist, .line-blue { stroke: var(--blue-ms); fill: none; }
+.line-sage, .line-green { stroke: var(--green-ms); fill: none; }
+.line-rose { stroke: var(--gold-ms); fill: none; }
+.fill-gold { fill: var(--gold-ms); } .fill-mist, .fill-blue { fill: var(--blue-ms); } .fill-sage { fill: var(--green-ms); }
+/* highlight(): hovering a [data-link] mark lights its group and dims the rest */
+[data-link] { cursor: pointer; transition: opacity 320ms cubic-bezier(.16, 1, .3, 1); }
+[data-link]:focus { outline: none; }
+.mo-dim { opacity: .2; }
+.mo-flow, .mo-flow-guide, .mo-ripple { pointer-events: none; }
+
+/* ---- canvas frame: L-shaped corner marks around the drawing (cf. zero-to-vllm) ---- */
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none;
+}
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--muted); margin: 8px 0 0; }   /* footnote inside the frame */
+</style>
+<script>
+/* figkit.js — shared helpers for vLLM blog figures.
+   FK.svg / FK.text   build SVG nodes with role classes from figkit.css
+   FK.defs            hatch pattern (#fk-hatch) and arrow marker (#fk-arrow)
+   FK.tween           animate numeric SVG attributes (x, y, width, ...)
+   FK.player          step player: autoplay when visible, Play/Pause, prev/next,
+                      clickable step pills, per-step title + explanation
+   Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function svg(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) {
+      if (attrs[k] == null) continue;
+      if (k === "class") n.setAttribute("class", attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    }
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  function text(parent, x, y, str, cls, attrs) {
+    const t = svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+    t.textContent = str;
+    return t;
+  }
+
+  /* Three dots for an ellipsis ("…" when horizontal, "⋮" when vertical), centered on
+     (cx, cy). Glyph ellipses render too thin at 13px; dots stay visible. */
+  function dots(parent, cx, cy, vertical, gap) {
+    gap = gap || 6;
+    const g = svg("g", { class: "fk-dots" }, parent);
+    for (let k = -1; k <= 1; k++)
+      svg("circle", { cx: vertical ? cx : cx + k * gap, cy: vertical ? cy + k * gap : cy, r: 1.7 }, g);
+    return g;
+  }
+
+  function defs(root) {
+    const d = svg("defs", {}, root);
+    const p = svg("pattern", { id: "fk-hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse",
+      patternTransform: "rotate(45)" }, d);
+    svg("rect", { width: 6, height: 6, style: "fill: var(--hatch-bg)" }, p);
+    svg("line", { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke: var(--hatch-line); stroke-width: 2" }, p);
+    const m = svg("marker", { id: "fk-arrow", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7,
+      markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--line)" }, m);
+    const g = svg("marker", { id: "fk-arrow-gold", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7,
+      markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--gold-ms)" }, g);
+    return d;
+  }
+
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  /* Animate numeric attributes of one element; resolves when done. A new tween on
+     the same element cancels the old one, so rapid step clicks never fight. */
+  function tween(el, to, ms) {
+    ms = reduced() ? 0 : ms == null ? 520 : ms;
+    if (el._fkRaf) cancelAnimationFrame(el._fkRaf);
+    const from = {};
+    for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
+    return new Promise((res) => {
+      if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
+      const t0 = performance.now();
+      const tick = (now) => {
+        const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = ease(t); // the first frame time can be earlier than t0
+        for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
+        if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
+      };
+      el._fkRaf = requestAnimationFrame(tick);
+    });
+  }
+
+  function measure(str, cls) {
+    measure.svg = measure.svg || svg("svg", { width: 0, height: 0, style: "position:absolute;visibility:hidden" }, document.body);
+    measure.svg.setAttribute("class", "fig-stage");
+    const t = text(measure.svg, 0, 0, str, cls);
+    const w = t.getComputedTextLength();
+    t.remove();
+    return w;
+  }
+
+  const ICON_PLAY = '<svg viewBox="0 0 12 12"><path d="M2 1.2v9.6L10.4 6z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 12 12"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>';
+  const ICON_PREV = '<svg viewBox="0 0 12 12"><path d="M8.5 1.5 3.5 6l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const ICON_NEXT = '<svg viewBox="0 0 12 12"><path d="M3.5 1.5 8.5 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+
+  /* steps: [{label, title, text (HTML), ms?}]; render(i, prev) draws step i.
+     opts.autoplay=false builds a paused player (e.g. after a regime toggle).
+     Autoplay starts when the figure is half visible and stops for good once the
+     reader takes control (prev/next/pill); Play resumes it. */
+  function player(host, opts) {
+    const steps = opts.steps, n = steps.length;
+    const dwell = (i) => steps[i].ms || opts.ms || 4200;
+    host.classList.add("fig-player");
+    host.innerHTML =
+      '<div class="fig-controls">' +
+      '<button class="fig-btn play" type="button"></button>' +
+      '<button class="fig-btn prev" type="button" aria-label="Previous step">' + ICON_PREV + "</button>" +
+      '<button class="fig-btn next" type="button" aria-label="Next step">' + ICON_NEXT + "</button>" +
+      '<div class="fig-pills" role="tablist"></div><span class="fig-count"></span></div>' +
+      '<div class="fig-explain" aria-live="polite"><h3></h3><p></p></div>';
+    const $ = (s) => host.querySelector(s);
+    // Steps may carry a `group` (e.g. a regime). Grouped pills sit under a visible group
+    // label, so every group is in view even while another one plays.
+    const grouped = steps.some((s) => s.group);
+    const groups = {};
+    if (grouped) $(".fig-pills").classList.add("grouped");
+    const pills = steps.map((s, i) => {
+      const b = document.createElement("button");
+      b.className = "fig-pill"; b.type = "button"; b.setAttribute("role", "tab");
+      b.setAttribute("aria-label", (s.group ? s.group + ", " : "") + "step " + (i + 1) + ": " + s.label);
+      b.innerHTML = '<span class="fill"></span><span class="lbl">' + s.label + "</span>";
+      b.onclick = () => { stop(); go(i); };
+      let parent = $(".fig-pills");
+      if (grouped) {
+        const key = s.group || "";
+        if (!groups[key]) {
+          const g = document.createElement("div");
+          g.className = "fig-pgroup";
+          g.innerHTML = '<button type="button" class="fig-pglabel"></button><div class="fig-pgpills"></div>';
+          g.querySelector(".fig-pglabel").textContent = key;
+          g.querySelector(".fig-pglabel").onclick = () => { stop(); go(i); };
+          $(".fig-pills").appendChild(g);
+          groups[key] = { el: g, n: 0 };
+        }
+        groups[key].n++;
+        groups[key].el.style.flex = String(groups[key].n);
+        parent = groups[key].el.querySelector(".fig-pgpills");
+      }
+      parent.appendChild(b);
+      return b;
+    });
+    let cur = -1, playing = false, timer = 0, visible = false, started = false, io = null;
+
+    function setPlayBtn() {
+      $(".play").innerHTML = playing ? ICON_PAUSE + '<span class="t">Pause</span>'
+        : ICON_PLAY + '<span class="t">' + (cur === n - 1 ? "Replay" : "Play") + "</span>";
+      $(".play").setAttribute("aria-label", playing ? "Pause" : "Play");
+    }
+    function go(i) {
+      const prev = cur;
+      cur = (i + n) % n;
+      pills.forEach((p, k) => {
+        p.classList.toggle("on", k === cur);
+        p.classList.toggle("done", k < cur);
+        p.setAttribute("aria-selected", k === cur);
+        const f = p.querySelector(".fill");
+        f.style.transition = "none";
+        f.style.width = k < cur ? "100%" : "0";
+      });
+      if (grouped) for (const k in groups) groups[k].el.classList.toggle("on", k === (steps[cur].group || ""));
+      $(".fig-explain h3").innerHTML = steps[cur].title;
+      $(".fig-explain p").innerHTML = steps[cur].text;
+      const pad = (k) => String(k).padStart(2, "0");
+      $(".fig-count").textContent = pad(cur + 1) + " / " + pad(n);
+      opts.render(cur, prev);
+      if (playing) schedule();
+      setPlayBtn();
+    }
+    function schedule() {
+      clearTimeout(timer);
+      const f = pills[cur].querySelector(".fill");
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        f.style.transition = "width " + dwell(cur) + "ms linear";
+        f.style.width = "100%";
+      }));
+      timer = setTimeout(() => {
+        if (cur === n - 1) { playing = false; setPlayBtn(); return; }  // stop on the last step
+        go(cur + 1);
+      }, dwell(cur));
+    }
+    function play() {
+      playing = true; started = true;
+      if (cur === n - 1) go(0); else { schedule(); setPlayBtn(); }
+    }
+    function stop() {
+      playing = false; clearTimeout(timer);
+      const f = pills[cur] && pills[cur].querySelector(".fill");
+      if (f) { f.style.transition = "none"; f.style.width = "0"; }
+      setPlayBtn();
+    }
+    $(".play").onclick = () => (playing ? stop() : play());
+    $(".prev").onclick = () => { stop(); go(Math.max(0, cur - 1)); };
+    $(".next").onclick = () => { stop(); go(Math.min(n - 1, cur + 1)); };
+    host.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { stop(); go(Math.min(n - 1, cur + 1)); }
+      if (e.key === "ArrowLeft") { stop(); go(Math.max(0, cur - 1)); }
+    });
+
+    go(0);
+    const auto = opts.autoplay !== false && !reduced() && !/[?&]static\b/.test(location.search);
+    if ("IntersectionObserver" in window) {
+      io = new IntersectionObserver((es) => {
+        visible = es[0].isIntersecting;
+        if (visible && auto && !started) play();
+        if (!visible && playing) { stop(); started = false; }
+      }, { threshold: 0.5 });
+      io.observe(host.parentElement || host);
+    } else if (auto) play();
+    // ?step=N opens a given step (for screenshots and deep links)
+    const m = /[?&]step=(\d+)/.exec(location.search);
+    if (m) { stop(); go(Math.min(n - 1, +m[1])); started = true; }
+    // dispose() before building a new player in the same host (e.g. a regime toggle)
+    const dispose = () => { stop(); if (io) io.disconnect(); };
+    return { go, play, stop, dispose, get step() { return cur; } };
+  }
+
+  function reportHeight() {
+    if (window.self === window.top) return;
+    document.documentElement.style.overflow = "hidden";
+    let last = 0;
+    const report = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+    };
+    if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+    window.addEventListener("load", report);
+    window.addEventListener("resize", report);
+    setTimeout(report, 300); setTimeout(report, 1500);
+    report();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", reportHeight);
+  else reportHeight();
+
+  window.FK = { svg, text, dots, defs, tween, measure, player, reduced };
+})();
+</script>
+<script>
+window.ABL = {"configs": [{"cfg": "DEP2", "rows": [{"n": 4096, "v": [{"ms": 80.82, "runs": 2}, {"ms": 73.39, "runs": 2}, {"ms": 66.17, "runs": 2}, {"ms": 59.58, "runs": 2}]}, {"n": 8192, "v": [{"ms": 133.53, "runs": 2}, {"ms": 117.65, "runs": 2}, {"ms": 108.17, "runs": 2}, {"ms": 95.97, "runs": 2}]}, {"n": 16384, "v": [{"ms": 237.79, "runs": 2}, {"ms": 203.15, "runs": 2}, {"ms": 192.65, "runs": 2}, {"ms": 168.81, "runs": 2}]}, {"n": 32768, "v": [{"ms": 457.71, "runs": 2}, {"ms": 381.61, "runs": 2}, {"ms": 371.23, "runs": 2}, {"ms": 321.11, "runs": 2}]}, {"n": 65536, "v": [{"ms": 919.95, "runs": 2}, {"ms": 747.43, "runs": 2}, {"ms": 736.75, "runs": 2}, {"ms": 639.43, "runs": 2}]}]}, {"cfg": "DEP4", "rows": [{"n": 4096, "v": [{"ms": 76.15, "runs": 2}, {"ms": 66.82, "runs": 2}, {"ms": 62.09, "runs": 2}, {"ms": 55.58, "runs": 2}]}, {"n": 8192, "v": [{"ms": 131.51, "runs": 2}, {"ms": 113.27, "runs": 2}, {"ms": 106.93, "runs": 2}, {"ms": 94.64, "runs": 2}]}, {"n": 16384, "v": [{"ms": 239.23, "runs": 2}, {"ms": 202.42, "runs": 2}, {"ms": 194.56, "runs": 2}, {"ms": 170.32, "runs": 2}]}, {"n": 32768, "v": [{"ms": 467.41, "runs": 2}, {"ms": 389.95, "runs": 2}, {"ms": 381.2, "runs": 2}, {"ms": 331.55, "runs": 2}]}, {"n": 65536, "v": [{"ms": 949.46, "runs": 2}, {"ms": 774.33, "runs": 2}, {"ms": 766.38, "runs": 2}, {"ms": 668.07, "runs": 2}]}]}]};
+</script>
+<style>
+  .ln { fill: none; stroke-width: 2 !important; stroke-linejoin: round; stroke-linecap: round; }
+  .ln-a { stroke: var(--gold-line); }
+  .ln-r { stroke: var(--blue-line); stroke-dasharray: 6 4; }
+  .pt { stroke: var(--bg); stroke-width: 2 !important; }
+  .pt-a { fill: var(--gold-line); } .pt-r { fill: var(--blue-line); }
+  .fig-legend i.sw { width: 18px; height: 0; border: 0; border-top: 2px solid; background: none; }
+  .sw-a { border-color: var(--gold-line) !important; }
+  .sw-r { border-color: var(--blue-line) !important; border-top-style: dashed !important; }
+  .hit { fill: transparent; cursor: crosshair; }
+  .hit:focus { outline: none; }
+  .hit:focus-visible { stroke: var(--blue-line); stroke-width: 1.5; }
+  .fig-tip table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .fig-tip td { padding: 1px 0 1px 10px; text-align: right; white-space: nowrap; }
+  .fig-tip td:first-child { padding-left: 0; text-align: left; }
+</style>
+<div class="fig" id="fig">
+  <div class="fig-head">
+    <p class="fig-kicker">DeepSeek-V4.1-Flash · prefill after a 128K cache hit</p>
+    <h1 class="fig-title" id="title">vLLM on GB300 DEP2 Prefill Curve</h1>
+    <p class="fig-sub">Non-cached input throughput per GPU against prefill step latency (up and to the left is better). Point labels are new tokens per DP rank. Y axis starts at 40K.</p>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <svg class="fig-stage" id="stage" viewBox="0 0 736 340" role="img"></svg>
+    <p class="fig-note" id="note"></p>
+  </div>
+  <div class="fig-legend" id="legend"></div>
+</div>
+<script>
+(function () {
+  const S = document.getElementById("stage");
+  const NS = [4096, 8192, 16384, 32768, 65536];
+  const dep2 = window.ABL.configs.find((p) => p.cfg === "DEP2").rows;
+  // reference latencies (ms) read off the published EP4DP4 chart; throughput = N / latency, as there
+  const REF_MS = [61.5, 108.0, 193.9, 377.8, 755.6];
+  const SER = [
+    { key: "a", name: "DEP2 (vLLM)", ms: NS.map((k) => dep2.find((r) => r.n === k).v[3].ms) },
+    { key: "r", name: "EP4DP4 (DeepInfer reference)", ms: REF_MS },
+  ];
+  const tput = (k, ms) => k / (ms / 1e3);
+  const kTok = (k) => (k / 1024) + "K";
+  const fmtK = (v) => (v / 1e3).toFixed(1) + "K";
+  const pct = (a, b) => { const d = (a - b) / b * 100; return (d >= 0 ? "+" : "−") + Math.abs(d).toFixed(1) + "%"; };
+
+  const X0 = 64, X1 = 700, XMAX = 800, YMIN = 40e3, YMAX = 120e3, top = 14, PH = 270, bot = top + PH;
+  const X = (ms) => X0 + ms / XMAX * (X1 - X0);
+  const Y = (v) => bot - (v - YMIN) / (YMAX - YMIN) * PH;
+
+  for (let v = YMIN; v <= YMAX; v += 20e3) {
+    FK.svg("line", { x1: X0, x2: X1, y1: Y(v), y2: Y(v), class: "m-rule" }, S);
+    FK.text(S, X0 - 8, Y(v) + 4.5, (v / 1e3) + "K", "t-faint", { "text-anchor": "end" });
+  }
+  for (let ms = 0; ms <= XMAX; ms += 100) FK.text(S, X(ms), bot + 20, String(ms), "t-mut", { "text-anchor": "middle" });
+  FK.text(S, (X0 + X1) / 2, bot + 42, "latency, ms per prefill step", "t-faint", { "text-anchor": "middle" });
+
+  SER.forEach((s) => {
+    s.pts = s.ms.map((ms, i) => [X(ms), Y(tput(NS[i], ms))]);
+    FK.svg("polyline", { points: s.pts.map((p) => p.join(",")).join(" "), class: "ln ln-" + s.key }, S);
+  });
+  SER.forEach((s, si) => s.pts.forEach(([x, y], i) => {
+    FK.svg("circle", { cx: x, cy: y, r: 4.5, class: "pt pt-" + s.key }, S);
+    // ours labelled above its points, the reference below
+    if (!si && !i) FK.text(S, x - 9, y + 4, kTok(NS[i]), "t-mut", { "text-anchor": "end" });
+    else FK.text(S, x, si ? y + 20 : y - 11, kTok(NS[i]), "t-mut", { "text-anchor": "middle" });
+  }));
+  // direct series labels along the flat 32K–64K stretch
+  const mid = (s, d) => [(s.pts[3][0] + s.pts[4][0]) / 2, (s.pts[3][1] + s.pts[4][1]) / 2 + d];
+  let [mx, my] = mid(SER[0], -12); FK.text(S, mx, my, SER[0].name, "t-lab-b", { "text-anchor": "middle" });
+  [mx, my] = mid(SER[1], 22); FK.text(S, mx, my, SER[1].name, "t-lab", { "text-anchor": "middle" });
+
+  const tip = document.createElement("div");
+  tip.className = "fig-tip";
+  document.body.appendChild(tip);
+  SER.forEach((s) => s.pts.forEach(([x, y], i) => {
+    const t = tput(NS[i], s.ms[i]);
+    const html = "<b>" + s.name + " · " + kTok(NS[i]) + " new</b><table><tr><td>Throughput</td><td>" + fmtK(t) +
+      " tok/s/GPU</td></tr><tr><td>Latency</td><td>" + s.ms[i].toFixed(1) + " ms</td></tr></table>";
+    const hit = FK.svg("circle", { cx: x, cy: y, r: 13, class: "hit", tabindex: "0",
+      "aria-label": s.name + ", " + kTok(NS[i]) + " new tokens: " + fmtK(t) + " tokens per second per GPU at " + s.ms[i].toFixed(1) + " ms" }, S);
+    const show = (cx, cy) => {
+      tip.innerHTML = html; tip.classList.add("show");
+      const r = tip.getBoundingClientRect();
+      tip.style.left = Math.max(4, Math.min(cx + 14, window.innerWidth - r.width - 8)) + "px";
+      tip.style.top = Math.max(4, cy - r.height - 12) + "px";
+    };
+    hit.addEventListener("mousemove", (e) => show(e.clientX, e.clientY));
+    hit.addEventListener("mouseleave", () => tip.classList.remove("show"));
+    hit.addEventListener("focus", () => { const b = hit.getBoundingClientRect(); show(b.left + b.width / 2, b.top); });
+    hit.addEventListener("blur", () => tip.classList.remove("show"));
+  }));
+
+  document.getElementById("legend").innerHTML = SER.map((s) => '<span><i class="sw sw-' + s.key + '"></i>' + s.name + "</span>").join("");
+
+  S.setAttribute("aria-label", "Throughput versus latency for 4K to 64K new tokens. DEP2: " +
+    SER[0].ms.map((ms, i) => fmtK(tput(NS[i], ms))).join(", ") + ". EP4DP4: " +
+    SER[1].ms.map((ms, i) => fmtK(tput(NS[i], ms))).join(", ") + " tokens per second per GPU.");
+  document.getElementById("note").textContent =
+    "vLLM: DEP2 on GB300, no redundant experts, 128K cached + N new tokens per rank, 128-token replay; " +
+    "median of 100 forward replays, slowest rank, mean of 2 runs. " +
+    "DeepInfer: EP4DP4, 32 redundant experts, 140-token replay; read off DeepSeek's chart, hardware not stated.";
+})();
+</script>
+
+</body></html>
