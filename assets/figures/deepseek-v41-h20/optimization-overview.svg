@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+  <title id="title">DeepSeek V4.1 Flash optimization workflow</title>
+  <desc id="desc">The original MXFP4 model led to Humming profiling, FP8 conversion with Engram offload, routed-row MoE dispatch, and a tuned serving recipe measured on eight H20 GPUs.</desc>
+  <rect width="1200" height="480" fill="#f7f8fc"/>
+  <text x="60" y="58" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#17233b">From MXFP4 deployment to FP8 serving</text>
+  <text x="60" y="91" font-family="Arial,sans-serif" font-size="16" fill="#5d6b82">DeepSeek V4.1 Flash · one node · 8× NVIDIA H20 (SM90)</text>
+  <g font-family="Arial,sans-serif">
+    <rect x="60" y="142" width="240" height="160" rx="16" fill="#e8f0ff" stroke="#88aaf0" stroke-width="2"/>
+    <text x="82" y="177" font-size="14" font-weight="700" fill="#315ba8">ORIGINAL MODEL</text>
+    <text x="82" y="216" font-size="22" font-weight="700" fill="#17233b">MXFP4 experts</text>
+    <text x="82" y="248" font-size="16" fill="#41516b">Marlin W4A16</text>
+    <text x="82" y="275" font-size="15" fill="#41516b">Humming W4A8 profiled</text>
+    <path d="M310 222h40m-12-10 12 10-12 10" fill="none" stroke="#71809a" stroke-width="3"/>
+    <rect x="360" y="142" width="240" height="160" rx="16" fill="#e7f7f1" stroke="#75c5a5" stroke-width="2"/>
+    <text x="382" y="177" font-size="14" font-weight="700" fill="#247d5a">CONVERSION + MEMORY</text>
+    <text x="382" y="216" font-size="22" font-weight="700" fill="#17233b">FP8 checkpoint</text>
+    <text x="382" y="248" font-size="16" fill="#41516b">128×128 weight blocks</text>
+    <text x="382" y="275" font-size="15" fill="#41516b">Engram CPU offload</text>
+    <path d="M610 222h40m-12-10 12 10-12 10" fill="none" stroke="#71809a" stroke-width="3"/>
+    <rect x="660" y="142" width="240" height="160" rx="16" fill="#fff3dd" stroke="#e4bd70" stroke-width="2"/>
+    <text x="682" y="177" font-size="14" font-weight="700" fill="#956511">EXPERT COMPUTE</text>
+    <text x="682" y="216" font-size="22" font-weight="700" fill="#17233b">TP8 + EP8</text>
+    <text x="682" y="248" font-size="16" fill="#41516b">FlashInfer CUTLASS</text>
+    <text x="682" y="275" font-size="15" fill="#41516b">routed-row dispatch</text>
+    <path d="M910 222h40m-12-10 12 10-12 10" fill="none" stroke="#71809a" stroke-width="3"/>
+    <rect x="960" y="142" width="190" height="160" rx="16" fill="#f2eaff" stroke="#b192df" stroke-width="2"/>
+    <text x="982" y="177" font-size="14" font-weight="700" fill="#7144a9">SERVING</text>
+    <text x="982" y="216" font-size="22" font-weight="700" fill="#17233b">GuideLLM</text>
+    <text x="982" y="248" font-size="15" fill="#41516b">Decode + Prefill</text>
+    <text x="982" y="275" font-size="15" fill="#41516b">DSpark + scheduling</text>
+  </g>
+  <rect x="60" y="350" width="1090" height="76" rx="12" fill="#17233b"/>
+  <text x="88" y="382" font-family="Arial,sans-serif" font-size="15" font-weight="700" fill="#9db9ff">MEASURED RESULTS</text>
+  <text x="88" y="408" font-family="Arial,sans-serif" font-size="18" fill="#ffffff">MoE operator: up to 3.24× faster · tuned recipe: 6,459 Decode and 15,048 Prefill tok/s</text>
+</svg>
