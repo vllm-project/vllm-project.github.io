@@ -42,8 +42,6 @@ EPD supports two deployment patterns: **E+PD**, with a separate encoder and a co
 
 An image-heavy workload may need more encoder capacity without a corresponding increase in decode capacity. A workload with longer responses may require the opposite. Separating the stages allows operators to adjust their instance counts and execution settings independently, while moving encoder computation off the GPUs serving the language model.
 
-Separation also has a cost. In an [equal-GPU comparison](https://github.com/vllm-project/vllm/pull/56242) (six H20 GPUs, InternVL3_5-38B-HF, image workload), a 2E+4PD deployment reduced TPOT p90 from **54.5 to 41.5 ms** compared with six colocated instances, consistent with decode no longer sharing GPUs with encoding. TTFT rose from **1.17 to 1.21 seconds** at p50 and from **1.20 to 1.66 seconds** at p90, as encoding was concentrated on two of the six GPUs. Whether EPD pays off depends on the media mix, network latency, and cache reuse.
-
 ## Metadata-Only Requests: Avoiding Duplicate Preprocessing
 
 Transferring embeddings solves only part of the handoff. The consumer also needs enough information to reconstruct the multimodal input layout: placeholder lengths, image grids, feature lengths, and identifiers linking those positions to the transferred embeddings.
