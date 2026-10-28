@@ -14,7 +14,7 @@ Multimodal inference adds an encoding stage before language-model execution. Ima
 
 Encoder / Prefill / Decode (EPD) disaggregation separates these stages into independently deployed vLLM instances. Over the past two months, the vLLM community has expanded EPD across model execution, remote embedding transfer, shared caching, multimodal input handling, and request routing.
 
-DeepSeek's [inference deployment Q&A](https://github.com/deepseek-ai/DeepInfer/blob/main/doc/inference_deployment_qa.md) describes an E/P/D architecture with a separately deployed vision encoder. vLLM has supported encoder disaggregation since [our December 2025 architecture post](https://vllm.ai/blog/2025-12-15-vllm-epd), and continues to improve that support. DeepSeek V4.1 Flash can also use vLLM's EPD path; the experiment below evaluates its metadata-only extension.
+DeepSeek's [inference deployment Q&A](https://github.com/deepseek-ai/DeepInfer/blob/main/doc/inference_deployment_qa.md) describes an E/P/D architecture with a separately deployed vision encoder. vLLM has supported encoder disaggregation since [our December 2025 architecture post](https://vllm.ai/blog/2025-12-15-vllm-epd), and continues to improve that support. DeepSeek V4.1 Flash can use vLLM's raw-image EPD path; the experiment below evaluates a metadata-only extension to that path.
 
 This post explains the engineering behind that progress, with a focus on five changes:
 
@@ -24,7 +24,7 @@ This post explains the engineering behind that progress, with a focus on five ch
 - **Cross-encoder output reuse** through Mooncake Store.
 - **Lower orchestration overhead** in the Python EPD proxy and EPD support in vLLM Router.
 
-The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. Unless otherwise noted, the vLLM features described below are included in vLLM v0.32.0. The vLLM Router integration is merged on the router's main branch.
+The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). Router EPD requires router main with [#266](https://github.com/vllm-project/router/pull/266), not release v0.1.16.
 
 ## Why Separate the Encoder?
 
@@ -106,8 +106,6 @@ Related changes make encoder execution more consistent:
 - **Reduced startup I/O:** encoder-only loading skips pure language-model checkpoint shards when the weight layout can be classified safely. On a pruned Kimi-K3 checkpoint, the encoder read 2 of 96 shards and weight loading dropped from 683 s to 0.31 s.
 - **Encoder CUDA Graph capture:** the encoder-only V2 runner supports opt-in ViT graph capture using the existing budget selection, replay, and eager fallback mechanisms.
 
-Encoder graphs currently need a compatible attention backend. In the encoder graph backend tests, FlashAttention 3 and 4 produced all-NaN graph outputs when a smaller image replayed a larger graph, while Triton and FlashInfer matched eager execution. For the affected configurations, use `--mm-encoder-attn-backend TRITON_ATTN` or `FLASHINFER` with encoder graphs, and check correctness for your model.
-
 ## Remote Embedding Transfer and Failure Isolation
 
 `ECExampleConnector` provides a shared-filesystem path for validating EPD. Cross-node deployments need network transport, destination-buffer management, and clear ownership of in-flight outputs.
@@ -169,7 +167,7 @@ The Python example proxy supports launcher-managed dynamic registration. Registe
 
 vLLM Router now supports EPD orchestration through `--epd-config`. The router selects P/PD before encoding, distributes media to encoder workers, and forwards JSON metadata references. EC backends handle embedding delivery, while separate P/D deployments reuse the existing KV handoff.
 
-The initial integration is experimental and supports the native CLI, static worker configuration, and DP=1. The [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) describes its current scope and backend constraints.
+The initial integration is experimental and supports the native CLI, static worker configuration, and DP=1. Use router main with [#266](https://github.com/vllm-project/router/pull/266); release v0.1.16 does not include EPD orchestration. The [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) describes its current scope and backend constraints.
 
 ## DeepSeek V4.1 Flash: EPD in Practice
 
@@ -181,7 +179,7 @@ The PD baseline used four GPUs for P and four for D. EPD added four single-GPU e
 
 *Figure 5. Higher throughput and lower P90 TTFT are better. C denotes client concurrency. Throughput counts input plus output tokens, divided by elapsed time and all deployed GPUs: eight for PD, twelve for EPD, including all four encoder GPUs. Points pool three rounds; P90 pools all 1,536 requests per concurrency level. [Plot data](/assets/figures/2026-10-18-encoder-disaggregation-epd/05-deepseek-v41-epd.csv).*
 
-At concurrency **64–128**, EPD delivered **6.6–9.5% higher throughput per GPU** and **44–47% lower P90 TTFT** than this PD baseline. The throughput gain exceeds the additional GPU allocation. At concurrency 16, however, EPD had lower per-GPU throughput; at 32 it was approximately break-even. The benefit depends on load and resource allocation, rather than separation alone.
+At concurrency **64–128**, EPD delivered **6.6–9.5% higher input-plus-output throughput per GPU** than the eight-GPU PD baseline, counting all **12 EPD GPUs**, including the encoders. P90 TTFT was **44–47% lower**. At concurrency 16, however, EPD had lower per-GPU throughput; at 32 it was approximately break-even. The benefit depends on load and resource allocation, rather than separation alone.
 
 ## Getting Started
 
