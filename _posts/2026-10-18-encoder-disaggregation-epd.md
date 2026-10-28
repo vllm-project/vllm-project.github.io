@@ -115,8 +115,6 @@ Two remote-transfer paths have landed:
 | NIXL + CPU EC | Shares CPU-offloaded encoder outputs between instances using NIXL transfers between registered CPU mmap regions | [CPU EC guide](https://docs.vllm.ai/en/latest/features/ec_cpu_connector/) |
 | Mooncake EC | Delivers encoder outputs through Mooncake TransferEngine, with TCP and RDMA configuration paths | [Mooncake EC guide](https://docs.vllm.ai/en/latest/features/mooncake_ec_connector_usage/) |
 
-`ECMooncakeConnector` transfers encoder outputs. The separate `MooncakeConnector` serves the corresponding KV-transfer path between P and D.
-
 ### Transfer Shapes Must Match Encoder Outputs
 
 Transfer buffers may need to be allocated before an item is encoded. Their size cannot be inferred reliably from a single language-model hidden-size field: different modalities and model architectures can produce different encoder output widths.
