@@ -175,7 +175,7 @@ The initial integration is experimental and supports the native CLI, static work
 
 We compared PD serving with EPD on GB200 using DeepSeek V4.1 Flash and 512 MP-DocVQA validation questions, each containing four to six original document pages. Requests averaged 4,905 input tokens and 5.2 output tokens. Each concurrency level ran three times, with caches and CUDA Graphs enabled.
 
-The PD baseline used four GPUs for P and four for D. EPD added four single-GPU encoder instances while keeping the same P/D configuration: TP=1, DP=4, expert parallelism, and GPU-resident Engram tables sharded across DP ranks (DEP4). EPD used Mooncake GPU RDMA for embeddings; both deployments used NIXL for KV transfer. Both ran main at `5314c58281` plus the [DeepSeek metadata-only extension](https://github.com/vllm-project/vllm/pull/62802). EPD also avoided downstream media preprocessing through metadata-only requests, so this is not a measurement of encoder compute isolation alone.
+The PD baseline used four GPUs for P and four for D. EPD added four single-GPU encoder instances while keeping the same P/D configuration: TP=1, DP=4, expert parallelism, and GPU-resident Engram tables sharded across DP ranks (DEP4). EPD used Mooncake GPU RDMA for embeddings; both deployments used NIXL for KV transfer. Both ran main at `5314c58281` plus the [DeepSeek metadata-only extension](https://github.com/vllm-project/vllm/pull/62802).
 
 ![DeepSeek V4.1 Flash throughput per GPU versus P90 time to first token, comparing PD and EPD](/assets/figures/2026-10-18-encoder-disaggregation-epd/05-deepseek-v41-epd.png)
 
