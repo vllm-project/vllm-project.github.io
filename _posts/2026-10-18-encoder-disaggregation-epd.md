@@ -198,6 +198,8 @@ Further work includes observability, additional transport and cache backends, fr
 
 Another opportunity is coordinating encoder work with prefill-side reuse. In an E-first pipeline, encoding can begin before P discovers that its KV cache already covers a multimodal occurrence, or that a reusable embedding is available locally. An ongoing [design discussion](https://github.com/vllm-project/vllm/issues/55639) explores how P's demand could suppress unnecessary upstream work. The design must balance saved computation and delivery against additional lookup, coordination, and cold-request latency.
 
+Have questions about EPD or interested in getting involved? Join the [EPD / EC-connector channel on vLLM Slack](https://vllm-dev.slack.com/archives/C0CAPN6GGBV) to discuss use cases, share feedback, and collaborate.
+
 ## Related Resources
 
 - [Encoder Disaggregation for Scalable Multimodal Model Serving](https://vllm.ai/blog/2025-12-15-vllm-epd): the original architecture and motivation.
