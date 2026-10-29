@@ -482,6 +482,6 @@ is unchanged (0.975 both), and needle-in-a-haystack passes at ~98k (10/10) and ~
 
 ## Acknowledgement
 
-Mistral Large 4 support in vLLM was a collaboration led by Nicolò Lucchesi and the Mistral Inference team. We would like to extend our gratitude to the vLLM maintainers who reviewed, designed, and landed much of the underlying work: Lucas Wilkinson, Flora Feng, Matt Bonanni, and the rest of the Red Hat team; the Inferact team as a whole; Cyrus Leung as well as the entire vLLM community.
+Mistral Large 4 support in vLLM was a collaboration led by Nicolò Lucchesi and the Mistral Inference team. We would like to extend our gratitude to the vLLM maintainers who reviewed, designed, and landed much of the underlying work: Lucas Wilkinson, Flora Feng, Matt Bonanni, and the rest of the Red Hat team; Jiangyun Zhu, Kevin Luu, Yasong Wang, Ao Shen, George Novack, and the rest of the Inferact team; Cyrus Leung as well as the entire vLLM community.
 
 On AMD side, we would also like to thank Hongxia Yang, Felix Marty, Andy Luo, Indira Vats for Day 0 enablement and optimization on AMD Instinct GPUs, and Bowen Bao, Chuan Li, Peng Sun for general support.
