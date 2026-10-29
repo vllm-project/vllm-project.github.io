@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One DSpark drafting step in Mistral Large 4</title>
+<!-- Template for ml4_dspark_steps.py; params.json mtp values are injected at the DATA placeholder.
+     Content mirrors dspark_schematic.py (sources: params.json mtp block @ b74ad8b5,
+     ~/ml4/dspark/notes.md §1, ~/ml4/dspark/kv_grouping.md §1, AL from ~/ml4/final_report.md).
+     Look: figkit tokens of the vLLM blog interactive pages (assets/interactive_pages/*). -->
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f5f4ef;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e4e3de; --line: #8f8a84;
+  --blue-line: #0262bf; --blue-text: #044298; --gold-line: #fa500f; --gold-text: #b75002;
+  --green-line: #ffaf01; --green-text: #7b5401; --green-stroke: #a77201;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #55b3fb; --blue-text: #b9daff; --gold-line: #fa500f; --gold-text: #ffb598;
+    --green-line: #ffaf01; --green-text: #ffdd73; --green-stroke: #ffaf01;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #55b3fb; --blue-text: #b9daff; --gold-line: #fa500f; --gold-text: #ffb598;
+  --green-line: #ffaf01; --green-text: #ffdd73; --green-stroke: #ffaf01;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; padding: 4px 0 8px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 14px; }
+.ctrl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.btn, .fig-seg button {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0; height: 28px; padding: 0 12px; cursor: pointer;
+}
+.btn:disabled { opacity: .4; cursor: default; }
+.fig-seg { display: inline-flex; border: var(--hair) solid var(--rule); }
+.fig-seg button { border: 0; padding: 0 10px; min-width: 30px; }
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-current="step"] { background: var(--ink); color: var(--bg); }
+.btn:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); font-size: 11.5px; }
+.fig-stage .t-head { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+.fig-stage .t-small { font-size: 10.5px; fill: var(--muted); }
+.fig-stage .t-tiny { font-size: 9.5px; fill: var(--muted); }
+.fig-stage .t-tok { font-size: 13px; font-weight: 600; }
+.b { stroke-width: var(--hair); }
+.b-blue { fill: color-mix(in srgb, var(--blue-line) 13%, var(--bg)); stroke: color-mix(in srgb, var(--blue-line) 50%, var(--bg)); }
+.b-blue2 { fill: color-mix(in srgb, var(--blue-line) 30%, var(--bg)); stroke: var(--blue-line); }
+.b-gold { fill: color-mix(in srgb, var(--gold-line) 14%, var(--bg)); stroke: color-mix(in srgb, var(--gold-line) 50%, var(--bg)); }
+.b-green { fill: color-mix(in srgb, var(--green-line) 15%, var(--bg)); stroke: color-mix(in srgb, var(--green-line) 55%, var(--bg)); }
+.grp { fill: none; stroke: var(--gold-line); stroke-dasharray: 4 3; stroke-width: var(--hair); }
+.ar { fill: none; stroke: var(--line); stroke-width: var(--hair); }
+.ar-gold { stroke: var(--gold-line); } .ar-green { stroke: var(--green-stroke); }
+.loop { stroke-dasharray: 4 3; }
+.part { transition: opacity 220ms cubic-bezier(.4, 0, .2, 1); }
+.part.dim { opacity: .18; }
+.part.on .b-blue, .part.on .b-gold, .part.on .b-green { stroke-width: 2px; }
+.c-blue { fill: var(--blue-text) !important; } .c-gold { fill: var(--gold-text) !important; } .c-green { fill: var(--green-text) !important; }
+.fig-frame { position: relative; padding: 14px 12px 12px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none;
+}
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.desc { background: var(--card); padding: 12px 14px; margin-top: 10px; min-height: 7.6em; }
+.desc h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+.desc h2 span { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+.desc p { font-size: 13.5px; color: var(--muted); margin: 0; }
+.desc code { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+.fig-note { font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div class="fig" id="fig">
+  <div class="fig-head">
+    <p class="fig-kicker" id="kicker">DSpark · ML4</p>
+    <h1 class="fig-title">One DSpark drafting step</h1>
+    <p class="fig-sub">Step through how the built-in drafter proposes tokens and how the target checks them.</p>
+  </div>
+  <div class="ctrl">
+    <button class="btn" type="button" id="prev">← Prev</button>
+    <div class="fig-seg" role="group" aria-label="Step" id="steps"></div>
+    <button class="btn" type="button" id="next">Next →</button>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <svg class="fig-stage" id="stage" viewBox="0 0 736 352" role="img" aria-label="DSpark drafting step diagram"></svg>
+    <div class="desc" aria-live="polite"><h2 id="d-title"></h2><p id="d-text"></p></div>
+  </div>
+  <p class="fig-note" id="note"></p>
+</div>
+<script>window.DS = {"n_target":72,"taps":[1,18,36,54,71],"n_draft":3,"depth":3,"window":2048,"rank":512,"head":"rnn","al":2.904};</script>
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const D = window.DS, $ = (id) => document.getElementById(id), S = $("stage");
+  const sub = (k) => String(k).split("").map((c) => "₀₁₂₃₄₅₆₇₈₉"[+c]).join("");
+  const dl = Array.from({ length: D.depth }, (_, k) => "d" + sub(k + 1));
+
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, lines, cls, attrs) {
+    const t = el("text", Object.assign({ x, y, class: cls || "" }, attrs || {}), parent);
+    [].concat(lines).forEach((s, i) => { const ts = el("tspan", { x, dy: i ? "1.3em" : null }, t); ts.textContent = s; });
+    return t;
+  }
+  function box(parent, x, y, w, h, cls, lines, tcls) {
+    el("rect", { x, y, width: w, height: h, class: "b " + cls }, parent);
+    if (lines) {
+      const n = [].concat(lines).length;
+      text(parent, x + w / 2, y + h / 2 - (n - 1) * 0.65 * 14.5 + 4, lines, tcls, { "text-anchor": "middle" });
+    }
+  }
+  el("defs", {}, S).innerHTML = ["line", "gold", "green"].map((c) =>
+    '<marker id="h-' + c + '" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
+    '<path d="M0 0L8 4L0 8z" style="fill:var(--' + (c === "line" ? "line" : c === "green" ? "green-stroke" : c + "-line") + ')"/></marker>').join("");
+  function arrow(parent, pts, color, extra) {
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0] + " " + p[1]).join("");
+    el("path", { d, class: "ar" + (color ? " ar-" + color : "") + (extra ? " " + extra : ""), "marker-end": "url(#h-" + (color || "line") + ")" }, parent);
+  }
+  const parts = [];
+  function part(steps) { const g = el("g", { class: "part" }, S); g._steps = steps; parts.push(g); return g; }
+
+  // target with taps (blue: long-lived state)
+  const tx = 8, ty = 34, tw = 132, th = 262;
+  let g = part([1, 6]);
+  text(g, tx, 22, "Target ML4 · " + D.n_target + " layers", "t-head c-blue");
+  box(g, tx, ty, tw, th, "b-blue");
+  const tapY = D.taps.map((L) => ty + th - 22 - (L / (D.n_target - 1)) * (th - 60));
+  D.taps.forEach((L, k) => {
+    el("line", { x1: tx + 8, x2: tx + tw - 8, y1: tapY[k], y2: tapY[k], style: "stroke:var(--blue-line)", "stroke-width": 1.2 }, g);
+    text(g, tx + 10, tapY[k] - 4, "after layer " + L, "t-small");
+  });
+  // taps -> projection -> context K/V
+  const px = 172, py = 126, pw = 128, ph = 78;
+  g = part([2]);
+  D.taps.forEach((_, k) => arrow(g, [[tx + tw, tapY[k]], [px, py + 14 + (D.taps.length - 1 - k) * 12.5]]));
+  box(g, px, py, pw, ph, "b-blue2", ["concat " + D.taps.length + " taps", "→ target projection", "→ RMSNorm"]);
+  arrow(g, [[px + pw, py + ph / 2], [350, py + ph / 2]]);
+  text(g, (px + pw + 350) / 2, py + ph / 2 - 22, ["context", "K/V"], "t-small", { "text-anchor": "middle" });
+  // draft group, layers (gold: the DSpark draft)
+  const dx = 362, dw = 148, gy0 = 34, gy1 = 240, lh = 48, ly = [180, 120, 60];
+  g = part([2, 4]);
+  el("rect", { x: dx - 10, y: gy0, width: dw + 20, height: gy1 - gy0, class: "grp" }, g);
+  text(g, dx - 10, 22, "One non-causal pass", "t-head c-gold");
+  g = part([4]);
+  ly.slice(0, D.n_draft).forEach((y, i) => box(g, dx, y, dw, lh, "b-gold", ["draft MLA layer " + (i + 1), "window " + D.window + ", BF16 KV"], "t-small"));
+  for (let i = 0; i + 1 < D.n_draft; i++) arrow(g, [[dx + dw / 2, ly[i]], [dx + dw / 2, ly[i + 1] + lh]], "gold");
+  // draft block
+  g = part([3, 4]);
+  const bw = 46, bg = 5, by = 262, bx0 = dx + (dw - (D.depth * bw + (D.depth - 1) * bg)) / 2;
+  const blk = ["anchor"].concat(Array.from({ length: D.depth - 1 }, (_, k) => "mask" + sub(k + 1)));
+  blk.forEach((s, i) => box(g, bx0 + i * (bw + bg), by, bw, 32, "b-gold", s, "t-small"));
+  text(g, dx + dw / 2, by + 48, "draft block", "t-small", { "text-anchor": "middle" });
+  arrow(g, [[dx + dw / 2, by], [dx + dw / 2, gy1]], "gold");
+  // RNN head (green: side stream)
+  const rx = 560, rw = 52, rg = 10, ry = 40, rh = 46, rxs = [0, 1, 2].slice(0, D.depth).map((i) => rx + i * (rw + rg));
+  g = part([4, 5]);
+  arrow(g, [[dx + dw + 10, ly[D.n_draft - 1] + lh / 2], [rx, ry + rh / 2]], "gold");
+  text(g, (dx + dw + 10 + rx) / 2, ly[D.n_draft - 1] + lh / 2 + 18, "h" + sub(1) + "…h" + sub(D.depth), "t-small", { "text-anchor": "middle" });
+  g = part([5]);
+  text(g, rx, 22, "RNN head · rank " + D.rank, "t-head c-green");
+  rxs.forEach((x, i) => {
+    box(g, x, ry, rw, rh, "b-green", ["step " + (i + 1), "h" + sub(i + 1) + ", " + (i ? dl[i - 1] : "anchor")], "t-tiny");
+    arrow(g, [[x + rw / 2, ry + rh], [x + rw / 2, ry + rh + 14]], "green");
+    text(g, x + rw / 2, ry + rh + 30, dl[i], "t-tok", { "text-anchor": "middle" });
+    if (i) arrow(g, [[rxs[i - 1] + rw, ry + rh / 2], [x, ry + rh / 2]], "green");
+  });
+  text(g, rxs[0] + rw + rg / 2, ry - 4, "state", "t-small", { "text-anchor": "middle" });
+  // verify + loop back
+  const vx = rx, vy = 150, vw = rxs[rxs.length - 1] + rw - rx, vh = 90;
+  g = part([6]);
+  arrow(g, [[rxs[1] + rw / 2, ry + rh + 36], [rxs[1] + rw / 2, vy]]);
+  box(g, vx, vy, vw, vh, "b-blue", ["Target verification", "[anchor, " + dl.join(", ") + "]", "in one target pass; accept the", "matching prefix + 1 bonus token"], "t-small");
+  arrow(g, [[vx + vw / 2, vy + vh], [vx + vw / 2, 326], [tx + tw / 2, 326], [tx + tw / 2, ty + th + 2]], null, "loop");
+  text(g, (tx + tw / 2 + vx + vw / 2) / 2, 344, "bonus token = next anchor; new target hidden states = next taps", "t-small", { "text-anchor": "middle" });
+
+  const STEPS = [
+    ["Overview", "One drafting step: the target's hidden states feed the draft's context, the draft proposes " + D.depth +
+      " tokens in one forward pass plus a small sequential head, and the target verifies them. Use Next to walk through it."],
+    ["Target forward pass", "The target model (" + D.n_target + " layers) runs as usual. DSpark taps the residual stream after layers " +
+      D.taps.join(", ") + " for every token it processes."],
+    ["Taps become the draft's context", "The " + D.taps.length + " taps are concatenated and passed through the target projection and an RMSNorm. " +
+      "Each draft layer turns that into its context K/V, kept in a sliding window of " + D.window + " tokens."],
+    ["Draft block", "The draft input is a block of " + D.depth + " slots: the anchor (the last accepted token) and " + (D.depth - 1) +
+      " mask slots. Each mask slot has its own learned, position-specific embedding."],
+    [D.n_draft + " draft layers, one pass", "The block runs through " + D.n_draft + " sliding-window MLA layers in a single non-causal pass: " +
+      "each slot sees the context and the whole block. The draft keeps BF16 KV in its own sliding-window KV cache group. Output: one hidden state per slot, h" +
+      sub(1) + "…h" + sub(D.depth) + "."],
+    ["RNN head emits " + dl[0] + "…" + dl[D.depth - 1], "A small recurrent head (rank " + D.rank + ") walks the slots in order. " +
+      "Step k reads its state, hₖ and the previous token (the anchor for step 1, then the token it just drafted), updates the state, " +
+      "and emits dₖ from the LM-head logits of hₖ plus a rank-" + D.rank + " bias from the head. The state starts from zero for every block."],
+    ["Verify and accept", "The target scores [anchor, " + dl.join(", ") + "] in one pass and keeps the matching prefix plus one bonus token: " +
+      "about " + D.al.toFixed(1) + " tokens per step on ML4 (FP8, TP8, c1). The bonus token is the next anchor, and the new target hidden states are the next taps."],
+  ];
+  let cur = 0;
+  const segs = STEPS.map((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = i ? String(i) : "All"; b.title = s[0];
+    b.setAttribute("aria-label", (i ? "Step " + i + ": " : "") + s[0]);
+    b.onclick = () => go(i);
+    $("steps").appendChild(b);
+    return b;
+  });
+  function go(i) {
+    cur = Math.max(0, Math.min(STEPS.length - 1, i));
+    parts.forEach((p) => { const on = cur === 0 || p._steps.includes(cur); p.classList.toggle("dim", !on); p.classList.toggle("on", on && cur > 0); });
+    segs.forEach((b, j) => { if (j === cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+    $("d-title").innerHTML = (cur ? "<span>Step " + cur + " of " + (STEPS.length - 1) + "</span>" : "") + STEPS[cur][0];
+    $("d-text").textContent = STEPS[cur][1];
+    $("prev").disabled = cur === 0;
+    $("next").disabled = cur === STEPS.length - 1;
+  }
+  $("prev").onclick = () => go(cur - 1);
+  $("next").onclick = () => go(cur + 1);
+  addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("button") && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+      e.preventDefault(); go(cur + (e.key === "ArrowRight" ? 1 : -1));
+    }
+  });
+  $("kicker").textContent = "DSpark · depth " + D.depth + " · ML4";
+  $("note").textContent = "From params.json mtp: " + D.n_draft + " draft layers, depth " + D.depth + ", ragged_attention " + D.window +
+    ", target_activation_layers " + D.taps.join(",") + ", " + D.head + " head (rank " + D.rank + "), position-specific draft input. " +
+    "AL " + D.al + " measured with vLLM on TP8 FP8, c1.";
+  const q = new URLSearchParams(location.search);
+  go(+q.get("step") || 0);
+
+  // embedding: report the content height to the parent post ('vllm-embed-resize'), as figkit.js does
+  (function reportHeight() {
+    if (window.self === window.top) return;
+    document.documentElement.style.overflow = "hidden";
+    let last = 0;
+    const report = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+    };
+    if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+    addEventListener("load", report);
+    addEventListener("resize", report);
+    setTimeout(report, 300); setTimeout(report, 1500);
+    report();
+  })();
+})();
+</script>
+</body>
+</html>
