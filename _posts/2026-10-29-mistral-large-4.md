@@ -47,8 +47,7 @@ includes `mistral-common` 1.13. The commands below run `vllm serve` inside it:
 docker pull vllm/vllm-openai:mistral-large-4
 ```
 
-**FP8, one node with 8 GPUs, or two GB200/GB300 nodes with 4 GPUs each.** The weights need about
-1.1 TB of GPU memory.
+**FP8 on 8 GPUs:**
 
 ```bash
 vllm serve mistralai/Mistral-Large-4-1T-A52B \
@@ -58,21 +57,14 @@ vllm serve mistralai/Mistral-Large-4-1T-A52B \
   --reasoning-parser mistral
 ```
 
-On two 4-GPU nodes, add `--nnodes 2 --node-rank <0|1> --master-addr <node0> --distributed-executor-backend mp`,
-and `--headless` on node 1.
-
-The single-node 8-GPU setup is validated on B200: TP8 with DSpark scores within noise of the
-disaggregated runs on GSM8K, and NVFP4 1P1D on 8+8 B200 with P DP8/EP → D TP8 reaches 164 output
-tok/s/GPU at 32k input (100 tok/s/user) and 83 at 60k (150 tok/s/user).
-B200 per-GPU throughput is about 0.8x GB300 in the same layouts.
-
-**NVFP4.** The NVFP4 checkpoint uses about 76 GiB of weights per GPU, compared with about 128 GiB
-for FP8, so more memory is left for KV cache.
+**NVFP4 on 4 GPUs** (Blackwell; use `--tensor-parallel-size 8` on 8 GPUs):
 
 ```bash
 vllm serve mistralai/Mistral-Large-4-1T-A52B-NVFP4 \
-  --tensor-parallel-size 8 \
-  --speculative-config '{"method": "dspark", "num_speculative_tokens": 3}'
+  --tensor-parallel-size 4 \
+  --speculative-config '{"method": "dspark", "num_speculative_tokens": 3}' \
+  --tool-call-parser mistral --enable-auto-tool-choice \
+  --reasoning-parser mistral
 ```
 
 NVFP4 does not trade quality for speed. On multimodal, long-context, agentic coding, business
@@ -89,7 +81,7 @@ the 8 ranks. It requires the default FP8 KV cache.
 
 **Multimodal.** Pass `--limit-mm-per-prompt '{"image": N}'` to allow up to N images per prompt.
 
-For tested deployment configurations (single-node, multi-node, disaggregated P/D and hardware-specific settings), see the
+For multi-node, disaggregated P/D and other tested configurations, see the
 [Mistral Large 4 recipe](https://recipes.vllm.ai/mistralai/Mistral-Large-4-1T-A52B).
 
 ## Implementation details
