@@ -450,6 +450,12 @@ a miss. Enable it with the `HiSparseConnector`:
                        "kv_connector_extra_config": {"host_pool_gib": 440}}'
 ```
 
+**Known issue.** When the tensor-parallel group is on a single node, also set
+`VLLM_FLASHINFER_ALLREDUCE_BACKEND=trtllm`. The default single-node FlashInfer all-reduce
+(MNNVL) can crash the engine with `CUDA error: unspecified launch failure` once HiSparse spills KV
+to host ([vllm#64327](https://github.com/vllm-project/vllm/issues/64327)). The fix is in
+[flashinfer#7782](https://github.com/flashinfer-ai/flashinfer/pull/7782).
+
 For ML4 we made HiSparse work with **cross-layer KV sharing**. The nine consumer layers bind to
 layer 35's resident view and host copy and keep only their own hot buffer and LRU (each has its
 own indexer). Nothing is duplicated, and no environment variable is needed. Compared with
