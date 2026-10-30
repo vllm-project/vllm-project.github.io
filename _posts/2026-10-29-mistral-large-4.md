@@ -473,11 +473,10 @@ is unchanged (0.975 both), and needle-in-a-haystack passes at ~98k (10/10) and ~
 
 ## Day 0 Support for RL with SkyRL
 
-We also enabled Day 0 RL for Mistral Large 4 in [SkyRL](https://github.com/NovaSky-AI/SkyRL), with vLLM for rollout and either FSDP2 or Megatron for training, on 8 GB200 nodes. The trainer runs LoRA (rank 32) on top of the NVFP4 checkpoint with NVFP4 quantization-aware training, simulates the FP8 latent KV cache that vLLM serves with, and uses Rollout Routing Replay (R3) and token-level truncated importance sampling. On the DAPO recipe, average accuracy (avg@8) on AIME 2024 goes from ~64% to ~75% within 75 steps, and the average absolute log-probability difference between the trainer and vLLM stays between 0.019 and 0.026 for the whole run. The Megatron backend (EP32, colocated with four TP8 vLLM engines) matches that log-probability difference and runs a step about 30% faster than FSDP. See the SkyRL [RFC](https://github.com/NovaSky-AI/SkyRL/issues/2575) for details.
+We also enabled Day 0 RL for Mistral Large 4 in [SkyRL](https://github.com/NovaSky-AI/SkyRL), with vLLM for rollout and either FSDP2 or Megatron for training, on 8 GB200 nodes. The trainer runs LoRA (rank 32) on top of the NVFP4 checkpoint with NVFP4 quantization-aware training, simulates the FP8 latent KV cache that vLLM serves with, and uses Rollout Routing Replay (R3) and token-level truncated importance sampling. On the DAPO recipe, average accuracy (avg@8) on AIME 2024 goes from ~64% to ~75% within 75 steps, and the average absolute log-probability difference between the trainer and vLLM stays between 0.02 and 0.026 for the whole run. The Megatron backend (EP32, colocated with four TP8 vLLM engines) follows the same accuracy curve with a similar log-probability difference, and runs a step about 30% faster than FSDP. See the SkyRL [RFC](https://github.com/NovaSky-AI/SkyRL/issues/2575) for details.
 
-<p align="center">
-<img src="/assets/figures/2026-10-29-mistral-large-4/skyrl-rl.png" alt="SkyRL GRPO on Mistral Large 4 NVFP4: training accuracy, AIME 2024 accuracy, train-inference logprob difference, and response length" width="100%">
-</p>
+![Day 0 RL on Mistral Large 4 with SkyRL](/assets/figures/2026-10-29-mistral-large-4/skyrl-rl.png)
+*AIME 2024 avg@8 accuracy and mean absolute trainer-vs-vLLM log-probability difference over training, LoRA rank 32 on the NVFP4 checkpoint on 8 GB200 nodes, with the FSDP2 and Megatron (EP32) trainers.*
 
 ## What's next
 
