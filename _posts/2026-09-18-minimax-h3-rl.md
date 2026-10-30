@@ -74,7 +74,7 @@ These differences share a dangerous trait: **they do not raise errors**. The los
 
 ## 3. Rollout Performance Optimization
 
-H3 integrates relatively smoothly into VeRL-Omni because several core modules in the repository are cleanly decoupled. vLLM-Omni handles generation, VeRL-Omni handles training orchestration, and the H3 adapter absorbs model-specific conventions: how to split packed latents, convert timesteps, handle the velocity sign, and map LoRA names. Most model-specific behavior is contained in the pipeline adapter, so the generic training loop does not need to know every H3 detail. Rollout is delegated to vLLM-Omni instead of the training engine precisely because rollout is the throughput bottleneck. vLLM-Omni's inference optimizations—continuous batching, fused kernels, and tensor parallelism—substantially reduce per-rollout time, while the training engine (Diffusers / FSDP2) was not designed for high-throughput generation.
+H3 integrates relatively smoothly into VeRL-Omni because several core modules in the repository are cleanly decoupled. vLLM-Omni handles generation, VeRL-Omni handles training orchestration, and the H3 adapter absorbs model-specific conventions: how to split packed latents, convert timesteps, handle the velocity sign, and map LoRA names. Most model-specific behavior is contained in the pipeline adapter, so the generic training loop does not need to know every H3 detail. Rollout is delegated to vLLM-Omni instead of the training engine precisely because rollout is the throughput bottleneck. vLLM-Omni's optimized H3 inference path—fused kernels and model parallelism—substantially reduces per-rollout time, while the training engine (Diffusers / FSDP2) was not designed for high-throughput generation.
 
 ### 3.1 Balancing Tensor Parallelism Between Throughput and Synchronization
 
@@ -85,7 +85,7 @@ The rollout tensor-parallel degree affects both throughput and whether train-inf
 | T2VA | 2 | Default configuration |
 | FL2VA | 4 | Uses TP=4 to reserve GPU memory for actor-to-rollout synchronization |
 
-FL2VA's conditional-frame protocol and frame-pinning logic consume additional GPU memory, so rollout TP is increased from 2 to 4 to leave headroom for actor-to-rollout LoRA synchronization.
+In the colocated dummy-load phase, before CPU offload activates, a full text encoder sits beside one DiT shard; at TP=2 that leaves no room on a 96 GB GPU for Actor-to-rollout weight synchronization, so rollout TP is raised from 2 to 4.
 
 ### 3.2 Coordinating Rollout and Reward Throughput
 
@@ -244,7 +244,7 @@ export MODEL_PATH=/path/to/MiniMax-H3
 export DATA_DIR=/path/to/h3_fl2va
 
 FRAME_INDICES='[0]' \
-NUM_GPUS=8 ROLLOUT_TP=4 ROLLOUT_N=16 INFER_STEPS=10 \
+N_GPUS=8 ROLLOUT_TP=4 ROLLOUT_N=16 INFER_STEPS=10 \
 TOTAL_TRAINING_STEPS=1000 OUTPUT_DIR=/path/to/output \
 bash examples/diffusionnft_trainer/minimax_h3/run_minimax_h3_fl2va_lora.sh
 ```
@@ -329,7 +329,7 @@ This article follows two themes: rollout performance and train-inference consist
 ### 8.1 Rollout Performance: Coordinating Rollout and Reward Throughput
 
 - **Rollout is the primary generation bottleneck, while reward is the accompanying bottleneck in joint audio-video settings.** End-to-end optimization must match their throughput. The reward stage handles audio decoding, video processing, and two scorers, so actor GPU utilization alone is insufficient.
-- **TP configuration must balance throughput against GPU memory for actor-to-rollout synchronization.** T2VA uses TP=2; FL2VA increases it to TP=4 because conditional frames consume additional GPU memory, leaving headroom for LoRA synchronization.
+- **TP configuration must balance throughput against GPU memory for actor-to-rollout synchronization.** T2VA uses TP=2; FL2VA increases it to TP=4 because the colocated dummy-load phase at TP=2 leaves no room for Actor-to-rollout weight synchronization.
 
 ### 8.2 Train-Inference Consistency: Silent Errors That Run Successfully but Incorrectly
 
