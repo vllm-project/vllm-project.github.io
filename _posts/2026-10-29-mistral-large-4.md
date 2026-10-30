@@ -471,6 +471,13 @@ is unchanged (0.975 both), and needle-in-a-haystack passes at ~98k (10/10) and ~
 ![HiSparse KV capacity](/assets/figures/2026-10-29-mistral-large-4/hisparse_capacity.png)
 *KV token capacity of one TP4 server on a single GB300 node (NVFP4, max_model_len 262k, prefix caching off): 1.97M tokens on the GPU alone; with HiSparse and a 440 GiB host pool shared by the four TP ranks, 8.77M admitted at startup (4.5x) and up to 11.25M in steady state (5.7x). Layers that reuse layer 35's KV are stored on the host only once.*
 
+## Day 0 Support for RL with SkyRL
+
+We also enabled Day 0 RL for Mistral Large 4 in [SkyRL](https://github.com/NovaSky-AI/SkyRL), with vLLM for rollout and either FSDP2 or Megatron for training, on 8 GB200 nodes. The trainer runs LoRA (rank 32) on top of the NVFP4 checkpoint with NVFP4 quantization-aware training, simulates the FP8 latent KV cache that vLLM serves with, and uses Rollout Routing Replay (R3) and token-level truncated importance sampling. On the DAPO recipe, average accuracy (avg@8) on AIME 2024 goes from ~64% to ~75% within 75 steps, and the average absolute log-probability difference between the trainer and vLLM stays between 0.02 and 0.026 for the whole run. The Megatron backend (EP32, colocated with four TP8 vLLM engines) follows the same accuracy curve with a similar log-probability difference, and runs a step about 30% faster than FSDP. See the SkyRL [RFC](https://github.com/NovaSky-AI/SkyRL/issues/2575) for details.
+
+![Day 0 RL on Mistral Large 4 with SkyRL](/assets/figures/2026-10-29-mistral-large-4/skyrl-rl.png)
+*AIME 2024 avg@8 accuracy and mean absolute trainer-vs-vLLM log-probability difference over training, LoRA rank 32 on the NVFP4 checkpoint on 8 GB200 nodes, with the FSDP2 and Megatron (EP32) trainers.*
+
 ## What's next
 
 - Upstreaming: MLA cross-layer KV sharing, DSpark sliding-window MLA drafts and DSpark under DCP and HiSparse KV-sharing support.
