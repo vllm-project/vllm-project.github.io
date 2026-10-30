@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="830" viewBox="0 0 1600 830"><rect width="1600" height="830" fill="#F5F5F1"/>
+<text x="48" y="40.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">vLLM  /  EPD ENGINEERING NOTES</text>
+<text x="1490" y="43.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#117E70">04</text>
+<text x="48" y="104.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="40" fill="#172735">Reuse embeddings across encoder instances</text>
+<text x="48" y="146.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">Mooncake Store shares encoder outputs. Delivery to P still uses Mooncake P2P.</text>
+<polyline points="48,175 1552,175" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<rect x="48" y="221" width="400" height="168" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="66" y="241" width="4" height="26" rx="2" fill="#117E70"/>
+<text x="83" y="253.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">01 / FIRST REQUEST</text>
+<text x="70" y="303.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">E0: compute and publish</text>
+<text x="70" y="343.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Run the encoder forward</text>
+<text x="70" y="372.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">Publish reusable outputs asynchronously</text>
+<rect x="610" y="221" width="420" height="168" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="628" y="241" width="4" height="26" rx="2" fill="#117E70"/>
+<text x="645" y="253.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">SHARED CACHE</text>
+<text x="632" y="303.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Mooncake Store</text>
+<text x="632" y="341.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">Validate input identity and tensor contract</text>
+<text x="632" y="374.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Load embeddings on a cache hit</text>
+<polyline points="468,304 590,304" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="590,304 579.1946347717678,309.21958640933474 579.1946347717678,298.78041359066526" fill="#117E70"/>
+<text x="480" y="276.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">Async PUT</text>
+<rect x="48" y="465" width="400" height="168" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="66" y="485" width="4" height="26" rx="2" fill="#4165D5"/>
+<text x="83" y="497.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">02 / LATER REQUEST</text>
+<text x="70" y="547.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">E1: local cache miss</text>
+<text x="70" y="587.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Look up the shared Store</text>
+<text x="70" y="618.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Skip encoder forward on a hit</text>
+<polyline points="448,504 533,504 533,366 590,366" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="590,366 579.1946347717678,371.21958640933474 579.1946347717678,360.78041359066526" fill="#117E70"/>
+<text x="464" y="420.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">Lookup</text>
+<rect x="1130" y="465" width="422" height="168" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="1148" y="485" width="4" height="26" rx="2" fill="#4165D5"/>
+<text x="1165" y="497.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">LOCAL OUTPUT</text>
+<text x="1152" y="547.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">E1 local output cache</text>
+<text x="1152" y="587.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Hit: reuse the shared embedding</text>
+<text x="1152" y="618.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Miss: encode and cache the output</text>
+<polyline points="1030,304 1339,304 1339,445" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="1339,445 1333.7804135906651,434.1946347717679 1344.2195864093349,434.1946347717679" fill="#117E70"/>
+<rect x="1147" y="332" width="118" height="32" rx="7" fill="#E5EFEA"/>
+<text x="1159" y="352.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">Store hit</text>
+<polyline points="468,565 1110,565" fill="none" stroke="#B36A46" stroke-width="3"/>
+<polygon points="1110,565 1099.1946347717678,570.2195864093347 1099.1946347717678,559.7804135906653" fill="#B36A46"/>
+<rect x="633" y="586" width="333" height="32" rx="7" fill="#F0E5DC"/>
+<text x="645" y="606.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#B36A46">Store miss → encoder forward</text>
+<rect x="1130" y="676" width="422" height="83" rx="14" fill="#192C3B"/>
+<text x="1153" y="722.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="25" fill="#FFFFFF">P / PD consumes embeddings</text>
+<polyline points="1339,645 1339,665" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="1339,665 1333.7804135906651,654.1946347717678 1344.2195864093349,654.1946347717678" fill="#117E70"/>
+<text x="910" y="714.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#117E70">Mooncake P2P</text>
+<text x="48" y="709.7" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="23" fill="#172735">Cache the encoder output</text>
+<text x="48" y="749.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">Preprocessing cache ≠ embedding cache ≠ prefix KV cache</text>
+<polyline points="48,781 1552,781" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<text x="48" y="810.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="15" fill="#65717B">Source: vLLM #56242. See the post and documentation for supported configurations and publication semantics.</text>
+<text x="1410" y="809.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="14" fill="#117E70">INFERENCE / EPD</text>
+</svg>
