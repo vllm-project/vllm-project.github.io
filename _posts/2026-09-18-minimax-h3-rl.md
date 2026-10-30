@@ -296,14 +296,82 @@ Reward curves only reflect the overall numerical trend, so the final assessment 
 - **Audio-visual alignment:** whether sound effects occur in sync with on-screen actions.
 - **Visual-detail stability:** whether materials, lighting, and edges remain stable throughout the duration.
 
-The left column is the base model, and the right column is the DiffusionNFT-fine-tuned model. The original English prompts are preserved without rewriting.
+The left figure of each pair is the base model, and the right figure is the DiffusionNFT-fine-tuned model. The original English prompts are preserved without rewriting.
 
-| ID | Prompt | MiniMax H3 (base) | MiniMax H3 + DiffusionNFT |
-|---:|---|---|---|
-| 1 | stickman monigote shooting a energy sphere from his hands | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/01-stickman-base.mp4" aria-label="01-stickman-base"></video> | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/01-stickman-DiffusionNFT.mp4" aria-label="01-stickman-DiffusionNFT"></video> |
-| 2 | a husky dog with sunglasses riding on santas sled | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/02-husky-base.mp4" aria-label="02-husky-base"></video> | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/02-husky-DiffusionNFT.mp4" aria-label="02-husky-DiffusionNFT"></video> |
-| 3 | minimalist polygonal human skull in green flames with strong movement, uhd | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/03-skull-base.mp4" aria-label="03-skull-base"></video> | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/03-skull-DiffusionNFT.mp4" aria-label="03-skull-DiffusionNFT"></video> |
-| 4 | 17th century sailing ship making a path through the waves during a storm | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/04-ship-base.mp4" aria-label="04-ship-base"></video> | <video controls playsinline preload="metadata" width="360" height="240" src="/assets/figures/2026-09-18-minimax-rl/04-ship-DiffusionNFT.mp4" aria-label="04-ship-DiffusionNFT"></video> |
+| ID | Prompt |
+|---:|---|
+| 1 | stickman monigote shooting a energy sphere from his hands |
+| 2 | a husky dog with sunglasses riding on santas sled |
+| 3 | minimalist polygonal human skull in green flames with strong movement, uhd |
+| 4 | 17th century sailing ship making a path through the waves during a storm |
+
+**Sample 1**
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/01-stickman-base.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 (base)</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/01-stickman-base.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/01-stickman-DiffusionNFT.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 + DiffusionNFT</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/01-stickman-DiffusionNFT.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
+
+**Sample 2**
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/02-husky-base.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 (base)</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/02-husky-base.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/02-husky-DiffusionNFT.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 + DiffusionNFT</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/02-husky-DiffusionNFT.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
+
+**Sample 3**
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/03-skull-base.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 (base)</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/03-skull-base.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/03-skull-DiffusionNFT.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 + DiffusionNFT</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/03-skull-DiffusionNFT.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
+
+**Sample 4**
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/04-ship-base.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 (base)</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/04-ship-base.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/04-ship-DiffusionNFT.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 + DiffusionNFT</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/04-ship-DiffusionNFT.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
 
 ### 7.5 Video Comparison: Base vs. DiffusionNFT Under FL2VA First-Frame Conditioning
 
@@ -313,12 +381,46 @@ T2VA constrains only the semantic relationship between text and audio-video, whi
 - **Motion consistency:** whether motion unfolds coherently from the first frame without jitter or drift.
 - **Audio-visual alignment:** whether effects such as dripping and water sounds occur in sync with on-screen actions.
 
-The second column shows the conditional first frame, and the two middle output columns show the base model and FL2VA DiffusionNFT-fine-tuned model, respectively. The original English prompts are preserved without rewriting; their accompanying Chinese descriptions have been translated into English.
+The table shows the conditional first frame and the prompt for each sample; in every pair below, the left figure is the base model and the right figure is the FL2VA DiffusionNFT-fine-tuned model. The original English prompts are preserved without rewriting; their accompanying Chinese descriptions have been translated into English.
 
-| ID | Conditional First Frame | Prompt | MiniMax H3 (base) | MiniMax H3 + FL2VA DiffusionNFT |
-|---:|---|---|---|---|
-| 23 | ![Conditional first frame showing a red bottle](/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-condition.jpg) | Shows a close-up of a woman holding a red bottle with a blue substance dripping from it.<br />A close-up of a woman holding a red bottle, with blue liquid dripping from it. | <video controls playsinline preload="metadata" width="360" height="203" src="/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-base.mp4" aria-label="fl2va-23-bottle-base"></video> | <video controls playsinline preload="metadata" width="360" height="203" src="/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-DiffusionNFT.mp4" aria-label="fl2va-23-bottle-DiffusionNFT"></video> |
-| 56 | ![Conditional first frame showing a pool](/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-condition.jpg) | Shows a man wearing a white shirt, brown apron, and a white hat standing in a pool filled with water.<br />A man wearing a white shirt, brown apron, and white hat stands in a pool filled with water. | <video controls playsinline preload="metadata" width="360" height="203" src="/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-base.mp4" aria-label="fl2va-56-pool-base"></video> | <video controls playsinline preload="metadata" width="360" height="203" src="/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-DiffusionNFT.mp4" aria-label="fl2va-56-pool-DiffusionNFT"></video> |
+| ID | Conditional First Frame | Prompt |
+|---:|---|---|
+| 23 | ![Conditional first frame showing a red bottle](/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-condition.jpg) | Shows a close-up of a woman holding a red bottle with a blue substance dripping from it.<br />A close-up of a woman holding a red bottle, with blue liquid dripping from it. |
+| 56 | ![Conditional first frame showing a pool](/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-condition.jpg) | Shows a man wearing a white shirt, brown apron, and a white hat standing in a pool filled with water.<br />A man wearing a white shirt, brown apron, and white hat stands in a pool filled with water. |
+
+**Sample 23**
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-base.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 (base)</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-base.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-DiffusionNFT.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 + FL2VA DiffusionNFT</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/fl2va-23-bottle-DiffusionNFT.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
+
+**Sample 56**
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 1rem 0;">
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-base.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 (base)</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-base.mp4">Open MP4</a></figcaption>
+  </figure>
+  <figure style="margin: 0;">
+    <video controls preload="metadata" playsinline style="display: block; width: 100%; height: auto;">
+      <source src="/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-DiffusionNFT.mp4" type="video/mp4">
+    </video>
+    <figcaption><strong>MiniMax H3 + FL2VA DiffusionNFT</strong> · <a href="/assets/figures/2026-09-18-minimax-rl/fl2va-56-pool-DiffusionNFT.mp4">Open MP4</a></figcaption>
+  </figure>
+</div>
 
 These are qualitative comparisons from the FL2VA integration-validation stage, and the sample size is limited. They show only that the conditional-frame pipeline and post-training updates produce visible differences in generated results; they are not a comprehensive benchmark of conditional-generation quality.
 
