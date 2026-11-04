@@ -50,6 +50,18 @@ figure:has(> img[alt="Stable ABI diagram"]) > img {
   margin: 0;
   object-fit: contain;
 }
+img[alt="LibTorch Stable"] {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+  object-position: center;
+}
+figure:has(> img[alt="LibTorch Stable"]) {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
+}
 figure:has(> img[alt="Unstable import"]) > figcaption,
 figure:has(> img[alt="Stable import"]) > figcaption,
 figure:has(> img[alt="Unstable ABI diagram"]) > figcaption,
