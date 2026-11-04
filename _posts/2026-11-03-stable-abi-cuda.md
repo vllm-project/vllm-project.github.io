@@ -72,6 +72,9 @@ The second tradeoff is a small runtime overhead. Dispatching calls through `TORC
 .abi-story__copy > :last-child, .abi-story__event > :last-child { margin-bottom: 0; }
 .abi-story__row:last-child > * { padding-bottom: 0; }
 .abi-story__table { max-width: 100%; overflow-x: auto; }
+.abi-audit-output { overflow-x: auto; }
+.abi-audit-stable { background-color: #4e7fc0; color: #0f172a; }
+.abi-audit-unstable { background-color: #e74d50; color: #0f172a; }
 @media (max-width: 48rem) {
   .abi-story__row { grid-template-columns: minmax(0, 1fr); }
   .abi-story__copy { padding-bottom: 0; }
@@ -162,26 +165,26 @@ The second tradeoff is a small runtime overhead. Dispatching calls through `TORC
 <p>vLLM is used by millions of users across multiple industries, and we do not want to interrupt any of their processes with the migration. Therefore, the most important step in this list is to <strong>verify</strong> that the migration did not make any significant changes. This means running appropriate unit and performance tests and manually reviewing each migration diff line by line to make sure there were no unintended updates.</p>
 
 <p>Along with verifying correctness, we also need to verify that the new library is LibTorch ABI Stable. For this, we use <a href="https://pypi.org/project/torch-abi-audit/">torch-abi-audit</a> (thanks Ralf Gommers!). This tool inspects .so files and categorizes stable and unstable PyTorch symbols. If there are no unstable symbols, the library is LibTorch ABI Stable. It also reports the minimum LibTorch version that provides all the required stable symbols (for example, <code>min-torch=2.11.0</code>). We used it to track migration progress and check for regressions, and now use it in vLLM CI to ensure the wheel remains LibTorch ABI Stable.</p>
-<pre style="overflow-x: auto;"><code class="language-console">torch-abi-audit vllm 
+<pre class="abi-audit-output">torch-abi-audit vllm
 Package: vllm
   Root: /workspaces/vllm_container/vllm/vllm
-  <mark  style="background-color: #e74d50; color: #0f172a;">Torch ABI:   UNSTABLE </mark>
+  <span class="abi-audit-unstable">Torch ABI:   UNSTABLE</span>
   Min torch:   2.11.0
   CPython ABI: mixed
   Extensions:  10
   Bundled libs: 0
   -- extensions --
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _C_stable_libtorch.abi3.so  (stable_shim=88, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #e74d50; color: #0f172a;">UNSTABLE</mark>] [abi3-ok               ] _flashmla_C.abi3.so  (stable_shim=0, unstable=70)
-    [<mark  style="background-color: #e74d50; color: #0f172a;">UNSTABLE</mark> ] [abi3-ok               ] _flashmla_extension_C.abi3.so  (stable_shim=0, unstable=68)
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _moe_C_stable_libtorch.abi3.so  (stable_shim=72, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #e74d50; color: #0f172a;">UNSTABLE</mark>] [abi3-ok               ] _qutlass_C.abi3.so  (stable_shim=0, unstable=59)
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _C_stable_libtorch.abi3.so  (stable_shim=88, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-unstable">UNSTABLE</span>] [abi3-ok               ] _flashmla_C.abi3.so  (stable_shim=0, unstable=70)
+    [<span class="abi-audit-unstable">UNSTABLE</span>] [abi3-ok               ] _flashmla_extension_C.abi3.so  (stable_shim=0, unstable=68)
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _moe_C_stable_libtorch.abi3.so  (stable_shim=72, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-unstable">UNSTABLE</span>] [abi3-ok               ] _qutlass_C.abi3.so  (stable_shim=0, unstable=59)
     [NO-TORCH] [abi3-ok               ] cumem_allocator.abi3.so
     [NO-TORCH] [abi3-ok               ] spinloop.abi3.so
-    [<mark  style="background-color: #e74d50; color: #0f172a;">UNSTABLE</mark>] [uses-private-api      ] third_party/deep_gemm/_C.cpython-312-x86_64-linux-gnu.so  (stable_shim=0, unstable=59)
-    [<mark  style="background-color: #e74d50; color: #0f172a;">UNSTABLE</mark>] [abi3-ok               ] vllm_flash_attn/_vllm_fa2_C.abi3.so  (stable_shim=0, unstable=85)
-    [<mark  style="background-color: #e74d50; color: #0f172a;">UNSTABLE</mark>] [abi3-ok               ] vllm_flash_attn/_vllm_fa3_C.abi3.so  (stable_shim=0, unstable=81)
-</code></pre>
+    [<span class="abi-audit-unstable">UNSTABLE</span>] [uses-private-api      ] third_party/deep_gemm/_C.cpython-312-x86_64-linux-gnu.so  (stable_shim=0, unstable=59)
+    [<span class="abi-audit-unstable">UNSTABLE</span>] [abi3-ok               ] vllm_flash_attn/_vllm_fa2_C.abi3.so  (stable_shim=0, unstable=85)
+    [<span class="abi-audit-unstable">UNSTABLE</span>] [abi3-ok               ] vllm_flash_attn/_vllm_fa3_C.abi3.so  (stable_shim=0, unstable=81)
+</pre>
 <p>torch-abi-audit before the dependencies were migrated</p>
 </div>
 <div class="abi-story__event">
@@ -211,29 +214,29 @@ Package: vllm
 </div>
 <p>After the in-tree vLLM code had been migrated, each of these dependencies was migrated to the LibTorch Stable ABI as well, making the entire vLLM CUDA wheel LibTorch ABI Stable.</p>
 
-<pre style="overflow-x: auto;"><code class="language-console">torch-abi-audit vllm
+<pre class="abi-audit-output">torch-abi-audit vllm
 Package: vllm
   Root: /workspaces/vllm_container/vllm/vllm
-  <mark  style="background-color: #4e7fc0; color: #0f172a;">Torch ABI:   STABLE </mark>
+  <span class="abi-audit-stable">Torch ABI:   STABLE</span>
   Min torch:   2.13.0
   CPython ABI: abi3
   Extensions:  13
   Bundled libs: 0
   -- extensions --
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _C_stable_libtorch.abi3.so  (stable_shim=88, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _deepselect_C.abi3.so  (stable_shim=40, unstable=0)  min-torch=2.10.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _flashkda_C.abi3.so  (stable_shim=43, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _flashmla_C.abi3.so  (stable_shim=66, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _flashmla_extension_C.abi3.so  (stable_shim=63, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _moe_C_stable_libtorch.abi3.so  (stable_shim=72, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] _qutlass_C.abi3.so  (stable_shim=63, unstable=0)  min-torch=2.13.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _C_stable_libtorch.abi3.so  (stable_shim=88, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _deepselect_C.abi3.so  (stable_shim=40, unstable=0)  min-torch=2.10.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _flashkda_C.abi3.so  (stable_shim=43, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _flashmla_C.abi3.so  (stable_shim=66, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _flashmla_extension_C.abi3.so  (stable_shim=63, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _moe_C_stable_libtorch.abi3.so  (stable_shim=72, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] _qutlass_C.abi3.so  (stable_shim=63, unstable=0)  min-torch=2.13.0
     [NO-TORCH] [abi3-ok               ] cumem_allocator.abi3.so
     [NO-TORCH] [abi3-ok               ] fs_io_C.abi3.so
     [NO-TORCH] [abi3-ok               ] spinloop.abi3.so
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] third_party/deep_gemm/_C_extension.abi3.so  (stable_shim=85, unstable=0)  min-torch=2.11.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] vllm_flash_attn/_vllm_fa2_C.abi3.so  (stable_shim=69, unstable=0)  min-torch=2.10.0
-    [<mark  style="background-color: #4e7fc0; color: #0f172a;">STABLE</mark>  ] [abi3-ok               ] vllm_flash_attn/_vllm_fa3_C.abi3.so  (stable_shim=63, unstable=0)  min-torch=2.10.0
-</code></pre>
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] third_party/deep_gemm/_C_extension.abi3.so  (stable_shim=85, unstable=0)  min-torch=2.11.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] vllm_flash_attn/_vllm_fa2_C.abi3.so  (stable_shim=69, unstable=0)  min-torch=2.10.0
+    [<span class="abi-audit-stable">STABLE</span>  ] [abi3-ok               ] vllm_flash_attn/_vllm_fa3_C.abi3.so  (stable_shim=63, unstable=0)  min-torch=2.10.0
+</pre>
 <p>torch-abi-audit after dependencies were migrated</p>
 
 </div>
@@ -303,7 +306,7 @@ print(f"silu_and_mul output:\n{out}")
 
 Build vLLM and run the demo with PyTorch 2.14.1:
 
-<pre><code><span style="color: #6d95ed;">python stable_abi_demo.py</span>
+<pre><code>python stable_abi_demo.py
 PyTorch runtime: 2.14.1+cu132
 vLLM: 0.1.dev24235+gc9af9acc6.d20261030
 silu_and_mul output:
@@ -313,12 +316,12 @@ tensor([[1.0731e-02, 1.9132e-02, 2.9671e-02, 3.3464e-02],
 
 Update the PyTorch wheel to `torch==2.15.0`:
 
-<pre><code><span style="color: #6d95ed;">uv pip install torch==2.15.0 \
-  --index-url https://download.pytorch.org/whl/cu132</span>
+<pre><code>uv pip install torch==2.15.0 \
+  --index-url https://download.pytorch.org/whl/cu132
 </code></pre>
 Rerun demo without rebuilding vLLM:
 
-<pre><code><span style="color: #6d95ed;">python stable_abi_demo.py</span>
+<pre><code>python stable_abi_demo.py
 PyTorch runtime: 2.15.0+cu132
 vLLM: 0.1.dev24235+gc9af9acc6.d20261030
 silu_and_mul output:
