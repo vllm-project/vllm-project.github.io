@@ -7,17 +7,52 @@ image: /assets/figures/2026-11-03-stable-abi-cuda/libtorch_stable.png
 ---
 
 <style>
-.abi-story__row {
+.abi-story {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(10.5rem, 0.7fr);
   column-gap: 2rem;
+  align-items: stretch;
 }
-.abi-story__copy { grid-column: 1; grid-row: 1; min-width: 0; padding-bottom: 1.5rem; }
-.abi-story__event { grid-column: 2; grid-row: 1; min-width: 0; border-left: 3px solid #6b7280; padding: 0 0 1.5rem 1rem; }
-.abi-story__copy > :first-child, .abi-story__event > :first-child { margin-top: 0; }
-.abi-story__copy > :last-child, .abi-story__event > :last-child { margin-bottom: 0; }
-.abi-story__row:last-child > * { padding-bottom: 0; }
+.abi-story__copy { grid-column: 1; min-width: 0; }
+.abi-story__copy > :first-child { margin-top: 0; }
 .abi-story__table { max-width: 100%; overflow-x: auto; }
+.abi-story__timeline { grid-column: 2; position: relative; min-width: 0; }
+.abi-timeline__title {
+  margin-top: 0;
+  transform: translate(1rem, -0.75rem);
+}
+.abi-timeline__track {
+  position: absolute;
+  top: 3.25rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 3px solid #6b7280;
+}
+.abi-timeline__event {
+  position: absolute;
+  top: var(--position);
+  right: 0;
+  left: -3px;
+  padding-left: 1rem;
+}
+.abi-timeline__event::before {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 2px solid #6b7280;
+  border-radius: 50%;
+  background: Canvas;
+  content: "";
+  transform: translateY(-50%);
+}
+.abi-timeline__card { transform: translateY(-50%); }
+.abi-timeline__event:first-child .abi-timeline__card { transform: none; }
+.abi-timeline__event:last-child .abi-timeline__card { transform: translateY(-100%); }
+.abi-timeline__card > :first-child { margin-top: 0; }
+.abi-timeline__card > :last-child { margin-bottom: 0; }
 .abi-comparison-caption { clear: both; text-align: center; }
 .abi-comparison-caption,
 .abi-image-caption { margin-top: 0.25rem !important; }
@@ -83,9 +118,8 @@ figure:has(> img[alt="vLLM migration from the unstable library to the stable lib
 .abi-audit-stable { background-color: #4e7fc0; color: #0f172a; }
 .abi-audit-unstable { background-color: #e74d50; color: #0f172a; }
 @media (max-width: 48rem) {
-  .abi-story__row { grid-template-columns: minmax(0, 1fr); }
-  .abi-story__copy { padding-bottom: 0; }
-  .abi-story__event { grid-column: 1; grid-row: 2; margin-bottom: 1.5rem; }
+  .abi-story { grid-template-columns: minmax(0, 1fr); }
+  .abi-story__timeline { grid-column: 1; min-height: 110rem; margin-top: 2rem; }
 }
 </style>
 
@@ -143,60 +177,29 @@ PyTorch added a stable `is_pinned()` method in version 2.14.
 The second tradeoff is a small runtime overhead. Dispatching calls through `TORCH_LIBRARY` adds a few microseconds and adding the boxing and unboxing of  `StableIValue` values adds a few more nanoseconds to this. This overhead is usually negligible relative to execution time, and becomes significant only in rare cases of frequently launching very short-running kernels without optimizations such as CUDA graphs. We saw no noticeable runtime regression during the migration.
 
 <div class="abi-story">
-<div class="abi-story__row">
 <div class="abi-story__copy">
 <h3>Migrating vLLM to the Stable ABI</h3>
 <p>We have broken down the migration to the Stable ABI into a series of steps:</p>
 <p>1. <strong>Assess the situation</strong></p> 
 <p>First, we assessed whether vLLM could migrate using the stable APIs available at the time. We inventoried its PyTorch API calls, identified gaps, and planned the stable APIs needed to fill them. This work is outlined in the original <a href="https://github.com/vllm-project/vllm/issues/26946">RFC</a> for updating vLLM's CUDA build to use the LibTorch Stable ABI.</p>
-</div>
-<div class="abi-story__event">
-<h4>Timeline</h4>
-<p><strong>October 15, 2025</strong><br>RFC opened to begin discussion of migrating to the Stable ABI. <a href="https://github.com/vllm-project/vllm/issues/26946">RFC</a></p>
-</div>
-</div>
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>2. <strong>Migrate AutogradFunctions and meta functions to Python</strong></p> 
 <p>As of today, the LibTorch Stable ABI does not support stable SymInt, so meta functions need to be written in Python instead of C++. Luckily, vLLM already had most of its meta functions in Python, so migrating the few that were not was relatively simple and made the project more consistent. Similarly, the Stable ABI does not expose PyTorch's autograd machinery, so AutogradFunctions also need to be written in Python. This matters less for an inference engine like vLLM, but if a backward function is implemented, it needs to be in Python.</p>
-</div>
-<div class="abi-story__event">
-<p><strong>November 13, 2025</strong><br>Rewrite C++ meta funcs to Python. <a href="https://github.com/vllm-project/vllm/pull/28595">PR #28595</a></p>
-</div>
-</div>
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>3. <strong>Set up necessary scaffolding</strong></p> 
 <p>Since vLLM is such a big project, with over 175 .cpp/.cu source files plus another 120+ header files in its CUDA build alone, we can't hope to migrate it all in one go. So instead we created a separate stable library (see CMakeLists.txt updates in the first migration <a href="https://github.com/vllm-project/vllm/pull/31509/changes#diff-1e7de1ae2d059d21e1dd75d5812d5a34b0222cef273b7c3a2af62eb747f9d20a">PR #31509</a>), and we migrated the kernels to this library in manageable chunks.</p>
 
 <img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_to_stable_library.png" alt="vLLM migration from the unstable library to the stable library" style="width: 100%; height: auto;">
 
 <p class="abi-image-caption" style="text-align: center;"><em>As the stable library grows, the unstable library shrinks then disappears.</em></p>
-</div>
-<div class="abi-story__event">
-<p><strong>December 29, 2025</strong><br>First migration PR opened: <a href="https://github.com/vllm-project/vllm/pull/31509">PR #31509</a></p>
-<p><strong>March 19, 2026</strong><br>First migration PR closed.</p>
-</div>
-</div>
 
 
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>4. <strong>Make sure you register ops through the dispatcher</strong></p> 
 <p>As of today, registering your LibTorch Stable ops requires registration through <code>STABLE_TORCH_LIBRARY</code>. This is very familiar if you already register your ops through <code>TORCH_LIBRARY</code>, which vLLM does. The biggest difference with the new stable registration is that the implementation needs to be wrapped with <code>TORCH_BOX</code>. This generates an adapter that boxes and unboxes the C++ data types into the generic StableIValue types that can cross PyTorch’s Stable ABI.</p>
 
 <p>If your kernels are registered through another mechanism, such as pybind11, we recommend first converting the registration to <code>TORCH_LIBRARY</code> before registering through <code>STABLE_TORCH_LIBRARY</code> (more on this below in the <strong>Challenges Along the Way</strong> section).</p>
 
-</div>
-<div class="abi-story__event">
-</div>
-</div>
-
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>5. <strong>Migrate each source file to use stable APIs</strong></p> 
 <p>Once steps 1–4 are in place, we can migrate each source file to stable APIs. Any PyTorch headers we include should come from the C++ stable wrappers, the headeronly utilities, or the C-shim itself:</p>
 <ul>
@@ -213,14 +216,6 @@ The second tradeoff is a small runtime overhead. Dispatching calls through `TORC
 </ul>
 <p>To help migrate the source files, we created skills for AI agents that map existing APIs to their stable equivalents and flag common mistakes, such as changes unrelated to the migration. These skills also support the earlier steps (1–4). They have been useful in our work, but we have not yet developed evaluations to measure their effectiveness (see <a href="https://github.com/janeyx99/abi-stable-skills">abi-stable-skills</a>).</p>
 
-</div>
-<div class="abi-story__event">
-<p><strong>May 2026</strong><br>Creation of <a href="https://github.com/janeyx99/abi-stable-skills">abi-stable-skills</a></p>
-</div>
-</div>
-
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>6. <strong>Verify!</strong></p> 
 <p>vLLM is used by millions of users across multiple industries, and we do not want to interrupt any of their processes with the migration. Therefore, the most important step in this list is to <strong>verify</strong> that the migration did not make any significant changes. This means running appropriate unit and performance tests and manually reviewing each migration diff line by line to make sure there were no unintended updates.</p>
 
@@ -246,14 +241,7 @@ Package: vllm
     [<span class="abi-audit-unstable">UNSTABLE</span>] [abi3-ok               ] vllm_flash_attn/_vllm_fa3_C.abi3.so  (stable_shim=0, unstable=81)
 </pre>
 <p>torch-abi-audit before the dependencies were migrated</p>
-</div>
-<div class="abi-story__event">
-<p><strong>March–June 2026</strong><br>12+ more PRs were merged, making vLLM's in-tree code LibTorch ABI Stable.</p>
-</div>
-</div>
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <h3>vLLM Build Dependencies</h3>
 
 
@@ -300,22 +288,62 @@ Package: vllm
 <p>torch-abi-audit after dependencies were migrated</p>
 
 </div>
-<div class="abi-story__event">
+
+<aside class="abi-story__timeline" aria-label="Stable ABI migration timeline">
+<h4 class="abi-timeline__title">Timeline</h4>
+<div class="abi-timeline__track">
+<div class="abi-timeline__event" style="--position: 0%;">
+<div class="abi-timeline__card">
+<p><strong>October 15, 2025</strong><br>RFC opened to begin discussion of migrating to the Stable ABI. <a href="https://github.com/vllm-project/vllm/issues/26946">RFC</a></p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 7.9%;">
+<div class="abi-timeline__card">
+<p><strong>November 13, 2025</strong><br>Rewrite C++ meta funcs to Python. <a href="https://github.com/vllm-project/vllm/pull/28595">PR #28595</a></p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 20.5%;">
+<div class="abi-timeline__card">
+<p><strong>December 29, 2025</strong><br>First migration PR opened: <a href="https://github.com/vllm-project/vllm/pull/31509">PR #31509</a></p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 42.5%;">
+<div class="abi-timeline__card">
+<p><strong>March 19, 2026</strong><br>First migration PR closed.</p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 58.1%;">
+<div class="abi-timeline__card">
+<p><strong>May 2026</strong><br>Creation of <a href="https://github.com/janeyx99/abi-stable-skills">abi-stable-skills</a></p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 66.6%;">
+<div class="abi-timeline__card">
+<p><strong>June 2026</strong><br>12+ more PRs were merged, making vLLM's in-tree code LibTorch ABI Stable.</p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 78.4%;">
+<div class="abi-timeline__card">
+<p><strong>July 27–29, 2026</strong><br>First PRs to migrate DeepGEMM off pybind11 and onto the Stable ABI opened.</p>
+</div>
+</div>
+<div class="abi-timeline__event" style="--position: 91.8%;">
+<div class="abi-timeline__card">
 <p><strong>July–September 2026</strong><br>FlashMLA, QuTLASS, FlashAttention 2, FlashKDA, FlashAttention 3, and DeepSelect moved to the Stable ABI.</p>
 </div>
 </div>
+<div class="abi-timeline__event" style="--position: 100%;">
+<div class="abi-timeline__card">
+<p><strong>October 15, 2026</strong><br>DeepGEMM migrated; the vLLM CUDA wheel became LibTorch ABI Stable.</p>
+</div>
+</div>
+</div>
+</aside>
+</div>
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <h3>Challenges Along the Way</h3>
 <p>The biggest challenge was keeping pace with a large, rapidly changing project. Upstream files often changed while our migration patches were in progress, so we had to update those patches before they could merge. vLLM’s external dependencies also meant coordinating across projects and building support for the migration. At the API level, we sometimes needed wrappers for functions without Stable ABI equivalents or for operator arguments with unsupported types, such as using <code>int</code> instead of <code>int64_t</code>.</p>
-</div>
-<div class="abi-story__event">
-</div>
-</div>
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>DeepGEMM illustrates all of these challenges in one migration, along with several additional complications. Migrating it required us to:</p>
 
 <ul>
@@ -326,22 +354,8 @@ Package: vllm
 </li>
 <li>Account for ongoing repository changes, including vLLM’s switch from upstream DeepGEMM to its own fork</li>
 </ul>
-</div>
-<div class="abi-story__event">
-<p><strong>July 27–29, 2026</strong><br>First PRs to migrate DeepGEMM off pybind11 and onto the Stable ABI opened.</p>
-</div>
-</div>
 
-<div class="abi-story__row">
-<div class="abi-story__copy">
 <p>Resolving these issues took more than a few API changes. We moved DeepGEMM's registration to <code>TORCH_LIBRARY</code>, added wrappers where the Stable ABI lacked direct support, and kept the migration current as DeepGEMM evolved. Once those changes were in place, we migrated DeepGEMM, the last remaining dependency. With the in-tree code and every LibTorch-dependent component now migrated, the entire vLLM CUDA wheel became LibTorch ABI Stable exactly one year after the original RFC!</p>
-
-</div>
-<div class="abi-story__event">
-<p><strong>October 15, 2026</strong><br>DeepGEMM migrated; the vLLM CUDA wheel became LibTorch ABI Stable.</p>
-</div>
-</div>
-</div>
 
 
 ### Example Run on Newer PyTorch
