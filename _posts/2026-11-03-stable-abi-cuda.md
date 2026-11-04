@@ -53,7 +53,8 @@ figure:has(> img[alt="Stable ABI diagram"]) > img {
 figure:has(> img[alt="Unstable import"]) > figcaption,
 figure:has(> img[alt="Stable import"]) > figcaption,
 figure:has(> img[alt="Unstable ABI diagram"]) > figcaption,
-figure:has(> img[alt="Stable ABI diagram"]) > figcaption {
+figure:has(> img[alt="Stable ABI diagram"]) > figcaption,
+figure:has(> img[alt="LibTorch Stable"]) > figcaption {
   display: none;
 }
 .abi-audit-output { overflow-x: auto; }
