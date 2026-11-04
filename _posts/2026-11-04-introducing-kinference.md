@@ -52,7 +52,7 @@ Inference policies allow platform owners to balance tradeoffs across usage, perf
 
 Rather than build a set of one-off features, we built a policy layer in Kinference that can express them all—and many others as well.
 
-For example, here’s how you can define a YAML policy for Kinference to semantically classify prompts by complexity level, and route simpler prompts to cheaper models. But also take into account cache usage if it's faster to send it to an expensive model.
+For example, here’s how you can define a YAML policy for Kinference to semantically classify prompts by complexity level, and route simpler prompts to cheaper models—unless, taking cache usage into account, it will be faster to send it to an expensive model.
 
 ```yaml
 apiVersion: kinference.buoyant.io/v1alpha1
