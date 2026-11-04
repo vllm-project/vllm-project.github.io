@@ -17,10 +17,7 @@ image: /assets/figures/2026-11-03-stable-abi-cuda/libtorch_stable.png
 .abi-story__copy > :first-child { margin-top: 0; }
 .abi-story__table { max-width: 100%; overflow-x: auto; }
 .abi-story__timeline { grid-column: 2; position: relative; min-width: 0; }
-.abi-timeline__title {
-  margin-top: 0;
-  transform: translate(1rem, -0.75rem);
-}
+.abi-timeline__title { margin-top: 0; }
 .abi-timeline__track {
   position: absolute;
   top: 3.25rem;
