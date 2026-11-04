@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="310" viewBox="0 0 900 310" role="img" aria-labelledby="title desc">
+<title id="title">Where can the request actually resume?</title>
+<desc id="desc">Where can the request actually resume? In this schematic, matching MLA KV covers a 3,072-token prefix, but the latest compatible checkpoint boundary available across all required KDA layers and groups is 2,048. The safe shared resume point is 2,048: process the remaining 1,024 prefix positions, then process the new suffix. The aggregate KDA lane represents multiple required checkpoints, not one checkpoint containing all recurrent state. The figure does not specify a dense replay algorithm. Token counts are illustrative; they are not AgentX measurements or hardware timing.</desc>
+<rect width="900" height="310" fill="white"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#16324b;font-size:18px}.title{font-size:27px;font-weight:700}.strong{font-weight:700}.small{font-size:14px}.muted{fill:#52677a}.teal{fill:#16324b}.amber{fill:#16324b}</style>
+<defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M1,1 L6,3.5 L1,6" fill="none" stroke="#30a2ff" stroke-width="1.5"/></marker></defs>
+<text x="26" y="35" class="title" text-anchor="start">Where can the request actually resume?</text>
+<text x="26" y="65" class="muted" text-anchor="start">Reuse needs matching MLA KV and compatible KDA state.</text>
+<text x="312" y="96" class="small strong" text-anchor="start">0</text>
+<text x="672" y="96" class="small strong" text-anchor="middle">2,048</text>
+<text x="852" y="96" class="small strong" text-anchor="end">3,072</text>
+<text x="26" y="132" class="strong" text-anchor="start">Matching MLA KV</text>
+<rect x="312" y="110" width="540" height="32" rx="5" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="582" y="132" class="teal" text-anchor="middle">Prefix retained through 3,072</text>
+<text x="26" y="170" class="strong" text-anchor="start">KDA checkpoints</text>
+<text x="26" y="190" class="small muted" text-anchor="start">(all required layers)</text>
+<path d="M312,176 L852,176" fill="none" stroke="#c8d8df" stroke-width="2" stroke-dasharray="5 4"/>
+<rect x="320" y="156" width="252" height="38" rx="5" fill="white" stroke="white" stroke-width="1.5"/>
+<text x="326" y="181" class="teal" text-anchor="start">Latest complete match</text>
+<path d="M570,176 L658,176" fill="none" stroke="#30a2ff" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M672,101 L672,109" fill="none" stroke="#30a2ff" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M672,143 L672,167" fill="none" stroke="#30a2ff" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M672,185 L672,208" fill="none" stroke="#30a2ff" stroke-width="2" stroke-dasharray="5 4"/>
+<circle cx="672" cy="176" r="8" fill="#30a2ff" stroke="white" stroke-width="2"/>
+<text x="26" y="231" class="strong" text-anchor="start">Before the new suffix</text>
+<rect x="672" y="209" width="180" height="34" rx="5" fill="#fff3ce" stroke="#e3ac2d" stroke-width="1.5"/>
+<text x="762" y="231" class="amber" text-anchor="middle">1,024 positions</text>
+<rect x="26" y="255" width="848" height="34" rx="5" fill="#e8f4ff" stroke="#93c9f2" stroke-width="1.5"/>
+<text x="42" y="278" class="strong" text-anchor="start">Resume at 2,048; process the prefix remainder, then the new suffix.</text>
+<text x="26" y="306" class="small muted" text-anchor="start">Illustrative counts, not AgentX data or hardware timing. KDA lane aggregates required layers.</text>
+</svg>

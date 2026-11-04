@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" viewBox="0 0 900 650" role="img" aria-labelledby="title desc"><title id="title">DCP shares queries and splits the history</title><desc id="desc">Two-GPU illustration for one current token with two query heads and four cached positions. With tensor parallelism alone, GPU A computes head A against all four positions and GPU B computes head B against an identical copy of all four. With decode context parallelism, both GPUs receive both query heads, GPU A stores positions zero and two, and GPU B stores positions one and three. Each computes partial answers over its local history. Weighted merging returns the complete head A answer to GPU A and head B answer to GPU B. Total head-position pairs are unchanged; duplicate cache storage is removed. Query exchange and weighted merging cost communication. Boxes are data, not GPU execution lanes or timing.</desc><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L7 4L1 7" fill="none" stroke="#526677" stroke-width="1.7"/></marker></defs><style>text{font-family:Arial,Helvetica,sans-serif;fill:#16324b;font-size:18px}.title{font-size:27px;font-weight:700}.heading{font-size:21px;font-weight:700}.label{font-size:18px;font-weight:700}.small{font-size:16px}.muted{fill:#526677}</style><rect width="900" height="650" fill="white"/>
+<text x="24" y="39" class="title" text-anchor="start">Share queries. Split the history.</text>
+<text x="24" y="72" class="small" text-anchor="" style="fill:#526677">Two-GPU illustration · two query heads · four cached positions: 0, 1, 2, 3</text>
+<text x="24" y="119" class="heading" text-anchor="start">TP only: repeat the cache</text>
+<rect x="24" y="142" width="198" height="214" rx="9" fill="white" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="123" y="169" class="heading" text-anchor="middle" style="fill:#16324b">GPU A</text>
+<rect x="77" y="185" width="92" height="33" rx="4" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="123" y="207" class="label" text-anchor="middle" style="fill:#16324b">Head A</text>
+<path d="M123 225V254" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="123" y="278" class="small" text-anchor="middle" style="fill:#526677">Full history</text>
+<rect x="53.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="69" y="311" class="label" text-anchor="middle" style="fill:#16324b">0</text>
+<rect x="89.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="105" y="311" class="label" text-anchor="middle" style="fill:#16324b">1</text>
+<rect x="125.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="141" y="311" class="label" text-anchor="middle" style="fill:#16324b">2</text>
+<rect x="161.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="177" y="311" class="label" text-anchor="middle" style="fill:#16324b">3</text>
+<text x="123" y="345" class="small" text-anchor="middle" style="fill:#16324b">Complete answer A</text>
+<rect x="240" y="142" width="198" height="214" rx="9" fill="white" stroke="#fdb515" stroke-width="1.5"/>
+<text x="339" y="169" class="heading" text-anchor="middle" style="fill:#16324b">GPU B</text>
+<rect x="293" y="185" width="92" height="33" rx="4" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="339" y="207" class="label" text-anchor="middle" style="fill:#16324b">Head B</text>
+<path d="M339 225V254" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="339" y="278" class="small" text-anchor="middle" style="fill:#526677">Full history</text>
+<rect x="269.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="285" y="311" class="label" text-anchor="middle" style="fill:#16324b">0</text>
+<rect x="305.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="321" y="311" class="label" text-anchor="middle" style="fill:#16324b">1</text>
+<rect x="341.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="357" y="311" class="label" text-anchor="middle" style="fill:#16324b">2</text>
+<rect x="377.5" y="288" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="393" y="311" class="label" text-anchor="middle" style="fill:#16324b">3</text>
+<text x="339" y="345" class="small" text-anchor="middle" style="fill:#16324b">Complete answer B</text>
+<text x="231" y="384" class="label" text-anchor="middle" style="fill:#16324b">Two complete copies</text>
+<text x="462" y="119" class="heading" text-anchor="start">TP + DCP: divide the cache</text>
+<text x="669" y="150" class="small" text-anchor="middle" style="fill:#526677">Exchange query heads</text>
+<rect x="462" y="172" width="198" height="238" rx="9" fill="white" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="561" y="199" class="heading" text-anchor="middle" style="fill:#16324b">GPU A</text>
+<rect x="475" y="215" width="83" height="33" rx="4" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="516.5" y="237" class="label" text-anchor="middle" style="fill:#16324b">Head A</text>
+<rect x="564" y="215" width="83" height="33" rx="4" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="605.5" y="237" class="label" text-anchor="middle" style="fill:#16324b">Head B</text>
+<path d="M561 255V284" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="561" y="308" class="small" text-anchor="middle" style="fill:#526677">Local history</text>
+<rect x="527.5" y="318" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="543" y="341" class="label" text-anchor="middle" style="fill:#16324b">0</text>
+<rect x="563.5" y="318" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="579" y="341" class="label" text-anchor="middle" style="fill:#16324b">2</text>
+<text x="561" y="379" class="small" text-anchor="middle">Partial answers</text>
+<text x="561" y="400" class="label" text-anchor="middle">for A and B</text>
+<rect x="678" y="172" width="198" height="238" rx="9" fill="white" stroke="#fdb515" stroke-width="1.5"/>
+<text x="777" y="199" class="heading" text-anchor="middle" style="fill:#16324b">GPU B</text>
+<rect x="691" y="215" width="83" height="33" rx="4" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="732.5" y="237" class="label" text-anchor="middle" style="fill:#16324b">Head A</text>
+<rect x="780" y="215" width="83" height="33" rx="4" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="821.5" y="237" class="label" text-anchor="middle" style="fill:#16324b">Head B</text>
+<path d="M777 255V284" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="777" y="308" class="small" text-anchor="middle" style="fill:#526677">Local history</text>
+<rect x="743.5" y="318" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="759" y="341" class="label" text-anchor="middle" style="fill:#16324b">1</text>
+<rect x="779.5" y="318" width="31" height="34" rx="4" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="795" y="341" class="label" text-anchor="middle" style="fill:#16324b">3</text>
+<text x="777" y="379" class="small" text-anchor="middle">Partial answers</text>
+<text x="777" y="400" class="label" text-anchor="middle">for A and B</text>
+<path d="M561 417V429H621V437" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M777 417V429H717V437" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="487" y="437" width="364" height="58" rx="6" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="669" y="460" class="label" text-anchor="middle">Merge each head’s partials</text>
+<text x="669" y="483" class="small" text-anchor="middle">using softmax weights</text>
+<path d="M621 496V508H561V522" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M717 496V508H777V522" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="462" y="522" width="198" height="33" rx="4" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="561" y="544" class="label" text-anchor="middle" style="fill:#16324b">A → GPU A</text>
+<rect x="678" y="522" width="198" height="33" rx="4" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="777" y="544" class="label" text-anchor="middle" style="fill:#16324b">B → GPU B</text>
+<text x="669" y="582" class="label" text-anchor="middle" style="fill:#16324b">One copy across both GPUs</text>
+<rect x="24" y="426" width="414" height="152" rx="8" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="45" y="458" class="heading" text-anchor="start">Same attention pairs per GPU</text>
+<text x="45" y="489" class="small" text-anchor="start">Before: one head × four positions</text>
+<text x="45" y="516" class="small" text-anchor="start">After: two heads × two positions</text>
+<text x="45" y="550" class="small" text-anchor="" style="fill:#526677">Less duplicate cache; added communication.</text>
+<text x="24" y="625" class="small" text-anchor="" style="fill:#526677">TP8/DCP8 applies the same idea across eight GPUs.</text>
+</svg>

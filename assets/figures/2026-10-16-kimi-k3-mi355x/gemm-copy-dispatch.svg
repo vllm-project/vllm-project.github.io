@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="890" viewBox="0 0 1200 890" role="img" aria-labelledby="title desc">
+<title id="title">Prepare an input only on the path that uses it</title>
+<desc id="desc">Before: a contiguous copy runs before checking skinny-kernel eligibility. If the fallback is selected, it reads the original strided input and the copy is unused. After: check eligibility first and make the copy only within the eligible skinny-kernel branch. Blue marks the same fallback execution in both panels. Arrows show dispatch order, not elapsed time.</desc>
+<defs><marker id="arrow-muted" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#526677" stroke-width="2.4"/></marker><marker id="arrow-teal" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#30a2ff" stroke-width="2.4"/></marker><marker id="arrow-amber" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L9 5.5L1 10" fill="none" stroke="#fdb515" stroke-width="2.4"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;font-size:24px;fill:#16324b} .title{font-size:36px;font-weight:700}.heading{font-size:28px;font-weight:700}.label{font-size:24px;font-weight:700}.small{font-size:21px}.tiny{font-size:19px}.number{font-size:48px;font-weight:700}</style>
+<rect width="1200" height="890" fill="white"/>
+<text x="30" y="48" class="title" text-anchor="start">Prepare an input only on the path that uses it</text>
+<text x="30" y="88" class="small" text-anchor="start" style="fill:#526677">Blue follows the fallback path; dashed rows show gaps in the original input.</text>
+<rect x="24" y="112" width="556" height="643" rx="10" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="46" y="154" class="heading" text-anchor="start">Before · copy before the decision</text>
+<rect x="159" y="184" width="286" height="89" rx="8" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="302" y="213" class="label" text-anchor="middle">Original input</text>
+<rect x="215" y="227" width="85" height="7" rx="1" fill="#e8f4ff" stroke="#30a2ff" stroke-width="0.8"/>
+<rect x="306" y="227" width="82" height="7" rx="1" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="0.8" stroke-dasharray="6 5"/>
+<rect x="215" y="238" width="85" height="7" rx="1" fill="#e8f4ff" stroke="#30a2ff" stroke-width="0.8"/>
+<rect x="306" y="238" width="82" height="7" rx="1" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="0.8" stroke-dasharray="6 5"/>
+<rect x="215" y="249" width="85" height="7" rx="1" fill="#e8f4ff" stroke="#30a2ff" stroke-width="0.8"/>
+<rect x="306" y="249" width="82" height="7" rx="1" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="0.8" stroke-dasharray="6 5"/>
+<rect x="620" y="112" width="556" height="643" rx="10" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="642" y="154" class="heading" text-anchor="start">After · copy only when needed</text>
+<rect x="755" y="184" width="286" height="89" rx="8" fill="white" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="898" y="213" class="label" text-anchor="middle">Original input</text>
+<rect x="811" y="227" width="85" height="7" rx="1" fill="#e8f4ff" stroke="#30a2ff" stroke-width="0.8"/>
+<rect x="902" y="227" width="82" height="7" rx="1" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="0.8" stroke-dasharray="6 5"/>
+<rect x="811" y="238" width="85" height="7" rx="1" fill="#e8f4ff" stroke="#30a2ff" stroke-width="0.8"/>
+<rect x="902" y="238" width="82" height="7" rx="1" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="0.8" stroke-dasharray="6 5"/>
+<rect x="811" y="249" width="85" height="7" rx="1" fill="#e8f4ff" stroke="#30a2ff" stroke-width="0.8"/>
+<rect x="902" y="249" width="82" height="7" rx="1" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="0.8" stroke-dasharray="6 5"/>
+<path d="M302 274V326" fill="none" stroke="#30a2ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<rect x="192" y="328" width="220" height="82" rx="7" fill="#fff3ce" stroke="#fdb515" stroke-width="2"/>
+<text x="302.0" y="357" class="small" text-anchor="middle" style="fill:#16324b">Make dense copy</text>
+<rect x="255.0" y="370" width="94" height="6" rx="1" fill="#f2d48e" stroke="#fdb515" stroke-width="0.7"/>
+<rect x="255.0" y="380" width="94" height="6" rx="1" fill="#f2d48e" stroke="#fdb515" stroke-width="0.7"/>
+<rect x="255.0" y="390" width="94" height="6" rx="1" fill="#f2d48e" stroke="#fdb515" stroke-width="0.7"/>
+<path d="M302 412V443" fill="none" stroke="#30a2ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<path d="M302 444.0L418.0 494L302 544.0L186.0 494Z" fill="white" stroke="#16324b" stroke-width="2"/>
+<text x="302" y="488" class="small" text-anchor="middle">Skinny kernel</text>
+<text x="302" y="514" class="small" text-anchor="middle">eligible?</text>
+<path d="M186 494H141V632" fill="none" stroke="#526677" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-muted)" stroke-dasharray="6 5"/>
+<text x="147" y="481" class="tiny" text-anchor="start" style="fill:#526677">Yes</text>
+<path d="M418 494H461V632" fill="none" stroke="#30a2ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<text x="431" y="481" class="label" text-anchor="start" style="fill:#16324b">No</text>
+<rect x="50" y="635" width="194" height="87" rx="8" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="147" y="668" class="small" text-anchor="middle" style="fill:#526677">Skinny GEMM</text>
+<text x="147" y="696" class="small" text-anchor="middle" style="fill:#526677">reads dense copy</text>
+<rect x="350" y="635" width="202" height="87" rx="8" fill="#e8f4ff" stroke="#30a2ff" stroke-width="2"/>
+<text x="451" y="668" class="small" text-anchor="middle" style="fill:#16324b">Fallback GEMM</text>
+<text x="451" y="696" class="small" text-anchor="middle" style="fill:#16324b">reads original input</text>
+<path d="M412 369H496" fill="none" stroke="#fdb515" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-amber)"/>
+<text x="505" y="355" class="tiny" text-anchor="start" style="fill:#16324b">Unused</text>
+<text x="505" y="378" class="tiny" text-anchor="start" style="fill:#16324b">on this</text>
+<text x="505" y="401" class="tiny" text-anchor="start" style="fill:#16324b">route</text>
+<path d="M898 274V334" fill="none" stroke="#30a2ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<path d="M898 336.0L1014.0 386L898 436.0L782.0 386Z" fill="white" stroke="#16324b" stroke-width="2"/>
+<text x="898" y="380" class="small" text-anchor="middle">Skinny kernel</text>
+<text x="898" y="406" class="small" text-anchor="middle">eligible?</text>
+<path d="M782 386H750V484" fill="none" stroke="#526677" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-muted)" stroke-dasharray="6 5"/>
+<text x="746" y="371" class="tiny" text-anchor="start" style="fill:#526677">Yes</text>
+<rect x="642" y="487" width="216" height="82" rx="7" fill="#f7f9fb" stroke="#526677" stroke-width="1.6"/>
+<text x="750.0" y="516" class="small" text-anchor="middle" style="fill:#526677">Make dense copy</text>
+<rect x="703.0" y="529" width="94" height="6" rx="1" fill="#e0e6eb" stroke="#526677" stroke-width="0.7"/>
+<rect x="703.0" y="539" width="94" height="6" rx="1" fill="#e0e6eb" stroke="#526677" stroke-width="0.7"/>
+<rect x="703.0" y="549" width="94" height="6" rx="1" fill="#e0e6eb" stroke="#526677" stroke-width="0.7"/>
+<path d="M750 570V632" fill="none" stroke="#526677" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-muted)" stroke-dasharray="6 5"/>
+<rect x="650" y="635" width="202" height="87" rx="8" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.6"/>
+<text x="751" y="668" class="small" text-anchor="middle" style="fill:#526677">Skinny GEMM</text>
+<text x="751" y="696" class="small" text-anchor="middle" style="fill:#526677">reads dense copy</text>
+<path d="M1014 386H1066V632" fill="none" stroke="#30a2ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<text x="1030" y="371" class="label" text-anchor="start" style="fill:#16324b">No</text>
+<rect x="957" y="635" width="211" height="87" rx="8" fill="#e8f4ff" stroke="#30a2ff" stroke-width="2"/>
+<text x="1062" y="668" class="small" text-anchor="middle" style="fill:#16324b">Fallback GEMM</text>
+<text x="1062" y="696" class="small" text-anchor="middle" style="fill:#16324b">reads original input</text>
+<text x="949" y="504" class="label" text-anchor="middle" style="fill:#16324b">No copy</text>
+<text x="949" y="536" class="label" text-anchor="middle" style="fill:#16324b">on this route</text>
+<rect x="24" y="778" width="1152" height="57" rx="8" fill="#f7f9fb" stroke="none" stroke-width="1.6"/>
+<text x="600" y="815" class="label" text-anchor="middle">Measured case: 69 copies per decode step × 1,792 bytes each</text>
+<text x="600" y="869" class="small" text-anchor="middle" style="fill:#526677">Arrows show dispatch order. Both fallback calls use the original input.</text>
+</svg>

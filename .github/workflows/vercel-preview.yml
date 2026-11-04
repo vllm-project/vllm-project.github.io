@@ -46,7 +46,7 @@ env:
 jobs:
   preview:
     if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 30
     steps:
       - name: Resolve PR head
@@ -128,7 +128,7 @@ jobs:
 
   cleanup:
     if: github.event.action == 'closed'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Delete preview branch
         env:

@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML4 NVFP4 + DSpark 1P1D Pareto</title>
+<!-- Template for pd_pareto.py; data is injected at the DATA placeholder below.
+     Look: the figkit tokens of the vLLM blog interactive pages (assets/interactive_pages/*),
+     trimmed to what a line chart with tabs, legend toggles and a tooltip needs. -->
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f5f4ef;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e4e3de; --line: #8f8a84;
+  --blue-line: #0262bf; --stone-line: #9a958f;
+  --band: color-mix(in srgb, var(--stone-line) 11%, var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #55b3fb; --stone-line: #7f7a74;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #55b3fb; --stone-line: #7f7a74;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; padding: 4px 0 8px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+.fig-head-row { display: flex; gap: 12px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-clab { font-family: var(--mono) !important; font-size: 10.5px; fill: var(--muted); pointer-events: none; }
+.m-rule { stroke: var(--rule); stroke-width: var(--hair); fill: none; }
+.m-line { stroke: var(--line); stroke-width: var(--hair); fill: none; }
+.band { fill: var(--band); }
+.s-line { fill: none; stroke-width: 2.2px; stroke-linejoin: round; stroke-linecap: round; }
+.s-qps { fill: none; stroke-width: 1.2px; stroke-dasharray: 1.5 3; stroke-linecap: round; opacity: .8; }
+.s-dot { stroke: var(--bg); stroke-width: 2px; }
+.s-hollow { fill: var(--bg); stroke-width: 1.5px; opacity: .8; }
+.hit { fill: transparent; pointer-events: all; cursor: crosshair; }
+.hit:focus-visible { outline: none; stroke: var(--blue-line); stroke-width: 2px; }
+.ring { fill: none; stroke: var(--ink); stroke-width: 1.6px; pointer-events: none; }
+g.series { transition: opacity 240ms cubic-bezier(.4, 0, .2, 1); }
+g.series.off { display: none; }
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span, .fig-legend button { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.fig-legend button[aria-pressed="false"] { opacity: .4; text-decoration: line-through; }
+.fig-legend button:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-legend i { width: 14px; height: 10px; border: var(--hair) solid; display: inline-block; }
+.fig-legend i.band { background: var(--band); border-color: var(--rule); }
+.fig-legend svg { width: 26px; height: 12px; overflow: visible; }
+.fig-seg { display: inline-flex; border: var(--hair) solid var(--rule); }
+.fig-seg button {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 28px; padding: 0 12px; cursor: pointer;
+}
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.fig-tip {
+  position: fixed; pointer-events: none; z-index: 10; background: var(--bg); color: var(--ink);
+  border: var(--hair) solid var(--line); padding: 8px 10px; font-size: 12.5px; line-height: 1.45;
+  opacity: 0; transition: opacity 120ms;
+}
+.fig-tip.show { opacity: 1; }
+.fig-tip .tip-k { font-weight: 600; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+.fig-tip .tip-row { display: flex; align-items: center; gap: 8px; color: var(--muted); white-space: nowrap; }
+.fig-tip .tip-row b { color: var(--ink); font-weight: 600; margin-left: auto; padding-left: 14px; font-variant-numeric: tabular-nums; }
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none;
+}
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-note { font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div class="fig" id="fig">
+  <div class="fig-head">
+    <p class="fig-kicker">P/D disaggregation · ML4 NVFP4 + DSpark · 1P1D · 4+4 GB300</p>
+    <div class="fig-head-row">
+      <div>
+        <h1 class="fig-title">Throughput vs interactivity, 1P1D</h1>
+        <p class="fig-sub" id="sub"></p>
+      </div>
+      <div class="fig-seg" role="tablist" aria-label="Input length" id="tabs"></div>
+    </div>
+  </div>
+  <div class="fig-frame" role="tabpanel" id="panel"><span class="fig-corners"></span>
+    <svg class="fig-stage" id="stage" viewBox="0 0 736 380" role="img"></svg>
+    <p class="fig-note">DSpark depth 3; NIXL; vllm bench serve, real-text prompts, greedy, ignore_eos.
+      Solid: concurrency sweep (labels = concurrency). Dotted, hollow: fixed-QPS sweep. Hover a point for its metrics.</p>
+  </div>
+  <div class="fig-legend" id="legend"></div>
+</div>
+<div class="fig-tip" id="tip" aria-hidden="true"></div>
+<script>window.PD = {"configs":[{"id":"P_dp4-ep-spec.D_dp4-ep-spec","name":"P DP4/EP → D DP4/EP","num":"1","color":"#fa500f","dark":"#fa500f","marker":"o"},{"id":"P_dp4-ep-spec.D_tp4-spec","name":"P DP4/EP → D TP4","num":"2","color":"#242433","dark":"#e4e2d6","marker":"s"},{"id":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","name":"P PCP4×DCP4 → D DP4/EP","num":"3","color":"#0262bf","dark":"#55b3fb","marker":"D"},{"id":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","name":"P PCP4×DCP4 → D TP4","num":"4","color":"#c4001d","dark":"#c4001d","marker":"v"},{"id":"P_tp4-spec.D_tp4-spec","name":"P TP4 → D TP4","num":"5","color":"#ffaf01","dark":"#ffaf01","marker":"^"}],"isl":{"8k":[{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":1,"rate":null,"n":8,"user":174.22,"gpu":20.09,"tpot":5.74,"ttft":0.487,"al":2.963},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":2,"rate":null,"n":12,"user":154.36,"gpu":35.49,"tpot":6.48,"ttft":0.535,"al":2.975},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":4,"rate":null,"n":24,"user":135.3,"gpu":61.69,"tpot":7.39,"ttft":0.556,"al":2.96},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":8,"rate":null,"n":48,"user":119.14,"gpu":107.19,"tpot":8.39,"ttft":0.745,"al":3.008},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":16,"rate":null,"n":96,"user":102.72,"gpu":176.73,"tpot":9.74,"ttft":0.954,"al":2.976},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":32,"rate":null,"n":192,"user":87.59,"gpu":297.69,"tpot":11.42,"ttft":1.142,"al":2.987},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":64,"rate":null,"n":320,"user":77.72,"gpu":499.07,"tpot":12.87,"ttft":1.555,"al":2.959},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":128,"rate":null,"n":320,"user":70.07,"gpu":718.21,"tpot":14.27,"ttft":3.032,"al":2.978},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":1.4,"n":168,"user":101.08,"gpu":164.33,"tpot":9.89,"ttft":0.662,"al":2.98},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":2.81,"n":320,"user":84.97,"gpu":327.52,"tpot":11.77,"ttft":0.977,"al":2.982},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":4.21,"n":320,"user":78.09,"gpu":464.73,"tpot":12.81,"ttft":1.275,"al":2.962},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":5.61,"n":320,"user":74.75,"gpu":579.79,"tpot":13.38,"ttft":1.632,"al":2.977},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":256.15,"gpu":28.45,"tpot":3.9,"ttft":0.457,"al":3.047},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":229.91,"gpu":49.32,"tpot":4.35,"ttft":0.514,"al":3.023},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":180.62,"gpu":77.51,"tpot":5.54,"ttft":0.556,"al":2.955},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":140.11,"gpu":122.43,"tpot":7.14,"ttft":0.787,"al":2.972},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":112.92,"gpu":194.19,"tpot":8.86,"ttft":0.889,"al":2.965},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":32,"rate":null,"n":192,"user":92.46,"gpu":314.13,"tpot":10.82,"ttft":1.14,"al":2.981},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":64,"rate":null,"n":320,"user":69.17,"gpu":459.23,"tpot":14.46,"ttft":1.35,"al":2.972},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.897,"n":108,"user":140.05,"gpu":109.2,"tpot":7.14,"ttft":0.558,"al":2.993},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":1.79,"n":215,"user":103.73,"gpu":216.24,"tpot":9.64,"ttft":0.741,"al":2.983},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":2.69,"n":320,"user":90.56,"gpu":315.24,"tpot":11.04,"ttft":0.962,"al":2.979},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":3.59,"n":320,"user":72.34,"gpu":404.63,"tpot":13.82,"ttft":1.203,"al":2.971},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":1,"rate":null,"n":8,"user":178.61,"gpu":20.81,"tpot":5.6,"ttft":0.41,"al":3.019},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":2,"rate":null,"n":12,"user":157.11,"gpu":37.12,"tpot":6.37,"ttft":0.458,"al":3.0},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":4,"rate":null,"n":24,"user":144.86,"gpu":64.58,"tpot":6.9,"ttft":0.472,"al":3.054},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":8,"rate":null,"n":48,"user":119.22,"gpu":104.35,"tpot":8.39,"ttft":0.497,"al":2.965},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":16,"rate":null,"n":96,"user":102.6,"gpu":176.95,"tpot":9.75,"ttft":0.617,"al":2.956},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":32,"rate":null,"n":192,"user":88.7,"gpu":290.82,"tpot":11.27,"ttft":0.907,"al":2.99},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":64,"rate":null,"n":320,"user":85.44,"gpu":339.92,"tpot":11.7,"ttft":10.081,"al":2.988},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":128,"rate":null,"n":320,"user":85.79,"gpu":334.39,"tpot":11.66,"ttft":32.474,"al":2.973},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.664,"n":80,"user":128.23,"gpu":80.09,"tpot":7.8,"ttft":0.478,"al":3.0},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":1.33,"n":160,"user":103.3,"gpu":158.59,"tpot":9.68,"ttft":0.518,"al":2.983},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":1.99,"n":239,"user":93.25,"gpu":232.93,"tpot":10.72,"ttft":0.804,"al":2.994},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":2.66,"n":319,"user":86.74,"gpu":310.64,"tpot":11.53,"ttft":1.269,"al":2.986},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":259.68,"gpu":29.94,"tpot":3.85,"ttft":0.353,"al":3.145},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":213.88,"gpu":49.03,"tpot":4.68,"ttft":0.388,"al":2.926},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":181.24,"gpu":80.96,"tpot":5.52,"ttft":0.427,"al":2.974},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":141.76,"gpu":123.96,"tpot":7.05,"ttft":0.554,"al":2.949},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":112.92,"gpu":192.65,"tpot":8.86,"ttft":0.727,"al":2.986},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":32,"rate":null,"n":192,"user":92.21,"gpu":304.79,"tpot":10.84,"ttft":0.891,"al":2.987},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":64,"rate":null,"n":320,"user":86.26,"gpu":350.59,"tpot":11.59,"ttft":9.54,"al":2.977},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.685,"n":82,"user":158.79,"gpu":83.29,"tpot":6.3,"ttft":0.445,"al":2.98},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":1.37,"n":164,"user":119.48,"gpu":163.27,"tpot":8.37,"ttft":0.494,"al":2.974},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":2.05,"n":246,"user":100.26,"gpu":242.52,"tpot":9.97,"ttft":0.714,"al":2.983},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":2.74,"n":320,"user":89.85,"gpu":309.04,"tpot":11.13,"ttft":2.098,"al":2.977},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":250.3,"gpu":27.43,"tpot":4.0,"ttft":0.517,"al":2.97},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":220.78,"gpu":48.7,"tpot":4.53,"ttft":0.554,"al":3.003},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":181.98,"gpu":76.48,"tpot":5.5,"ttft":0.583,"al":2.98},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":141.31,"gpu":118.65,"tpot":7.08,"ttft":0.801,"al":2.942},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":113.29,"gpu":185.34,"tpot":8.83,"ttft":0.994,"al":2.97},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":32,"rate":null,"n":192,"user":98.26,"gpu":248.68,"tpot":10.18,"ttft":4.453,"al":2.98},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":64,"rate":null,"n":320,"user":97.78,"gpu":259.18,"tpot":10.23,"ttft":19.381,"al":2.992},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.506,"n":61,"user":178.1,"gpu":61.22,"tpot":5.61,"ttft":0.582,"al":2.982},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":1.01,"n":121,"user":136.64,"gpu":121.2,"tpot":7.32,"ttft":0.624,"al":2.987},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":1.52,"n":182,"user":112.97,"gpu":182.27,"tpot":8.85,"ttft":0.942,"al":2.986},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":2.02,"n":242,"user":100.95,"gpu":230.87,"tpot":9.91,"ttft":2.984,"al":2.986}],"32k":[{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":1,"rate":null,"n":8,"user":167.04,"gpu":15.77,"tpot":5.99,"ttft":1.898,"al":2.855},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":2,"rate":null,"n":12,"user":152.34,"gpu":28.79,"tpot":6.56,"ttft":1.944,"al":2.881},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":4,"rate":null,"n":24,"user":137.92,"gpu":49.46,"tpot":7.25,"ttft":2.36,"al":2.869},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":8,"rate":null,"n":48,"user":118.04,"gpu":83.61,"tpot":8.47,"ttft":2.816,"al":2.862},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":16,"rate":null,"n":96,"user":100.32,"gpu":139.19,"tpot":9.97,"ttft":2.996,"al":2.872},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":32,"rate":null,"n":192,"user":89.33,"gpu":195.84,"tpot":11.19,"ttft":7.724,"al":2.859},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":64,"rate":null,"n":320,"user":88.07,"gpu":202.63,"tpot":11.35,"ttft":26.21,"al":2.828},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.396,"n":48,"user":134.02,"gpu":46.84,"tpot":7.46,"ttft":2.19,"al":2.854},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.792,"n":95,"user":112.76,"gpu":92.52,"tpot":8.87,"ttft":2.735,"al":2.846},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":1.19,"n":143,"user":97.37,"gpu":137.94,"tpot":10.27,"ttft":3.354,"al":2.841},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":1.58,"n":190,"user":90.34,"gpu":182.84,"tpot":11.07,"ttft":4.894,"al":2.854},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":230.39,"gpu":19.82,"tpot":4.34,"ttft":1.882,"al":2.753},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":222.26,"gpu":36.78,"tpot":4.5,"ttft":1.92,"al":2.904},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":173.45,"gpu":58.8,"tpot":5.77,"ttft":2.348,"al":2.798},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":141.47,"gpu":96.68,"tpot":7.07,"ttft":2.741,"al":2.863},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":111.81,"gpu":150.03,"tpot":8.94,"ttft":3.09,"al":2.854},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":32,"rate":null,"n":192,"user":95.4,"gpu":198.82,"tpot":10.48,"ttft":8.443,"al":2.836},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":64,"rate":null,"n":320,"user":95.45,"gpu":205.24,"tpot":10.48,"ttft":27.065,"al":2.858},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.401,"n":48,"user":176.47,"gpu":48.86,"tpot":5.67,"ttft":2.208,"al":2.846},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.802,"n":96,"user":134.24,"gpu":95.96,"tpot":7.45,"ttft":2.732,"al":2.842},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":1.2,"n":144,"user":112.72,"gpu":144.89,"tpot":8.87,"ttft":3.256,"al":2.851},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":1.6,"n":192,"user":99.9,"gpu":174.14,"tpot":10.01,"ttft":6.93,"al":2.824},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":1,"rate":null,"n":8,"user":159.25,"gpu":16.25,"tpot":6.28,"ttft":1.464,"al":2.749},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":2,"rate":null,"n":12,"user":150.44,"gpu":29.19,"tpot":6.65,"ttft":1.511,"al":2.769},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":4,"rate":null,"n":24,"user":130.67,"gpu":49.39,"tpot":7.65,"ttft":1.777,"al":2.759},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":8,"rate":null,"n":48,"user":119.69,"gpu":81.29,"tpot":8.36,"ttft":2.489,"al":2.851},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":16,"rate":null,"n":96,"user":116.56,"gpu":87.69,"tpot":8.58,"ttft":13.276,"al":2.857},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":32,"rate":null,"n":192,"user":118.69,"gpu":90.73,"tpot":8.43,"ttft":35.094,"al":2.879},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.177,"n":21,"user":150.71,"gpu":21.26,"tpot":6.64,"ttft":1.518,"al":2.825},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.354,"n":42,"user":141.95,"gpu":41.74,"tpot":7.04,"ttft":1.538,"al":2.852},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.532,"n":64,"user":127.31,"gpu":63.14,"tpot":7.85,"ttft":2.538,"al":2.857},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.709,"n":85,"user":115.95,"gpu":78.2,"tpot":8.62,"ttft":6.891,"al":2.822},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":230.07,"gpu":22.07,"tpot":4.35,"ttft":1.371,"al":2.854},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":220.75,"gpu":40.29,"tpot":4.53,"ttft":1.404,"al":2.945},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":177.35,"gpu":62.04,"tpot":5.64,"ttft":1.507,"al":2.919},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":144.71,"gpu":87.71,"tpot":6.91,"ttft":3.636,"al":2.825},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":144.69,"gpu":91.52,"tpot":6.91,"ttft":14.277,"al":2.853},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.179,"n":21,"user":212.13,"gpu":21.95,"tpot":4.71,"ttft":1.436,"al":2.881},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.357,"n":43,"user":183.43,"gpu":43.28,"tpot":5.45,"ttft":1.477,"al":2.835},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.536,"n":64,"user":168.25,"gpu":64.76,"tpot":5.94,"ttft":2.138,"al":2.867},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.715,"n":86,"user":150.83,"gpu":83.27,"tpot":6.63,"ttft":4.226,"al":2.89},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":217.3,"gpu":18.65,"tpot":4.6,"ttft":2.07,"al":2.63},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":221.59,"gpu":35.24,"tpot":4.51,"ttft":2.11,"al":2.868},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":172.09,"gpu":57.04,"tpot":5.81,"ttft":2.414,"al":2.925},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":166.73,"gpu":60.97,"tpot":6.0,"ttft":9.699,"al":2.8},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":168.9,"gpu":62.77,"tpot":5.92,"ttft":25.584,"al":2.868},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.123,"n":15,"user":217.57,"gpu":14.78,"tpot":4.6,"ttft":2.077,"al":2.836},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.245,"n":29,"user":215.73,"gpu":29.73,"tpot":4.64,"ttft":2.111,"al":2.876},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.368,"n":44,"user":187.11,"gpu":44.73,"tpot":5.34,"ttft":3.082,"al":2.884},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.49,"n":59,"user":172.55,"gpu":55.5,"tpot":5.8,"ttft":5.239,"al":2.837}],"60k":[{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":1,"rate":null,"n":8,"user":164.65,"gpu":13.04,"tpot":6.07,"ttft":3.646,"al":2.878},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":2,"rate":null,"n":12,"user":148.56,"gpu":22.44,"tpot":6.73,"ttft":4.289,"al":2.754},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":4,"rate":null,"n":24,"user":132.15,"gpu":38.78,"tpot":7.57,"ttft":4.705,"al":2.709},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":8,"rate":null,"n":48,"user":119.87,"gpu":66.41,"tpot":8.34,"ttft":5.361,"al":2.745},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":16,"rate":null,"n":96,"user":106.23,"gpu":99.7,"tpot":9.41,"ttft":9.055,"al":2.767},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":32,"rate":null,"n":192,"user":106.29,"gpu":107.78,"tpot":9.41,"ttft":26.519,"al":2.803},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"conc","c":64,"rate":null,"n":320,"user":105.54,"gpu":108.77,"tpot":9.47,"ttft":63.016,"al":2.808},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.212,"n":25,"user":151.39,"gpu":25.08,"tpot":6.61,"ttft":3.967,"al":2.814},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.425,"n":51,"user":131.55,"gpu":49.21,"tpot":7.6,"ttft":4.908,"al":2.807},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.637,"n":76,"user":118.18,"gpu":73.41,"tpot":8.46,"ttft":5.875,"al":2.789},{"cfg":"P_dp4-ep-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.85,"n":102,"user":109.51,"gpu":94.41,"tpot":9.13,"ttft":10.602,"al":2.81},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":240.84,"gpu":16.1,"tpot":4.15,"ttft":3.659,"al":2.957},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":205.04,"gpu":27.28,"tpot":4.88,"ttft":4.251,"al":2.802},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":171.22,"gpu":44.39,"tpot":5.84,"ttft":4.891,"al":2.756},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":149.34,"gpu":74.38,"tpot":6.7,"ttft":5.502,"al":2.791},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":16,"rate":null,"n":96,"user":131.44,"gpu":103.68,"tpot":7.61,"ttft":10.642,"al":2.787},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"conc","c":32,"rate":null,"n":192,"user":130.84,"gpu":107.2,"tpot":7.64,"ttft":28.569,"al":2.781},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.209,"n":25,"user":181.34,"gpu":24.45,"tpot":5.51,"ttft":4.623,"al":2.709},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.419,"n":50,"user":172.87,"gpu":49.81,"tpot":5.78,"ttft":4.861,"al":2.788},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.628,"n":75,"user":147.71,"gpu":70.83,"tpot":6.77,"ttft":5.524,"al":2.763},{"cfg":"P_dp4-ep-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.838,"n":101,"user":136.57,"gpu":94.72,"tpot":7.32,"ttft":9.013,"al":2.79},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":1,"rate":null,"n":8,"user":172.59,"gpu":15.06,"tpot":5.79,"ttft":2.601,"al":3.008},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":2,"rate":null,"n":12,"user":152.09,"gpu":24.99,"tpot":6.58,"ttft":2.646,"al":2.757},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":4,"rate":null,"n":24,"user":131.76,"gpu":43.5,"tpot":7.59,"ttft":2.81,"al":2.768},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":8,"rate":null,"n":48,"user":133.98,"gpu":48.91,"tpot":7.46,"ttft":12.052,"al":2.816},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"conc","c":16,"rate":null,"n":96,"user":129.34,"gpu":50.59,"tpot":7.73,"ttft":31.079,"al":2.76},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.0988,"n":12,"user":156.88,"gpu":11.78,"tpot":6.37,"ttft":2.565,"al":2.823},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.198,"n":24,"user":138.06,"gpu":23.06,"tpot":7.24,"ttft":3.289,"al":2.735},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.296,"n":36,"user":134.73,"gpu":34.9,"tpot":7.42,"ttft":3.551,"al":2.741},{"cfg":"P_tp1-pcp4-dcp4-spec.D_dp4-ep-spec","mode":"qps","c":null,"rate":0.395,"n":47,"user":132.25,"gpu":45.15,"tpot":7.56,"ttft":5.998,"al":2.764},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":240.71,"gpu":18.81,"tpot":4.15,"ttft":2.574,"al":2.983},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":210.09,"gpu":31.99,"tpot":4.76,"ttft":2.742,"al":2.783},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":189.18,"gpu":48.09,"tpot":5.29,"ttft":4.362,"al":2.81},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":184.28,"gpu":49.84,"tpot":5.43,"ttft":14.203,"al":2.774},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.0974,"n":12,"user":220.21,"gpu":11.76,"tpot":4.54,"ttft":2.528,"al":2.767},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.195,"n":23,"user":201.91,"gpu":23.3,"tpot":4.95,"ttft":2.762,"al":2.705},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.292,"n":35,"user":187.6,"gpu":35.3,"tpot":5.33,"ttft":5.114,"al":2.807},{"cfg":"P_tp1-pcp4-dcp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.389,"n":47,"user":177.05,"gpu":45.58,"tpot":5.65,"ttft":6.422,"al":2.765},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":1,"rate":null,"n":8,"user":228.68,"gpu":14.4,"tpot":4.37,"ttft":4.02,"al":2.753},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":2,"rate":null,"n":12,"user":221.02,"gpu":27.38,"tpot":4.52,"ttft":4.069,"al":2.793},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":4,"rate":null,"n":24,"user":215.69,"gpu":31.6,"tpot":4.64,"ttft":10.582,"al":2.789},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"conc","c":8,"rate":null,"n":48,"user":217.67,"gpu":32.28,"tpot":4.59,"ttft":26.115,"al":2.793},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.063,"n":8,"user":218.88,"gpu":7.55,"tpot":4.57,"ttft":4.027,"al":2.682},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.126,"n":15,"user":221.69,"gpu":14.54,"tpot":4.51,"ttft":4.044,"al":2.729},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.189,"n":23,"user":213.82,"gpu":22.11,"tpot":4.68,"ttft":9.943,"al":2.779},{"cfg":"P_tp4-spec.D_tp4-spec","mode":"qps","c":null,"rate":0.252,"n":30,"user":220.59,"gpu":30.0,"tpot":4.53,"ttft":18.477,"al":2.815}]},"label_c":[1,8,64,128]};</script>
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const D = window.PD, S = document.getElementById("stage"), tip = document.getElementById("tip");
+  const $ = (id) => document.getElementById(id);
+  const ISL = Object.keys(D.isl);
+  // dark mode swaps each series to its own dark step (validated separately), as figkit does
+  const root = document.documentElement.dataset.theme;
+  if (root === "dark" || (root !== "light" && matchMedia("(prefers-color-scheme: dark)").matches))
+    D.configs.forEach((c) => { c.color = c.dark; });
+  const CFG = Object.fromEntries(D.configs.map((c) => [c.id, c]));
+  const hidden = new Set();
+  let cur = 0, narrow = null;
+
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, s, cls, attrs) {
+    const t = el("text", Object.assign({ x, y, class: cls }, attrs || {}), parent);
+    t.textContent = s;
+    return t;
+  }
+  // marker shapes, matching the static PNG: o s D v ^
+  function marker(parent, m, x, y, r, attrs) {
+    if (m === "o") return el("circle", Object.assign({ cx: x, cy: y, r }, attrs), parent);
+    const k = r * 1.1;
+    const d = {
+      s: `M${x - k * .85} ${y - k * .85}h${k * 1.7}v${k * 1.7}h${-k * 1.7}z`,
+      D: `M${x} ${y - k * 1.15}L${x + k} ${y}L${x} ${y + k * 1.15}L${x - k} ${y}z`,
+      v: `M${x - k} ${y - k * .7}L${x + k} ${y - k * .7}L${x} ${y + k}z`,
+      "^": `M${x - k} ${y + k * .7}L${x + k} ${y + k * .7}L${x} ${y - k}z`,
+    }[m];
+    return el("path", Object.assign({ d }, attrs), parent);
+  }
+  function nice(max) {
+    const step0 = max / 5, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+    const step = [1, 2, 2.5, 5, 10].map((f) => f * mag).find((s) => s >= step0);
+    const top = Math.ceil(max / step) * step, ticks = [];
+    for (let v = 0; v <= top + 1e-9; v += step) ticks.push(+v.toFixed(6));
+    return { max: top, ticks };
+  }
+  const f1 = (v) => v.toFixed(1), f2 = (v) => v.toFixed(2);
+  const intf = (v) => Math.round(v).toLocaleString("en-US");
+
+  function show(r, cx, cy) {
+    const c = CFG[r.cfg];
+    const sweep = r.mode === "conc" ? "concurrency " + r.c : r.rate + " req/s (QPS sweep)";
+    const rows = [
+      ["Sweep", sweep],
+      ["Interactivity", f1(r.user) + " tok/s/user"],
+      ["Throughput", f1(r.gpu) + " tok/s/GPU"],
+      ["TPOT p50", f2(r.tpot) + " ms"],
+      ["TTFT p50", f2(r.ttft) + " s"],
+      ["AL", r.al == null ? "–" : f2(r.al)],
+      ["Requests", intf(r.n)],
+    ];
+    tip.innerHTML = '<div class="tip-k">' + swatchSvg(c, r.mode === "qps") + c.num + " · " + c.name + "</div>" +
+      rows.map((k) => '<div class="tip-row">' + k[0] + "<b>" + k[1] + "</b></div>").join("");
+    tip.classList.add("show");
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let left = cx + 14, top = cy - h - 12;
+    if (left + w > innerWidth - 8) left = cx - w - 14;
+    if (top < 8) top = cy + 14;
+    tip.style.left = Math.max(8, left) + "px";
+    tip.style.top = top + "px";
+  }
+  function hide() { tip.classList.remove("show"); S.querySelectorAll(".ring").forEach((n) => n.remove()); }
+
+  function swatchSvg(c, qps) {
+    const s = document.createElementNS(NS, "svg");
+    s.setAttribute("viewBox", "0 0 26 12");
+    el("line", { x1: 1, x2: 25, y1: 6, y2: 6, class: qps ? "s-qps" : "s-line", style: "stroke:" + c.color }, s);
+    marker(s, c.marker, 13, 6, qps ? 3.2 : 4, qps ? { class: "s-hollow", style: "stroke:" + c.color }
+      : { class: "s-dot", style: "fill:" + c.color });
+    s.setAttribute("width", 26); s.setAttribute("height", 12);
+    return s.outerHTML;
+  }
+
+  function draw() {
+    S.replaceChildren();
+    narrow = S.getBoundingClientRect().width < 520;
+    const W = narrow ? 420 : 736, H = narrow ? 360 : 380;
+    S.setAttribute("viewBox", "0 0 " + W + " " + H);
+    const rows = D.isl[ISL[cur]];
+    const vis = rows.filter((r) => !hidden.has(r.cfg));
+    const xs = nice(Math.max(110, ...rows.map((r) => r.user)) * 1.04);
+    const ys = nice(Math.max(...rows.map((r) => r.gpu)) * 1.05);
+    const X0 = narrow ? 44 : 52, X1 = W - 12, T = 22, B = H - 46;
+    const X = (v) => X0 + v / xs.max * (X1 - X0), Y = (v) => B - v / ys.max * (B - T);
+    S.setAttribute("aria-label", "Output tok/s per GPU vs tok/s per user at " + ISL[cur] +
+      " input for " + D.configs.length + " P/D configurations.");
+
+    el("rect", { x: X(40), y: T, width: X(100) - X(40), height: B - T, class: "band" }, S);
+    text(S, (X(40) + X(100)) / 2, T + 14, "target 40–100", "t-faint", { "text-anchor": "middle", "font-size": 12 });
+    for (const v of ys.ticks) {
+      el("line", { x1: X0, x2: X1, y1: Y(v), y2: Y(v), class: "m-rule" }, S);
+      text(S, X0 - 8, Y(v) + 4.5, String(v), "t-faint", { "text-anchor": "end" });
+    }
+    text(S, X0 - 8, T - 10, "out tok/s/GPU", "t-mut", { "text-anchor": "start", x: 0 });
+    for (const v of narrow ? xs.ticks.filter((_, i) => i % 2 === 0) : xs.ticks) {
+      el("line", { x1: X(v), x2: X(v), y1: B, y2: B + 5, class: "m-line" }, S);
+      text(S, X(v), B + 20, String(v), "t-faint", { "text-anchor": "middle" });
+    }
+    text(S, X1, B + 38, "tok/s per user (1000 / TPOT p50)", "t-mut", { "text-anchor": "end" });
+
+    const hits = [];
+    for (const c of D.configs) {
+      const g = el("g", { class: "series" + (hidden.has(c.id) ? " off" : ""), "data-cfg": c.id }, S);
+      for (const mode of ["qps", "conc"]) {
+        const p = rows.filter((r) => r.cfg === c.id && r.mode === mode);
+        if (!p.length) continue;
+        const d = p.map((r, i) => (i ? "L" : "M") + X(r.user).toFixed(1) + " " + Y(r.gpu).toFixed(1)).join("");
+        el("path", { d, class: mode === "conc" ? "s-line" : "s-qps", stroke: c.color,
+          "stroke-dasharray": mode === "conc" && !c.id.includes("spec") ? "6 4" : null }, g);
+        for (const r of p) {
+          marker(g, c.marker, X(r.user), Y(r.gpu), mode === "conc" ? 4.2 : 3.4,
+            mode === "conc" ? { class: "s-dot", fill: c.color } : { class: "s-hollow", stroke: c.color });
+          if (mode === "conc" && D.label_c.includes(r.c) && !narrow)
+            text(g, X(r.user) + 6, Y(r.gpu) - 6, "c" + r.c, "t-clab");
+          if (!hidden.has(c.id)) hits.push(r);
+        }
+      }
+    }
+    for (const r of hits) {
+      const c = CFG[r.cfg], lvl = r.mode === "conc" ? "concurrency " + r.c : r.rate + " req/s";
+      const hit = el("circle", { cx: X(r.user), cy: Y(r.gpu), r: 9, class: "hit", tabindex: "0", role: "img",
+        "aria-label": c.name + ", " + lvl + ": " + f1(r.gpu) + " tok/s/GPU at " + f1(r.user) + " tok/s/user" }, S);
+      const on = (cx, cy) => { hide(); el("circle", { cx: X(r.user), cy: Y(r.gpu), r: 8, class: "ring" }, S); show(r, cx, cy); };
+      hit.addEventListener("mouseenter", (e) => on(e.clientX, e.clientY));
+      hit.addEventListener("mousemove", (e) => show(r, e.clientX, e.clientY));
+      hit.addEventListener("focus", () => { const b = hit.getBoundingClientRect(); on(b.left + b.width / 2, b.top); });
+      hit.addEventListener("mouseleave", hide);
+      hit.addEventListener("blur", hide);
+    }
+    if (!vis.length) text(S, (X0 + X1) / 2, (T + B) / 2, "All configurations hidden", "t-mut", { "text-anchor": "middle" });
+  }
+
+  function legend() {
+    const L = $("legend");
+    L.innerHTML = "";
+    for (const c of D.configs) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(!hidden.has(c.id)));
+      b.innerHTML = swatchSvg(c, false) + c.num + " · " + c.name;
+      b.onclick = () => {
+        hidden.has(c.id) ? hidden.delete(c.id) : hidden.add(c.id);
+        b.setAttribute("aria-pressed", String(!hidden.has(c.id)));
+        hide(); draw();
+      };
+      L.appendChild(b);
+    }
+    const q = document.createElement("span");
+    q.innerHTML = swatchSvg({ color: "var(--muted)", marker: "o" }, true) + "QPS sweep";
+    L.appendChild(q);
+    const band = document.createElement("span");
+    band.innerHTML = '<i class="band"></i>Target 40–100 tok/s/user';
+    L.appendChild(band);
+  }
+
+  const tabs = ISL.map((k, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "tab-" + k; b.textContent = k + " in";
+    b.setAttribute("role", "tab"); b.setAttribute("aria-controls", "panel");
+    b.onclick = () => select(i);
+    $("tabs").appendChild(b);
+    return b;
+  });
+  $("tabs").addEventListener("keydown", (e) => {
+    const n = ISL.length, k = { ArrowRight: cur + 1, ArrowLeft: cur - 1, Home: 0, End: n - 1 }[e.key];
+    if (k == null) return;
+    e.preventDefault();
+    select((k + n) % n, true);
+  });
+  function select(k, focus) {
+    cur = k;
+    tabs.forEach((b, j) => { b.setAttribute("aria-selected", j === k); b.tabIndex = j === k ? 0 : -1; });
+    if (focus) tabs[k].focus();
+    $("sub").innerHTML = "<b>Input " + ISL[k] + " tokens, output 1k.</b> Output tok/s per GPU (8 GPUs) vs tok/s per user. Up and right is better.";
+    $("panel").setAttribute("aria-labelledby", tabs[k].id);
+    hide(); draw();
+  }
+
+  // ?isl=32k opens a given tab, for screenshots and deep links
+  const m = /[?&]isl=(\w+)/.exec(location.search);
+  legend();
+  select(Math.max(0, ISL.indexOf(m && m[1])));
+  addEventListener("resize", () => { if ((S.getBoundingClientRect().width < 520) !== narrow) draw(); });
+  addEventListener("scroll", hide, { passive: true });
+
+  // embedding: report the content height to the parent post ('vllm-embed-resize'), as figkit.js does
+  (function reportHeight() {
+    if (window.self === window.top) return;
+    document.documentElement.style.overflow = "hidden";
+    let last = 0;
+    const report = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+    };
+    if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+    addEventListener("load", report);
+    addEventListener("resize", report);
+    setTimeout(report, 300); setTimeout(report, 1500);
+    report();
+  })();
+})();
+</script>
+</body>
+</html>
