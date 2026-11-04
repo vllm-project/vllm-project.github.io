@@ -6,14 +6,74 @@ summary: "How vLLM migrated its CUDA build and compiled dependencies to the LibT
 image: /assets/figures/2026-11-03-stable-abi-cuda/libtorch_stable.png
 ---
 
+<style>
+.abi-story__row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(10.5rem, 0.7fr);
+  column-gap: 2rem;
+}
+.abi-story__copy { grid-column: 1; grid-row: 1; min-width: 0; padding-bottom: 1.5rem; }
+.abi-story__event { grid-column: 2; grid-row: 1; min-width: 0; border-left: 3px solid #6b7280; padding: 0 0 1.5rem 1rem; }
+.abi-story__copy > :first-child, .abi-story__event > :first-child { margin-top: 0; }
+.abi-story__copy > :last-child, .abi-story__event > :last-child { margin-bottom: 0; }
+.abi-story__row:last-child > * { padding-bottom: 0; }
+.abi-story__table { max-width: 100%; overflow-x: auto; }
+.abi-comparison-caption { clear: both; text-align: center; }
+img[alt="Unstable import"],
+img[alt="Unstable ABI diagram"],
+figure:has(> img[alt="Unstable import"]),
+figure:has(> img[alt="Unstable ABI diagram"]) {
+  float: left;
+  box-sizing: border-box;
+  width: 45%;
+  margin: 1rem 2% 1rem 3%;
+  vertical-align: top;
+}
+img[alt="Stable import"],
+img[alt="Stable ABI diagram"],
+figure:has(> img[alt="Stable import"]),
+figure:has(> img[alt="Stable ABI diagram"]) {
+  float: left;
+  box-sizing: border-box;
+  width: 45%;
+  margin: 1rem 3% 1rem 2%;
+  vertical-align: top;
+}
+figure:has(> img[alt="Unstable import"]) > img,
+figure:has(> img[alt="Stable import"]) > img,
+figure:has(> img[alt="Unstable ABI diagram"]) > img,
+figure:has(> img[alt="Stable ABI diagram"]) > img {
+  float: none;
+  display: block;
+  width: 100% !important;
+  height: 250px !important;
+  margin: 0;
+  object-fit: contain;
+}
+figure:has(> img[alt="Unstable import"]) > figcaption,
+figure:has(> img[alt="Stable import"]) > figcaption,
+figure:has(> img[alt="Unstable ABI diagram"]) > figcaption,
+figure:has(> img[alt="Stable ABI diagram"]) > figcaption {
+  display: none;
+}
+.abi-audit-output { overflow-x: auto; }
+.abi-audit-stable { background-color: #4e7fc0; color: #0f172a; }
+.abi-audit-unstable { background-color: #e74d50; color: #0f172a; }
+@media (max-width: 48rem) {
+  .abi-story__row { grid-template-columns: minmax(0, 1fr); }
+  .abi-story__copy { padding-bottom: 0; }
+  .abi-story__event { grid-column: 1; grid-row: 2; margin-bottom: 1.5rem; }
+}
+</style>
+
 ### Introduction
 
 vLLM relies heavily on PyTorch, with frequent calls to LibTorch in its C++ backend. As a result, changes to LibTorch’s binary interface may require vLLM to be rebuilt and relinked, even when the APIs remain unchanged. What if we could update LibTorch without rebuilding vLLM? That’s where the LibTorch Stable ABI comes in. With a LibTorch Stable ABI, updating LibTorch does not require rebuilding or updating vLLM in order to keep using it. Instead, we could swap out the torch wheel and import it directly into our vLLM package. As of v0.33.0, vLLM publishes LibTorch ABI Stable CUDA wheels.  
 
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_import.png" alt="Unstable import" style="width: 49%; height: 250px;">
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/stable_import.png" alt="Stable import" style="width: 49%; height: 250px;">
+<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_import.png" alt="Unstable import" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-03-stable-abi-cuda/stable_import.png" alt="Stable import" style="width: 45%; height: 250px;">
 
-<p style="text-align: center;"><strong>Left:</strong> <em>Unstable ABI—new torch requires vLLM to rebuild. <strong>Right:</strong> Stable ABI—vLLM can import new torch directly.</em></p>
+<p class="abi-comparison-caption"><strong>Left:</strong> <em>Unstable ABI—new torch requires vLLM to rebuild. <strong>Right:</strong> Stable ABI—vLLM can import new torch directly.</em></p>
 
 ### What Is the LibTorch Stable ABI?
 An application binary interface (ABI) defines how compiled code interacts with a library: how functions are called, data is laid out, and symbols are named. Even if an API looks the same in source code, an ABI change can force extensions to rebuild. A stable ABI preserves a supported set of interfaces across compatible versions, so extensions that use them can keep working without a rebuild.
@@ -29,10 +89,10 @@ PyTorch's LibTorch Stable ABI has three layers: a stable C-shim exposing selecte
 ### Why Stable ABI Matters
 Before the Stable ABI, a new PyTorch release could require a vLLM rebuild, delaying support for the new version and its features. With the Stable ABI, the same vLLM wheel can work across compatible PyTorch releases, letting users upgrade sooner and reducing rebuilds for package distributors.
 
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_vllm.png" alt="Unstable ABI diagram" style="width: 49%; height: 250px;">
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/stable_vllm.png" alt="Stable ABI diagram" style="width: 49%; height: 250px;">
+<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_vllm.png" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-03-stable-abi-cuda/stable_vllm.png" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
 
-<p style="text-align: center;"><em><strong>Left:</strong> vLLM needs to change as LibTorch changes. <strong>Right:</strong> vLLM can change independent of LibTorch.</em></p>
+<p class="abi-comparison-caption"><em><strong>Left:</strong> vLLM needs to change as LibTorch changes. <strong>Right:</strong> vLLM can change independent of LibTorch.</em></p>
 
 
 ### Tradeoffs
@@ -58,29 +118,6 @@ std::array<StableIValue, 2> is_pinned_stack{
 PyTorch added a stable `is_pinned()` method in version 2.14.
 
 The second tradeoff is a small runtime overhead. Dispatching calls through `TORCH_LIBRARY` adds a few microseconds and adding the boxing and unboxing of  `StableIValue` values adds a few more nanoseconds to this. This overhead is usually negligible relative to execution time, and becomes significant only in rare cases of frequently launching very short-running kernels without optimizations such as CUDA graphs. We saw no noticeable runtime regression during the migration.
-
-
-<style>
-.abi-story__row {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(10.5rem, 0.7fr);
-  column-gap: 2rem;
-}
-.abi-story__copy { grid-column: 1; grid-row: 1; min-width: 0; padding-bottom: 1.5rem; }
-.abi-story__event { grid-column: 2; grid-row: 1; min-width: 0; border-left: 3px solid #6b7280; padding: 0 0 1.5rem 1rem; }
-.abi-story__copy > :first-child, .abi-story__event > :first-child { margin-top: 0; }
-.abi-story__copy > :last-child, .abi-story__event > :last-child { margin-bottom: 0; }
-.abi-story__row:last-child > * { padding-bottom: 0; }
-.abi-story__table { max-width: 100%; overflow-x: auto; }
-.abi-audit-output { overflow-x: auto; }
-.abi-audit-stable { background-color: #4e7fc0; color: #0f172a; }
-.abi-audit-unstable { background-color: #e74d50; color: #0f172a; }
-@media (max-width: 48rem) {
-  .abi-story__row { grid-template-columns: minmax(0, 1fr); }
-  .abi-story__copy { padding-bottom: 0; }
-  .abi-story__event { grid-column: 1; grid-row: 2; margin-bottom: 1.5rem; }
-}
-</style>
 
 <div class="abi-story">
 <div class="abi-story__row">
