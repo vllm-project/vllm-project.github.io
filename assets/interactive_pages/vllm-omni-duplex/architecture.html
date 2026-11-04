@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inside a unified duplex session | vLLM-Omni</title>
+<link rel="stylesheet" href="figure.css">
+<style>svg text { font-size: 18px; } svg .label { font-size: 20px; } svg .small, svg .meta, svg .edge-label { font-size: 17px; }</style>
+</head>
+<body>
+<main>
+  <div class="kicker">vLLM-Omni · unified duplex framework</div>
+  <header class="head"><div><h1>Inside a live duplex session</h1><p class="sub">Follow input, session coordination, model execution, and the return path.</p></div><a href="architecture.html" target="_blank" rel="noopener">Open separately ↗</a></header>
+  <div class="scroll" tabindex="0" role="region" aria-label="Architecture diagram; scroll horizontally on narrow screens">
+  <svg viewBox="0 0 960 566" role="group" aria-labelledby="diagram-title diagram-desc">
+    <title id="diagram-title">Unified duplex serving architecture</title>
+    <desc id="diagram-desc">Input passes from the user client through API Server and EngineClient into the Duplex Orchestrator. The orchestrator coordinates session state and model stages. Ordinary output returns through a bounded per-session buffer, the session handle, and the API. Select a component to learn more.</desc>
+    <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z" fill="context-stroke"/></marker></defs>
+    <g class="node" id="client" data-step="0" aria-label="User client: input and playback">
+      <rect x="36" y="14" width="230" height="68" rx="4"/><text x="51" y="41" class="label">User client</text><text x="51" y="63">Audio · video · playback</text>
+    </g>
+    <text x="307" y="36" class="meta">REALTIME MESSAGES + DUPLEX EXTENSIONS</text>
+    <text x="307" y="61">/v1/realtime?duplex=1  ·  /v1/duplex</text>
+    <rect class="boundary" x="16" y="105" width="928" height="313" rx="5"/>
+    <text x="304" y="127" class="meta">FRONTEND PROCESS</text>
+    <g class="node" id="api" data-step="0" aria-label="API Server: protocol and connection">
+      <rect x="36" y="148" width="230" height="108" rx="4"/>
+      <text x="51" y="176" class="label">API Server</text><text x="51" y="204">WebSocket I/O</text><text x="51" y="229">Connection + replay</text>
+    </g>
+    <g class="node" id="engine" data-step="1" aria-label="EngineClient: session handles, lifecycle, commands and events">
+      <rect x="304" y="148" width="230" height="108" rx="4"/>
+      <text x="319" y="176" class="label">EngineClient</text><text x="319" y="204">Session handles</text><text x="319" y="229">Commands + events</text>
+    </g>
+    <rect class="boundary" x="574" y="132" width="350" height="266" rx="4"/>
+    <text x="590" y="156" class="label">Duplex Orchestrator</text>
+    <text x="590" y="179" class="small">Dedicated thread and event loop</text>
+    <g class="node" id="manager" data-step="2" aria-label="SessionManager: admission, dispatch and leases">
+      <rect x="590" y="190" width="318" height="48" rx="3"/><text x="602" y="210" class="label">SessionManager</text><text x="602" y="232" class="small">Admission · dispatch · leases</text>
+    </g>
+    <g class="node" id="runner" data-step="2" aria-label="SessionRunner and DuplexEngineSession: ordered work and session state">
+      <rect x="590" y="247" width="318" height="67" rx="3"/><text x="602" y="269" class="label">SessionRunner</text><text x="602" y="294">DuplexEngineSession</text>
+    </g>
+    <g class="node" id="plugin" data-step="3" aria-label="Model plugin: capabilities, inputs, state and output interpretation">
+      <rect x="590" y="323" width="318" height="57" rx="3"/><text x="602" y="345" class="label">Model plugin</text><text x="602" y="368">Input and output rules</text>
+    </g>
+    <g class="node" id="buffer" data-step="6" aria-label="Bounded per-session output buffer: session events to handle.events">
+      <rect x="36" y="303" width="498" height="82" rx="4"/><text x="51" y="330" class="label">Per-session output buffer</text><text x="51" y="352">Manager → handle → API</text><text x="51" y="375" class="small">Bounded delivery of text and audio</text>
+    </g>
+    <g marker-end="url(#arrow)">
+      <path id="input" class="edge" d="M85 82V148"/>
+      <path id="handle" class="edge" d="M266 183H304"/>
+      <path id="command" class="edge" d="M534 208H590"/>
+      <path id="dispatch" class="edge" d="M748 398V449"/>
+      <path id="stage-output" class="edge" d="M800 449V398"/>
+      <path id="emit" class="edge" d="M590 224H558V345H534"/>
+      <path id="events" class="edge" d="M420 303V256"/>
+      <path id="wire-output" class="edge" d="M304 227H266"/>
+      <path id="playback" class="edge" d="M225 148V82"/>
+    </g>
+    <text x="37" y="284" class="small">Input and output are handled independently.</text>
+    <rect class="tag" x="453" y="425" width="265" height="20"/><text x="465" y="439" class="edge-label">Stage requests / outputs</text>
+    <rect class="boundary" x="16" y="450" width="928" height="100" rx="5"/>
+    <text x="36" y="471" class="meta">MODEL EXECUTION · STAGE ENGINES AND WORKERS</text>
+    <g class="node" id="stages" data-step="4" aria-label="Stage execution: stage engines schedule model work in execution processes">
+      <rect x="36" y="485" width="266" height="47" rx="3"/><text x="50" y="514">Stage 0</text>
+      <rect x="353" y="485" width="266" height="47" rx="3"/><text x="367" y="514">Stage 1</text>
+      <rect x="670" y="485" width="254" height="47" rx="3"/><text x="684" y="514">Stage N</text>
+    </g>
+    <path id="stage-01" class="edge" d="M302 509H351" marker-end="url(#arrow)"/>
+    <path id="stage-1n" class="edge" d="M619 509H668" marker-end="url(#arrow)"/>
+  </svg>
+  </div>
+  <p class="hint">Scroll the diagram horizontally on a narrow screen, or open it separately.</p>
+  <div id="player" aria-label="Architecture walkthrough"></div>
+  <div class="legend"><span></span>Gold marks the current step. Click a component or use the step controls.</div>
+  <p class="note">Input and output can overlap. The model profile determines the stage layout.</p>
+  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/fullduplex.md" target="_blank" rel="noopener">Framework design ↗</a></p>
+  <noscript><p>The walkthrough needs JavaScript. The full architecture is shown above and is also available as a static diagram.</p></noscript>
+</main>
+<script src="player.js"></script>
+<script>
+"use strict";
+const steps = [
+  {label: "Input", title: "1 · Keep the connection open", nodes: ["client", "api"], edges: ["input"],
+   text: "The API Server receives and validates streaming audio, video, and control messages. It translates model-facing operations into session commands while retaining responsibility for the WebSocket connection."},
+  {label: "Handle", title: "2 · Connect the application to a session", nodes: ["api", "engine"], edges: ["handle"],
+   text: "EngineClient exposes a session handle, coordinates open, close, and resume operations, submits commands, and delivers events. It connects the application to the session runtime."},
+  {label: "Coordinate", title: "3 · Order work and advance session state", nodes: ["engine", "manager", "runner"], edges: ["command"],
+   text: "SessionManager admits sessions and dispatches their work. Each SessionRunner consumes an ordered mailbox of commands and stage outputs. DuplexEngineSession tracks turns, responses, epochs, request resources, and playback progress."},
+  {label: "Adapt", title: "4 · Apply the model's execution rules", nodes: ["runner", "plugin"], edges: [],
+   text: "The model plugin declares capabilities, prepares model inputs and generation settings, supplies model-specific state, and interprets outputs. For MiniCPM, LISTEN is a session decision; it must not become text sent to speech synthesis."},
+  {label: "Execute", title: "5 · Schedule computation on model stages", nodes: ["runner", "stages"], edges: ["dispatch", "stage-01", "stage-1n"],
+   text: "The runtime submits work through the stage machinery. Stage engines and workers encode inputs, run generation, and synthesize audio. The pipeline and retained computation state depend on the selected model."},
+  {label: "Interpret", title: "6 · Turn stage outputs into session events", nodes: ["stages", "runner", "plugin"], edges: ["stage-output"],
+   text: "Stage outputs return to session coordination. Model-specific decisions and outputs are interpreted before the runtime advances response state, continues supported model work, or emits text and audio events."},
+  {label: "Deliver", title: "7 · Deliver output through the session's own buffer", nodes: ["manager", "buffer", "engine", "api", "client"], edges: ["emit", "events", "wire-output", "playback"],
+   text: "Session events go into a bounded per-session buffer shared with handle._outbox. handle.events() consumes them and the API sends them to the client. Exceeding the output limit fails the affected response and closes that session. The client must open a new session to continue."}
+];
+const player = createDuplexPlayer({steps,
+  overview: {title: "One session, clear responsibilities", text: "Communication belongs to the API Server; handles and routing to EngineClient; session coordination to the Duplex Orchestrator; model computation to the stages. In local serving, the API and orchestrator share a frontend process, with separate event loops.", nodes: [], edges: []},
+  render(step) { highlightDiagram(document.querySelector("svg"), step); }
+});
+bindDiagramSteps(document.querySelector("svg"), player);
+</script>
+</body>
+</html>
