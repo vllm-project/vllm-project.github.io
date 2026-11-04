@@ -19,6 +19,8 @@ image: /assets/figures/2026-11-03-stable-abi-cuda/libtorch_stable.png
 .abi-story__row:last-child > * { padding-bottom: 0; }
 .abi-story__table { max-width: 100%; overflow-x: auto; }
 .abi-comparison-caption { clear: both; text-align: center; }
+.abi-comparison-caption,
+.abi-image-caption { margin-top: 0.25rem !important; }
 img[alt="Unstable import"],
 img[alt="Unstable ABI diagram"],
 figure:has(> img[alt="Unstable import"]),
@@ -26,7 +28,7 @@ figure:has(> img[alt="Unstable ABI diagram"]) {
   float: left;
   box-sizing: border-box;
   width: 45%;
-  margin: 1rem 2% 1rem 3%;
+  margin: 1rem 2% 0 3%;
   vertical-align: top;
 }
 img[alt="Stable import"],
@@ -36,7 +38,7 @@ figure:has(> img[alt="Stable ABI diagram"]) {
   float: left;
   box-sizing: border-box;
   width: 45%;
-  margin: 1rem 3% 1rem 2%;
+  margin: 1rem 3% 0 2%;
   vertical-align: top;
 }
 figure:has(> img[alt="Unstable import"]) > img,
@@ -66,8 +68,16 @@ figure:has(> img[alt="Unstable import"]) > figcaption,
 figure:has(> img[alt="Stable import"]) > figcaption,
 figure:has(> img[alt="Unstable ABI diagram"]) > figcaption,
 figure:has(> img[alt="Stable ABI diagram"]) > figcaption,
-figure:has(> img[alt="LibTorch Stable"]) > figcaption {
+figure:has(> img[alt="LibTorch Stable"]) > figcaption,
+figure:has(> img[alt="vLLM migration from the unstable library to the stable library"]) > figcaption {
   display: none;
+}
+img[alt="vLLM migration from the unstable library to the stable library"] {
+  display: block;
+  margin-bottom: 0;
+}
+figure:has(> img[alt="vLLM migration from the unstable library to the stable library"]) {
+  margin-bottom: 0 !important;
 }
 .abi-audit-output { overflow-x: auto; }
 .abi-audit-stable { background-color: #4e7fc0; color: #0f172a; }
@@ -163,7 +173,7 @@ The second tradeoff is a small runtime overhead. Dispatching calls through `TORC
 
 <img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_to_stable_library.png" alt="vLLM migration from the unstable library to the stable library" style="width: 100%; height: auto;">
 
-<p style="text-align: center;"><em>As the stable library grows, the unstable library shrinks then disappears.</em></p>
+<p class="abi-image-caption" style="text-align: center;"><em>As the stable library grows, the unstable library shrinks then disappears.</em></p>
 </div>
 <div class="abi-story__event">
 <p><strong>December 29, 2025</strong><br>First migration PR opened: <a href="https://github.com/vllm-project/vllm/pull/31509">PR #31509</a></p>
