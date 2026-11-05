@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kimi K3.1 Pro token-sharded prefill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── figkit tokens (Inferact blog-figures kit) ───────────────────────── */
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f7f5f2;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e6e1da; --line: #8f8a84;
+  --blue-line: #4d7ba6; --gold-line: #b5873a; --green-line: #6a8a5e; --stone-line: #9a958f;
+  --blue-text: #3e6890; --gold-text: #8a6420; --green-text: #4f6b45;
+  --ease: cubic-bezier(.4, 0, .2, 1); --dur: 520ms;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+    --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+  --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+}
+:root {
+  --blue-t: color-mix(in srgb, var(--blue-line) 13%, var(--bg));
+  --blue-ts: color-mix(in srgb, var(--blue-line) 50%, var(--bg));
+  --blue-m: color-mix(in srgb, var(--blue-line) 30%, var(--bg));
+  --blue-ms: var(--blue-line);
+  --gold-t: color-mix(in srgb, var(--gold-line) 14%, var(--bg));
+  --gold-ts: color-mix(in srgb, var(--gold-line) 50%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 34%, var(--bg));
+  --gold-ms: var(--gold-line);
+  --green-t: color-mix(in srgb, var(--green-line) 15%, var(--bg));
+  --green-ts: color-mix(in srgb, var(--green-line) 55%, var(--bg));
+  --green-m: color-mix(in srgb, var(--green-line) 32%, var(--bg));
+  --green-ms: var(--green-line);
+  --slate-t: color-mix(in srgb, var(--stone-line) 11%, var(--bg));
+  --slate: color-mix(in srgb, var(--stone-line) 60%, var(--bg));
+  --hatch-bg: var(--bg);
+  --hatch-line: color-mix(in srgb, var(--stone-line) 30%, var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+    --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+    --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+    --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+  }
+}
+:root[data-theme="dark"] {
+  --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+  --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+  --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { background: var(--bg); scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+.page { padding: 28px 16px 56px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig + .fig { margin-top: 64px; }
+
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-lab { font-size: 13px; fill: var(--ink); }
+.t-lab-b { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-head { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted) !important; }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-blue { font-size: 13px; fill: var(--blue-text); font-weight: 500; }
+.t-gold { font-size: 13px; fill: var(--gold-text); font-weight: 600; }
+.t-green { font-size: 13px; fill: var(--green-text); font-weight: 600; }
+.t-mono { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; }
+
+.fig-stage rect { rx: 0; ry: 0; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage polyline { stroke-width: var(--hair); }
+.m-global { fill: var(--blue-t); stroke: var(--blue-ts); }
+.m-global-new { fill: var(--blue-m); stroke: var(--blue-ms); }
+.m-accent { fill: var(--gold-m); stroke: var(--gold-ms); }
+.m-green { fill: var(--green-t); stroke: var(--green-ts); }
+.m-green-strong { fill: var(--green-m); stroke: var(--green-ms); }
+.m-computed { fill: var(--slate-t); stroke: var(--slate); }
+.m-skipped { fill: url(#fk-hatch); stroke: var(--rule); }
+.m-empty { fill: var(--bg); stroke: var(--slate); stroke-dasharray: 3 2; }
+.m-focus { fill: none; stroke: var(--gold-ms); stroke-width: 2 !important; }
+.m-rule { stroke: var(--rule); fill: none; }
+.m-line { stroke: var(--line); fill: none; }
+.m-path { stroke: var(--gold-ms); fill: none; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage text, .fig-stage g {
+  transition: opacity var(--dur) var(--ease), fill var(--dur) var(--ease), stroke var(--dur) var(--ease);
+}
+
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend i { width: 14px; height: 10px; border: var(--hair) solid; display: inline-block; }
+.fig-legend i.m-global { background: var(--blue-t); border-color: var(--blue-ts); }
+.fig-legend i.m-accent { background: var(--gold-m); border-color: var(--gold-ms); }
+.fig-legend i.m-green { background: var(--green-t); border-color: var(--green-ts); }
+.fig-legend i.m-computed { background: var(--slate-t); border-color: var(--slate); }
+.fig-legend i.m-skipped { border-color: var(--rule); background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--hatch-line) 3px 4.5px); }
+.fig-legend i.ref-line { width: 18px; height: 0; border: 0; border-top: var(--hair) dashed var(--ink); }
+
+.fig-player { background: var(--card); border: var(--hair) solid var(--rule); padding: 14px 16px 16px; margin-top: 14px; }
+.fig-controls { display: flex; align-items: center; gap: 6px; }
+.fig-btn {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0;
+  height: 28px; min-width: 28px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+}
+.fig-btn:hover { border-color: var(--line); }
+.fig-btn:focus-visible, .fig-pill:focus-visible, .fig-pglabel:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-btn svg { width: 10px; height: 10px; fill: currentColor; }
+.fig-btn.play { min-width: 84px; }
+.fig-pills { display: flex; gap: 4px; flex: 1; min-width: 0; margin-left: 8px; }
+.fig-pills.grouped { gap: 12px; }
+.fig-pgroup { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.fig-pglabel { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint);
+  background: none; border: 0; padding: 0; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pgroup.on .fig-pglabel { color: var(--ink); }
+.fig-pgpills { display: flex; gap: 4px; }
+.fig-pill { flex: 1; min-width: 0; position: relative; height: 28px; border: 0; padding: 0; background: none; cursor: pointer;
+  font: 500 12.5px/1 var(--font); color: var(--muted); text-align: left; }
+.fig-pills.grouped .fig-pill { height: 10px; }
+.fig-pills.grouped .fig-pill .lbl { display: none; }
+.fig-pill::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--rule); }
+.fig-pill .fill { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--gold-line); }
+.fig-pill.done .fill { width: 100%; }
+.fig-pill .lbl { position: absolute; left: 0; right: 2px; top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pill.on .lbl { color: var(--ink); font-weight: 600; }
+.fig-count { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; color: var(--muted); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.fig-explain { margin-top: 14px; min-height: 66px; }
+.fig-explain h3 { font-size: 15px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.005em; }
+.fig-explain p { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+.fig-explain b { color: var(--ink); font-weight: 600; }
+.fig-explain .gold { color: var(--gold-text); font-weight: 600; }
+.fig-explain code { font-family: var(--mono); font-size: 12.5px; }
+
+.fig-seg { display: flex; border: var(--hair) solid var(--rule); }
+.fig-seg button { flex: 1; font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 30px; padding: 0 8px; cursor: pointer; white-space: nowrap; }
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none; }
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.stage-scroll { overflow-x: auto; }
+@media (max-width: 660px) { .stage-scroll .fig-stage { min-width: 620px; } }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--muted); margin: 8px 0 0; }
+
+@media (max-width: 560px) {
+  .fig-pill .lbl { display: none; }
+  .fig-pill { height: 12px; }
+  .fig-explain { min-height: 88px; }
+  .fig-btn.play { min-width: 28px; }
+  .fig-btn.play .t { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; } }
+
+/* ── figure 2: GPU memory ──────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: var(--hair) solid var(--rule); border-bottom: var(--hair) solid var(--rule); margin: 0 0 16px; }
+.stats div { padding: 9px 8px 9px 0; min-width: 0; }
+.stats b { display: block; font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stats span { display: block; font: 500 11px/1.3 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.ctl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 18px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ctl-lab { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.ctl input[type="text"], .ctl input[type="number"] { font: 500 16px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0; height: 32px; padding: 0 10px; width: 100%; }
+.ctl input:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 1px; }
+.ctl input[aria-invalid="true"] { border-color: var(--gold-line); }
+.ctl small { font: 400 12px/1.3 var(--mono); color: var(--muted); min-height: 1.3em; }
+.ctl small.err { color: var(--gold-text); }
+.chk { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.chk input { accent-color: var(--green-line); width: 14px; height: 14px; margin: 0; }
+.mem-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.mem-head .t { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mem-head b { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hbar { position: relative; height: 28px; border: var(--hair) solid var(--rule); background: var(--bg); overflow: hidden; }
+.hbar i { position: absolute; top: 0; bottom: 0; transition: width var(--dur) var(--ease), left var(--dur) var(--ease); }
+.hbar .w { left: 0; background: var(--slate-t); box-shadow: inset 0 0 0 var(--hair) var(--slate); }
+.hbar .kv { background: var(--blue-t); box-shadow: inset 0 0 0 var(--hair) var(--blue-ts); }
+.hbar .ix { background: var(--green-t); box-shadow: inset 0 0 0 var(--hair) var(--green-ts); }
+.hbar .ov { left: 95%; width: 0; background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--line) 3px 4.5px); }
+.hbar .lim { left: 95%; width: 0; border-left: var(--hair) dashed var(--ink); }
+.mem-leg { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.mem-leg b { color: var(--ink); font-weight: 600; }
+.verdict { font-size: 14px; margin: 12px 0 18px; color: var(--muted); }
+.verdict b { color: var(--ink); font-weight: 600; }
+.cmp-head { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.cmp { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; font-size: 13px; }
+.cmp .nm { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.cmp .nm.cur { color: var(--gold-text); }
+.cmp .tr { height: 12px; position: relative; }
+.cmp .tr i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue-t); box-shadow: inset 0 0 0 var(--hair) var(--blue-ts); transition: width var(--dur) var(--ease); }
+.cmp .tr i.cur { background: var(--gold-m); box-shadow: inset 0 0 0 var(--hair) var(--gold-ms); }
+.cmp .v { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cmp .v b { color: var(--ink); font-weight: 600; }
+details.fig-note summary { cursor: pointer; }
+details.fig-note p { margin: 6px 0 0; }
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ctl-grid { grid-template-columns: 1fr; }
+}
+/* ── token-sharded prefill: one fill per GPU ───────────────────────── */
+.gp0 { fill: var(--blue-m); stroke: var(--blue-ms); }
+.gp1 { fill: var(--green-m); stroke: var(--green-ms); }
+.gp2 { fill: var(--gold-m); stroke: var(--gold-ms); }
+.gp3 { fill: var(--slate); stroke: var(--line); }
+.fig-legend i.gp0 { background: var(--blue-m); border-color: var(--blue-ms); }
+.fig-legend i.gp1 { background: var(--green-m); border-color: var(--green-ms); }
+.fig-legend i.gp2 { background: var(--gold-m); border-color: var(--gold-ms); }
+.fig-legend i.gp3 { background: var(--slate); border-color: var(--line); }
+
+</style>
+
+</head>
+<body>
+<main class="page">
+
+<div class="fig" id="fig-shardq">
+  <div class="fig-head">
+    <p class="fig-kicker">Figure 4 · Token-sharded prefill</p>
+    <h1 class="fig-title">Before and after: shard the attention by token, not by head</h1>
+    <p class="fig-sub">Toy example: 4 GPUs, 8 query heads, 16 prompt tokens. K3.1 Pro at TP8: 8 GPUs, 96 heads (12 per GPU). Not to scale.</p>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <div class="stage-scroll"><svg class="fig-stage" id="stage" viewBox="0 0 736 560" role="img" aria-label="Two rows of four GPU cards. Before: each GPU holds all tokens for two heads, repeats the indexer and pads the head tile. After an all-to-all: each GPU holds a balanced slice of the tokens with all heads, scores only its tokens and fills the tile."></svg></div>
+    <p class="fig-note">Method: sparse_mla_shard_q (on by default for prefill steps of at least 1,024 tokens). GPU r takes prompt pieces r and 2W − 1 − r. TTFT: 8× GB300, TP8, one request at a time.</p>
+  </div>
+  <div class="fig-legend">
+    <span><i class="gp0"></i>heads 0–1</span>
+    <span><i class="gp1"></i>heads 2–3</span>
+    <span><i class="gp2"></i>heads 4–5</span>
+    <span><i class="gp3"></i>heads 6–7</span>
+    <span><i class="m-skipped"></i>repeated or padded work</span>
+  </div>
+  <div id="player"></div>
+</div>
+
+</main>
+
+<script>
+/* ── FK: figkit helpers (inlined from the kit; embed resize removed) ───── */
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function svg(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) { if (attrs[k] == null) continue; n.setAttribute(k, attrs[k]); }
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, str, cls, attrs) {
+    const t = svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+    t.textContent = str; return t;
+  }
+  function defs(root) {
+    const d = svg("defs", {}, root);
+    const p = svg("pattern", { id: "fk-hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, d);
+    svg("rect", { width: 6, height: 6, style: "fill: var(--hatch-bg)" }, p);
+    svg("line", { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke: var(--hatch-line); stroke-width: 2" }, p);
+    const m = svg("marker", { id: "fk-arrow", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--line)" }, m);
+    const g = svg("marker", { id: "fk-arrow-gold", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--gold-ms)" }, g);
+    return d;
+  }
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  function tween(el, to, ms) {
+    ms = reduced() ? 0 : ms == null ? 520 : ms;
+    if (el._fkRaf) cancelAnimationFrame(el._fkRaf);
+    const from = {};
+    for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
+    return new Promise((res) => {
+      if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
+      const t0 = performance.now();
+      const tick = (now) => {
+        const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = ease(t);
+        for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
+        if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
+      };
+      el._fkRaf = requestAnimationFrame(tick);
+    });
+  }
+  const ICON_PLAY = '<svg viewBox="0 0 12 12"><path d="M2 1.2v9.6L10.4 6z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 12 12"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>';
+  const ICON_PREV = '<svg viewBox="0 0 12 12"><path d="M8.5 1.5 3.5 6l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const ICON_NEXT = '<svg viewBox="0 0 12 12"><path d="M3.5 1.5 8.5 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  function player(host, opts) {
+    const steps = opts.steps, n = steps.length;
+    const dwell = (i) => steps[i].ms || opts.ms || 4200;
+    host.classList.add("fig-player");
+    host.innerHTML =
+      '<div class="fig-controls">' +
+      '<button class="fig-btn play" type="button"></button>' +
+      '<button class="fig-btn prev" type="button" aria-label="Previous step">' + ICON_PREV + "</button>" +
+      '<button class="fig-btn next" type="button" aria-label="Next step">' + ICON_NEXT + "</button>" +
+      '<div class="fig-pills" role="tablist"></div><span class="fig-count"></span></div>' +
+      '<div class="fig-explain" aria-live="polite"><h3></h3><p></p></div>';
+    const $ = (s) => host.querySelector(s);
+    const grouped = steps.some((s) => s.group);
+    const groups = {};
+    if (grouped) $(".fig-pills").classList.add("grouped");
+    const pills = steps.map((s, i) => {
+      const b = document.createElement("button");
+      b.className = "fig-pill"; b.type = "button"; b.setAttribute("role", "tab");
+      b.setAttribute("aria-label", (s.group ? s.group + ", " : "") + "step " + (i + 1) + ": " + s.label);
+      b.innerHTML = '<span class="fill"></span><span class="lbl">' + s.label + "</span>";
+      b.onclick = () => { stop(); go(i); };
+      let parent = $(".fig-pills");
+      if (grouped) {
+        const key = s.group || "";
+        if (!groups[key]) {
+          const g = document.createElement("div");
+          g.className = "fig-pgroup";
+          g.innerHTML = '<button type="button" class="fig-pglabel"></button><div class="fig-pgpills"></div>';
+          g.querySelector(".fig-pglabel").textContent = key;
+          g.querySelector(".fig-pglabel").onclick = () => { stop(); go(i); };
+          $(".fig-pills").appendChild(g);
+          groups[key] = { el: g, n: 0 };
+        }
+        groups[key].n++;
+        groups[key].el.style.flex = String(groups[key].n);
+        parent = groups[key].el.querySelector(".fig-pgpills");
+      }
+      parent.appendChild(b);
+      return b;
+    });
+    let cur = -1, playing = false, timer = 0, started = false;
+    function setPlayBtn() {
+      $(".play").innerHTML = playing ? ICON_PAUSE + '<span class="t">Pause</span>'
+        : ICON_PLAY + '<span class="t">' + (cur === n - 1 ? "Replay" : "Play") + "</span>";
+      $(".play").setAttribute("aria-label", playing ? "Pause" : "Play");
+    }
+    function go(i) {
+      const prev = cur;
+      cur = (i + n) % n;
+      pills.forEach((p, k) => {
+        p.classList.toggle("on", k === cur); p.classList.toggle("done", k < cur);
+        p.setAttribute("aria-selected", k === cur);
+        const f = p.querySelector(".fill"); f.style.transition = "none"; f.style.width = k < cur ? "100%" : "0";
+      });
+      if (grouped) for (const k in groups) groups[k].el.classList.toggle("on", k === (steps[cur].group || ""));
+      $(".fig-explain h3").innerHTML = steps[cur].title;
+      $(".fig-explain p").innerHTML = steps[cur].text;
+      const pad = (k) => String(k).padStart(2, "0");
+      $(".fig-count").textContent = pad(cur + 1) + " / " + pad(n);
+      opts.render(cur, prev);
+      if (playing) schedule();
+      setPlayBtn();
+    }
+    function schedule() {
+      clearTimeout(timer);
+      const f = pills[cur].querySelector(".fill");
+      requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = "width " + dwell(cur) + "ms linear"; f.style.width = "100%"; }));
+      timer = setTimeout(() => {
+        if (cur === n - 1) { playing = false; setPlayBtn(); return; }
+        go(cur + 1);
+      }, dwell(cur));
+    }
+    function play() { playing = true; started = true; if (cur === n - 1) go(0); else { schedule(); setPlayBtn(); } }
+    function stop() {
+      playing = false; clearTimeout(timer);
+      const f = pills[cur] && pills[cur].querySelector(".fill");
+      if (f) { f.style.transition = "none"; f.style.width = "0"; }
+      setPlayBtn();
+    }
+    $(".play").onclick = () => (playing ? stop() : play());
+    $(".prev").onclick = () => { stop(); go(Math.max(0, cur - 1)); };
+    $(".next").onclick = () => { stop(); go(Math.min(n - 1, cur + 1)); };
+    host.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { stop(); go(Math.min(n - 1, cur + 1)); }
+      if (e.key === "ArrowLeft") { stop(); go(Math.max(0, cur - 1)); }
+    });
+    go(0);
+    const auto = opts.autoplay !== false && !reduced();
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((es) => {
+        const visible = es[0].isIntersecting;
+        if (visible && auto && !started) play();
+        if (!visible && playing) { stop(); started = false; }
+      }, { threshold: 0.5 }).observe(host.parentElement || host);
+    } else if (auto) play();
+    return { go, play, stop, get step() { return cur; } };
+  }
+  window.FK = { svg, text, defs, tween, player, reduced };
+})();
+
+/* text with _{sub} and ^{sup} */
+function TX(parent, x, y, s, cls, attrs) {
+  const t = FK.svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+  const re = /([_^])\{([^}]*)\}/g; let last = 0, m, shift = 0;
+  const add = (txt, dy, small) => { const ts = FK.svg("tspan", {}, t); ts.textContent = txt; if (dy) ts.setAttribute("dy", dy); if (small) ts.setAttribute("font-size", "0.75em"); };
+  while ((m = re.exec(s))) {
+    if (m.index > last) { add(s.slice(last, m.index), -shift, false); shift = 0; }
+    const d = m[1] === "_" ? 3.5 : -5; add(m[2], d - shift, true); shift = d; last = re.lastIndex;
+  }
+  if (last < s.length) add(s.slice(last), -shift, false);
+  return t;
+}
+
+/* ── Figure: token-sharded prefill, before (by head) vs after (by token) ── */
+(function () {
+  const S = document.getElementById("stage");
+  FK.defs(S);
+  const op = (el, v) => { el.style.opacity = v; };
+  const W = 4, H = 8, T = 16, P = 2 * W, PT = T / P, TILE = 8;
+  const own = (t) => { const p = Math.floor(t / PT); return p < W ? p : P - 1 - p; };
+  const GP = (g) => "gp" + g;
+  const keysOf = (g) => { let s = 0; for (let t = 0; t < T; t++) if (own(t) === g) s += t + 1; return s; };
+  const ALL = (T * (T + 1)) / 2;                     // causal attention work of the whole prompt
+  const span = (g) => { const a = 2 * g, b = 2 * (P - 1 - g); return a + "–" + (a + 1) + ", " + b + "–" + (b + 1); };
+
+  const CW = 170, GAP = (736 - W * CW) / (W - 1), CS = 9, CH = 196;
+  const cardX = (c) => c * (CW + GAP);
+  const ROWS = { before: 36, after: 276 };
+  const hl = {};                                     // highlight groups per metric
+  ["query", "indexer", "tile", "work"].forEach((k) => { hl[k] = []; hl[k + "Box"] = []; });
+
+  function card(row, c) {
+    const x = cardX(c), y = ROWS[row];
+    FK.svg("rect", { x, y, width: CW, height: CH, class: "m-rule" }, S);
+    FK.text(S, x + 8, y + 18, "GPU " + c, "t-lab-b");
+    const q = FK.text(S, x + 8, y + 34, row === "before" ? "16 tokens × 2 heads" : "4 tokens × 8 heads", "t-mut", { style: "font-size:12px" });
+    hl.query.push(q);
+    // indexer: the share of the prompt's causal work this GPU scores
+    const n = row === "before" ? ALL : keysOf(c);
+    FK.text(S, x + 8, y + 118, "indexer", "t-mut", { style: "font-size:12px" });
+    const iv = FK.text(S, x + CW - 8, y + 118, row === "before" ? "16 tokens" : "4 tokens", "t-lab", { "text-anchor": "end", style: "font-size:12px" });
+    FK.svg("rect", { x: x + 8, y: y + 124, width: CW - 16, height: 12, class: "m-rule" }, S);
+    const bw = ((CW - 16) * n) / ALL;
+    if (row === "before") {
+      FK.svg("rect", { x: x + 8, y: y + 124, width: (CW - 16) / W, height: 12, class: "m-green" }, S);
+      FK.svg("rect", { x: x + 8 + (CW - 16) / W, y: y + 124, width: ((CW - 16) * (W - 1)) / W, height: 12, class: "m-skipped" }, S);
+    } else FK.svg("rect", { x: x + 8, y: y + 124, width: bw, height: 12, class: "m-green" }, S);
+    hl.indexer.push(iv);
+    // head tile of the sparse MLA kernel
+    FK.text(S, x + 8, y + 156, "head tile", "t-mut", { style: "font-size:12px" });
+    const used = row === "before" ? 2 : TILE;
+    const tv = FK.text(S, x + CW - 8, y + 156, used + " of " + TILE + " used", "t-lab", { "text-anchor": "end", style: "font-size:12px" });
+    for (let k = 0; k < TILE; k++)
+      FK.svg("rect", { x: x + 8 + k * ((CW - 16) / TILE) + 1, y: y + 162, width: (CW - 16) / TILE - 2, height: 12,
+        class: k < used ? GP(row === "before" ? c : Math.floor(k / 2)) : "m-skipped" }, S);
+    hl.tile.push(tv);
+    // causal attention work (query heads x keys) that is useful
+    const wv = FK.text(S, x + CW - 8, y + 18, row === "before" ? "tokens 0–15" : "tokens " + span(c), "t-mut", { "text-anchor": "end", style: "font-size:12px" });
+    hl.work.push(wv);
+    const box = (k, by, bh) => hl[k + "Box"].push(FK.svg("rect", { x: x + 3, y: y + by, width: CW - 6, height: bh, class: "m-focus", opacity: 0 }, S));
+    box("query", 22, 88); box("indexer", 106, 36); box("tile", 142, 38); box("work", 3, 20);
+  }
+  FK.text(S, 0, ROWS.before - 12, "Before · split by head (TP)", "t-head");
+  FK.text(S, 0, ROWS.after - 12, "After · split by token (ShardQ)", "t-head");
+  for (let c = 0; c < W; c++) { card("before", c); card("after", c); }
+
+  // query cells: static in the "before" row; a copy flies into the "after" row
+  const posBefore = (h, t) => ({ x: cardX(Math.floor(h / 2)) + 8 + t * CS, y: ROWS.before + 64 + (h % 2) * CS });
+  const posAfter = (h, t) => {
+    const c = own(t), mine = [...Array(T).keys()].filter((u) => own(u) === c);
+    return { x: cardX(c) + (CW - 4 * CS) / 2 + mine.indexOf(t) * CS, y: ROWS.after + 37 + h * CS };
+  };
+  const moving = [];
+  for (let h = 0; h < H; h++) for (let t = 0; t < T; t++) {
+    const b = posBefore(h, t);
+    FK.svg("rect", { x: b.x, y: b.y, width: CS - 1.5, height: CS - 1.5, class: GP(Math.floor(h / 2)) }, S);
+    moving.push({ h, t, el: FK.svg("rect", { x: b.x, y: b.y, width: CS - 1.5, height: CS - 1.5, class: GP(Math.floor(h / 2)), opacity: 0 }, S) });
+  }
+
+  // comparison line at the bottom and the TTFT bars
+  const cmp = FK.text(S, 0, 500, "", "t-lab-b");
+  const cmp2 = FK.text(S, 0, 520, "", "t-mut");
+  const ttft = FK.svg("g", {}, S);
+  const TT = [["27K", 0.821, 0.705], ["108K", 3.722, 2.893], ["340K", 15.89, 9.421]];
+  TT.forEach(([lab, b, a], k) => {
+    const x0 = 130 + k * 205, maxW = 170;
+    FK.text(ttft, x0, 492, lab + " tokens", "t-mut", { style: "font-size:12px" });
+    FK.svg("rect", { x: x0, y: 500, width: maxW, height: 10, class: "m-skipped" }, ttft);
+    FK.svg("rect", { x: x0, y: 514, width: (maxW * a) / b, height: 10, class: "m-green" }, ttft);
+    FK.text(ttft, x0, 542, b.toFixed(2) + " → " + a.toFixed(2) + " s · " + (b / a).toFixed(2) + "×", "t-lab", { style: "font-size:12px" });
+  });
+  FK.text(ttft, 0, 509, "TTFT, by head", "t-mut", { style: "font-size:12px" });
+  FK.text(ttft, 0, 523, "TTFT, by token", "t-lab-b", { style: "font-size:12px" });
+
+  const steps = [
+    { label: "Before",
+      title: "Before: each GPU owns a slice of the heads",
+      text: "Under TP each GPU holds the query of <b>every token</b> for <b>2 of 8 heads</b> (12 of 96 in K3.1 Pro), and the MLA latent cache is shared by all heads." },
+    { label: "All-to-all", ms: 5200,
+      title: "After: one all-to-all trades heads for tokens",
+      text: "Each GPU sends its heads of other GPUs' tokens and receives every head of its own tokens: <b>4 tokens × all 8 heads</b>. A second all-to-all returns the output. The KV cache is already on every GPU, so nothing else moves." },
+    { label: "Indexer", ms: 5000,
+      title: "The indexer stops repeating itself",
+      text: "The indexer is not split by head, so before, <b>every GPU's indexer scores all 16 tokens</b>: the same work on every GPU, 4× in total (8× at TP8). After, each GPU scores only its own 4 tokens, and every token is scored once." },
+    { label: "Head tile", ms: 5000,
+      title: "The sparse MLA kernel runs a full head tile",
+      text: "Before, 2 heads per GPU are padded up to the kernel's tile; most of the tile is wasted. After, all 8 heads of a token fill it." },
+    { label: "Balance", ms: 5000,
+      title: "Every GPU gets the same causal work",
+      text: "A later token attends to more of the prompt, so handing GPU 3 the last quarter would give it the most work. Instead each GPU takes one early and one late piece: <b>GPU 0 gets tokens 0–1 and 14–15</b>, GPU 3 gets 6–7 and 8–9, and every GPU does the same amount of attention." },
+    { label: "Result", ms: 6000,
+      title: "Prefill gets faster as the prompt grows",
+      text: "On 8× GB300 with TP8, time to first token drops <b>1.16× at 27K tokens, 1.29× at 108K and 1.69× at 340K</b>: the longer the prompt, the more the repeated indexer and padded tiles cost." },
+  ];
+  const lines = [
+    ["", ""],
+    ["query per GPU: 16 tokens × 2 heads  →  4 tokens × 8 heads", ""],
+    ["tokens each GPU's indexer scores: 16  →  4", "every token is scored once instead of once per GPU"],
+    ["head tile used: 2 of 8  →  8 of 8", "attention slots computed per GPU: 1,088  →  272, all useful"],
+    ["each GPU: one early piece + one late piece", "so every GPU does the same attention work"],
+    ["", ""],
+  ];
+  const focus = [null, "query", "indexer", "tile", "work", null];
+
+  FK.player(document.getElementById("player"), {
+    steps, ms: 4600,
+    render(i) {
+      moving.forEach((m) => {
+        const p = i >= 1 ? posAfter(m.h, m.t) : posBefore(m.h, m.t);
+        op(m.el, i >= 1 ? 1 : 0);
+        FK.tween(m.el, { x: p.x, y: p.y }, i === 1 ? 1200 : 0);
+      });
+      ["query", "indexer", "tile", "work"].forEach((k) => {
+        hl[k].forEach((el) => el.setAttribute("class", k === focus[i] ? "t-gold" : k === "query" || k === "work" ? "t-mut" : "t-lab"));
+        hl[k + "Box"].forEach((el) => op(el, k === focus[i] ? 1 : 0));
+      });
+      cmp.textContent = lines[i][0]; cmp2.textContent = lines[i][1];
+      op(ttft, i === 5 ? 1 : 0);
+      op(cmp, i === 5 ? 0 : 1); op(cmp2, i === 5 ? 0 : 1);
+    },
+  });
+})();
+
+</script>
+<script>
+/* Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = "hidden";
+  var last = 0;
+  function report() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  }
+  if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+  window.addEventListener("load", report);
+  window.addEventListener("resize", report);
+  setTimeout(report, 300); setTimeout(report, 1500);
+  report();
+})();
+</script>
+
+</body>
+</html>
