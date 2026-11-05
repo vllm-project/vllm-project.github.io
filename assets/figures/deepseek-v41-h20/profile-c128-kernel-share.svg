@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1050" height="580" viewBox="0 0 1050 580" role="img" aria-labelledby="title desc">
+  <title id="title">Tuned c128 profile kernel-duration shares</title>
+  <desc id="desc">Rank-zero CUDA kernel durations in a tuned c128 Torch profile sum to 163.8 milliseconds. FlashInfer MNNVL AllReduce is 65.4 milliseconds or 40 percent, DeepGEMM FP8 GEMMs 35.9 milliseconds or 21.9 percent, NCCL AllGather 10.4 milliseconds or 6.4 percent, sparse MLA 7.6 milliseconds or 4.6 percent, and other kernels 44.5 milliseconds or 27.1 percent. Overlapping kernels mean these shares are not wall-clock shares.</desc>
+  <rect width="1050" height="580" fill="#fff"/>
+  <text x="60" y="54" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#17233b">Tuned c128 profile: summed kernel durations</text>
+  <text x="60" y="84" font-family="Arial,sans-serif" font-size="15" fill="#63718a">Torch Profiler · 10 iterations · rank 0 · total 163.8 ms across kernel events</text>
+  <g font-family="Arial,sans-serif" font-size="15" fill="#34425a">
+    <text x="65" y="151">FlashInfer MNNVL AllReduce</text>
+    <text x="65" y="216">DeepGEMM FP8 GEMMs</text>
+    <text x="65" y="281">NCCL AllGather</text>
+    <text x="65" y="346">Sparse MLA</text>
+    <text x="65" y="411">Other kernels</text>
+  </g>
+  <g>
+    <rect x="330" y="126" width="375" height="34" rx="6" fill="#3266c8"/>
+    <rect x="330" y="191" width="206" height="34" rx="6" fill="#36a58b"/>
+    <rect x="330" y="256" width="60" height="34" rx="6" fill="#e0a43b"/>
+    <rect x="330" y="321" width="44" height="34" rx="6" fill="#8a61c2"/>
+    <rect x="330" y="386" width="255" height="34" rx="6" fill="#8ea0ba"/>
+  </g>
+  <g font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#26344c">
+    <text x="720" y="149">65.4 ms · 40.0%</text>
+    <text x="550" y="214">35.9 ms · 21.9%</text>
+    <text x="404" y="279">10.4 ms · 6.4%</text>
+    <text x="388" y="344">7.6 ms · 4.6%</text>
+    <text x="598" y="409">44.5 ms · 27.1%</text>
+  </g>
+  <text x="60" y="500" font-family="Arial,sans-serif" font-size="14" fill="#63718a">Rank-0 kernel durations; events can overlap across streams.</text>
+</svg>
