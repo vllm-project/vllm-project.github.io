@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kimi K3.1 Pro bit-identical RL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── figkit tokens (Inferact blog-figures kit) ───────────────────────── */
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f7f5f2;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e6e1da; --line: #8f8a84;
+  --blue-line: #4d7ba6; --gold-line: #b5873a; --green-line: #6a8a5e; --stone-line: #9a958f;
+  --gold-text: #8a6420; --green-text: #4f6b45;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+    --gold-text: #e0c084; --green-text: #a9c09d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+  --gold-text: #e0c084; --green-text: #a9c09d;
+}
+:root {
+  --blue-t: color-mix(in srgb, var(--blue-line) 13%, var(--bg)); --blue-ts: color-mix(in srgb, var(--blue-line) 50%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 34%, var(--bg));
+  --green-t: color-mix(in srgb, var(--green-line) 15%, var(--bg)); --green-ts: color-mix(in srgb, var(--green-line) 55%, var(--bg));
+  --slate-t: color-mix(in srgb, var(--stone-line) 11%, var(--bg)); --slate: color-mix(in srgb, var(--stone-line) 60%, var(--bg));
+}
+*, *::before, *::after { box-sizing: inherit; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+.page { padding: 28px 16px 32px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0 0 14px; text-wrap: balance; }
+.fig-seg { display: inline-flex; border: var(--hair) solid var(--rule); margin-bottom: 14px; }
+.fig-seg button { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 30px; padding: 0 14px; cursor: pointer; }
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+svg { width: 100%; display: block; overflow: visible; }
+svg text { font-family: var(--font); fill: var(--ink); }
+svg rect, svg line { stroke-width: var(--hair); }
+.t-head { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; fill: var(--muted) !important; }
+.t-b { font-size: 14px; font-weight: 600; }
+.t-mut { font-size: 13px; fill: var(--muted) !important; }
+.t-gold { font-size: 13px; font-weight: 600; fill: var(--gold-text) !important; }
+.t-mono { font: 500 12px var(--mono); }
+.box { fill: var(--slate-t); stroke: var(--slate); }
+.lp { fill: var(--blue-t); stroke: var(--blue-ts); }
+.ok { fill: var(--green-t); stroke: var(--green-ts); }
+.bad { fill: var(--gold-m); stroke: var(--gold-line); }
+.arrow { stroke: var(--gold-line); }
+.verdict { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+.verdict b { color: var(--ink); font-weight: 600; }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--faint); margin: 6px 0 0; }
+</style>
+</head>
+<body>
+<main class="page">
+<div class="fig">
+  <p class="fig-kicker">Figure 9 · Rollout vs trainer</p>
+  <h1 class="fig-title">The trainer reproduces the rollout's log-probs bit for bit</h1>
+  <div class="fig-seg" role="group" aria-label="Rollout mode">
+    <button type="button" data-bi="1" aria-pressed="true">Batch-invariant</button>
+    <button type="button" data-bi="0" aria-pressed="false">Default</button>
+  </div>
+  <svg viewBox="0 0 736 236" role="img" aria-label="vLLM samples tokens and returns their log-probs; the trainer runs the same kernels on the same tokens, so every per-token difference is zero.">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,1 L9,5 L0,9 z" style="fill: var(--gold-line)"/></marker></defs>
+    <text x="0" y="14" class="t-head">Rollout · vLLM</text>
+    <text x="736" y="14" class="t-head" text-anchor="end">Trainer · Megatron</text>
+    <rect x="0" y="26" width="290" height="52" class="box"/>
+    <text x="14" y="48" class="t-b">Sample tokens + log p</text>
+    <text x="14" y="67" class="t-mut" id="k-r">batch-invariant kernels</text>
+    <rect x="446" y="26" width="290" height="52" class="box"/>
+    <text x="460" y="48" class="t-b">Forward on the same tokens</text>
+    <text x="460" y="67" class="t-mut" id="k-t">the rollout's kernels, same order</text>
+    <line x1="292" y1="52" x2="444" y2="52" class="arrow" marker-end="url(#ah)"/>
+    <text x="368" y="44" class="t-gold" text-anchor="middle">old log p</text>
+    <g id="rows"></g>
+  </svg>
+  <p class="verdict" id="verdict"></p>
+  <p class="fig-note">Log-prob values are illustrative.</p>
+</div>
+</main>
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a, p) => { const n = document.createElementNS(NS, t); for (const k in a) n.setAttribute(k, a[k]); if (p) p.appendChild(n); n.textContent = a._ || ""; return n; };
+  const lp = [-0.04, -1.37, -0.21, -0.88, -0.02, -2.41, -0.63, -0.09];
+  const dv = [0.004, -0.011, 0.002, 0.019, -0.001, 0.027, -0.008, 0.003];
+  const G = document.getElementById("rows"), X0 = 96, CW = 76, GAP = 4;
+  const f2 = (v) => v.toFixed(2).replace("-", "−");
+  const fd = (v) => (v === 0 ? "0" : (v > 0 ? "+" : "−") + Math.abs(v).toFixed(3));
+  function row(y, label) {
+    el("text", { x: 0, y: y + 18, class: "t-mut", _: label }, G);
+    return lp.map((_, i) => {
+      const x = X0 + i * (CW + GAP);
+      return { r: el("rect", { x, y, width: CW, height: 28, class: "lp" }, G), t: el("text", { x: x + CW / 2, y: y + 18, class: "t-mono", "text-anchor": "middle" }, G) };
+    });
+  }
+  const rr = row(108, "rollout"), rt = row(142, "trainer"), rd = row(186, "difference");
+  function render(bi) {
+    lp.forEach((v, i) => {
+      const d = bi ? 0 : dv[i];
+      rr[i].t.textContent = f2(v);
+      rt[i].t.textContent = f2(v + d);
+      rd[i].r.setAttribute("class", d === 0 ? "ok" : "bad");
+      rd[i].t.textContent = fd(d);
+    });
+    document.getElementById("k-r").textContent = bi ? "batch-invariant kernels" : "kernels tuned per batch shape";
+    document.getElementById("k-t").textContent = bi ? "the rollout's kernels, same order" : "its own batches and reduction order";
+    document.getElementById("verdict").innerHTML = bi
+      ? "Every difference is <b>exactly 0</b>: the PPO ratio is 1 and the step is on-policy."
+      : "Last-bit differences make the step <b>slightly off-policy</b> and can flip a MoE expert choice.";
+  }
+  document.querySelectorAll(".fig-seg button").forEach((b) => {
+    b.onclick = () => {
+      document.querySelectorAll(".fig-seg button").forEach((o) => o.setAttribute("aria-pressed", o === b));
+      render(b.dataset.bi === "1");
+    };
+  });
+  render(true);
+})();
+</script>
+<script>
+/* Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = "hidden";
+  var last = 0;
+  function report() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  }
+  if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+  window.addEventListener("load", report);
+  window.addEventListener("resize", report);
+  setTimeout(report, 300); setTimeout(report, 1500);
+  report();
+})();
+</script>
+</body>
+</html>
