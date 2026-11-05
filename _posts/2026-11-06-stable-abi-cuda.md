@@ -3,7 +3,7 @@ layout: post
 title: "Migrating vLLM to the LibTorch Stable ABI"
 author: "vLLM Team, Red Hat PyTorch Team, and Meta PyTorch Team"
 summary: "How vLLM migrated its CUDA build and compiled dependencies to the LibTorch Stable ABI, enabling compatible PyTorch upgrades without rebuilding vLLM."
-image: /assets/figures/2026-11-03-stable-abi-cuda/libtorch_stable.png
+image: /assets/figures/2026-11-06-stable-abi-cuda/libtorch_stable.png
 ---
 
 <style>
@@ -124,8 +124,8 @@ figure:has(> img[alt="vLLM migration from the unstable library to the stable lib
 
 vLLM relies heavily on PyTorch, with frequent calls to LibTorch in its C++ backend. As a result, changes to LibTorch’s binary interface may require vLLM to be rebuilt and relinked, even when the APIs remain unchanged. What if we could update LibTorch without rebuilding vLLM? That’s where the LibTorch Stable ABI comes in. With a LibTorch Stable ABI, updating LibTorch does not require rebuilding or updating vLLM in order to keep using it. Instead, we could swap out the torch wheel and import it directly into our vLLM package. As of v0.33.0, vLLM publishes LibTorch ABI Stable CUDA wheels.  
 
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_import-v2.png" alt="Unstable import" style="width: 45%; height: 250px;">
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/stable_import-v2.png" alt="Stable import" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_import-v2.png" alt="Unstable import" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_import-v2.png" alt="Stable import" style="width: 45%; height: 250px;">
 
 <p class="abi-comparison-caption"><strong>Left:</strong> <em>Unstable ABI—new torch requires vLLM to rebuild. <strong>Right:</strong> Stable ABI—vLLM can import new torch directly.</em></p>
 
@@ -134,7 +134,7 @@ An application binary interface (ABI) defines how compiled code interacts with a
 
 PyTorch's LibTorch Stable ABI has three layers: a stable C-shim exposing selected LibTorch APIs, C++ wrappers that make the shim easier to use, and headeronly utilities in `torch::headeronly` that do not link against `libtorch.so`.
 
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/libtorch_stable.png" alt="LibTorch Stable" style="width: 100%; height: 250px; object-fit: contain;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/libtorch_stable.png" alt="LibTorch Stable" style="width: 100%; height: 250px; object-fit: contain;">
 
 
 
@@ -143,8 +143,8 @@ PyTorch's LibTorch Stable ABI has three layers: a stable C-shim exposing selecte
 ### Why Stable ABI Matters
 Before the Stable ABI, a new PyTorch release could require a vLLM rebuild, delaying support for the new version and its features. With the Stable ABI, the same vLLM wheel can work across compatible PyTorch releases, letting users upgrade sooner and reducing rebuilds for package distributors.
 
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_vllm.png" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/stable_vllm.png" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_vllm-v2.png" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_vllm-v2.png" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
 
 <p class="abi-comparison-caption"><em><strong>Left:</strong> vLLM needs to change as LibTorch changes. <strong>Right:</strong> vLLM can change independent of LibTorch.</em></p>
 
@@ -186,7 +186,7 @@ The second tradeoff is a small runtime overhead. Dispatching calls through `TORC
 <p>3. <strong>Set up necessary scaffolding</strong></p> 
 <p>Since vLLM is such a big project, with over 175 .cpp/.cu source files plus another 120+ header files in its CUDA build alone, we can't hope to migrate it all in one go. So instead we created a separate stable library (see CMakeLists.txt updates in the first migration <a href="https://github.com/vllm-project/vllm/pull/31509/changes#diff-1e7de1ae2d059d21e1dd75d5812d5a34b0222cef273b7c3a2af62eb747f9d20a">PR #31509</a>), and we migrated the kernels to this library in manageable chunks.</p>
 
-<img src="/assets/figures/2026-11-03-stable-abi-cuda/unstable_to_stable_library.png" alt="vLLM migration from the unstable library to the stable library" style="width: 100%; height: auto;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_to_stable_library.png" alt="vLLM migration from the unstable library to the stable library" style="width: 100%; height: auto;">
 
 <p class="abi-image-caption" style="text-align: center;"><em>As the stable library grows, the unstable library shrinks then disappears.</em></p>
 
