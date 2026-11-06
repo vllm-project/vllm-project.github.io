@@ -93,7 +93,7 @@ The paper runs the same asynchronous IS with standard kernels:
 
 ### Learning at lag 64
 
-The paper pushes the lag to 64. With Qwen3-4B, Python tools and a 16K context, REINFORCE Zero trains at policy lag 64: a sample can come from weights up to 64 versions older than the learner's. It keeps learning for 6,000 updates. Mean reward rises from 0.287 in the first 100 updates to 0.782 in the final 100, and AIME24/25/26 pass@1 improves over the same run.
+The paper pushes the lag to 64. With Qwen3-4B, Python tools and a 16K context, REINFORCE Zero trains at policy lag 64: a sample can come from weights up to 64 versions older than the learner's. It keeps learning through 5,000 updates: mean reward rises from 0.287 in the first 100 updates to about 0.78, and AIME24/25/26 pass@1 improves over the same run.
 
 ![REINFORCE Zero at lag 64: training reward and AIME pass@1](/assets/figures/2026-11-06-zero-mismatch-async-rl/lag64.png)
 
@@ -105,7 +105,7 @@ The paper pushes the lag to 64. With Qwen3-4B, Python tools and a 16K context, R
 |---|---|
 | Throughput, 16 GPUs, 12K updates | **2.40×** the training-step throughput of synchronous training with aligned kernels (68.55 vs 164.77 hours), comparable quality |
 | 20K-update reasoning, DeepSeek-R1-Distill-Qwen-1.5B | Stable at lag 2 and 8; rollout-to-learner KL stays flat |
-| High lag, Qwen3-4B + Python tools | Learns at **lag 64** for 6,000 updates; mean reward 0.287 → 0.782 |
+| High lag, Qwen3-4B + Python tools | Learns at **lag 64** through 5,000 updates; mean reward 0.287 → about 0.78 |
 | MoE with tools, Qwen3-30B-A3B | Macro pass@1 31.29% → 71.55% in 3,000 updates |
 | Computer use, Nemotron-3-Nano-Omni-30B on OSWorld | Pass@1 50.97% → 56.16% after 428 updates |
 
