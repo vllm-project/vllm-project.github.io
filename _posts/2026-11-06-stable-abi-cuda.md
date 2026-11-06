@@ -73,6 +73,16 @@ figure:has(> img[alt="Stable ABI diagram"]) {
   margin: 1rem 3% 0 2%;
   vertical-align: top;
 }
+.abi-centered-image-pair {
+  display: flex;
+  justify-content: center;
+  gap: 4%;
+}
+.abi-centered-image-pair > img {
+  float: none;
+  flex: 0 1 45%;
+  margin: 1rem 0 0;
+}
 img[alt="Unstable import"],
 img[alt="Stable import"],
 img[alt="Unstable ABI diagram"],
@@ -130,8 +140,8 @@ figure:has(> img[alt="vLLM migration from the unstable library to the stable lib
 
 vLLM relies heavily on PyTorch, with frequent calls to LibTorch in its C++ backend. As a result, changes to LibTorch’s binary interface may require vLLM to be rebuilt and relinked, even when the APIs remain unchanged. What if we could update LibTorch without rebuilding vLLM? That’s where the LibTorch Stable ABI comes in. With a LibTorch Stable ABI, updating LibTorch does not require rebuilding or updating vLLM in order to keep using it. Instead, we could swap out the torch wheel and import it directly into our vLLM package. As of v0.33.0, vLLM publishes LibTorch ABI Stable CUDA wheels.  
 
-<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_import-v2.png" alt="Unstable import" style="width: 45%; height: 250px;">
-<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_import-v2.png" alt="Stable import" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_import-v4.png" alt="Unstable import" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_import-v4.png" alt="Stable import" style="width: 45%; height: 250px;">
 
 <p class="abi-comparison-caption"><strong>Left:</strong> <em>Unstable ABI—new torch requires vLLM to rebuild. <strong>Right:</strong> Stable ABI—vLLM can import new torch directly.</em></p>
 
@@ -147,8 +157,10 @@ PyTorch's LibTorch Stable ABI has three layers: a stable C shim exposing selecte
 ### Why Stable ABI Matters
 Before the Stable ABI, a new PyTorch release could require a vLLM rebuild, delaying support for the new version and its features. With the Stable ABI, the same vLLM wheel can work across compatible PyTorch releases, letting users upgrade sooner and reducing rebuilds for package distributors. For developers, this means you can update and rebuild PyTorch, then test those changes in vLLM without rebuilding vLLM.
 
-<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_vllm-v4.jpg" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
-<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_vllm-v4.jpg" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
+<div class="abi-centered-image-pair">
+  <img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_vllm-v4.jpg" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
+  <img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_vllm-v4.jpg" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
+</div>
 
 <p class="abi-comparison-caption"><em><strong>Left:</strong> vLLM needs to change as LibTorch changes. <strong>Right:</strong> vLLM can change independent of LibTorch.</em></p>
 
