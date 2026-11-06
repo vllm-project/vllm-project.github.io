@@ -91,6 +91,14 @@ The paper runs the same asynchronous IS with standard kernels:
 - The largest gradient norm before clipping reaches **38.27**, against **0.0555** with aligned kernels.
 - Adding a sequence gate stabilizes training, but by the last 1,000 updates it rejects **24.48%** of sequences. REINFORCE Zero rejects none.
 
+### Learning at lag 64
+
+The hardest setting is a large lag. With Qwen3-4B, Python tools and a 16K context, REINFORCE Zero trains at policy lag 64: a sample can come from weights up to 64 versions older than the learner's. It keeps learning for 6,000 updates. Mean reward rises from 0.287 in the first 100 updates to 0.782 in the final 100, and AIME24/25/26 pass@1 improves over the same run.
+
+![REINFORCE Zero at lag 64: training reward and AIME pass@1](/assets/figures/2026-11-06-zero-mismatch-async-rl/lag64.png)
+
+*Figure 2 (REINFORCE Zero, Figure 6): Learning at lag 64 with Qwen3-4B and Python tools, through 5,000 updates. Left: training reward, 100-update means. Right: equal-weight AIME24/25/26 pass@1 at 200-update checkpoints (points) and a smoothed trend (curve).*
+
 ### Results
 
 | Setting | Result |
@@ -118,7 +126,7 @@ Asynchronous REINFORCE Zero matches synchronous training. Every standard-kernel 
 
 ![REINFORCE Zero: reasoning accuracy and rollout-to-learner KL](/assets/figures/2026-11-06-zero-mismatch-async-rl/figure1.png)
 
-*Figure 2 (REINFORCE Zero, Figure 1). Left: macro pass@1. Right: rollout-to-learner KL. Standard-kernel IS drifts upward; REINFORCE Zero stays flat through 20,000 updates.*
+*Figure 3 (REINFORCE Zero, Figure 1). Left: macro pass@1. Right: rollout-to-learner KL. Standard-kernel IS drifts upward; REINFORCE Zero stays flat through 20,000 updates.*
 
 ### What alignment costs here
 
