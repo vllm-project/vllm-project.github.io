@@ -51,7 +51,7 @@ log π_θk − log μ_v  =  (log π_θk − log π_θv)  +  (log π_θv − log 
 
 **Kernel mismatch fluctuates.** It depends on batch composition and numerical execution, so it introduces fluctuations even when rollout and learner use identical weights.
 
-![Peak-to-median ratio of importance-weight deviation D3: 1.50× with aligned kernels, 442.54× with standard kernels](/assets/figures/2026-11-06-zero-mismatch-async-rl/importance-weight-peaks.png)
+<iframe class="vllm-embed" src="/assets/interactive_pages/zero-mismatch-async-two-mismatches.html" title="Peak-to-median ratio of importance-weight deviation D3: 1.50× with aligned kernels, 442.54× with standard kernels" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 420px; border: 0; overflow: hidden;"></iframe>
 
 *Figure 1: Peak-to-median ratio of the importance-weight deviation D3, log scale, for two asynchronous runs on DeepSeek-R1-Distill-Qwen-1.5B: REINFORCE Zero with aligned kernels and IS with standard kernels. Source: REINFORCE Zero, Table 2.*
 
