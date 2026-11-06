@@ -405,30 +405,38 @@ Because DeepGEMM was vLLM’s final build dependency to be migrated, completing 
 
 ```python
 # stable_abi_demo.py
-import importlib
+import os
+
+os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
+
 import torch
 import vllm
+from vllm import LLM, SamplingParams
+
 
 print(f"PyTorch runtime: {torch.__version__}")
 print(f"vLLM: {vllm.__version__}")
 
-# This module contains vLLM operators registered with STABLE_TORCH_LIBRARY.
-stable_extension = importlib.import_module("vllm._C_stable_libtorch")
-
-x = torch.arange(16, device="cuda", dtype=torch.float32).reshape(2, 8) - 8
-out = torch.empty(2, 4, device="cuda", dtype=x.dtype)
-torch.ops._C.silu_and_mul(out, x)
-print(f"silu_and_mul output:\n{out}")
+llm = LLM(
+    model="HuggingFaceTB/SmolLM2-135M-Instruct",
+    max_model_len=128,
+    gpu_memory_utilization=0.1,
+    enforce_eager=True,
+)
+outputs = llm.generate(
+    ["The capital of France is"],
+    SamplingParams(temperature=0, max_tokens=8),
+)
+print(outputs[0].outputs[0].text)
 ```
 
 Build vLLM and run the demo with PyTorch 2.14.1:
 
 <pre><code>python stable_abi_demo.py
+
 PyTorch runtime: 2.14.1+cu132
-vLLM: 0.1.dev24235+gc9af9acc6.d20261030
-silu_and_mul output:
-tensor([[1.0731e-02, 1.9132e-02, 2.9671e-02, 3.3464e-02],
-        [0.0000e+00, 3.6553e+00, 1.0570e+01, 2.0004e+01]], device='cuda:0')
+vLLM: 0.1.dev24716+gcb95d994f.d20261105
+Paris. Paris is a city known for
 </code></pre>
 
 Update the PyTorch wheel to `torch==2.15.0`:
@@ -439,12 +447,13 @@ Update the PyTorch wheel to `torch==2.15.0`:
 Rerun demo without rebuilding vLLM:
 
 <pre><code>python stable_abi_demo.py
+
 PyTorch runtime: 2.15.0+cu132
-vLLM: 0.1.dev24235+gc9af9acc6.d20261030
-silu_and_mul output:
-tensor([[1.0731e-02, 1.9132e-02, 2.9671e-02, 3.3464e-02],
-        [0.0000e+00, 3.6553e+00, 1.0570e+01, 2.0004e+01]], device='cuda:0')
+vLLM: 0.1.dev24716+gcb95d994f.d20261105
+Paris. Paris is a city known for
 </code></pre>
+
+<p><em>Note: Routine vLLM initialization logs, progress bars, and unrelated deprecation warnings have been omitted from the outputs above for clarity.</em></p>
 
 ### Future Work
 
