@@ -138,7 +138,7 @@ On 16 nodes × 4 GB200, SWE-bench Pro agentic RL at 128K context stayed at diff 
 
 ### Kimi K3.1, on day 0
 
-Kimi K3.1 launched with [day-0 vLLM support](https://vllm.ai/blog/2026-11-04-kimi-k31-pro), zero-mismatch RL included. The hard part was KDA linear attention: prefill computes it chunk by chunk and decode token by token, and the two round differently. Decode now repeats prefill's arithmetic for the same chunk row, so prefill, decode and the trainer agree, for the base model and for a LoRA adapter on every module. On 4 nodes × 4 GB300, 100 DAPO steps with LoRA stayed at diff 0 and AIME 24/25/26 mean@8 rose from 0.451 to 0.664. The rollout phase is 17% longer; optimization is ongoing.
+Kimi K3.1 launched with [day-0 vLLM support](https://vllm.ai/blog/2026-11-04-kimi-k31-pro), zero-mismatch RL included. The hard part was KDA linear attention: prefill computes it chunk by chunk and decode token by token, and the two round differently. Decode now repeats prefill's arithmetic for the same chunk row, so prefill, decode and the trainer agree, for the base model and for a LoRA adapter on every module. On 4 nodes × 4 GB300, 100 DAPO steps with LoRA stayed at diff 0 and AIME 24/25/26 mean@8 rose from 0.451 to 0.664. Performance optimization is ongoing.
 
 ## 6. Beyond NVIDIA: AMD MI355X
 
@@ -154,7 +154,7 @@ REINFORCE Zero: the paper and code are at [hijkzzz/REINFORCE-Zero](https://githu
 
 Zero mismatch: [Inferact/zero-mismatch-rl](https://github.com/Inferact/zero-mismatch-rl) holds the agent skill and, for every model in this post, its recipe, what broke, how it was fixed, and the code.
 
-**Next**: long asynchronous runs on these large models, and closing the rollout gap on Kimi K3.1.
+**Next**: long asynchronous runs on these large models, and performance optimization on Kimi K3.1.
 
 ## Acknowledgments
 
