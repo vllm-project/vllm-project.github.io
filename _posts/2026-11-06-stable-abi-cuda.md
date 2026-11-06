@@ -147,8 +147,8 @@ PyTorch's LibTorch Stable ABI has three layers: a stable C shim exposing selecte
 ### Why Stable ABI Matters
 Before the Stable ABI, a new PyTorch release could require a vLLM rebuild, delaying support for the new version and its features. With the Stable ABI, the same vLLM wheel can work across compatible PyTorch releases, letting users upgrade sooner and reducing rebuilds for package distributors. For developers, this means you can update and rebuild PyTorch, then test those changes in vLLM without rebuilding vLLM.
 
-<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_vllm-v2.png" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
-<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_vllm-v2.png" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/unstable_vllm-v4.jpg" alt="Unstable ABI diagram" style="width: 45%; height: 250px;">
+<img src="/assets/figures/2026-11-06-stable-abi-cuda/stable_vllm-v4.jpg" alt="Stable ABI diagram" style="width: 45%; height: 250px;">
 
 <p class="abi-comparison-caption"><em><strong>Left:</strong> vLLM needs to change as LibTorch changes. <strong>Right:</strong> vLLM can change independent of LibTorch.</em></p>
 
