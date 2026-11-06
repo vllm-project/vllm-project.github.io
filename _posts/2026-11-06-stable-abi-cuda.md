@@ -73,6 +73,12 @@ figure:has(> img[alt="Stable ABI diagram"]) {
   margin: 1rem 3% 0 2%;
   vertical-align: top;
 }
+img[alt="Unstable import"],
+img[alt="Stable import"],
+img[alt="Unstable ABI diagram"],
+img[alt="Stable ABI diagram"] {
+  object-fit: contain;
+}
 figure:has(> img[alt="Unstable import"]) > img,
 figure:has(> img[alt="Stable import"]) > img,
 figure:has(> img[alt="Unstable ABI diagram"]) > img,
