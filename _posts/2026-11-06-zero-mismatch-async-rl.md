@@ -93,7 +93,7 @@ The paper runs the same asynchronous IS with standard kernels:
 
 ### Learning at lag 64
 
-The hardest setting is a large lag. With Qwen3-4B, Python tools and a 16K context, REINFORCE Zero trains at policy lag 64: a sample can come from weights up to 64 versions older than the learner's. It keeps learning for 6,000 updates. Mean reward rises from 0.287 in the first 100 updates to 0.782 in the final 100, and AIME24/25/26 pass@1 improves over the same run.
+The paper pushes the lag to 64. With Qwen3-4B, Python tools and a 16K context, REINFORCE Zero trains at policy lag 64: a sample can come from weights up to 64 versions older than the learner's. It keeps learning for 6,000 updates. Mean reward rises from 0.287 in the first 100 updates to 0.782 in the final 100, and AIME24/25/26 pass@1 improves over the same run.
 
 ![REINFORCE Zero at lag 64: training reward and AIME pass@1](/assets/figures/2026-11-06-zero-mismatch-async-rl/lag64.png)
 
