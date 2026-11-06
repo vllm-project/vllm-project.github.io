@@ -161,4 +161,4 @@ Zero mismatch: [Inferact/zero-mismatch-rl](https://github.com/Inferact/zero-mism
 Thanks to (alphabetical by organization):
 
 - **Verda**: sandboxes for the SWE-bench Pro agentic RL runs
-- **verl**: the [verl](https://github.com/verl-project/verl) team
+- The [verl](https://github.com/verl-project/verl) team
