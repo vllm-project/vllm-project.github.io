@@ -112,8 +112,8 @@ figure:has(> img[alt="vLLM migration from the unstable library to the stable lib
   margin-bottom: 0 !important;
 }
 .abi-audit-output { overflow-x: auto; }
-.abi-audit-stable { background-color: #4e7fc0; color: #0f172a; }
-.abi-audit-unstable { background-color: #e74d50; color: #0f172a; }
+.abi-audit-stable { background-color: #4e7fc0; color: #000000; }
+.abi-audit-unstable { background-color: #e74d50; color: #000000; }
 @media (max-width: 48rem) {
   .abi-story { grid-template-columns: minmax(0, 1fr); }
   .abi-story__timeline { grid-column: 1; min-height: 110rem; margin-top: 2rem; }
