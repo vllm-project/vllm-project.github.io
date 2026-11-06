@@ -96,7 +96,7 @@ The calculator shows the minimum HiSparse host pool required to keep CPU memory 
   style="display: block; width: 100%; max-width: 100%; overflow: hidden; border: 0; border-radius: 12px;"
 >
 
-[Open the concurrency calculator full-screen](/assets/interactive_pages/hisparse_concurrency_calculator.html)
+[Open the concurrency calculator full-screen](https://vllm.ai/blog-assets/interactive_pages/hisparse_concurrency_calculator.html)
 
 ## Part 2
 
@@ -135,7 +135,7 @@ vllm serve zai-org/GLM-5.3 \
 
 ### Reproducing the padded OpenHands sweep
 
-Everything the benchmark client needs ships with this blog so the recipe is self-contained: [`build_openhands_padded_dataset.py`](/assets/repro/2026-09-08-glm53-part1-hybrid-sparse-offloading/build_openhands_padded_dataset.py), [`install_evalscope_deps.sh`](/assets/repro/2026-09-08-glm53-part1-hybrid-sparse-offloading/install_evalscope_deps.sh), and [`evalscope-all-nodeps.txt`](/assets/repro/2026-09-08-glm53-part1-hybrid-sparse-offloading/evalscope-all-nodeps.txt). Download all three into one directory. EvalScope is pinned at `acd09b44384d53174768bb1063f675420f76fae9`. The following builds the deterministic 128-conversation dataset, then runs c1/c8/c16/c24/c32 with fresh conversations at every point:
+Everything the benchmark client needs ships with this blog so the recipe is self-contained: [`build_openhands_padded_dataset.py`](https://vllm.ai/blog-assets/repro/2026-09-08-glm53-part1-hybrid-sparse-offloading/build_openhands_padded_dataset.py), [`install_evalscope_deps.sh`](https://vllm.ai/blog-assets/repro/2026-09-08-glm53-part1-hybrid-sparse-offloading/install_evalscope_deps.sh), and [`evalscope-all-nodeps.txt`](https://vllm.ai/blog-assets/repro/2026-09-08-glm53-part1-hybrid-sparse-offloading/evalscope-all-nodeps.txt). Download all three into one directory. EvalScope is pinned at `acd09b44384d53174768bb1063f675420f76fae9`. The following builds the deterministic 128-conversation dataset, then runs c1/c8/c16/c24/c32 with fresh conversations at every point:
 
 ```bash
 python3.12 -m venv client-venv
