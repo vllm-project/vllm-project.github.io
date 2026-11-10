@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="378" viewBox="0 0 1000 378" role="img"><title>From scheduling needs to FlyDSL controls</title>
+<rect width="1000" height="378" rx="16" fill="#f6f8fa"/>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#657585" stroke-width="1.5"/></marker></defs>
+<text x="32" y="42" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="600" text-anchor="start" fill="#223344">From scheduling needs to FlyDSL controls</text>
+<text x="52" y="87" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" text-anchor="start" fill="#526476">DESIGN NEED</text>
+<text x="522" y="87" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="600" text-anchor="start" fill="#526476">FLYDSL CONTROLS</text>
+<rect x="32" y="104" width="402" height="70" fill="#e8eef4"/>
+<rect x="500" y="104" width="468" height="70" fill="#dfeaf5"/>
+<text x="52" y="147" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" text-anchor="start" fill="#223344">Schedule dependent stages</text>
+<path d="M450,139 L482,139" stroke="#657585" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+<text x="522" y="129" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" text-anchor="start" fill="#223344">Work mapping, memory operations</text>
+<text x="522" y="159" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" text-anchor="start" fill="#223344">and synchronization</text>
+<rect x="32" y="190" width="402" height="70" fill="#e8eef4"/>
+<rect x="500" y="190" width="468" height="70" fill="#dfeaf5"/>
+<text x="52" y="233" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" text-anchor="start" fill="#223344">Adapt data to each stage</text>
+<path d="M450,225 L482,225" stroke="#657585" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+<text x="522" y="215" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" text-anchor="start" fill="#223344">Tensor layouts and</text>
+<text x="522" y="245" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" text-anchor="start" fill="#223344">low-precision GPU instructions</text>
+<rect x="32" y="276" width="402" height="70" fill="#e8eef4"/>
+<rect x="500" y="276" width="468" height="70" fill="#dfeaf5"/>
+<text x="52" y="319" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" text-anchor="start" fill="#223344">Target supported configurations</text>
+<path d="M450,311 L482,311" stroke="#657585" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+<text x="522" y="301" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" text-anchor="start" fill="#223344">Model and shape specialization,</text>
+<text x="522" y="331" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" text-anchor="start" fill="#223344">JIT compilation and caching</text>
+</svg>
