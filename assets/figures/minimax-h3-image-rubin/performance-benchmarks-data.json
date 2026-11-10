@@ -25,7 +25,7 @@
       "gpu_joules_per_valid_image": 7075.735612500001,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "FP8 DiT",
       "primary_view": false
     },
@@ -53,7 +53,7 @@
       "gpu_joules_per_valid_image": 6645.1212125,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "FP8 DiT",
       "primary_view": false
     },
@@ -81,7 +81,7 @@
       "gpu_joules_per_valid_image": 6634.558587500001,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "FP8 DiT",
       "primary_view": false
     },
@@ -109,7 +109,7 @@
       "gpu_joules_per_valid_image": 6643.176037499999,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "FP8 DiT",
       "primary_view": false
     },
@@ -137,7 +137,7 @@
       "gpu_joules_per_valid_image": 6646.8421625,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "FP8 DiT",
       "primary_view": false
     },
@@ -173,7 +173,7 @@
       "gpu_joules_per_valid_image": 8236.50760625,
       "source_hardware": "rubin-replicas",
       "platform": "Vera Rubin",
-      "color": "#76B900",
+      "color": "#b5873a",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -209,7 +209,7 @@
       "gpu_joules_per_valid_image": 5789.3709375,
       "source_hardware": "rubin-replicas",
       "platform": "Vera Rubin",
-      "color": "#76B900",
+      "color": "#b5873a",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -245,7 +245,7 @@
       "gpu_joules_per_valid_image": 4582.566275,
       "source_hardware": "rubin-replicas",
       "platform": "Vera Rubin",
-      "color": "#76B900",
+      "color": "#b5873a",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -281,7 +281,7 @@
       "gpu_joules_per_valid_image": 4446.6322375,
       "source_hardware": "rubin-replicas",
       "platform": "Vera Rubin",
-      "color": "#76B900",
+      "color": "#b5873a",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -317,7 +317,7 @@
       "gpu_joules_per_valid_image": 4444.56855,
       "source_hardware": "rubin-replicas",
       "platform": "Vera Rubin",
-      "color": "#76B900",
+      "color": "#b5873a",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -346,7 +346,7 @@
       "source_hardware": "rubin-followup",
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -375,7 +375,7 @@
       "source_hardware": "rubin-followup",
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -404,7 +404,7 @@
       "source_hardware": "rubin-followup",
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -433,7 +433,7 @@
       "source_hardware": "rubin-followup",
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -462,7 +462,7 @@
       "source_hardware": "rubin-followup",
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "MXFP8 DiT",
       "primary_view": true
     },
@@ -490,7 +490,7 @@
       "gpu_joules_per_valid_image": 7902.81645625,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "Native",
       "primary_view": false
     },
@@ -518,7 +518,7 @@
       "gpu_joules_per_valid_image": 7405.2674937500005,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "Native",
       "primary_view": false
     },
@@ -546,7 +546,7 @@
       "gpu_joules_per_valid_image": 7409.188118749999,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "Native",
       "primary_view": false
     },
@@ -574,7 +574,7 @@
       "gpu_joules_per_valid_image": 7414.698131249999,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "Native",
       "primary_view": false
     },
@@ -602,7 +602,7 @@
       "gpu_joules_per_valid_image": 7404.92835625,
       "topology": "SP4",
       "platform": "Vera Rubin",
-      "color": "#376800",
+      "color": "#4d7ba6",
       "precision": "Native",
       "primary_view": false
     },
@@ -630,7 +630,7 @@
       "gpu_joules_per_valid_image": 7358.66433125,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -658,7 +658,7 @@
       "gpu_joules_per_valid_image": 7064.01965,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -686,7 +686,7 @@
       "gpu_joules_per_valid_image": 7073.274587499999,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -714,7 +714,7 @@
       "gpu_joules_per_valid_image": 7067.005268750001,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -742,7 +742,7 @@
       "gpu_joules_per_valid_image": 7067.2783687500005,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -770,7 +770,7 @@
       "gpu_joules_per_valid_image": 9439.84146875,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "Native",
       "primary_view": false
     },
@@ -798,7 +798,7 @@
       "gpu_joules_per_valid_image": 9173.19345625,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "Native",
       "primary_view": false
     },
@@ -826,7 +826,7 @@
       "gpu_joules_per_valid_image": 9164.1117875,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "Native",
       "primary_view": false
     },
@@ -854,7 +854,7 @@
       "gpu_joules_per_valid_image": 9155.729175,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "Native",
       "primary_view": false
     },
@@ -882,7 +882,7 @@
       "gpu_joules_per_valid_image": 9156.65115,
       "topology": "SP4",
       "platform": "GB200",
-      "color": "#A7ABAE",
+      "color": "#9a958f",
       "precision": "Native",
       "primary_view": false
     },
@@ -910,7 +910,7 @@
       "gpu_joules_per_valid_image": 5899.01665625,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -938,7 +938,7 @@
       "gpu_joules_per_valid_image": 5592.20288125,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -966,7 +966,7 @@
       "gpu_joules_per_valid_image": 5594.483506250001,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -994,7 +994,7 @@
       "gpu_joules_per_valid_image": 5592.84364375,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -1022,7 +1022,7 @@
       "gpu_joules_per_valid_image": 5593.39655625,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "FP8 DiT",
       "primary_view": true
     },
@@ -1050,7 +1050,7 @@
       "gpu_joules_per_valid_image": 7003.0424375,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "Native",
       "primary_view": false
     },
@@ -1078,7 +1078,7 @@
       "gpu_joules_per_valid_image": 6683.88881875,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "Native",
       "primary_view": false
     },
@@ -1106,7 +1106,7 @@
       "gpu_joules_per_valid_image": 6687.149975,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "Native",
       "primary_view": false
     },
@@ -1134,7 +1134,7 @@
       "gpu_joules_per_valid_image": 6687.1663687499995,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "Native",
       "primary_view": false
     },
@@ -1162,7 +1162,7 @@
       "gpu_joules_per_valid_image": 6687.075675,
       "topology": "SP4",
       "platform": "GB300",
-      "color": "#62676B",
+      "color": "#6a8a5e",
       "precision": "Native",
       "primary_view": false
     }
