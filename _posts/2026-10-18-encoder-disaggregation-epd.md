@@ -204,8 +204,6 @@ Have questions about EPD or interested in getting involved? Join the [EPD / EC-c
 
 - [Encoder Disaggregation for Scalable Multimodal Model Serving](https://vllm.ai/blog/2025-12-15-vllm-epd): the original architecture and motivation.
 - [Disaggregated Encoder documentation](https://docs.vllm.ai/en/latest/features/disagg_encoder/): deployment examples and configuration.
-- [vLLM Router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md): HTTP routing and data-parallel consumer configuration.
-- [SMG vLLM EPD integration](https://github.com/smg-project/smg/pull/5230): gRPC orchestration with worker-side media processing.
 - [EPD tracker](https://github.com/vllm-project/vllm/issues/52409): ongoing implementation work.
 
 <details markdown="1">
