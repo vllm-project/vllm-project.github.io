@@ -206,6 +206,7 @@ We thank the following contributors for their work and feedback:
 
 - **[Inferact](https://inferact.ai):** [Tianyu Guo](https://github.com/gty111), [Zifeng Mo](https://github.com/Isotr0py), [Siyu Liu](https://github.com/liusy58), [Roger Wang](https://github.com/ywang96)
 - **[InferMatrix team](https://infermatrix.si):** Ziheng Zhou, Chenzhou Jiang, Ruixin Li, Hang Wu, Chenguang Zheng, Haozhao Dai, Hongsheng Liu
+- **[IBM](https://www.ibm.com):** [Omer Paz](https://github.com/omerpaz95)
 
 ## Related Resources
 
