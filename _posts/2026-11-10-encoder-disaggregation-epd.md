@@ -200,6 +200,13 @@ Another opportunity is coordinating encoder work with prefill-side reuse. In an 
 
 Have questions about EPD or interested in getting involved? Join the [EPD / EC-connector channel on vLLM Slack](https://vllm-dev.slack.com/archives/C0CAPN6GGBV) to discuss use cases, share feedback, and collaborate.
 
+## Acknowledgements
+
+We thank the following contributors for their work and feedback:
+
+- **[Inferact](https://inferact.ai):** [Tianyu Guo](https://github.com/gty111), [Zifeng Mo](https://github.com/Isotr0py), [Siyu Liu](https://github.com/liusy58), [Roger Wang](https://github.com/ywang96)
+- **[InferMatrix team](https://infermatrix.si):** Ziheng Zhou, Chenzhou Jiang, Ruixin Li, Hang Wu, Chenguang Zheng, Haozhao Dai, Hongsheng Liu
+
 ## Related Resources
 
 - [Encoder Disaggregation for Scalable Multimodal Model Serving](https://vllm.ai/blog/2025-12-15-vllm-epd): the original architecture and motivation.
