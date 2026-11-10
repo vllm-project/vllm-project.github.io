@@ -157,11 +157,11 @@ Metadata-only requests reduce the amount of media carried downstream. JSON metad
 
 Routing and metadata inspection still parse JSON, but final responses now pass through without conversion, which matters at high request rates and for long streaming responses.
 
-### EPD Orchestration in vLLM Router
+### EPD Orchestration in [vLLM Router](https://github.com/vllm-project/router)
 
 vLLM Router supports HTTP [E+PD and E/P/D deployments](https://github.com/vllm-project/router/pull/266), metadata-only forwarding, multi-image distribution across encoders, and [data-parallel P/PD consumers](https://github.com/vllm-project/router/pull/507). Encoder and consumer counts can be configured independently. Supported EC backends include Mooncake, NIXL, and the shared-filesystem example connector. See the [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) for native CLI configuration with static workers.
 
-### EPD Orchestration in SMG
+### EPD Orchestration in [SMG](https://github.com/smg-project/smg)
 
 [SMG supports vLLM E/P/D deployments](https://github.com/smg-project/smg/pull/5230) over gRPC, including metadata-only forwarding, encoder-side media preprocessing, and Mooncake and NIXL EC backends. It supports [both Python and Rust servicers](https://github.com/smg-project/smg/pull/5387) and can [distribute images within a single image-only request across multiple E workers](https://github.com/smg-project/smg/pull/5447), batching images assigned to the same encoder.
 
