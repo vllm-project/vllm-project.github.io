@@ -22,9 +22,9 @@ This post explains the engineering behind that progress, with a focus on five ch
 - **Dedicated encoder execution** with a separate Model Runner V2 path, encoder-only CUDA Graph support, and reduced checkpoint-loading I/O.
 - **Remote embedding transfer** through NIXL and Mooncake integrations.
 - **Cross-encoder output reuse** through Mooncake Store.
-- **Lower orchestration overhead** in the Python EPD proxy and EPD support in vLLM Router.
+- **Lower orchestration overhead** in the Python EPD proxy, data-parallel EPD routing in vLLM Router, and gRPC EPD in SMG.
 
-The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). Router EPD requires router main with [#266](https://github.com/vllm-project/router/pull/266).
+The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). The routing integrations below use vLLM Router main and SMG main.
 
 ## Why Separate the Encoder?
 
@@ -159,11 +159,11 @@ Routing and metadata inspection still parse JSON, but final responses now pass t
 
 ### EPD Orchestration in vLLM Router
 
-The Python example proxy supports launcher-managed dynamic registration. Registered roles form either E+PD or E/P/D topologies, with health probes and recovery handling. Instance startup and autoscaling remain the external launcher's responsibility.
+vLLM Router supports HTTP [E+PD and E/P/D deployments](https://github.com/vllm-project/router/pull/266), metadata-only forwarding, multi-image distribution across encoders, and [data-parallel P/PD consumers](https://github.com/vllm-project/router/pull/507). Encoder and consumer counts can be configured independently. Supported EC backends include Mooncake, NIXL, and the shared-filesystem example connector. See the [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) for native CLI configuration with static workers.
 
-vLLM Router now supports EPD orchestration through `--epd-config`. The router selects P/PD before encoding, distributes media to encoder workers, and forwards JSON metadata references. EC backends handle embedding delivery, while separate P/D deployments reuse the existing KV handoff.
+### EPD Orchestration in SMG
 
-The initial integration is experimental and supports the native CLI, static worker configuration, and DP=1. Use router main with [#266](https://github.com/vllm-project/router/pull/266). The [router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md) describes its current scope and backend constraints.
+[SMG supports vLLM E/P/D deployments](https://github.com/smg-project/smg/pull/5230) over gRPC, including metadata-only forwarding, encoder-side media preprocessing, and Mooncake and NIXL EC backends. It supports [both Python and Rust servicers](https://github.com/smg-project/smg/pull/5387) and can [distribute images within a single image-only request across multiple E workers](https://github.com/smg-project/smg/pull/5447), batching images assigned to the same encoder.
 
 ## DeepSeek V4.1 Flash: EPD in Practice
 
@@ -204,6 +204,8 @@ Have questions about EPD or interested in getting involved? Join the [EPD / EC-c
 
 - [Encoder Disaggregation for Scalable Multimodal Model Serving](https://vllm.ai/blog/2025-12-15-vllm-epd): the original architecture and motivation.
 - [Disaggregated Encoder documentation](https://docs.vllm.ai/en/latest/features/disagg_encoder/): deployment examples and configuration.
+- [vLLM Router EPD guide](https://github.com/vllm-project/router/blob/main/docs/epd.md): HTTP routing and data-parallel consumer configuration.
+- [SMG vLLM EPD integration](https://github.com/smg-project/smg/pull/5230): gRPC orchestration with worker-side media processing.
 - [EPD tracker](https://github.com/vllm-project/vllm/issues/52409): ongoing implementation work.
 
 <details markdown="1">
@@ -213,7 +215,7 @@ Have questions about EPD or interested in getting involved? Join the [EPD / EC-c
 - Encoder execution: [dedicated runner](https://github.com/vllm-project/vllm/pull/53176), [configuration normalization](https://github.com/vllm-project/vllm/pull/53656), [asynchronous execution](https://github.com/vllm-project/vllm/pull/58490), [checkpoint loading](https://github.com/vllm-project/vllm/pull/58086), and [CUDA Graph capture and backend validation](https://github.com/vllm-project/vllm/pull/56922).
 - Remote delivery: [NIXL + CPU EC](https://github.com/vllm-project/vllm/pull/47941), [Mooncake EC](https://github.com/vllm-project/vllm/pull/41567), [measured transfer shapes](https://github.com/vllm-project/vllm/pull/57904), [request failure isolation](https://github.com/vllm-project/vllm/pull/55290), and [shared-memory cleanup](https://github.com/vllm-project/vllm/pull/59875).
 - Caching and media processing: [cross-encoder reuse](https://github.com/vllm-project/vllm/pull/56242) and [GPU video processing](https://github.com/vllm-project/vllm/pull/53675).
-- Orchestration: [Python proxy overhead reduction](https://github.com/vllm-project/vllm/pull/56657), [dynamic registration](https://github.com/vllm-project/vllm/pull/54176), and [vLLM Router integration](https://github.com/vllm-project/router/pull/266).
+- Orchestration: [Python proxy overhead reduction](https://github.com/vllm-project/vllm/pull/56657), [dynamic registration](https://github.com/vllm-project/vllm/pull/54176), [vLLM Router integration](https://github.com/vllm-project/router/pull/266), [Router data-parallel consumers](https://github.com/vllm-project/router/pull/507), [SMG gRPC EPD](https://github.com/smg-project/smg/pull/5230), [SMG Rust servicer support](https://github.com/smg-project/smg/pull/5387), and [SMG multi-encoder image fan-out](https://github.com/smg-project/smg/pull/5447).
 - Model and device support: [MiMo-V2-Omni](https://github.com/vllm-project/vllm/pull/58938), [XPU EC integration](https://github.com/vllm-project/vllm/pull/49532), and [XPU encoder-only execution](https://github.com/vllm-project/vllm/pull/59320).
 
 </details>
