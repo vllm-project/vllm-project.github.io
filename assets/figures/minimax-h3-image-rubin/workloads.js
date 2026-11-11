@@ -4,7 +4,7 @@
   const mode = document.body.dataset.workload;
   const reportHeight = () => window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.documentElement.scrollHeight)},'*');
   let data;
-  try { const response=await fetch(mode==='gallery'?'showcase-data.json':'workload-data.json'); if(!response.ok)throw new Error('HTTP '+response.status);data=await response.json(); }
+  try { const response=await fetch(mode==='gallery'?'showcase-data.json?v=0e307433d93c':'workload-data.json?v=1c7ed9ae5224'); if(!response.ok)throw new Error('HTTP '+response.status);data=await response.json(); }
   catch(error){$('note').textContent='Unable to load measured results. Please reload.';document.body.dataset.error=error.message;return;}
   if(mode==='gallery'){data.rows=data.rows.filter(p=>p.width*p.height<=20000000);if(data.title_map)data.title_map['podcast-edit']='Image Edit · 1 reference';}
   const titles=data.title_map||{'farm-to-table':'Food photography · text-to-image','podcast-edit':'Podcast edit · one reference'};

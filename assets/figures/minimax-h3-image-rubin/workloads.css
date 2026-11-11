@@ -29,7 +29,7 @@ details{margin:14px 0}summary{cursor:pointer;font-size:13px;color:var(--muted)}
 .hardware-axis .first{transform:none}.hardware-axis .last{transform:translateX(-100%)}
 .hardware-fallback{display:block;width:100%;height:auto}
 .workload-controls label{min-width:0}.workload-controls select{min-width:0}
-.workload-panel-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+.workload-panel-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
 .workload-panel{min-width:0;border-top:1px solid var(--line);padding-top:12px}
 .workload-panel-title{font:600 16px/1.4 var(--font);margin:0 0 3px}.workload-panel-meta{font:12px/1.5 var(--mono);color:var(--muted);margin:0 0 10px}
 .workload-bar-row{margin:12px 0}.workload-bar-row .hardware-heading{font-size:13px}

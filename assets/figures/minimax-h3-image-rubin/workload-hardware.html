@@ -1,10 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · hardware and workloads</title><link rel="stylesheet" href="figkit.css"><link rel="stylesheet" href="workloads.css"></head>
-<body><main class="fig"><div class="fig-head"><p class="fig-kicker">MiniMax H3-Image · performance</p><h1 class="fig-title">Text-to-image and editing</h1><p class="fig-sub">Choose the API mode, number of input references and output tier to compare latency across GPUs.</p></div>
-<div class="workload-controls"><label>Mode <select id="scene"></select></label><label>Input references <select id="references"></select></label><label>Resolution <select id="resolution"></select></label><label>Hardware <select id="group"></select></label></div>
-<p class="hardware-unit">HTTP latency · seconds · shared zero-based scale</p>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · latency by hardware</title><link rel="stylesheet" href="figkit.css?v=2c6a73b9af93"><link rel="stylesheet" href="workloads.css?v=7910809d0ff9"></head>
+<body><main class="fig"><div class="fig-head"><p class="fig-kicker">MiniMax H3-Image · performance</p><h1 class="fig-title">Latency by Hardware</h1><p class="fig-sub">Same API request across GPUs. End-to-end seconds per image; lower is better.</p></div>
+<div class="workload-controls"><label>Output size <select id="resolution"></select></label><label>Reference images <select id="references"></select></label><label>Hardware <select id="group"></select></label></div>
+<p class="hardware-unit">Mean end-to-end latency · seconds · lower is better</p>
 <div class="workload-panel-grid" id="panels"></div>
-<div class="workload-pagination" id="pagination"><button class="fig-btn" id="prev" type="button">Previous</button><span id="page-label" aria-live="polite"></span><button class="fig-btn" id="next" type="button">Next</button></div>
 <p id="quality-note" class="fig-note"></p><p id="note" class="fig-note">Loading measured results…</p>
-<p class="workload-download"><a href="workload-gallery.html">Reviewed images</a> · <a href="api-workload-results.csv">Benchmark data</a> · <a href="api-workload-results-metadata.json">Measurement notes</a></p>
-<noscript><img class="hardware-fallback" src="workload-hardware.png" alt="Measured H3-Image text-to-image and image-edit latency on four-GPU GB200, GB300 and Vera Rubin configurations. The linked data includes all measured systems."></noscript></main><script src="workload-hardware.js"></script></body></html>
+<p class="workload-download"><a href="workload-gallery.html">Reviewed images</a> · <a href="api-workload-results.csv?v=2b927b91c91f">Benchmark data</a> · <a href="api-workload-results-metadata.json?v=6afbf52b4bac">Measurement notes</a></p>
+<noscript><img class="hardware-fallback" src="workload-hardware.png" alt="Measured H3-Image text-to-image and image-edit latency on four-GPU GB200, GB300 and Vera Rubin configurations. The linked data includes all measured systems."></noscript></main><script src="workload-hardware.js?v=cc1adae2f0eb"></script></body></html>

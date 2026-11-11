@@ -40,7 +40,7 @@ Food photography, image editing, English and Chinese posters, and game environme
 generated on different systems with the same prompt, reference images and seed **42**.
 Each panel shows the output, serving configuration and **mean latency over three seeds**.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-gallery.html" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" height="900" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=4e16b6df9528" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" height="900" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
 The food and podcast requests come from MiniMax's
 [released examples](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/tree/main/examples).
@@ -73,7 +73,7 @@ return 1024×1024 images; with the local model's default minimum canvas,
 they are generated at 2048×2048 and resized. They therefore do not represent
 native 1K diffusion compute.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=d1c425bddcd1" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 ### Reference Images
 
@@ -83,17 +83,15 @@ composition takes **39.84 seconds** and **60.63 seconds**, respectively. Each us
 four GPUs. The larger conditioning workload adds substantial work even though
 the output size is unchanged.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?mode=image-edit&amp;resolution=4096x4096" title="4K image-edit latency across reference counts and hardware" loading="lazy" scrolling="no" height="1100" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?mode=image-edit&amp;resolution=4096x4096&amp;v=d1c425bddcd1" title="4K image-edit latency across reference counts and hardware" loading="lazy" scrolling="no" height="1100" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
 
 These compositions measure execution time and memory capacity; some outputs
-still miss or duplicate requested objects. Configurations that could not complete
-the workload are labeled in the figure.
+still miss or duplicate requested objects. The figures show completed measurements.
 
 [Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv)
 for per-seed timings and configurations. Points show the mean of three seeds
 after warmup; the bars include the measured range. We use a **10-minute
-limit per generation**, including warmup. Configurations without a completed
-measurement remain labeled in the figure.
+limit per generation**, including warmup. Only completed three-seed measurements within that limit appear in the plots.
 
 These tests measure image generation in vLLM-Omni using API-supported output
 sizes. Prompts are fixed before timing, so the numbers exclude prompt enhancement
@@ -161,7 +159,7 @@ Four Rubin GPUs reached **0.866 s median / 0.944 s p95** with SP4 at concurrency
 Four single-GPU replicas reached **6,115 images/hour**, at **4.411 s median**
 latency. The latency and throughput headlines are different operating points.
 
-### 4K Latency
+### Latency
 
 Each request contains one prompt, no reference images, and a native
 **4096×4096** output from [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image).
@@ -172,7 +170,7 @@ At concurrency 1, the Rubin configuration delivers **2.21× faster generation th
 GB200 and 1.64× faster than GB300**, measured as reference latency divided by Rubin
 latency. All three use SP4 and MXFP8 DiT linears for this latency comparison.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-hardware-comparison.html" title="4K image latency and peak throughput across Rubin, GB200 and GB300" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-hardware-comparison.html?v=128210463c0c" title="4K image latency and peak throughput across Rubin, GB200 and GB300" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
 ### Throughput
 
@@ -186,7 +184,7 @@ raises throughput to **6,115 images/hour**, a **38.7% increase**, at concurrency
 and a **4.411-second median** response. It is a useful choice when a queue of
 requests matters more than finishing one request as quickly as possible.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-performance-benchmarks.html?embed=1" title="MiniMax H3-Image: throughput per GPU versus response latency" loading="lazy" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-performance-benchmarks.html?embed=1&amp;v=9a07aee2faaa" title="MiniMax H3-Image: throughput per GPU versus response latency" loading="lazy" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
 C is the total number of in-flight requests across the four GPUs. Every plotted
 point contains 160 measured requests after warmup. Both Rubin sweeps completed
@@ -203,7 +201,7 @@ At the peak measured rate, a four-GPU Rubin system projects to **146,755 4K
 images/day**. Using **USD 0.06879 per billable image**, that is **USD 105.16/GPU/hour**
 in gross revenue. At 75% billable utilization, it becomes **USD 78.87/GPU/hour**.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-serving-economics.html" title="Daily image capacity and gross revenue per GPU-hour" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-serving-economics.html?v=3cff2339e574" title="Daily image capacity and gross revenue per GPU-hour" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
 The price is MiniMax's non-promotional standard 4K T2I example, used here as an
 assumed sale price. MiniMax's actual API bill depends on token usage.

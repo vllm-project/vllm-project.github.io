@@ -29,7 +29,7 @@
   const dashed = p => p.platform !== 'Vera Rubin' ? '6 4' : '';
   let points;
   try {
-    const response = await fetch('performance-benchmarks-data.json');
+    const response = await fetch('performance-benchmarks-data.json?v=4978697ff082');
     if (!response.ok) throw new Error('HTTP ' + response.status);
     points = (await response.json()).points;
   } catch (e) {

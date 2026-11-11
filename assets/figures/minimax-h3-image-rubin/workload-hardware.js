@@ -4,8 +4,7 @@
   const el = (tag, text, cls) => {const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
   const height = () => window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.documentElement.scrollHeight)},'*');
   const params = new URLSearchParams(location.search);
-  let data, page=0;
-  const pageSize=6;
+  let data;
   // Read the downloadable CSV directly, so timings have one published source.
   function parseCSV(source){
     const records=[];let row=[],field='',quoted=false;
@@ -25,7 +24,7 @@
     return records.map(values=>{if(values.length!==keys.length)throw new Error('Invalid CSV row');return Object.fromEntries(keys.map((k,i)=>[k,values[i]]));});
   }
   try {
-    const responses=await Promise.all([fetch('api-workload-data.json'),fetch('api-workload-results.csv')]);
+    const responses=await Promise.all([fetch('api-workload-data.json?v=1f71a5771d53'),fetch('api-workload-results.csv?v=2b927b91c91f')]);
     for(const response of responses)if(!response.ok)throw new Error('HTTP '+response.status);
     const [metadata,csv]=await Promise.all([responses[0].json(),responses[1].text()]);
     data={...metadata,cases:Object.fromEntries(Object.entries(metadata.cases).map(([id,c])=>[id,{
@@ -85,27 +84,26 @@
     return node;
   }
   function matching(){
-    return data.scenes.find(s=>s.id===$('scene').value).cases.filter(id=>{
-      const c=data.cases[id];return ($('references').value==='all'||String(c.reference_count)===$('references').value)&&($('resolution').value==='all'||c.width+'x'+c.height===$('resolution').value);
+    return Object.keys(data.cases).filter(id=>{
+      const c=data.cases[id];return String(c.reference_count)===$('references').value&&c.width+'x'+c.height===$('resolution').value;
     });
   }
   function draw(){
     const group=data.groups.find(g=>g.id===$('group').value),matches=matching();
-    const pages=Math.ceil(matches.length/pageSize);page=Math.min(page,pages-1);
-    const ids=matches.slice(page*pageSize,(page+1)*pageSize);
-    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw))}));
+    const ids=matches;
+    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw)).filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3)}));
     const values=panels.flatMap(p=>p.results.filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3).map(r=>r.primary.max_s));
     const axis=axisLimit(values.length?Math.max(...values):0);
     $('panels').replaceChildren();
     for(const panel of panels){
       const c=panel.case,card=el('section',undefined,'workload-panel');card.dataset.caseId=c.id;
-      card.append(el('h2',c.title,'workload-panel-title'),el('p',({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+'×'+c.height+' · '+c.reference_count+' reference'+(c.reference_count===1?'':'s'),'workload-panel-meta'));
+      card.append(el('h2',({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height,'workload-panel-title'),el('p',c.reference_count+' reference image'+(c.reference_count===1?'':'s')+' · 1 image per request · 6 sampling steps','workload-panel-meta'));
       if(c.generation_canvas[0]!==c.width||c.generation_canvas[1]!==c.height)card.appendChild(el('p','Generated at '+c.generation_canvas.join('×')+', then resized','workload-panel-meta'));
       const list=el('div',undefined,'hardware-bars');list.setAttribute('role','list');
       for(const result of panel.results){
         const p=result.primary,h=hardware[result.hardware],row=el('div',undefined,'workload-bar-row');row.setAttribute('role','listitem');row.dataset.hardware=h.id;
         const head=el('div',undefined,'hardware-heading');head.append(el('span',h.gpus+'× '+h.label),el('strong',status(p),'tnum'));row.appendChild(head);
-        row.appendChild(el('p',(p?'SP'+p.sp+' · '+p.precision.toUpperCase()+' DiT · '+placement(p):'Not measured for this mode and size'),'workload-bar-config'));
+        row.appendChild(el('p',(p?'SP'+p.sp+' · '+p.precision.toUpperCase()+' DiT · '+placement(p):'No completed measurements'),'workload-bar-config'));
         if(p&&p.status==='completed'&&p.n===3){
           const track=el('div',undefined,'hardware-track');track.setAttribute('aria-hidden','true');
           const bar=el('span',undefined,'hardware-bar tone-'+tones[h.id]);bar.style.width=(100*p.mean_s/axis.max)+'%';
@@ -118,39 +116,33 @@
       card.append(list,axisElement(axis));
       const detail=el('details',undefined,'workload-measurements');detail.appendChild(el('summary','Test setup'));detail.addEventListener('toggle',height);
       for(const result of panel.results){detail.appendChild(el('h3',hardware[result.hardware].label));
-        detail.appendChild(el('p',result.primary?detailsText(result.primary):'Not measured for this mode and size.'));
+        detail.appendChild(el('p',result.primary?detailsText(result.primary):'No completed measurements.'));
       }
-      const prompt=el('details',undefined,'workload-measurements');prompt.appendChild(el('summary','Exact prompt'));
-      if(c.prompt)prompt.appendChild(el('pre',c.prompt,'workload-prompt'));
-      else if(c.prompt_source){const a=el('a','Read the original prompt in the source guide');a.href=c.prompt_source;a.target='_blank';a.rel='noopener';prompt.appendChild(a);}
-      prompt.addEventListener('toggle',height);
       detail.appendChild(el('p','Linear axis starts at zero. Mean of seeds 0, 42 and 1234 after warmup; whiskers show min–max. Timing completion is not a semantic-quality score.'));
-      card.append(detail,prompt);$('panels').appendChild(card);
+      card.append(detail);$('panels').appendChild(card);
     }
-    $('page-label').textContent=(page*pageSize+1)+'–'+Math.min((page+1)*pageSize,matches.length)+' of '+matches.length+' workloads';
-    $('prev').disabled=page===0;$('next').disabled=page===pages-1;$('pagination').hidden=pages===1;
     $('note').textContent='Shared seconds scale. Mean of three seeds after warmup; whiskers show min–max. HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.';
     $('quality-note').textContent=panels.some(p=>p.case.reference_count>1)?'Reference-composition timings measure execution time and capacity. Some outputs miss or duplicate requested objects.':panels.some(p=>p.case.corpus==='openai_image25_examples')?'H3-Image results using public example prompts; these are not head-to-head GPT Image measurements.':'';
-    window.HardwareWorkloads.selection={scene:$('scene').value,references:$('references').value,resolution:$('resolution').value,group:group.id,page,pages,panels,axis};
+    window.HardwareWorkloads.selection={references:$('references').value,resolution:$('resolution').value,group:group.id,panels,axis};
     height();
   }
-  function updateFilters(reference=$('references').value,resolution=$('resolution').value){
-    const cases=data.scenes.find(s=>s.id===$('scene').value).cases.map(id=>data.cases[id]);
+  function updateReferences(reference=$('references').value){
+    const cases=Object.values(data.cases).filter(c=>c.width+'x'+c.height===$('resolution').value);
     const counts=[...new Set(cases.map(c=>c.reference_count))].sort((a,b)=>a-b);
-    options('references',[{id:'all',label:'All reference counts'},...counts.map(n=>({id:String(n),label:n===0?'None · text-to-image':n+' reference'+(n===1?'':'s')}))],counts.some(n=>String(n)===reference)?reference:'all');
-    const sizes=new Map();for(const c of cases.filter(c=>$('references').value==='all'||String(c.reference_count)===$('references').value))sizes.set(c.width+'x'+c.height,c);
-    options('resolution',[{id:'all',label:'All output tiers'},...[...sizes].sort((a,b)=>a[1].width*a[1].height-b[1].width*b[1].height).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height}))],sizes.has(resolution)?resolution:'all');
-    page=0;draw();
+    const selected=counts.some(n=>String(n)===reference)?reference:'0';
+    options('references',counts.map(n=>({id:String(n),label:n===0?'None':String(n)})),selected);
+    draw();
   }
   window.HardwareWorkloads={data,choose,axisLimit,parseCSV};
-  const initial=params.get('mode')||(params.get('scene')==='reference-composition'?'image-edit':'all');
-  options('scene',data.scenes,data.scenes.some(s=>s.id===initial)?initial:'all');
-  options('group',data.groups,'blackwell');
-  $('scene').addEventListener('change',()=>updateFilters());$('references').addEventListener('change',()=>updateFilters());
-  $('resolution').addEventListener('change',()=>{page=0;draw();});$('group').addEventListener('change',draw);
-  $('prev').addEventListener('click',()=>{if(page>0){page--;draw();}});
-  $('next').addEventListener('click',()=>{if((page+1)*pageSize<matching().length){page++;draw();}});
-  updateFilters(params.get('references')||'all',params.get('resolution')||'4096x4096');
+  const sizes=new Map();for(const c of Object.values(data.cases))sizes.set(c.width+'x'+c.height,c);
+  const resolution=params.get('resolution')||'4096x4096';
+  options('resolution',[...sizes].sort((a,b)=>a[1].width-b[1].width).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height})),sizes.has(resolution)?resolution:'4096x4096');
+  const groups=[data.groups.find(g=>g.id==='all'),...data.groups.filter(g=>g.id!=='all')];
+  const group=params.get('group')||'all';
+  options('group',groups.map(g=>({...g,label:g.id==='all'?'All measured hardware':g.label})),groups.some(g=>g.id===group)?group:'all');
+  $('references').addEventListener('change',draw);
+  $('resolution').addEventListener('change',()=>updateReferences());$('group').addEventListener('change',draw);
+  updateReferences(params.get('references')||(params.get('mode')==='image-edit'?'1':'0'));
   document.body.dataset.ready='1';
   if(document.fonts)document.fonts.ready.then(height);
   new ResizeObserver(height).observe(document.querySelector('main'));
