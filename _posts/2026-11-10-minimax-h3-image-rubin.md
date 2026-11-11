@@ -157,51 +157,6 @@ weights and SP4. The measured H100 systems use **H100 NVL**. **A100 PCIe** and
 These results describe the configurations we tested; GPU count,
 precision and placement remain visible when comparing machines.
 
-## Other Hardware
-
-H3-Image is also supported on **AMD Instinct, Intel Arc Pro, Huawei Ascend and
-Moore Threads** hardware through the implementations and recipes below. These
-community validations use their own workloads and configurations; the matched
-performance figures above cover our NVIDIA runs.
-
-**AMD Instinct.** The [AMD recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-AMD.md)
-includes text-to-image and editing measurements on **MI325X and MI350X**, from
-one to eight GPUs, using BF16 and `FLASH_ATTN`. It covers Ulysses sequence
-parallelism and tensor parallelism. ROCm uses a single VAE graph replica to
-avoid the hangs observed with concurrent graph replays.
-
-**Intel Arc Pro B70.** The [XPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-XPU.md)
-documents measured one-, two- and four-GPU deployments. Its recommended
-four-card layout uses **DiT TP4 with text-encoder layerwise offload** to fit
-32 GB cards. The smaller layouts also offload DiT weights; VAE decoding runs
-eagerly on XPU.
-
-**Huawei Ascend.** The [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-NPU.md),
-added in [PR #10155](https://github.com/vllm-project/vllm-omni/pull/10155),
-covers **Atlas 800I A2, Atlas 800T A3 and Atlas 350 (A5)**. It includes measured
-one-, two- and four-NPU profiles on A2 and A5, using BF16 and eager execution.
-The four-NPU layouts use DiT TP4 on A2 and Ulysses SP4 with text-encoder TP4
-on A5; smaller configurations use layerwise offload. Further VAE graph execution
-optimizations are described in [PR #10184](https://github.com/vllm-project/vllm-omni/pull/10184).
-
-**Moore Threads MTT S5000.** H3-Image is supported through the
-[MUSA implementation](https://github.com/vllm-project/vllm-omni/pull/10139),
-which enables VAE graph decoding and includes a
-[model-specific recipe](https://github.com/vllm-project/vllm-omni/blob/5b757b77c05db3562239b19707f059d282de7a62/recipes/MiniMaxAI/MiniMax-H3-Image-MUSA.md)
-with measured **TP2 and TP4** layouts on 80 GB S5000 cards. The graph tests
-check bitwise agreement with eager decoding.
-
-## OpenDirector
-
-Day-0 support also reaches the creative workflow. OpenDirector's
-[H3-Image integration](https://github.com/ThinkFlowLab/OpenDirector/pull/280)
-is merged: users can generate an image, place it on the canvas, and use it as
-a reference for the next edit, from either the canvas or the agent.
-
-The integration uses **MiniMax's hosted image API**, with standard and Highspeed
-presets and support for up to 16 ordered reference images. Its published
-examples show generation and subsequent edits using one or two references.
-
 ## Rubin Bringup
 
 For Rubin, we focus on one serving workload: **4096×4096 text-to-image, no
@@ -270,6 +225,51 @@ utilization ÷ 4 GPUs**. These are gross-revenue scenarios, before hardware, pow
 network and other operating costs. Daily image counts extend the measured hourly
 rate to 24 hours; they are not results from a day-long load test. For the subsecond
 SP4 operating point, the same price gives **$57.86/GPU/hour** at full billable utilization.
+
+## Other Hardware
+
+H3-Image is also supported on **AMD Instinct, Intel Arc Pro, Huawei Ascend and
+Moore Threads** hardware through the implementations and recipes below. These
+community validations use their own workloads and configurations; the matched
+performance figures above cover our NVIDIA runs.
+
+**AMD Instinct.** The [AMD recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-AMD.md)
+includes text-to-image and editing measurements on **MI325X and MI350X**, from
+one to eight GPUs, using BF16 and `FLASH_ATTN`. It covers Ulysses sequence
+parallelism and tensor parallelism. ROCm uses a single VAE graph replica to
+avoid the hangs observed with concurrent graph replays.
+
+**Intel Arc Pro B70.** The [XPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-XPU.md)
+documents measured one-, two- and four-GPU deployments. Its recommended
+four-card layout uses **DiT TP4 with text-encoder layerwise offload** to fit
+32 GB cards. The smaller layouts also offload DiT weights; VAE decoding runs
+eagerly on XPU.
+
+**Huawei Ascend.** The [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-NPU.md),
+added in [PR #10155](https://github.com/vllm-project/vllm-omni/pull/10155),
+covers **Atlas 800I A2, Atlas 800T A3 and Atlas 350 (A5)**. It includes measured
+one-, two- and four-NPU profiles on A2 and A5, using BF16 and eager execution.
+The four-NPU layouts use DiT TP4 on A2 and Ulysses SP4 with text-encoder TP4
+on A5; smaller configurations use layerwise offload. Further VAE graph execution
+optimizations are described in [PR #10184](https://github.com/vllm-project/vllm-omni/pull/10184).
+
+**Moore Threads MTT S5000.** H3-Image is supported through the
+[MUSA implementation](https://github.com/vllm-project/vllm-omni/pull/10139),
+which enables VAE graph decoding and includes a
+[model-specific recipe](https://github.com/vllm-project/vllm-omni/blob/5b757b77c05db3562239b19707f059d282de7a62/recipes/MiniMaxAI/MiniMax-H3-Image-MUSA.md)
+with measured **TP2 and TP4** layouts on 80 GB S5000 cards. The graph tests
+check bitwise agreement with eager decoding.
+
+## OpenDirector
+
+Day-0 support also reaches the creative workflow. OpenDirector's
+[H3-Image integration](https://github.com/ThinkFlowLab/OpenDirector/pull/280)
+is merged: users can generate an image, place it on the canvas, and use it as
+a reference for the next edit, from either the canvas or the agent.
+
+The integration uses **MiniMax's hosted image API**, with standard and Highspeed
+presets and support for up to 16 ordered reference images. Its published
+examples show generation and subsequent edits using one or two references.
 
 ## Acknowledgements
 
