@@ -153,6 +153,10 @@ references, six steps and MXFP8 DiT linears**. Each concurrency point uses the
 same 160 prompt–seed pairs, giving us response-time distributions and throughput
 under load in addition to the three-seed examples above.
 
+On Rubin, eligible DiT linear layers use **FlashInfer's CuTe-DSL MXFP8 GEMM**
+(`FlashInferCutedslMxfp8LinearKernel` in vLLM). The SP4 latency run and all four
+SP1 throughput replicas select this kernel. Attention uses **`TRTLLM_ATTN`**.
+
 Four Rubin GPUs reached **0.866 s median / 0.944 s p95** with SP4 at concurrency 1.
 Four single-GPU replicas reached **6,115 images/hour**, at **4.411 s median**
 latency. The latency and throughput headlines are different operating points.
@@ -230,13 +234,11 @@ four-card layout uses **DiT TP4 with text-encoder layerwise offload** to fit
 32 GB cards. The smaller layouts also offload DiT weights; VAE decoding runs
 eagerly on XPU.
 
-**Huawei Ascend.** The [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-NPU.md),
-added in [PR #10155](https://github.com/vllm-project/vllm-omni/pull/10155),
-covers **Atlas 800I A2, Atlas 800T A3 and Atlas 350 (A5)**. It includes measured
-one-, two- and four-NPU profiles on A2 and A5, using BF16 and eager execution.
-The four-NPU layouts use DiT TP4 on A2 and Ulysses SP4 with text-encoder TP4
-on A5; smaller configurations use layerwise offload. Further VAE graph execution
-optimizations are described in [PR #10184](https://github.com/vllm-project/vllm-omni/pull/10184).
+**Huawei Ascend.** The [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-NPU.md)
+covers **Atlas 800I A2, Atlas 800T A3 and Atlas 350 (A5)**. Measured A2 and A5
+profiles use one, two or four NPUs with BF16 and eager execution. Four-NPU
+configurations use **DiT TP4 on A2** and **Ulysses SP4 with text-encoder TP4 on A5**;
+smaller configurations use layerwise offload.
 
 **Moore Threads MTT S5000.** H3-Image is supported through the
 [MUSA implementation](https://github.com/vllm-project/vllm-omni/pull/10139),
@@ -247,14 +249,14 @@ check bitwise agreement with eager decoding.
 
 ## OpenDirector
 
-Day-0 support also reaches the creative workflow. OpenDirector's
-[H3-Image integration](https://github.com/ThinkFlowLab/OpenDirector/pull/280)
-is merged: users can generate an image, place it on the canvas, and use it as
-a reference for the next edit, from either the canvas or the agent.
+[OpenDirector](https://github.com/ThinkFlowLab/OpenDirector) is an agent-driven
+platform for creators, started by a vLLM-Omni committer to make vLLM-Omni easier
+to use in creative workflows.
 
-The integration uses **MiniMax's hosted image API**, with standard and Highspeed
-presets and support for up to 16 ordered reference images. Its published
-examples show generation and subsequent edits using one or two references.
+Its Day-0 H3-Image integration currently uses **MiniMax's hosted image API**.
+Creators can generate and edit images through the canvas or agent, then use the
+outputs as references for the next edit. We plan to expand support for
+**locally deployed H3-Image workflows powered by vLLM-Omni**.
 
 ## Acknowledgements
 
