@@ -12,7 +12,7 @@ tags:
   - performance
 ---
 
-![vLLM-Omni on Vera Rubin.](/assets/figures/minimax-h3-image-rubin/social-preview.png)
+![Day-0 support for MiniMax H3-Image in vLLM-Omni.](/assets/figures/minimax-h3-image-rubin/social-preview.png)
 
 [vLLM now supports NVIDIA Vera Rubin NVL72](https://vllm.ai/blog/2026-10-09-vera-rubin-preview).
 With the release of [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image),
