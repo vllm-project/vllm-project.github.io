@@ -76,12 +76,14 @@
   }
   function drawCurve() {
     const data = selectedPoints(), metric = $('metric').value;
-    const log = $('log').checked, zoom = $('zoom').checked;
+    const log = true, zoom = false;
+    const compact = typeof innerWidth === 'number' && innerWidth < 560;
+    svg.setAttribute('viewBox', compact ? '0 0 400 390' : '0 0 736 364');
     const maxLatency = Math.max(...data.map(p => p[metric]));
     const xmax = zoom ? Math.min(5, maxLatency) : log ? Math.pow(2, Math.ceil(Math.log2(maxLatency))) : Math.ceil(maxLatency / 5) * 5;
     const xmin = log ? .5 : 0;
     const ymax = Math.ceil(Math.max(...data.map(p => p.images_per_gpu_hour)) / 400) * 400;
-    const x0 = 60, x1 = 700, top = 32, bottom = 296;
+    const x0 = compact ? 52 : 60, x1 = compact ? 380 : 700, top = 32, bottom = compact ? 320 : 296;
     const X = v => x0 + (log ? Math.log(v / xmin) / Math.log(xmax / xmin) : v / xmax) * (x1 - x0);
     const Y = v => bottom - v / ymax * (bottom - top);
     const metricName = metric === 'median_latency_s' ? 'median' : metric === 'p95_latency_s' ? 'p95' : 'p99';
@@ -108,60 +110,66 @@
         if (p[metric] > xmax) return;
         const x = X(p[metric]), y = Y(p.images_per_gpu_hour);
         node('circle', {cx: x, cy: y, r: 4.5, class: 'pt', style: 'fill:' + stroke}, plot);
-        if (groups.size <= 4) text(x, y + (p.platform === 'Vera Rubin' ? -11 : 20), 'C' + p.concurrency, 't-mut', {'text-anchor': 'middle'});
+        if (groups.size <= 4 && (!compact || p.concurrency === 1 || p.concurrency === 16)) text(x, y + (p.platform === 'Vera Rubin' ? -11 : 20), 'C' + p.concurrency, 't-mut', {'text-anchor': 'middle'});
         const hit = node('circle', {cx: x, cy: y, r: 11, class: 'hit', 'data-point': seriesKey(p) + '/C' + p.concurrency});
         tooltip(hit, [shortName(p) + ' · ' + p.precision + ' · C' + p.concurrency, fmt(p.images_per_gpu_hour, 1) + ' images/GPU/hour', metricName + ' HTTP latency: ' + fmt(p[metric], 3) + ' s', 'Sample p95: ' + fmt(p.p95_latency_s, 3) + ' s · 160 measured requests', fmt(p.images_per_hour, 1) + ' images/hour across four GPUs']);
       });
-      if (!zoom && groups.size <= 4) {
+      if (!zoom && groups.size <= 4 && !compact) {
         const a = group[group.length - 2], b = group[group.length - 1];
         labels.push([(X(a[metric]) + X(b[metric])) / 2, (Y(a.images_per_gpu_hour) + Y(b.images_per_gpu_hour)) / 2 + (p0.platform === 'GB200' ? 43 : -34), shortName(p0)]);
       }
     }
     labels.forEach(([x, y, s]) => text(x, y, s, 't-lab-b', {'text-anchor': 'middle'}));
     legend([...groups.values()].map(g => ({color: color(g[0]), dash: dashed(g[0]), label: shortName(g[0]) + ' · ' + g[0].precision.replace(' DiT', '')})));
-    $('note').textContent = 'Native 4096×4096 T2I; six steps; four GPUs; 160 prompt–seed pairs per point after warmup. C = closed-loop client concurrency, not DiT batch size. HTTP latency includes queueing, generation, PNG encoding and response receipt over loopback; client decoding/validation/saving is excluded from latency and included in throughput. ' + 'All curves use MXFP8 DiT linears; SP4 curves share the same parallel layout. Peak configurations have different response latencies.';
+    $('note').textContent = 'Native 4096×4096 T2I; six steps; four GPUs; 20 short prompts (122–160 characters), eight seeds each; 160 requests per point after warmup. C = closed-loop client concurrency, not DiT batch size. HTTP latency includes queueing, generation, PNG encoding and response receipt over loopback; client decoding/validation/saving is excluded from latency and included in throughput. ' + 'All curves use MXFP8 DiT linears; SP4 curves share the same parallel layout. Peak configurations have different response latencies.';
     reportHeight();
   }
   let barMode = kind === 'hardware' ? 'latency' : 'revenue';
   function drawBars() {
     const latency = barMode === 'latency', capacity = barMode === 'capacity', throughput = barMode === 'throughput';
+    const compact = typeof innerWidth === 'number' && innerWidth < 560;
+    svg.setAttribute('viewBox', compact ? '0 0 400 410' : '0 0 736 364');
+    if ($('figure-heading')) $('figure-heading').textContent = latency ? 'Latency' : capacity || throughput ? 'Throughput' : 'Revenue';
     const data = platforms.map(platform => latency ? c1For(platform) : peakFor(platform));
     const value = p => latency ? p.median_latency_s : capacity ? p.images_per_hour : throughput ? p.images_per_gpu_hour : revenuePerGPU(p, .06879, 1);
     const vmax = latency ? 2.5 : capacity ? 8000 : throughput ? 2000 : 120;
     const step = latency ? .5 : capacity ? 2000 : throughput ? 500 : 30;
     const unit = latency ? 'median HTTP latency, seconds · lower is better' : capacity ? 'images / hour / four-GPU system' : throughput ? 'images / GPU / hour · higher is better' : 'gross USD / GPU / hour';
-    const x0 = 136, x1 = 656, top = 44, bottom = 300;
+    const x0 = compact ? 8 : 136, x1 = compact ? 302 : 656, top = compact ? 64 : 44, bottom = compact ? 370 : 300;
     const X = v => x0 + v / vmax * (x1 - x0);
     const rubin = data[0], gb200 = data[2], gb300 = data[1];
     $('title').textContent = latency ? 'Native 4K in ' + fmt(value(rubin), 3) + ' seconds' : capacity ? fmt(value(rubin)) + ' images/hour from four Rubin GPUs' : throughput ? 'Rubin: ' + fmt(value(rubin) / value(gb200), 2) + '× GB200 throughput' : money(value(rubin)) + ' per GPU-hour';
-    $('subtitle').textContent = kind === 'hardware' ? (latency ? 'C1 on SP4: ' + fmt(value(gb200) / value(rubin), 2) + '× faster than GB200 and ' + fmt(value(gb300) / value(rubin), 2) + '× faster than GB300.' : 'Best measured serving configurations: ' + fmt(value(rubin) / value(gb300), 2) + '× GB300 peak throughput. Peaks have different response times.') : capacity ? 'Peak measured throughput. Four GPUs per system.' : 'Gross revenue at $0.06879/image and 100% billable utilization.';
+    $('subtitle').textContent = latency || throughput ? (latency ? 'C1 on SP4: ' + fmt(value(gb200) / value(rubin), 2) + '× faster than GB200 and ' + fmt(value(gb300) / value(rubin), 2) + '× faster than GB300.' : 'Best measured serving configurations: ' + fmt(value(rubin) / value(gb300), 2) + '× GB300 peak throughput. Peaks have different response times.') : capacity ? 'Peak measured throughput. Four GPUs per system.' : 'Gross revenue at $0.06879/image and 100% billable utilization.';
     reset($('title').textContent + '. ' + unit);
-    text(x0, 15, unit, 't-head');
+    text(x0, 15, unit, compact ? 't-mut' : 't-head');
     for (let v = 0; v <= vmax; v += step) {
       node('line', {x1: X(v), x2: X(v), y1: top - 5, y2: bottom, class: 'm-rule'});
       text(X(v), bottom + 22, capacity ? (v / 1000) + 'K' : latency ? fmt(v, v % 1 ? 1 : 0) : fmt(v), 't-faint', {'text-anchor': 'middle'});
     }
     data.forEach((p, i) => {
-      const y = 54 + i * 80, v = value(p), c = platformColor(p);
-      text(x0 - 14, y + 20, p.platform === 'Vera Rubin' ? 'Vera Rubin' : p.platform, 't-lab-b', {'text-anchor': 'end'});
+      const y = (compact ? 64 : 54) + i * (compact ? 110 : 80), v = value(p), c = platformColor(p);
+      text(compact ? x0 : x0 - 14, compact ? y - 10 : y + 20, p.platform === 'Vera Rubin' ? 'Vera Rubin' : p.platform, 't-lab-b', {'text-anchor': compact ? 'start' : 'end'});
       const bar = node('rect', {x: x0, y, width: X(v) - x0, height: 32, style: 'fill:' + c + ';stroke:none', 'data-bar': p.platform});
       text(X(v) + 9, y + 21, latency ? fmt(v, 3) + ' s' : throughput ? fmt(v, 1) : capacity ? fmt(v) : money(v), 't-num');
-      text(x0, y + 51, p.topology + ' · C' + p.concurrency + ' · ' + p.precision + (latency ? '' : ' · p50 ' + fmt(p.median_latency_s, 3) + ' s'), 't-mut');
+      text(x0, y + 51, p.topology + ' · C' + p.concurrency + ' · ' + p.precision + (latency || compact ? '' : ' · p50 ' + fmt(p.median_latency_s, 3) + ' s'), 't-mut');
+      if (compact && !latency) text(x0, y + 68, 'p50 ' + fmt(p.median_latency_s, 3) + ' s', 't-mut');
       tooltip(bar, [p.platform + ' · ' + p.topology + ' · ' + p.precision, unit + ': ' + fmt(v, latency ? 3 : 2), 'p50 ' + fmt(p.median_latency_s, 3) + ' s · p95 ' + fmt(p.p95_latency_s, 3) + ' s', fmt(p.images_per_hour, 1) + ' images/hour across four GPUs']);
     });
-    $('note').textContent = kind === 'hardware' ? (latency ? 'All three C1 runs use SP4 and MXFP8 DiT linears. ' : 'Peak throughput: Rubin MXFP8/SP1×DP4, C8; GB300 and GB200 MXFP8/SP4, C2. These are best measured configurations at different response latencies. ') + 'Native 4096×4096; six steps; 160 measured requests per point. HTTP latency includes PNG encoding and the full base64 response.' : capacity ? 'Peak configurations have different response latencies, shown under each bar.' : 'MiniMax Standard 4K API example: $0.06879/image before launch discounts. Gross revenue assumes 100% billable utilization, before operating costs. At 75%: ' + money(revenuePerGPU(rubin, .06879, .75)) + '/GPU/hour gross.';
-    legend(data.map(p => ({color: platformColor(p), label: p.platform + ' · MXFP8'})));
+    $('note').textContent = latency ? 'All three C1 runs use SP4 and MXFP8 DiT linears. Native 4096×4096; six steps; 160 short-prompt requests per point (20 prompts × eight seeds). HTTP latency includes PNG encoding and the full base64 response.' : capacity || throughput ? 'Four GPUs per system. Best measured throughput: Rubin SP1×DP4 at C8; GB300 and GB200 SP4 at C2. All use MXFP8. Peak configurations have different response latencies, shown under each bar.' : 'MiniMax Standard 4K API example: $0.06879/image before launch discounts. Gross revenue assumes 100% billable utilization, before operating costs. At 75%: ' + money(revenuePerGPU(rubin, .06879, .75)) + '/GPU/hour gross.';
+    $('legend').replaceChildren();
     reportHeight();
   }
   if (kind === 'curve') {
-    ['metric', 'precision', 'log', 'zoom'].forEach(id => $(id).addEventListener('change', drawCurve));
+    ['metric', 'precision'].forEach(id => $(id).addEventListener('change', drawCurve));
     drawCurve();
   } else {
     document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
       barMode = button.dataset.mode; document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b === button))); drawBars();
     })); drawBars();
   }
+  if ($('measurement-details')) $('measurement-details').addEventListener('toggle', reportHeight);
   window.H3 = {points, selectedPoints, revenuePerGPU};
+  window.addEventListener('resize', kind === 'curve' ? drawCurve : drawBars);
   document.body.dataset.ready = '1';
   document.fonts.ready.then(reportHeight);
 })();

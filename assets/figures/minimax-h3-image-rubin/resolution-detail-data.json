@@ -77,22 +77,23 @@
           "source_job": "3192553"
         }
       ],
-      "hardware": "4× GB300",
-      "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "hardware": "4\u00d7 GB300",
+      "configuration": "Ulysses SP4 \u00b7 MXFP8 DiT \u00b7 resident weights \u00b7 six steps \u00b7 seed 42",
       "detail_hint": "Skin texture, individual hairs and knitted fabric.",
       "detail_focus": [
         0.72,
         0.345
       ],
-      "demo_title": "Skin & Hair"
+      "demo_title": "Skin & Hair",
+      "thumbnail": "cases/scene-gb300-podcast-fist-bump-seed42-preview.webp?v=bfede70138dd"
     },
     {
       "id": "library-interior",
       "title": "Architecture",
       "prompt": "An architectural interior photograph shows a quiet contemporary reading room from just inside its entrance, at standing eye level with straight vertical lines. A long oak reading table extends away from the camera through the center of the room. Exactly six matching wooden chairs are arranged around it, three evenly spaced along each long side, with no chairs at either end. The tabletop is mostly clear except for two closed cloth-bound books stacked near its far end; their spines carry no lettering. Floor-to-ceiling bookcases cover the left wall, with narrow vertical uprights and books of varied muted colors. The right wall has three tall rectangular windows separated by pale stone piers. Beyond the windows, soft green tree canopies appear out of focus. Late-afternoon light enters from the right and lays three broad bands of sunlight across the table and the matte stone floor. At the back, a single open doorway reveals a dim adjoining room and establishes depth without adding a second focal point. The exposed oak ceiling beams run consistently from left to right and meet the walls cleanly. Oak grain, linen book covers, finely textured plaster, and subtle wear on chair edges are visible. The room contains no people, screens, signs, decorative plants, warped shelves, or floating furniture.",
       "reference_count": 0,
-      "hardware": "4× GB300",
-      "configuration": "SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "hardware": "4\u00d7 GB300",
+      "configuration": "SP4 \u00b7 MXFP8 DiT \u00b7 resident weights \u00b7 six steps \u00b7 seed 42",
       "detail_hint": "Book spines, wood grain and repeated architectural details.",
       "detail_focus": [
         0.22,
@@ -119,15 +120,16 @@
           "source_job": "3192553"
         }
       ],
-      "demo_title": "Books & Timber"
+      "demo_title": "Books & Timber",
+      "thumbnail": "cases/scene-gb300-library-interior-seed42-preview.webp?v=e41def156b10"
     },
     {
       "id": "farm-to-table",
       "title": "Food",
       "prompt": "The image is an overhead, top-down photograph of a rustic farm-to-table feast spread across a weathered, dark brown wooden table with visible grain, knots, and a worn finish. In the center, a large woven basket holds a freshly baked rustic loaf of bread with a cracked golden-brown crust and scattered flour, alongside a halved loaf. To the left, a large dark ceramic plate presents an assortment of colorful seasonal vegetables, including bright orange carrots, deep red heirloom tomatoes, purple cabbage, and a mound of vibrant green leafy kale and arugula. On the right side, a wooden board displays artisanal cheeses: a wedge of sharp aged cheddar, a round of creamy brie with a rind, a soft blue cheese, and a few scattered almonds and walnuts. Below the bread in the lower center, a shallow bowl contains roasted root vegetables, including golden potatoes and beets, sprinkled with fresh rosemary sprigs. At the upper right, a glass jar of golden olive oil stands beside a smaller jar of honey with a wooden dipper. In the lower left, a rustic cloth napkin holds a silver knife and fork. At the upper left, a bunch of purple and red grapes rests near a small bowl of black olives. Scattered herbs, including fresh thyme and sprigs of oregano, decorate the table. The lighting is natural and warm, coming from the upper left and casting soft, long shadows to the lower right, enhancing the texture of the bread, the moisture of the vegetables, and the overall cozy, bountiful atmosphere of the meal.",
       "reference_count": 0,
-      "hardware": "1× RTX 5090",
-      "configuration": "SP1 · MXFP8 DiT · CPU layerwise offload: DiT + encoder · six steps · seed 42",
+      "hardware": "1\u00d7 RTX 5090",
+      "configuration": "SP1 \u00b7 MXFP8 DiT \u00b7 CPU layerwise offload: DiT + encoder \u00b7 six steps \u00b7 seed 42",
       "detail_hint": "Bread crust, leafy vegetables, cheese and woven fibers.",
       "detail_focus": [
         0.49,
@@ -154,15 +156,16 @@
           "source_job": "3196121"
         }
       ],
-      "demo_title": "Food Textures"
+      "demo_title": "Food Textures",
+      "thumbnail": "cases/rtx5090-farm-to-table-6272x2688-seed42.webp?v=9934ed894f47"
     },
     {
       "id": "game-third-person-adventure",
       "title": "Game World",
       "prompt": "A single full-frame landscape gameplay-style visual concept for an original third-person exploration game, rendered as detailed real-time 3D game art. The camera is behind and slightly above one adult explorer in the lower-left foreground. The explorer wears a short ochre rain cape, dark trousers and a compact canvas backpack, with both boots planted on a wet stone landing. Their head and body face the distant destination at screen right; one small brass lantern hangs from their right hand. The character occupies about one-fifth of the image height so the environment and route remain easy to read.\n\nA continuous narrow stone bridge begins at the foreground landing, bends through the center of the frame and ends at an open arched doorway on the right side of a ruined observatory. The entire bridge remains visible above calm floodwater, with plausible supports, shallow steps and a low parapet along its outer edge. Warm amber light inside the destination doorway contrasts with cool blue twilight outside. Broken telescope housings, oxidized copper domes and moss-covered masonry make the observatory distinctive. Reeds and floating leaves sit below the bridge, while distant mountains recede into low mist. Water reflects the architecture and doorway light in the correct places. Natural material detail, atmospheric depth and restrained bloom support a believable game environment. The frame contains exactly one human character, no enemies, no HUD, no written text, no logos and no outer monitor or device border.",
       "reference_count": 0,
-      "hardware": "4× GB300",
-      "configuration": "SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "hardware": "4\u00d7 GB300",
+      "configuration": "SP4 \u00b7 MXFP8 DiT \u00b7 resident weights \u00b7 six steps \u00b7 seed 42",
       "detail_hint": "Weathered masonry, metalwork, foliage and water reflections.",
       "detail_focus": [
         0.73,
@@ -189,7 +192,8 @@
           "source_job": "3194814"
         }
       ],
-      "demo_title": "Stone & Water"
+      "demo_title": "Stone & Water",
+      "thumbnail": "cases/gb300-game-third-person-adventure-5472x3072-seed42.webp?v=9c6ae07c9fee"
     }
   ],
   "presentation": "Each scene compares browser-resized versions of one measured 4K image. Left and right output tiers are independent. Aspect ratios are preserved; actual dimensions are labeled. Separate archived generation sizes remain linked, without inventing missing measurements.",

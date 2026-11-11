@@ -2,7 +2,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const el = (tag, text, cls) => {const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
-  const height = () => window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.documentElement.scrollHeight)},'*');
+  const height = () => window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.querySelector('main').getBoundingClientRect().height+8)},'*');
   const params = new URLSearchParams(location.search);
   let data;
   // Read the downloadable CSV directly, so timings have one published source.
@@ -77,7 +77,8 @@
   }
   function detailsText(r){
     const value=r.n?'n='+r.n+'; mean '+r.mean_s.toFixed(3)+' s; range '+r.min_s.toFixed(3)+'–'+r.max_s.toFixed(3)+' s; seeds '+Object.entries(r.samples_s).map(([s,v])=>s+': '+v.toFixed(3)+' s').join(', '):'No measured samples';
-    return r.gpus+' GPU(s), SP'+r.sp+', DiT TP'+r.dit_tp+', encoder TP'+r.encoder_tp+', '+r.precision.toUpperCase()+' DiT. '+placement(r)+'. VAE '+(r.eager?'eager':'CUDA Graph')+'. '+value+'. '+(flags(r)||'Default runtime settings')+'.';
+    const attention=['gb200','gb300','rubin'].includes(r.hardware)?'TRTLLM_ATTN':r.hardware.startsWith('rtx')?'CUDNN_ATTN':'FLASH_ATTN';
+    return r.gpus+' GPU(s), SP'+r.sp+', DiT TP'+r.dit_tp+', encoder TP'+r.encoder_tp+', '+r.precision.toUpperCase()+' DiT; attention '+attention+'. '+placement(r)+'. VAE '+(r.eager?'eager':'CUDA Graph')+'. '+value+'. '+(flags(r)||'Default runtime settings')+'.';
   }
   function axisElement(axis){
     const node=el('div',undefined,'hardware-axis');node.setAttribute('aria-hidden','true');
@@ -106,10 +107,13 @@
     const panels=ids.map(id=>({case:data.cases[id],results:sortResults(group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw)).filter(r=>r.primary&&((r.primary.status==='completed'&&r.primary.n===3)||r.primary.status==='stopped_at_request_limit')))}));
     const values=panels.flatMap(p=>p.results.filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3).map(r=>r.primary.max_s));
     const axis=axisLimit(values.length?Math.max(...values):0);
+    const [width,heightPx]=$('resolution').value.split('x');
+    $('hardware-title').textContent=($('mode').value==='t2i'?'Text-to-image':'Image edit')+' · '+({1024:'1K',2048:'2K',4096:'4K'}[width]||'')+' ('+width+' × '+heightPx+')';
     $('panels').replaceChildren();
     for(const panel of panels){
       const c=panel.case,card=el('section',undefined,'workload-panel');card.dataset.caseId=c.id;
-      card.append(el('h2',({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height,'workload-panel-title'),el('p',c.reference_count+' reference image'+(c.reference_count===1?'':'s')+' · 1 image per request · 6 sampling steps','workload-panel-meta'));
+      const requestName=c.reference_count===0?'Coffee product':c.reference_count===1?'Portrait edit':'Multi-reference composition';
+      card.appendChild(el('p',requestName+' · mean of 3 seeds · '+c.reference_count+' reference image'+(c.reference_count===1?'':'s')+' · 6 steps','workload-panel-meta'));
       if(c.generation_canvas[0]!==c.width||c.generation_canvas[1]!==c.height)card.appendChild(el('p','Generated at '+c.generation_canvas.join('×')+', then resized','workload-panel-meta'));
       const list=el('div',undefined,'hardware-bars');list.setAttribute('role','list');
       for(const result of panel.results){

@@ -13,3 +13,7 @@
 .revenue-meta{font-size:12px;color:var(--muted)}.revenue-meta input{width:72px;border:var(--hair) solid var(--rule);background:var(--bg);color:var(--ink);padding:3px}
 body[data-embed] .fig-calculator,body[data-embed] .download-note{display:none}
 @media(max-width:560px){.fig{padding:8px 4px}.fig-toolbar{gap:8px}.fig-toolbar label{font-size:10.5px}.fig-head{margin-bottom:12px}}
+
+.fig-legend:empty{display:none}
+
+.measurement-details{margin:12px 0 0}.measurement-details summary{font:13px/1.5 var(--font);color:var(--muted);cursor:pointer}
