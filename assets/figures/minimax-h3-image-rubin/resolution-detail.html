@@ -1,17 +1,16 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · resolution and detail</title><link rel="stylesheet" href="figkit.css?v=2c6a73b9af93"><link rel="stylesheet" href="resolution-detail.css?v=f78b76c30a4a"></head>
-<body><main class="fig resolution-figure">
-<div class="fig-head"><p class="fig-kicker">MiniMax H3-Image · texture and detail</p><h1 class="fig-title">1K, 2K, 4K</h1><p class="fig-sub">Paper grain, fabric, skin and lettering at three output sizes.</p></div>
-<div class="resolution-controls"><label>Scene <select id="scene"></select></label><label>Compare <select id="comparison"><option value="same-image">Same image</option><option value="measured">Measured outputs</option></select></label><label>View <select id="view"><option value="wipe">Drag comparison</option><option value="three">Three sizes</option></select></label></div>
-<p id="comparison-note" class="resolution-note"></p>
-<div class="resolution-tools"><label for="zoom">Zoom <output id="zoom-label" for="zoom">1×</output></label><input id="zoom" type="range" min="1" max="8" step="0.25" value="1" aria-label="Synchronized image zoom"><button type="button" id="reset">Full image</button></div>
-<div id="resolution-tabs" class="resolution-tabs" role="group" aria-label="Output resolution"></div>
-<div id="pair-controls" class="pair-controls" role="group" aria-label="Resolution pair"><button id="pair-1k" type="button" aria-pressed="true">1K ↔ 4K</button><button id="pair-2k" type="button" aria-pressed="false">2K ↔ 4K</button></div>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · texture and detail</title><link rel="stylesheet" href="figkit.css?v=2c6a73b9af93"><link rel="stylesheet" href="resolution-detail.css?v=70f3230f4d13"></head>
+<body><main class="fig">
+<div class="scene-control"><label for="scene">Scene</label><select id="scene"></select></div>
+<p id="detail-hint" class="detail-hint"></p>
+<div class="pair-controls"><label>Left <select id="left-resolution"><option>1K</option><option>2K</option><option>4K</option></select></label><button type="button" id="swap" aria-label="Swap left and right resolutions">Swap ⇄</button><label>Right <select id="right-resolution"><option>1K</option><option>2K</option><option>4K</option></select></label></div>
+<div class="zoom-controls"><label for="zoom">Zoom <output id="zoom-label">1×</output></label><input id="zoom" type="range" min="1" max="8" step="0.25" value="1" aria-label="Synchronized image zoom"><button type="button" id="detail">Detail</button><button type="button" id="reset">Reset</button></div>
 <div id="pair-labels" class="pair-labels"><span id="left-label"></span><span id="right-label"></span></div>
-<div id="comparison-stage" class="comparison-stage"><div id="outputs" class="resolution-grid"></div><div id="wipe-divider" class="wipe-divider"><button id="wipe-handle" type="button" role="slider" aria-label="Resolution comparison divider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">↔</button></div></div>
-<p id="status" class="resolution-note" role="status" aria-live="polite"></p>
-<p id="setup" class="resolution-note"></p>
-<details id="prompt-details"><summary>Prompt and reference</summary><pre id="prompt" class="resolution-prompt"></pre><div id="reference"></div></details>
-<p class="resolution-links"><a id="more-examples" href="../../interactive_pages/minimax-h3-image-workload-gallery.html" target="_blank" rel="noopener">More image examples</a> · <a href="resolution-detail-data.json?v=cd5a0203dcf8">Image sources</a></p>
-<noscript><p>JavaScript is required for the resolution comparison. Image sources are linked above.</p></noscript>
-</main><script src="resolution-detail.js?v=dc939a543a2f"></script></body></html>
+<div id="comparison-stage" class="comparison-stage"><div id="outputs"></div><div id="wipe-divider" class="wipe-divider"><button id="wipe-handle" type="button" role="slider" aria-label="Resolution comparison divider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">↔</button></div></div>
+<p id="status" class="detail-note" role="status" aria-live="polite"></p>
+<p class="detail-note">Same measured 4K image on both sides. Lower sizes are resized in the browser, preserving composition and aspect ratio.</p>
+<p id="setup" class="detail-note"></p>
+<details id="source-details"><summary>Measured originals and prompt</summary><div id="originals" class="original-links"></div><p class="detail-note">Times are three-seed means after warmup. The 1K API output uses a 2K generation canvas before resizing.</p><pre id="prompt" class="detail-prompt"></pre><div id="reference"></div></details>
+<p class="detail-links"><a href="resolution-detail-data.json?v=bd952d25eaae">Image sources</a></p>
+<noscript><p>JavaScript is required for the image comparison. Source images are linked above.</p></noscript>
+</main><script src="resolution-detail.js?v=a2a69e81928a"></script></body></html>

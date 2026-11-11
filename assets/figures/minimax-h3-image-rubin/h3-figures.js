@@ -126,15 +126,15 @@
   function drawBars() {
     const latency = barMode === 'latency', capacity = barMode === 'capacity', throughput = barMode === 'throughput';
     const data = platforms.map(platform => latency ? c1For(platform) : peakFor(platform));
-    const value = p => latency ? p.median_latency_s : capacity ? p.images_per_hour * 24 : throughput ? p.images_per_gpu_hour : revenuePerGPU(p, .06879, 1);
-    const vmax = latency ? 2.5 : capacity ? 160000 : throughput ? 2000 : 120;
-    const step = latency ? .5 : capacity ? 40000 : throughput ? 500 : 30;
-    const unit = latency ? 'median HTTP latency, seconds · lower is better' : capacity ? 'images / day / four-GPU system' : throughput ? 'images / GPU / hour · higher is better' : 'gross USD / GPU / hour';
+    const value = p => latency ? p.median_latency_s : capacity ? p.images_per_hour : throughput ? p.images_per_gpu_hour : revenuePerGPU(p, .06879, 1);
+    const vmax = latency ? 2.5 : capacity ? 8000 : throughput ? 2000 : 120;
+    const step = latency ? .5 : capacity ? 2000 : throughput ? 500 : 30;
+    const unit = latency ? 'median HTTP latency, seconds · lower is better' : capacity ? 'images / hour / four-GPU system' : throughput ? 'images / GPU / hour · higher is better' : 'gross USD / GPU / hour';
     const x0 = 136, x1 = 656, top = 44, bottom = 300;
     const X = v => x0 + v / vmax * (x1 - x0);
     const rubin = data[0], gb200 = data[2], gb300 = data[1];
-    $('title').textContent = latency ? 'Native 4K in ' + fmt(value(rubin), 3) + ' seconds' : capacity ? fmt(value(rubin)) + ' images a day from four Rubin GPUs' : throughput ? 'Rubin: ' + fmt(value(rubin) / value(gb200), 2) + '× GB200 throughput' : money(value(rubin)) + ' per GPU-hour';
-    $('subtitle').textContent = kind === 'hardware' ? (latency ? 'C1 on SP4: ' + fmt(value(gb200) / value(rubin), 2) + '× faster than GB200 and ' + fmt(value(gb300) / value(rubin), 2) + '× faster than GB300.' : 'Best measured serving configurations: ' + fmt(value(rubin) / value(gb300), 2) + '× GB300 peak throughput. Peaks have different response times.') : 'Projected gross revenue at $0.06879/image and 100% billable utilization. Four GPUs per system.';
+    $('title').textContent = latency ? 'Native 4K in ' + fmt(value(rubin), 3) + ' seconds' : capacity ? fmt(value(rubin)) + ' images/hour from four Rubin GPUs' : throughput ? 'Rubin: ' + fmt(value(rubin) / value(gb200), 2) + '× GB200 throughput' : money(value(rubin)) + ' per GPU-hour';
+    $('subtitle').textContent = kind === 'hardware' ? (latency ? 'C1 on SP4: ' + fmt(value(gb200) / value(rubin), 2) + '× faster than GB200 and ' + fmt(value(gb300) / value(rubin), 2) + '× faster than GB300.' : 'Best measured serving configurations: ' + fmt(value(rubin) / value(gb300), 2) + '× GB300 peak throughput. Peaks have different response times.') : capacity ? 'Peak measured throughput. Four GPUs per system.' : 'Gross revenue at $0.06879/image and 100% billable utilization.';
     reset($('title').textContent + '. ' + unit);
     text(x0, 15, unit, 't-head');
     for (let v = 0; v <= vmax; v += step) {
@@ -149,7 +149,7 @@
       text(x0, y + 51, p.topology + ' · C' + p.concurrency + ' · ' + p.precision + (latency ? '' : ' · p50 ' + fmt(p.median_latency_s, 3) + ' s'), 't-mut');
       tooltip(bar, [p.platform + ' · ' + p.topology + ' · ' + p.precision, unit + ': ' + fmt(v, latency ? 3 : 2), 'p50 ' + fmt(p.median_latency_s, 3) + ' s · p95 ' + fmt(p.p95_latency_s, 3) + ' s', fmt(p.images_per_hour, 1) + ' images/hour across four GPUs']);
     });
-    $('note').textContent = kind === 'hardware' ? (latency ? 'All three C1 runs use SP4 and MXFP8 DiT linears. ' : 'Peak throughput: Rubin MXFP8/SP1×DP4, C8; GB300 and GB200 MXFP8/SP4, C2. These are best measured configurations at different response latencies. ') + 'Native 4096×4096; six steps; 160 measured requests per point. HTTP latency includes PNG encoding and the full base64 response.' : 'Revenue = measured images/hour × $0.06879 × billable utilization ÷ 4 GPUs, before operating costs. At 75% billable utilization, Rubin projects to ' + money(revenuePerGPU(rubin, .06879, .75)) + '/GPU/hour gross. Daily capacity is the peak measured hourly rate × 24, not a 24-hour load test. Peak configurations and response times are shown under each bar.';
+    $('note').textContent = kind === 'hardware' ? (latency ? 'All three C1 runs use SP4 and MXFP8 DiT linears. ' : 'Peak throughput: Rubin MXFP8/SP1×DP4, C8; GB300 and GB200 MXFP8/SP4, C2. These are best measured configurations at different response latencies. ') + 'Native 4096×4096; six steps; 160 measured requests per point. HTTP latency includes PNG encoding and the full base64 response.' : capacity ? 'Peak configurations have different response latencies, shown under each bar.' : 'Revenue = images/hour × $0.06879 × billable utilization ÷ 4 GPUs, before operating costs. At 75% billable utilization: ' + money(revenuePerGPU(rubin, .06879, .75)) + '/GPU/hour gross.';
     legend(data.map(p => ({color: platformColor(p), label: p.platform + ' · MXFP8'})));
     reportHeight();
   }

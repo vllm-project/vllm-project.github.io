@@ -12,9 +12,8 @@ tags:
   - performance
 ---
 
-![H3 image × vLLM-Omni.](/assets/figures/minimax-h3-image-rubin/social-preview.png)
+![vLLM-Omni and MiniMax H3-Image.](/assets/figures/minimax-h3-image-rubin/social-preview.png)
 
-*Cover adapted from [MiniMax’s H3-Image release artwork](https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/main/assets/minimax-h3-image.jpg).*
 
 vLLM-Omni now supports [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image),
 an open-weight model for text-to-image generation and image editing. One checkpoint
@@ -36,15 +35,14 @@ and an adventure-game environment. Here are the highlights:
 
 ## Resolution and Detail
 
-Paper grain, fabric, skin and lettering reveal what resolution changes. The
-comparison below covers **1K, 2K and 4K** for product photography and a portrait
-edit, using the same prompt, reference images and seed **42** on four GB300 GPUs.
-The same-image view holds the composition fixed by resizing one 4K output;
-the measured-output view shows the actual API results at each size. These runs
-generate 1K output on a 2K canvas before resizing. Native 2K and 4K generations
-can differ in composition.
+Seven scenes put resolution under a closer look: product photography,
+portrait editing, food, English and Chinese typography, architecture, and a game
+environment. Each comparison uses one measured **4K** image, resized to **1K**
+and **2K** with the original aspect ratio preserved. This holds the composition
+fixed so lettering and material textures are easier to compare. Measured source
+images and their configurations remain available below the image.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=f423ce22907f" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=e90821954c25" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
 The [additional examples](/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=70db77d34bea)
 retain the food, editing, poster and game outputs across hardware. The food and
@@ -78,36 +76,16 @@ those same requests. Each timing includes the complete PNG response.
 For **2K text-to-image**, a **single H200** averages **1.49 seconds** with
 BF16 and resident weights.
 
-Every result shows its GPU count and serving configuration. The 1K checks
+Every result shows its GPU count; serving configurations are in **Test setup**. The 1K checks
 return 1024×1024 images; with the local model's default minimum canvas,
 they are generated at 2048×2048 and resized. They therefore do not represent
 native 1K diffusion compute.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=d937acdd574a" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=18de9b8de116" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
-### Reference Images
-
-Keeping the output at **4096×4096**, the two-reference composition averages
-**5.22 seconds on GB300** and **6.70 seconds on GB200**. The sixteen-reference
-composition takes **39.84 seconds** and **60.63 seconds**, respectively. Each uses
-four GPUs. The larger conditioning workload adds substantial work even though
-the output size is unchanged.
-
-These compositions measure execution time and memory capacity; some outputs
-still miss or duplicate requested objects.
-
-[Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv)
-for per-seed timings and configurations. Points show the mean of three seeds
-after warmup; the bars include the measured range. We use a **10-minute
-limit per generation**, including warmup. Bars show completed three-seed
-measurements within that limit. For 4K editing with 16 references, A100 PCIe,
-RTX 5090 and RTX 6000D exceeded the cutoff in earlier runs; the RTX 5080 retry
-was stopped at 10 minutes without a completed image. These outcomes are labeled
-in the figure without latency bars. Hardware without a corresponding test is omitted.
-
-These tests measure image generation in vLLM-Omni using API-supported output
-sizes. Prompts are fixed before timing, so the numbers exclude prompt enhancement
-and do not measure MiniMax's hosted service.
+[Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv).
+Bars show three-seed means after warmup, with min–max ranges. Configurations,
+timing scope and the 10-minute request limit are documented in **Test setup**.
 
 ## How It Runs
 
@@ -128,8 +106,7 @@ matter for memory use and latency, even with only six denoising steps.
 
 **MXFP8.** Eligible DiT linears use MXFP8 through vLLM and FlashInfer. Quantizing
 these matrix multiplications reduces their weight footprint; attention, the
-text encoder and the VAE retain their configured precision. The H200 gallery
-configuration uses BF16.
+text encoder and the VAE retain their configured precision. Hopper and Ampere configurations use BF16.
 
 **AdaLN reuse.** Exact runtime caching reuses AdaLN projections across requests
 when their conditioning inputs and weights match. All six denoising steps still
@@ -139,7 +116,7 @@ run; this optimization avoids repeating those conditioning projections.
 DiT TP1 keeps the transformer weights replicated. Text-encoder TP4 and VAE tile
 distribution also use all four GPUs. The attention backend is **`TRTLLM_ATTN`**.
 VAE CUDA Graph replays captured tile computations, reducing repeated launch
-overhead; multiple streams let independent tiles overlap. The server-GPU comparisons keep this layout and the model weights resident.
+overhead; multiple streams let independent tiles overlap. The GB200 and GB300 comparisons keep this layout and the model weights resident.
 
 **Single-GPU systems.** RTX 5090, RTX 5080, RTX 6000D and RTX PRO 6000 use SP1, DiT TP1,
 text-encoder TP1 and **`CUDNN_ATTN`**. On the RTX 5090 and RTX 5080, layerwise
@@ -154,76 +131,52 @@ with BF16 and **`FLASH_ATTN`**. The H200 poster in the gallery uses resident
 weights and SP4. The measured H100 systems use **H100 NVL**. **A100 PCIe** and
 **A100 SXM4** appear separately because their interconnects differ.
 These results describe the configurations we tested; GPU count,
-precision and placement remain visible when comparing machines.
+precision and placement remain documented when comparing machines.
 
 ## Rubin Bringup
 
-For Rubin, we focus on one serving workload: **4096×4096 text-to-image, no
-references, six steps and MXFP8 DiT linears**. Each concurrency point uses the
-same 160 prompt–seed pairs, giving us response-time distributions and throughput
-under load in addition to the three-seed examples above.
+Rubin reaches **0.87-second 4K responses** or **6,115 images/hour** on four
+GPUs, using different serving configurations. The workload is text-to-image
+with no references, six steps and MXFP8 DiT linears. This serving sweep uses
+a separate 160-request prompt–seed corpus.
 
-On Rubin, eligible DiT linear layers use **FlashInfer's CuTe-DSL MXFP8 GEMM**
-(`FlashInferCutedslMxfp8LinearKernel` in vLLM). The SP4 latency run and all four
-SP1 throughput replicas select this kernel. Attention uses **`TRTLLM_ATTN`**.
-
-Four Rubin GPUs reached **0.866 s median / 0.944 s p95** with SP4 at concurrency 1.
-Four single-GPU replicas reached **6,115 images/hour**, at **4.411 s median**
-latency. The latency and throughput headlines are different operating points.
+Eligible DiT linears use **FlashInfer CuTe-DSL MXFP8 GEMM**
+(`FlashInferCutedslMxfp8LinearKernel`); attention uses **`TRTLLM_ATTN`**.
 
 ### Latency
 
-Each request contains one prompt, no reference images, and a native
-**4096×4096** output from [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image).
-We use the released six-step schedule, with no upscaling. Latency includes image
-generation, PNG encoding and receipt of the full base64 response over loopback.
+With SP4 at concurrency 1, median latency is **0.866 seconds** (p95 **0.944
+seconds**): **2.21× faster than GB200** and **1.64× faster than GB300**. All
+three latency configurations use four GPUs, SP4 and MXFP8.
 
-At concurrency 1, the Rubin configuration delivers **2.21× faster generation than
-GB200 and 1.64× faster than GB300**, measured as reference latency divided by Rubin
-latency. All three use SP4 and MXFP8 DiT linears for this latency comparison.
-
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-hardware-comparison.html?v=128210463c0c" title="4K image latency and peak throughput across Rubin, GB200 and GB300" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-hardware-comparison.html?v=4c8980570b8d" title="4K image latency and peak throughput across Rubin, GB200 and GB300" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
 ### Throughput
 
-Fast responses and a busy image service need different configurations. SP4 splits
-one image's DiT work across four GPUs. SP1×DP4 instead runs four independent
-single-GPU servers, so several images can be generated at once.
+Four single-GPU replicas (**SP1×DP4**) reach **6,115 images/hour** at concurrency
+8, with **4.411-second median latency**. SP4 reaches **4,407 images/hour** at
+concurrency 2 with a **1.421-second median**. Replicas add **38.7% throughput**;
+the subsecond and peak-throughput headlines are separate operating points.
 
-SP4 at concurrency 2 reaches **4,407 images/hour** with a **1.421-second median**
-response. That is already 99.9% of the measured SP4 peak. Moving to four replicas
-raises throughput to **6,115 images/hour**, a **38.7% increase**, at concurrency 8
-and a **4.411-second median** response. It is a useful choice when a queue of
-requests matters more than finishing one request as quickly as possible.
+With SP4 fixed across platforms, Rubin delivers **2.20× GB200** and
+**1.60× GB300** peak throughput. Each plotted point contains 160 warm requests;
+replicas serve independent images without combining them into a DiT batch.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-performance-benchmarks.html?embed=1&amp;v=9a07aee2faaa" title="MiniMax H3-Image: throughput per GPU versus response latency" loading="lazy" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-performance-benchmarks.html?embed=1&amp;v=4aebbfdd17b8" title="MiniMax H3-Image: throughput per GPU versus response latency" loading="lazy" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-C is the total number of in-flight requests across the four GPUs. Every plotted
-point contains 160 measured requests after warmup. Both Rubin sweeps completed
-800 requests with zero failures. Throughput includes client image validation and
-saving. Each DiT forward generates one image; the replicas do not pack requests
-into a shared DiT batch.
+### Economics
 
-With **MXFP8/SP4 on all three platforms**, Rubin reaches **2.20× GB200 and 1.60× GB300
-peak throughput**.
+**6,115 images/hour** projects to **146,755 4K images/day** per four-GPU
+Rubin system. At an assumed **USD 0.06879 per billable image**, this yields
+**USD 105.16/GPU/hour** gross revenue, or **USD 78.87/GPU/hour** at 75%
+billable utilization.
 
-### Serving Economics
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-serving-economics.html?v=4eaa76533f1d" title="Hourly image capacity and gross revenue per GPU-hour" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-At the peak measured rate, a four-GPU Rubin system projects to **146,755 4K
-images/day**. Using **USD 0.06879 per billable image**, that is **USD 105.16/GPU/hour**
-in gross revenue. At 75% billable utilization, it becomes **USD 78.87/GPU/hour**.
-
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-serving-economics.html?v=3cff2339e574" title="Daily image capacity and gross revenue per GPU-hour" loading="lazy" scrolling="no" height="720" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
-
-The price is MiniMax's non-promotional standard 4K T2I example, used here as an
-assumed sale price. MiniMax's actual API bill depends on token usage.
-[Official pricing](https://platform.minimax.io/docs/pricing/overview).
-
-The calculation is straightforward: **images/hour × price/image × billable
-utilization ÷ 4 GPUs**. These are gross-revenue scenarios, before hardware, power,
-network and other operating costs. Daily image counts extend the measured hourly
-rate to 24 hours; they are not results from a day-long load test. For the subsecond
-SP4 operating point, the same price gives **USD 57.86/GPU/hour** at full billable utilization.
+Revenue = images/hour × price/image × billable utilization ÷ 4 GPUs.
+This uses a [MiniMax pricing example](https://platform.minimax.io/docs/pricing/overview)
+as an assumed sale price. Figures are before operating costs; daily capacity
+extrapolates the measured rate, rather than a 24-hour load test.
 
 ## Other Hardware
 

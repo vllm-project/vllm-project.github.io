@@ -115,12 +115,10 @@
       for(const result of panel.results){
         const p=result.primary,h=hardware[result.hardware],row=el('div',undefined,'workload-bar-row');row.setAttribute('role','listitem');row.dataset.hardware=h.id;
         const head=el('div',undefined,'hardware-heading');head.append(el('span',h.gpus+'× '+h.label),el('strong',status(p),'tnum'));row.appendChild(head);
-        row.appendChild(el('p',(p?'SP'+p.sp+' · '+p.precision.toUpperCase()+' DiT · '+placement(p):'No completed measurements'),'workload-bar-config'));
         if(p&&p.status==='completed'&&p.n===3){
           const track=el('div',undefined,'hardware-track');track.setAttribute('aria-hidden','true');
           const bar=el('span',undefined,'hardware-bar tone-'+tones[h.id]);bar.style.width=(100*p.mean_s/axis.max)+'%';
           const range=el('span',undefined,'hardware-range');range.style.left=(100*p.min_s/axis.max)+'%';range.style.width=(100*(p.max_s-p.min_s)/axis.max)+'%';track.append(bar,range);row.appendChild(track);
-          if(Object.keys(p.runtime_flags).length)row.appendChild(el('p','Custom configuration · see setup','workload-bar-flag'));
           if(p.historical_samples_over_600s)row.appendChild(el('p','Measured before the 10-minute limit','workload-bar-flag'));
         }else{
           row.className+=' workload-unmeasured';
@@ -135,10 +133,12 @@
         if(result.primary.status==='stopped_at_request_limit')detail.appendChild(el('p',limitReason(result.primary)));
       }
       detail.appendChild(el('p','Bars show completed three-seed measurements within the 10-minute cutoff. Linear axis starts at zero. Mean of seeds 0, 42 and 1234 after warmup; whiskers show min–max. Timing completion is not a semantic-quality score.'));
+      detail.appendChild(el('p','HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.'));
+      if(c.reference_count>1)detail.appendChild(el('p','Reference-composition results measure execution time and capacity. Some outputs miss or duplicate requested objects.'));
       card.append(detail);$('panels').appendChild(card);
     }
-    $('note').textContent='Shared seconds scale. Mean of three seeds after warmup; whiskers show min–max. HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.';
-    $('quality-note').textContent=panels.some(p=>p.case.reference_count>1)?'Reference-composition timings measure execution time and capacity. Some outputs miss or duplicate requested objects.':panels.some(p=>p.case.corpus==='openai_image25_examples')?'H3-Image results using public example prompts; these are not head-to-head GPT Image measurements.':'';
+    $('note').textContent='Mean of three requests; whiskers show min–max.';
+    $('quality-note').textContent='';
     window.HardwareWorkloads.selection={mode:$('mode').value,sort:$('sort').value,references:$('references').value,resolution:$('resolution').value,group:group.id,panels,axis};
     height();
   }
