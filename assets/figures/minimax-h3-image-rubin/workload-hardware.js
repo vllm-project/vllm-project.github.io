@@ -66,12 +66,14 @@
     H3_IMAGE_ENCODER_INPLACE_MLP:'Encoder buffer reuse',VLLM_OMNI_DLO_DP_WAVE_TIMEOUT:'Worker timeout: '+v+' s'
   }[k]||k+'='+v)).join('; ');
   function status(r){
-    if(!r)return 'Not measured';
     if(r.status==='completed'&&r.n===3)return r.mean_s.toFixed(2)+' s';
-    if(r.status==='stopped_at_request_limit')return 'Exceeded 10 min';
-    if(r.status==='partial')return 'Not completed';
-    if(r.status==='pending')return 'Awaiting result';
-    return 'Could not complete';
+    if(r.status==='stopped_at_request_limit')return r.historical_samples_over_600s?'Over 10 min':'Stopped at 10 min';
+    throw new Error('Cannot display a result without a measured value or a verified limit');
+  }
+  function limitReason(r){
+    return r.historical_samples_over_600s
+      ?'Earlier measurements exceeded the 10-minute cutoff; excluded from latency bars.'
+      :'Generation stopped at the 10-minute limit; no completed image.';
   }
   function detailsText(r){
     const value=r.n?'n='+r.n+'; mean '+r.mean_s.toFixed(3)+' s; range '+r.min_s.toFixed(3)+'–'+r.max_s.toFixed(3)+' s; seeds '+Object.entries(r.samples_s).map(([s,v])=>s+': '+v.toFixed(3)+' s').join(', '):'No measured samples';
@@ -91,7 +93,7 @@
   function draw(){
     const group=data.groups.find(g=>g.id===$('group').value),matches=matching();
     const ids=matches;
-    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw)).filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3)}));
+    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw)).filter(r=>r.primary&&((r.primary.status==='completed'&&r.primary.n===3)||r.primary.status==='stopped_at_request_limit'))}));
     const values=panels.flatMap(p=>p.results.filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3).map(r=>r.primary.max_s));
     const axis=axisLimit(values.length?Math.max(...values):0);
     $('panels').replaceChildren();
@@ -110,15 +112,19 @@
           const range=el('span',undefined,'hardware-range');range.style.left=(100*p.min_s/axis.max)+'%';range.style.width=(100*(p.max_s-p.min_s)/axis.max)+'%';track.append(bar,range);row.appendChild(track);
           if(Object.keys(p.runtime_flags).length)row.appendChild(el('p','Custom configuration · see setup','workload-bar-flag'));
           if(p.historical_samples_over_600s)row.appendChild(el('p','Measured before the 10-minute limit','workload-bar-flag'));
-        }else row.className+=' workload-unmeasured';
+        }else{
+          row.className+=' workload-unmeasured';
+          row.appendChild(el('p',limitReason(p),'workload-bar-flag'));
+        }
         list.appendChild(row);
       }
       card.append(list,axisElement(axis));
       const detail=el('details',undefined,'workload-measurements');detail.appendChild(el('summary','Test setup'));detail.addEventListener('toggle',height);
       for(const result of panel.results){detail.appendChild(el('h3',hardware[result.hardware].label));
         detail.appendChild(el('p',result.primary?detailsText(result.primary):'No completed measurements.'));
+        if(result.primary.status==='stopped_at_request_limit')detail.appendChild(el('p',limitReason(result.primary)));
       }
-      detail.appendChild(el('p','Linear axis starts at zero. Mean of seeds 0, 42 and 1234 after warmup; whiskers show min–max. Timing completion is not a semantic-quality score.'));
+      detail.appendChild(el('p','Bars show completed three-seed measurements within the 10-minute cutoff. Linear axis starts at zero. Mean of seeds 0, 42 and 1234 after warmup; whiskers show min–max. Timing completion is not a semantic-quality score.'));
       card.append(detail);$('panels').appendChild(card);
     }
     $('note').textContent='Shared seconds scale. Mean of three seeds after warmup; whiskers show min–max. HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.';
@@ -139,7 +145,7 @@
   options('resolution',[...sizes].sort((a,b)=>a[1].width-b[1].width).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height})),sizes.has(resolution)?resolution:'4096x4096');
   const groups=[data.groups.find(g=>g.id==='all'),...data.groups.filter(g=>g.id!=='all')];
   const group=params.get('group')||'all';
-  options('group',groups.map(g=>({...g,label:g.id==='all'?'All measured hardware':g.label})),groups.some(g=>g.id===group)?group:'all');
+  options('group',groups.map(g=>({...g,label:g.id==='all'?'All tested hardware':g.label})),groups.some(g=>g.id===group)?group:'all');
   $('references').addEventListener('change',draw);
   $('resolution').addEventListener('change',()=>updateReferences());$('group').addEventListener('change',draw);
   updateReferences(params.get('references')||(params.get('mode')==='image-edit'?'1':'0'));

@@ -73,7 +73,7 @@ return 1024×1024 images; with the local model's default minimum canvas,
 they are generated at 2048×2048 and resized. They therefore do not represent
 native 1K diffusion compute.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=d1c425bddcd1" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=289cc4d1b20c" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 ### Reference Images
 
@@ -83,15 +83,19 @@ composition takes **39.84 seconds** and **60.63 seconds**, respectively. Each us
 four GPUs. The larger conditioning workload adds substantial work even though
 the output size is unchanged.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?mode=image-edit&amp;resolution=4096x4096&amp;v=d1c425bddcd1" title="4K image-edit latency across reference counts and hardware" loading="lazy" scrolling="no" height="1100" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?mode=image-edit&amp;resolution=4096x4096&amp;v=289cc4d1b20c" title="4K image-edit latency across reference counts and hardware" loading="lazy" scrolling="no" height="1100" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
 
 These compositions measure execution time and memory capacity; some outputs
-still miss or duplicate requested objects. The figures show completed measurements.
+still miss or duplicate requested objects.
 
 [Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv)
 for per-seed timings and configurations. Points show the mean of three seeds
 after warmup; the bars include the measured range. We use a **10-minute
-limit per generation**, including warmup. Only completed three-seed measurements within that limit appear in the plots.
+limit per generation**, including warmup. Bars show completed three-seed
+measurements within that limit. For 4K editing with 16 references, A100 PCIe,
+RTX 5090 and RTX 6000D exceeded the cutoff in earlier runs; the RTX 5080 retry
+was stopped at 10 minutes without a completed image. These outcomes are labeled
+in the figure without latency bars. Hardware without a corresponding test is omitted.
 
 These tests measure image generation in vLLM-Omni using API-supported output
 sizes. Prompts are fixed before timing, so the numbers exclude prompt enhancement
