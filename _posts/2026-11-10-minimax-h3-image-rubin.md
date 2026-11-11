@@ -123,11 +123,20 @@ older results exceeding it are marked in the figures.
 
 ## How It Runs
 
-The pipeline encodes the prompt, runs six diffusion-transformer steps, then
-decodes the image through a tiled VAE. Larger canvases increase the generated
-latent sequence and decoding work. Reference images add conditioning tokens and
-encoding work, so a 4K edit has a different compute and memory footprint from
-4K text-to-image. The task and canvas stay attached to every timing.
+H3-Image combines H3's **Qwen3-VL encoder**, a **33.1B-parameter dense DiT**
+and an image VAE. Its 50-layer DiT follows the H3 design with the audio branch
+removed. Text and reference images pass through Qwen3-VL; references also pass
+through the VAE's CNN encoder. These conditioning tokens and the target-image
+tokens form one packed sequence. The DiT denoises the target latents in **six
+steps without classifier-free guidance**, then a **24-layer 2D ViT decoder**
+turns them into pixels. See the [model architecture](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image#model-architecture).
+
+The VAE compresses each spatial dimension by 16, and the DiT groups the latent
+into 2×2 patches. A **4096×4096 image therefore contributes 16,384 target-image
+tokens**, before adding text and reference conditioning. Larger canvases increase
+both the sequence length and VAE decoding work; references add encoding work
+and conditioning tokens. This explains why resolution and reference count
+matter for memory use and latency, even with only six denoising steps.
 
 **MXFP8.** Eligible DiT linears use MXFP8 through vLLM and FlashInfer. Quantizing
 these matrix multiplications reduces their weight footprint; attention, the
