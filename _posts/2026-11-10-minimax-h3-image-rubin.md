@@ -156,9 +156,9 @@ precision and placement remain visible when comparing machines.
 
 ## Other Hardware
 
-H3-Image also has deployment recipes for AMD and Intel GPUs, with Moore Threads
-support under review. These community validations use their own workloads and
-configurations; the matched performance figures above cover our NVIDIA runs.
+H3-Image also has deployment recipes for AMD and Intel GPUs and Ascend NPUs,
+with Moore Threads support under review. These community validations use their own
+workloads and configurations; the matched performance figures above cover our NVIDIA runs.
 
 **AMD Instinct.** The [AMD recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-AMD.md)
 includes text-to-image and editing measurements on **MI325X and MI350X**, from
@@ -171,6 +171,14 @@ documents measured one-, two- and four-GPU deployments. Its recommended
 four-card layout uses **DiT TP4 with text-encoder layerwise offload** to fit
 32 GB cards. The smaller layouts also offload DiT weights; VAE decoding runs
 eagerly on XPU.
+
+**Huawei Ascend.** The [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-NPU.md),
+merged in [PR #10155](https://github.com/vllm-project/vllm-omni/pull/10155),
+covers **Atlas 800I A2, Atlas 800T A3 and Atlas 350 (A5)**. It includes measured
+one-, two- and four-NPU profiles on A2 and A5, using BF16 and eager execution.
+The four-NPU layouts use DiT TP4 on A2 and Ulysses SP4 with text-encoder TP4
+on A5; smaller configurations use layerwise offload. Further VAE graph execution
+work is tracked in [draft PR #10184](https://github.com/vllm-project/vllm-omni/pull/10184).
 
 **Moore Threads MTT S5000.** [PR #10139](https://github.com/vllm-project/vllm-omni/pull/10139)
 enables VAE graph decoding on MUSA and includes a
