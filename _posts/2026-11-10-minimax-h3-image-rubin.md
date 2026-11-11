@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "vLLM-Omni on Rubin: 4K in 0.87 Seconds"
-author: "lishunyang12"
+title: "H3-Image Day-0 Support: 4K in 0.87s with Vera Rubin"
+author: "vLLM-Omni team"
 summary: "MiniMax H3-Image on four Rubin GPUs: 0.87s 4K latency, up to 3.1× GB200 throughput, and 146,755 images/day at the peak measured rate."
 image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 social_image: /assets/figures/minimax-h3-image-rubin/social-preview.png
