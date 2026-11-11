@@ -4,6 +4,8 @@
   const el = (tag, text, cls) => {const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
   const height = () => window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.querySelector('main').getBoundingClientRect().height+8)},'*');
   const params = new URLSearchParams(location.search);
+  let mode='t2i',selectedReference=1;
+  const referenceCount=()=>mode==='t2i'?0:selectedReference;
   let data;
   // Read the downloadable CSV directly, so timings have one published source.
   function parseCSV(source){
@@ -42,6 +44,15 @@
     delete data.prompts;
   } catch(error){$('note').textContent='Unable to load measurements. Please reload.';document.body.dataset.error=error.message;return;}
   function options(id, items, selected){$(id).replaceChildren();for(const x of items){const o=el('option',x.label);o.value=x.id;$(id).appendChild(o);}$(id).value=selected;}
+  function buttons(id,items,selected,onSelect){
+    const group=$(id);group.replaceChildren();
+    for(const item of items){
+      const button=el('button',item.label);button.type='button';button.dataset.value=item.id;
+      button.setAttribute('aria-pressed',String(String(item.id)===String(selected)));
+      button.addEventListener('click',()=>{onSelect(item.id);});group.appendChild(button);
+    }
+  }
+  function markButtons(id,selected){for(const button of $(id).querySelectorAll('button'))button.setAttribute('aria-pressed',String(button.dataset.value===String(selected)));}
   const hardware=Object.fromEntries(data.hardware.map(h=>[h.id,h]));
   const tones={gb200:'blue',gb300:'gold',rubin:'green',h100:'blue',h200:'gold',h200_single:'green',a100:'stone',a100_sxm:'blue',rtx5090:'blue',rtx5080:'gold',rtx6000d:'green',rtxpro6000:'stone'};
   function choose(caseId, hw){
@@ -95,7 +106,7 @@
   }
   function matching(){
     return Object.keys(data.cases).filter(id=>{
-      const c=data.cases[id];return String(c.reference_count)===$('references').value&&c.width+'x'+c.height===$('resolution').value;
+      const c=data.cases[id];return c.reference_count===referenceCount()&&c.width+'x'+c.height===$('resolution').value;
     });
   }
   function sortResults(results){
@@ -115,7 +126,7 @@
     const values=panels.flatMap(p=>p.results.filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3).map(r=>r.primary.max_s));
     const axis=axisLimit(values.length?Math.max(...values):0);
     const [width,heightPx]=$('resolution').value.split('x');
-    $('hardware-title').textContent=($('mode').value==='t2i'?'Text-to-image':'Image edit')+' · '+({1024:'1K',2048:'2K',4096:'4K'}[width]||'')+' ('+width+' × '+heightPx+')';
+    $('hardware-title').textContent=(mode==='t2i'?'Text-to-image':'Image edit')+' · '+({1024:'1K',2048:'2K',4096:'4K'}[width]||'')+' ('+width+' × '+heightPx+')';
     $('panels').replaceChildren();
     for(const panel of panels){
       const c=panel.case,card=el('section',undefined,'workload-panel');card.dataset.caseId=c.id;
@@ -148,42 +159,36 @@
       detail.appendChild(el('p','HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. Inputs are fixed across hardware, while GPU count, precision, offload and interconnect vary. These are measured deployments, not a controlled GPU-only comparison. MXFP8 applies to DiT linears; H100/H200/A100 use BF16.'));
       detail.appendChild(el('p','VRAM is the total visible to CUDA on each tested GPU, not free memory or a shared multi-GPU pool. Power limits are configured caps, not measured consumption. The first complete default profile is shown when available; otherwise the first complete custom profile is used. This selection does not establish the fastest possible configuration.'));
       if(c.width===1024)detail.appendChild(el('p','1K is generated on a 2K canvas and then resized. Some 1K and 2K entries come from separate runs with different allocator settings, listed above; their difference does not isolate resolution cost.'));
-      if(c.reference_count>1)detail.appendChild(el('p','Reference-composition results measure execution time and capacity. Some outputs miss or duplicate requested objects.'));
+      if(c.reference_count>1)detail.appendChild(el('p','Reference counts use different prompts and reference sets. Compare hardware within the selected request; these cases do not isolate the cost of each added reference. Some outputs miss or duplicate requested objects.'));
       card.append(detail);$('panels').appendChild(card);
     }
     $('note').textContent='Mean of three seeds; whiskers show min–max. GPU count, precision and memory placement vary; see Test setup.';
     $('quality-note').textContent='';
-    window.HardwareWorkloads.selection={mode:$('mode').value,sort:$('sort').value,references:$('references').value,resolution:$('resolution').value,group:group.id,panels,axis};
+    window.HardwareWorkloads.selection={mode,sort:$('sort').value,references:String(referenceCount()),resolution:$('resolution').value,group:group.id,panels,axis};
     height();
   }
-  function updateReferences(reference=$('references').value){
-    const cases=Object.values(data.cases).filter(c=>modeMatches(c)&&c.width+'x'+c.height===$('resolution').value);
-    const counts=[...new Set(cases.map(c=>c.reference_count))].sort((a,b)=>a-b);
-    const selected=counts.some(n=>String(n)===reference)?reference:String(counts[0]);
-    options('references',counts.map(n=>({id:String(n),label:n===0?'None':String(n)})),selected);
-    $('reference-control').hidden=$('mode').value!=='multi-edit';
-    draw();
-  }
-  function modeMatches(c){return $('mode').value==='t2i'?c.reference_count===0:$('mode').value==='single-edit'?c.reference_count===1:c.reference_count>1;}
-  function updateSizes(reference=$('references').value){
-    const sizes=new Map();for(const c of Object.values(data.cases).filter(modeMatches))sizes.set(c.width+'x'+c.height,c);
+  function updateSizes(){
+    $('reference-control').hidden=mode==='t2i';
+    markButtons('mode',mode);markButtons('references',selectedReference);
+    const sizes=new Map();for(const c of Object.values(data.cases).filter(c=>c.reference_count===referenceCount()))sizes.set(c.width+'x'+c.height,c);
     const previous=$('resolution').value||params.get('resolution')||'4096x4096';
     options('resolution',[...sizes].sort((a,b)=>a[1].width-b[1].width).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height})),sizes.has(previous)?previous:'4096x4096');
-    updateReferences(reference);
+    draw();
   }
   window.HardwareWorkloads={data,choose,axisLimit,parseCSV};
   const requestedRefs=params.get('references'),requestedMode=params.get('mode');
-  const initialMode=Number(requestedRefs)>1||requestedMode==='multi-edit'?'multi-edit':requestedRefs==='1'||requestedMode==='image-edit'||requestedMode==='single-edit'?'single-edit':'t2i';
-  options('mode',[{id:'t2i',label:'Text-to-image'},{id:'single-edit',label:'Image edit · 1 reference'},{id:'multi-edit',label:'Image edit · multiple references'}],initialMode);
+  mode=Number(requestedRefs)>0||['image-edit','single-edit','multi-edit'].includes(requestedMode)?'image-edit':'t2i';
+  const referenceCounts=[...new Set(Object.values(data.cases).map(c=>c.reference_count).filter(n=>n>0))].sort((a,b)=>a-b);
+  selectedReference=referenceCounts.includes(Number(requestedRefs))?Number(requestedRefs):requestedMode==='multi-edit'?referenceCounts.find(n=>n>1):1;
+  buttons('mode',[{id:'t2i',label:'Text-to-image'},{id:'image-edit',label:'Image Edit'}],mode,id=>{mode=id;updateSizes();});
+  buttons('references',referenceCounts.map(n=>({id:String(n),label:String(n)})),selectedReference,id=>{selectedReference=Number(id);updateSizes();});
   const sorts=[{id:'latency-desc',label:'Latency: high to low'},{id:'latency-asc',label:'Latency: low to high'},{id:'hardware',label:'Hardware order'}];
   options('sort',sorts,sorts.some(s=>s.id===params.get('sort'))?params.get('sort'):'latency-desc');
   const groups=[data.groups.find(g=>g.id==='all'),...data.groups.filter(g=>g.id!=='all')];
   const group=params.get('group')||'all';
   options('group',groups.map(g=>({...g,label:g.id==='all'?'All tested hardware':g.label})),groups.some(g=>g.id===group)?group:'all');
-  $('references').addEventListener('change',draw);
-  $('resolution').addEventListener('change',()=>updateReferences());$('group').addEventListener('change',draw);$('sort').addEventListener('change',draw);
-  $('mode').addEventListener('change',()=>updateSizes());
-  updateSizes(requestedRefs||'0');
+  $('resolution').addEventListener('change',draw);$('group').addEventListener('change',draw);$('sort').addEventListener('change',draw);
+  updateSizes();
   document.body.dataset.ready='1';
   if(document.fonts)document.fonts.ready.then(height);
   new ResizeObserver(height).observe(document.querySelector('main'));

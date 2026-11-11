@@ -69,9 +69,8 @@ image returned per request. The prompts and reference files stay fixed across
 machines. See MiniMax's [API guide](https://platform.minimax.io/docs/guides/image-generation)
 for the request parameters.
 
-The performance figure groups these requests as text-to-image, single-reference
-editing and multi-reference editing. The two editing groups use the same API
-mode; the reference-image count distinguishes them.
+Choose **Text-to-image** or **Image Edit** below. For editing, select
+**1, 2, 4, 8 or 16 reference images**; output sizes reflect the measured cases.
 
 For **4K text-to-image**, four GB300 GPUs average **1.48 seconds**. A **4K
 image edit with one reference** averages **1.77 seconds**. A single RTX 5090
@@ -95,7 +94,7 @@ they are generated at 2048×2048 and resized. They therefore do not represent
 native 1K diffusion compute. Some 1K and 2K runs also use different allocator
 settings, shown in Test setup.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=4ee1b739f497" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=ef8a768c0639" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 [Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv).
 Bars show three-seed means after warmup, with min–max ranges. Configurations,
