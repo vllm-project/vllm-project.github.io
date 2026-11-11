@@ -1279,6 +1279,312 @@
       "reference_sha256": [],
       "review_scope": "All six adventure outputs (two native sizes x three seeds) visually inspected through contact sheets derived from SHA-verified full PNGs. One explorer, a continuous bridge route and coherent observatory scene are present. Character scale often exceeds the requested one-fifth of frame height; composition showcase only, not perfect instruction compliance or pixel equivalence.",
       "source_job": "3195008"
+    },
+    {
+      "id": "podcast-edit-4096x4096",
+      "case": "podcast-edit",
+      "tier_mp": 16,
+      "aspect": "1:1",
+      "width": 4096,
+      "height": 4096,
+      "actual_mp": 16.777216,
+      "reference_count": 1,
+      "expected_generation_canvas": [
+        4096,
+        4096
+      ],
+      "measured_seeds": [
+        0,
+        42,
+        1234
+      ],
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "runtime_environment": {
+        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+      },
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 73.55412281506385,
+      "min_s": 73.3633407780435,
+      "max_s": 73.70191836706363,
+      "samples_s": [
+        73.3633407780435,
+        73.70191836706363,
+        73.59710930008441
+      ],
+      "preview": "cases/rtx5090-podcast-edit-4096x4096-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 73.70191836706363,
+      "original_png_sha256": "1005cb6cd65c9042ac152c241b0c8687c91ecfbcb9704b7cbd4f837e36f0a6e3",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "0a997eafd7ed76f168feeceaf33914ed3f5abf3feaef1e62399ed536ab694c67",
+      "reference_sha256": [
+        "e3ef31ce2bf5f9a6f45c13f65b4728a87cc767cbcc8f0313aa1a4c8014dae85d"
+      ],
+      "review_scope": "All15 measured originals SHA256-verified and inspected through five three-seed contact sheets at up to600px per image; full-resolution glyph/texture equivalence not certified.",
+      "source_job": "3196121"
+    },
+    {
+      "id": "farm-to-table-6272x2688",
+      "case": "farm-to-table",
+      "tier_mp": 16,
+      "aspect": "21:9",
+      "width": 6272,
+      "height": 2688,
+      "actual_mp": 16.859136,
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        6272,
+        2688
+      ],
+      "measured_seeds": [
+        0,
+        42,
+        1234
+      ],
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "runtime_environment": {
+        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+      },
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 60.84476963663474,
+      "min_s": 60.81899914192036,
+      "max_s": 60.891872975975275,
+      "samples_s": [
+        60.82343679200858,
+        60.81899914192036,
+        60.891872975975275
+      ],
+      "preview": "cases/rtx5090-farm-to-table-6272x2688-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 60.81899914192036,
+      "original_png_sha256": "84928cfd27c5e23ad040baaf95dd44cbd96b206b2452411cbd5caffeb4d6bdef",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "367c3aaf0f694072ce85e17d1a3754ba6352f350c4d7c4d0a88935ce09030483",
+      "reference_sha256": [],
+      "review_scope": "All15 measured originals SHA256-verified and inspected through five three-seed contact sheets at up to600px per image; full-resolution glyph/texture equivalence not certified.",
+      "source_job": "3196121"
+    },
+    {
+      "id": "podcast-edit-6272x2688",
+      "case": "podcast-edit",
+      "tier_mp": 16,
+      "aspect": "21:9",
+      "width": 6272,
+      "height": 2688,
+      "actual_mp": 16.859136,
+      "reference_count": 1,
+      "expected_generation_canvas": [
+        6272,
+        2688
+      ],
+      "measured_seeds": [
+        0,
+        42,
+        1234
+      ],
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "runtime_environment": {
+        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+      },
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 75.07055975333788,
+      "min_s": 74.83948305388913,
+      "max_s": 75.48012880398892,
+      "samples_s": [
+        74.83948305388913,
+        74.89206740213558,
+        75.48012880398892
+      ],
+      "preview": "cases/rtx5090-podcast-edit-6272x2688-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 74.89206740213558,
+      "original_png_sha256": "48cdeebce7d13044c9c56f8d695f16698151594e2136b4f0150b0cd9cf6f344e",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "0a997eafd7ed76f168feeceaf33914ed3f5abf3feaef1e62399ed536ab694c67",
+      "reference_sha256": [
+        "e3ef31ce2bf5f9a6f45c13f65b4728a87cc767cbcc8f0313aa1a4c8014dae85d"
+      ],
+      "review_scope": "All15 measured originals SHA256-verified and inspected through five three-seed contact sheets at up to600px per image; full-resolution glyph/texture equivalence not certified.",
+      "source_job": "3196121"
+    },
+    {
+      "id": "farm-to-table-4480x4480",
+      "case": "farm-to-table",
+      "tier_mp": 20,
+      "aspect": "1:1",
+      "width": 4480,
+      "height": 4480,
+      "actual_mp": 20.0704,
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        4480,
+        4480
+      ],
+      "measured_seeds": [
+        0,
+        42,
+        1234
+      ],
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "runtime_environment": {
+        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+      },
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 81.92297805294704,
+      "min_s": 81.87228462588973,
+      "max_s": 81.99036469589919,
+      "samples_s": [
+        81.90628483705223,
+        81.87228462588973,
+        81.99036469589919
+      ],
+      "preview": "cases/rtx5090-farm-to-table-4480x4480-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 81.87228462588973,
+      "original_png_sha256": "f8b4be12fcb28df62095634c7352e94a3e0beca931d2bb6f518635262df84ab4",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "367c3aaf0f694072ce85e17d1a3754ba6352f350c4d7c4d0a88935ce09030483",
+      "reference_sha256": [],
+      "review_scope": "All15 measured originals SHA256-verified and inspected through five three-seed contact sheets at up to600px per image; full-resolution glyph/texture equivalence not certified.",
+      "source_job": "3196121"
+    },
+    {
+      "id": "podcast-edit-4480x4480",
+      "case": "podcast-edit",
+      "tier_mp": 20,
+      "aspect": "1:1",
+      "width": 4480,
+      "height": 4480,
+      "actual_mp": 20.0704,
+      "reference_count": 1,
+      "expected_generation_canvas": [
+        4480,
+        4480
+      ],
+      "measured_seeds": [
+        0,
+        42,
+        1234
+      ],
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "runtime_environment": {
+        "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+      },
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 90.02282962924801,
+      "min_s": 89.93337424797937,
+      "max_s": 90.08469781489111,
+      "samples_s": [
+        89.93337424797937,
+        90.05041682487354,
+        90.08469781489111
+      ],
+      "preview": "cases/rtx5090-podcast-edit-4480x4480-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 90.05041682487354,
+      "original_png_sha256": "a37c2810faf10c58bcf369b38707dd0172ba8202b1715af2bdda0b65ce6f5b6a",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "0a997eafd7ed76f168feeceaf33914ed3f5abf3feaef1e62399ed536ab694c67",
+      "reference_sha256": [
+        "e3ef31ce2bf5f9a6f45c13f65b4728a87cc767cbcc8f0313aa1a4c8014dae85d"
+      ],
+      "review_scope": "All15 measured originals SHA256-verified and inspected through five three-seed contact sheets at up to600px per image; full-resolution glyph/texture equivalence not certified.",
+      "source_job": "3196121"
     }
   ],
   "source_records": [
@@ -1349,6 +1655,13 @@
       "records_sha256": "89498cf4bf97b7a8f72accbac311690ce63e80e21311913b2db682cb0394f1cd",
       "corpus_sha256": "76d3f9052cd50d95f587d7b1adfce513f3c09afc391ef545d0fa0abea654a23b",
       "review_sha256": "5af415cbb51558a274fa2ece24ac17d2adba32c4e2062de306467fef1eb77ff9"
+    },
+    {
+      "hardware": "rtx5090",
+      "job_id": "3196121",
+      "records_sha256": "bbd50cb1e8da200bb3afdfb62eac9bba7e13e20db9167421a4be014aafcf079b",
+      "corpus_sha256": "568b5ccc6c6cec4d0677fb6f37511881f22eb66ad8cafdcfc15541d918417739",
+      "review_sha256": "8887c5b88d7defffcf3758b48fab484df326c3049e0d8c0b79ce45d26be0baac"
     }
   ],
   "title_map": {
@@ -1357,5 +1670,5 @@
     "creative-poster": "Workshop poster · text and layout",
     "game-third-person-adventure": "Adventure game · environment concept"
   },
-  "configuration_note": "Server panels use four GPUs/SP4 and resident weights. RTX5090 adventure panels use one GPU/SP1, DiT+encoder CPU layerwise offload and eager execution. H200 poster uses BF16; other panels use MXFP8 DiT linears. These are labeled deployment recipes, not a GPU-count scaling experiment."
+  "configuration_note": "Server panels use four GPUs/SP4 and resident weights. RTX5090 panels use one GPU/SP1, DiT+encoder CPU layerwise offload and eager execution. H200 poster uses BF16; other panels use MXFP8 DiT linears. These are labeled deployment recipes, not a GPU-count scaling experiment."
 }

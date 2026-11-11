@@ -38,8 +38,9 @@ lay out a workshop poster, or imagine an explorer crossing a flooded observatory
 The podcast edit uses one reference image; the other three tasks start from text.
 Each panel shows the same preselected seed, **42**, alongside the **mean latency
 of three measured requests**. The poster also includes an H200 BF16 result,
-labeled separately from the MXFP8 runs. The adventure scene includes a single
-RTX 5090 using CPU layerwise offload, alongside the four-GPU server configurations.
+labeled separately from the MXFP8 runs. Selected food, podcast and adventure
+examples also include a single RTX 5090 using CPU layerwise offload, alongside
+the four-GPU server configurations.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
@@ -70,7 +71,9 @@ The figure includes the serving configuration and timing details.
 
 A single **RTX 5090** generates the adventure scene in **26.62 seconds at
 2752×1536** and **59.77 seconds at 5472×3072**, averaged over three seeds.
-Its CPU-offload recipe extends the same model and prompt to a 32 GB desktop GPU.
+The **4096×4096 podcast edit takes 73.55 seconds** on the same single-GPU
+CPU-offload configuration. The gallery also includes its ultrawide and
+approximately 20 MP food and editing results.
 Testing of further hardware and multi-reference editing is ongoing.
 
 ## Serving the Model
