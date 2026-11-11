@@ -41,9 +41,11 @@ The interface, interaction mode, and model execution describe different layers:
 
 *Figure 1. Follow an interface through its interaction and execution modes, then see example model profiles. Select a branch to highlight its path. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/interfaces.html).*
 
-<details>
+<details markdown="1">
 <summary>View static diagram</summary>
-<img src="/assets/figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg" alt="Interfaces, interaction modes, and model execution" loading="lazy" style="display: block; width: 100%; height: auto;" />
+
+![Interfaces, interaction modes, and model execution](/assets/figures/2026-10-12-vllm-omni-unified-duplex/interfaces-interaction-execution.svg)
+
 </details>
 
 A bidirectional connection is therefore useful for both execution modes. Qwen3-Omni with Server VAD can receive microphone audio during playback, stop a response, and start another after a new turn is committed. That provides an interruptible voice experience, while its model execution remains turn-based. PersonaPlex and MiniCPM-o 4.5 additionally support model-native processing of continuing input.
@@ -60,9 +62,11 @@ Consider the opening example with MiniCPM: new camera frames and “Actually, I 
 
 *Figure 2. Step through the input and output paths, or click a component to explore its role. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/architecture.html).*
 
-<details>
+<details markdown="1">
 <summary>View static diagram</summary>
-<img src="/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg" alt="Unified duplex architecture and component responsibilities" loading="lazy" style="display: block; width: 100%; height: auto;" />
+
+![Unified duplex architecture and component responsibilities](/assets/figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg)
+
 </details>
 
 | Component | Responsibility |
@@ -88,9 +92,11 @@ The shared session runtime does not force every model into the same inference pi
 
 *Figure 3. Switch models and step through their encoders, autoregressive modules, waveform decoders, and retained state. Brackets group neural modules into serving stages. [Open the interactive diagram](/assets/interactive_pages/vllm-omni-duplex/models.html).*
 
-<details>
+<details markdown="1">
 <summary>View static diagram</summary>
-<img src="/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg" alt="Serving stages and retained state for four model paths" loading="lazy" style="display: block; width: 100%; height: auto;" />
+
+![Serving stages and retained state for four model paths](/assets/figures/2026-10-12-vllm-omni-unified-duplex/model-stages-and-state.svg)
+
 </details>
 
 ### PersonaPlex: frame-by-frame speech interaction
