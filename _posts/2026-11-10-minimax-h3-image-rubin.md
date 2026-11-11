@@ -38,7 +38,8 @@ lay out a workshop poster, or imagine an explorer crossing a flooded observatory
 The podcast edit uses one reference image; the other three tasks start from text.
 Each panel shows the same preselected seed, **42**, alongside the **mean latency
 of three measured requests**. The poster also includes an H200 BF16 result,
-labeled separately from the MXFP8 runs.
+labeled separately from the MXFP8 runs. The adventure scene includes a single
+RTX 5090 using CPU layerwise offload, alongside the four-GPU server configurations.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
@@ -67,7 +68,10 @@ All **384 measured requests in this canvas sweep** completed successfully. Each 
 of three seeds after warmup; hover for the measured range and exact image size.
 The figure includes the serving configuration and timing details.
 
-Testing of additional hardware and multi-reference editing is ongoing.
+A single **RTX 5090** generates the adventure scene in **26.62 seconds at
+2752×1536** and **59.77 seconds at 5472×3072**, averaged over three seeds.
+Its CPU-offload recipe extends the same model and prompt to a 32 GB desktop GPU.
+Testing of further hardware and multi-reference editing is ongoing.
 
 ## Serving the Model
 
@@ -85,7 +89,12 @@ the text encoder and the VAE retain their configured precision.
 the transformer weights replicated. Text-encoder TP4 and VAE tile distribution
 also use the four GPUs. The VAE graph path replays captured tile computations;
 multiple streams allow independent tiles to overlap. All workloads in the
-comparison use the same layout and resident weights.
+GB200/GB300 canvas sweep use the same layout and resident weights.
+
+**Desktop execution.** The RTX 5090 runs one GPU with SP1, DiT TP1 and
+text-encoder TP1. Layerwise offload moves DiT and text-encoder weights between
+CPU memory and the GPU; VAE decoding uses eager execution. Its recorded attention
+backend is **`CUDNN_ATTN`**. The gallery labels this placement beside its timings.
 
 The Rubin section below adds four independent single-GPU replicas as a separate
 throughput mode. HTTP concurrency, replica count and the number of images in a

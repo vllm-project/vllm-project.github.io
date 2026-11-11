@@ -43,7 +43,7 @@
       const card=el('figure',undefined,'output-card'),head=el('div',undefined,'output-heading');
       head.append(el('span',p.gpus+'× '+p.hardware+' · '+p.topology),el('span',p.mean_s.toFixed(2)+' s mean'));
       const image=el('img');image.src=p.preview;image.alt=titles[task]+' generated on '+p.gpus+' '+p.hardware+' GPUs, '+p.precision+', seed 42';image.loading='lazy';image.addEventListener('load',reportHeight);
-      const caption=el('figcaption',p.precision+' · '+p.width+'×'+p.height+'\nThree seeds · range '+p.min_s.toFixed(3)+'–'+p.max_s.toFixed(3)+' s. Shown: seed 42 ('+p.gallery_request_s.toFixed(3)+' s).');
+      const caption=el('figcaption',p.precision+' · '+p.width+'×'+p.height+'\n'+(p.memory_placement||'Resident weights')+'\nThree seeds · range '+p.min_s.toFixed(3)+'–'+p.max_s.toFixed(3)+' s. Shown: seed 42 ('+p.gallery_request_s.toFixed(3)+' s).');
       const link=el('a','Open '+p.preview_max_dimension+' px preview','image-download');link.href=p.preview;link.target='_blank';link.rel='noopener';
       card.append(head,image,caption,link);$('outputs').appendChild(card);
     }
@@ -51,7 +51,8 @@
     $('references').replaceChildren();
     if(c.reference_assets.length){const a=el('a','View MiniMax reference image');a.href='cases/podcast-reference.png';a.target='_blank';a.rel='noopener';const img=el('img');img.src=a.href;img.alt='Original podcast scene before editing';img.addEventListener('load',reportHeight);a.appendChild(img);$('references').appendChild(a);}
     const precisions=[...new Set(selected.map(p=>p.precision))];
-    $('note').textContent='Same prompt, reference bytes and seeds on the systems shown. Six steps; resident weights. Timings average three requests after warmup. Images are downscaled previews; open a preview to inspect the composition and lettering.'+(precisions.length>1?' H200 uses BF16; the other systems use MXFP8 DiT linears.':'')+(task==='game-third-person-adventure'?' Generated game-environment concepts, not captures from a running game.':'');
+    const placementNote=selected.some(p=>p.offload)?' Server panels use four GPUs/SP4 with resident weights. RTX 5090 uses one GPU/SP1 with DiT and text-encoder CPU layerwise offload and eager execution.':' Weights are resident on the four-GPU systems shown.';
+    $('note').textContent='Same prompt, reference bytes and seeds on the systems shown. Six steps.'+placementNote+' Timings average three requests after warmup. Images are downscaled previews; open a preview to inspect the composition and lettering.'+(precisions.length>1?' H200 uses BF16; the other systems use MXFP8 DiT linears.':'')+(task==='game-third-person-adventure'?' Generated game-environment concepts, not captures from a running game.':'');
     reportHeight();
   }
   function drawChart(){

@@ -1077,6 +1077,208 @@
       "reference_sha256": [],
       "review_scope": "All18measured images visually inspected in960pixel-wide derivatives of SHA-verified originals; adventure images reviewed for single-character layout, route continuity, environment and lack of HUD. Fine glyphs checked separately by OCR, not auto-approved.",
       "source_job": "3194812"
+    },
+    {
+      "id": "game-third-person-adventure-2752x1536",
+      "case": "game-third-person-adventure",
+      "width": 2752,
+      "height": 1536,
+      "tier_mp": 4,
+      "actual_mp": 4.227072,
+      "aspect": "16:9",
+      "comparison_tier": "h3-native-4mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        2752,
+        1536
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "GB300",
+      "gpus": 4,
+      "topology": "SP4",
+      "precision": "MXFP8 DiT",
+      "offload": false,
+      "offload_config": null,
+      "eager": false,
+      "memory_placement": "Resident weights",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 0.7927304819992665,
+      "min_s": 0.7905948129991884,
+      "max_s": 0.7967855310016603,
+      "samples_s": [
+        0.7905948129991884,
+        0.790811101996951,
+        0.7967855310016603
+      ],
+      "preview": "cases/gb300-game-third-person-adventure-2752x1536-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 0.790811101996951,
+      "original_png_sha256": "3908d8c674767cbf08711d5dfdffe0a1e1a2fabcc1a4555f124797bc7da9ff1e",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "f94a6ace0d224c53cc882c2097a1db0bcfe353817d46e5638a0636b9101b4016",
+      "reference_sha256": [],
+      "review_scope": "All six adventure outputs (two native sizes x three seeds) visually inspected through contact sheets derived from SHA-verified full PNGs. One explorer, a continuous bridge route and coherent observatory scene are present. Character scale often exceeds the requested one-fifth of frame height; composition showcase only, not perfect instruction compliance or pixel equivalence.",
+      "source_job": "3194814"
+    },
+    {
+      "id": "game-third-person-adventure-5472x3072",
+      "case": "game-third-person-adventure",
+      "width": 5472,
+      "height": 3072,
+      "tier_mp": 16,
+      "actual_mp": 16.809984,
+      "aspect": "16:9",
+      "comparison_tier": "h3-native-16mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        5472,
+        3072
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "GB300",
+      "gpus": 4,
+      "topology": "SP4",
+      "precision": "MXFP8 DiT",
+      "offload": false,
+      "offload_config": null,
+      "eager": false,
+      "memory_placement": "Resident weights",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 1.522102692334253,
+      "min_s": 1.492963051001425,
+      "max_s": 1.5683655960019678,
+      "samples_s": [
+        1.5049794299993664,
+        1.492963051001425,
+        1.5683655960019678
+      ],
+      "preview": "cases/gb300-game-third-person-adventure-5472x3072-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 1.492963051001425,
+      "original_png_sha256": "eddc4b1ed8715dceac9369a699f61320ba12854ebb1f95fd1eac107d125b31c1",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "f94a6ace0d224c53cc882c2097a1db0bcfe353817d46e5638a0636b9101b4016",
+      "reference_sha256": [],
+      "review_scope": "All six adventure outputs (two native sizes x three seeds) visually inspected through contact sheets derived from SHA-verified full PNGs. One explorer, a continuous bridge route and coherent observatory scene are present. Character scale often exceeds the requested one-fifth of frame height; composition showcase only, not perfect instruction compliance or pixel equivalence.",
+      "source_job": "3194814"
+    },
+    {
+      "id": "game-third-person-adventure-2752x1536",
+      "case": "game-third-person-adventure",
+      "width": 2752,
+      "height": 1536,
+      "tier_mp": 4,
+      "actual_mp": 4.227072,
+      "aspect": "16:9",
+      "comparison_tier": "h3-native-4mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        2752,
+        1536
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 26.62386449961923,
+      "min_s": 26.508585372008383,
+      "max_s": 26.818834263831377,
+      "samples_s": [
+        26.508585372008383,
+        26.54417386301793,
+        26.818834263831377
+      ],
+      "preview": "cases/rtx5090-game-third-person-adventure-2752x1536-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 26.54417386301793,
+      "original_png_sha256": "211a1df41372df1a0ad7bcb5aa3d23d572227174b68f0b841fd62794e7192d6c",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "f94a6ace0d224c53cc882c2097a1db0bcfe353817d46e5638a0636b9101b4016",
+      "reference_sha256": [],
+      "review_scope": "All six adventure outputs (two native sizes x three seeds) visually inspected through contact sheets derived from SHA-verified full PNGs. One explorer, a continuous bridge route and coherent observatory scene are present. Character scale often exceeds the requested one-fifth of frame height; composition showcase only, not perfect instruction compliance or pixel equivalence.",
+      "source_job": "3195008"
+    },
+    {
+      "id": "game-third-person-adventure-5472x3072",
+      "case": "game-third-person-adventure",
+      "width": 5472,
+      "height": 3072,
+      "tier_mp": 16,
+      "actual_mp": 16.809984,
+      "aspect": "16:9",
+      "comparison_tier": "h3-native-16mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        5472,
+        3072
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "RTX 5090",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "dit",
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": true,
+      "memory_placement": "DiT + text encoder: CPU layerwise offload · eager execution",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 59.76960367701637,
+      "min_s": 59.52285530604422,
+      "max_s": 60.25591683597304,
+      "samples_s": [
+        60.25591683597304,
+        59.52285530604422,
+        59.53003888903186
+      ],
+      "preview": "cases/rtx5090-game-third-person-adventure-5472x3072-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 59.52285530604422,
+      "original_png_sha256": "ca3e1b22b00ff2d1b2cdf6684467ff65e3ca1f0d83ea6a5739c628fdda2f6878",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "f94a6ace0d224c53cc882c2097a1db0bcfe353817d46e5638a0636b9101b4016",
+      "reference_sha256": [],
+      "review_scope": "All six adventure outputs (two native sizes x three seeds) visually inspected through contact sheets derived from SHA-verified full PNGs. One explorer, a continuous bridge route and coherent observatory scene are present. Character scale often exceeds the requested one-fifth of frame height; composition showcase only, not perfect instruction compliance or pixel equivalence.",
+      "source_job": "3195008"
     }
   ],
   "source_records": [
@@ -1133,6 +1335,20 @@
       "records_sha256": "f347a2a70fe5ff4d80dc2db8f0a927acdda36e7ae019a0faf63572b76084f7c6",
       "corpus_sha256": "76d3f9052cd50d95f587d7b1adfce513f3c09afc391ef545d0fa0abea654a23b",
       "review_sha256": "059bc5cebe001dbdb50831c5411feb3e36c088d0de735f4e5714a61816ba82f1"
+    },
+    {
+      "hardware": "gb300",
+      "job_id": "3194814",
+      "records_sha256": "bb3a4ea4cc6f53f2ed10e9b33aa7bc9081d2f122b7230ca67740de64a2e5da92",
+      "corpus_sha256": "76d3f9052cd50d95f587d7b1adfce513f3c09afc391ef545d0fa0abea654a23b",
+      "review_sha256": "3941afb32268ef118cf6faadf298b4145d51f14c654e4a914af3986b14f70fef"
+    },
+    {
+      "hardware": "rtx5090",
+      "job_id": "3195008",
+      "records_sha256": "89498cf4bf97b7a8f72accbac311690ce63e80e21311913b2db682cb0394f1cd",
+      "corpus_sha256": "76d3f9052cd50d95f587d7b1adfce513f3c09afc391ef545d0fa0abea654a23b",
+      "review_sha256": "5af415cbb51558a274fa2ece24ac17d2adba32c4e2062de306467fef1eb77ff9"
     }
   ],
   "title_map": {
@@ -1141,5 +1357,5 @@
     "creative-poster": "Workshop poster · text and layout",
     "game-third-person-adventure": "Adventure game · environment concept"
   },
-  "configuration_note": "H200 poster uses BF16. GB200, GB300 and Vera Rubin use MXFP8 DiT linears. All shown layouts use four GPUs/SP4; no speedup claim between mixed precisions."
+  "configuration_note": "Server panels use four GPUs/SP4 and resident weights. RTX5090 adventure panels use one GPU/SP1, DiT+encoder CPU layerwise offload and eager execution. H200 poster uses BF16; other panels use MXFP8 DiT linears. These are labeled deployment recipes, not a GPU-count scaling experiment."
 }
