@@ -27,11 +27,11 @@
 <text x="625" y="300" font-size="21" fill="#008d96" font-weight="700" text-anchor="start">Duplex Orchestrator</text>
 <text x="625" y="325" font-size="15" fill="#57708a" font-weight="400" text-anchor="start">Dedicated thread and event loop</text>
 <rect x="625" y="342" width="248" height="74" rx="8" fill="#fff" stroke="#a3c9cc" stroke-width="1.5"/>
-<text x="640" y="368" font-size="16" fill="#008d96" font-weight="700" text-anchor="start">SessionManager</text>
+<text x="640" y="368" font-size="16" fill="#008d96" font-weight="700" text-anchor="start">DuplexSessionManager</text>
 <text x="640" y="394" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">Admission · dispatch · leases</text>
 <rect x="625" y="429" width="248" height="72" rx="8" fill="#fff" stroke="#a3c9cc" stroke-width="1.5"/>
-<text x="640" y="454" font-size="15" fill="#008d96" font-weight="700" text-anchor="start">SessionRunner + session state</text>
-<text x="640" y="480" font-size="13.5" fill="#17324f" font-weight="400" text-anchor="start">Ordered input, response, playback</text>
+<text x="640" y="454" font-size="15" fill="#008d96" font-weight="700" text-anchor="start">DuplexSessionRunner</text>
+<text x="640" y="480" font-size="13.5" fill="#17324f" font-weight="400" text-anchor="start">DuplexEngineSession · session state</text>
 <rect x="890" y="342" width="221" height="159" rx="8" fill="#fff" stroke="#a3c9cc" stroke-width="1.5"/>
 <text x="906" y="369" font-size="17" fill="#008d96" font-weight="700" text-anchor="start">Model plugin</text>
 <text x="906" y="398" font-size="15" fill="#17324f" font-weight="400" text-anchor="start">Capabilities</text>

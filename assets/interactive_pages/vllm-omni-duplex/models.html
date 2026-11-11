@@ -136,7 +136,7 @@ function selectModel(key) {
   document.querySelector("#model-name").textContent = model.name;
   document.querySelector("#mode").textContent = model.mode;
   document.querySelector("#model-summary").textContent = model.summary;
-  document.querySelector("#source").href = "https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/" + model.source;
+  document.querySelector("#source").href = "https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/" + model.source;
   document.querySelector("#open-page").href = "models.html?model=" + key;
   svg.replaceChildren();
   element("title", {id: "model-title"}, svg, model.name + " execution and state");

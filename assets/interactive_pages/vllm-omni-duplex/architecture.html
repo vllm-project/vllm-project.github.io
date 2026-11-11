@@ -34,11 +34,11 @@
     <rect class="boundary" x="574" y="132" width="350" height="266" rx="4"/>
     <text x="590" y="156" class="label">Duplex Orchestrator</text>
     <text x="590" y="179" class="small">Dedicated thread and event loop</text>
-    <g class="node" id="manager" data-step="2" aria-label="SessionManager: admission, dispatch and leases">
-      <rect x="590" y="190" width="318" height="48" rx="3"/><text x="602" y="210" class="label">SessionManager</text><text x="602" y="232" class="small">Admission · dispatch · leases</text>
+    <g class="node" id="manager" data-step="2" aria-label="DuplexSessionManager: admission, dispatch and leases">
+      <rect x="590" y="190" width="318" height="48" rx="3"/><text x="602" y="210" class="label">DuplexSessionManager</text><text x="602" y="232" class="small">Admission · dispatch · leases</text>
     </g>
-    <g class="node" id="runner" data-step="2" aria-label="SessionRunner and DuplexEngineSession: ordered work and session state">
-      <rect x="590" y="247" width="318" height="67" rx="3"/><text x="602" y="269" class="label">SessionRunner</text><text x="602" y="294">DuplexEngineSession</text>
+    <g class="node" id="runner" data-step="2" aria-label="DuplexSessionRunner and DuplexEngineSession: ordered work and session state">
+      <rect x="590" y="247" width="318" height="67" rx="3"/><text x="602" y="269" class="label">DuplexSessionRunner</text><text x="602" y="294">DuplexEngineSession</text>
     </g>
     <g class="node" id="plugin" data-step="3" aria-label="Model plugin: capabilities, inputs, state and output interpretation">
       <rect x="590" y="323" width="318" height="57" rx="3"/><text x="602" y="345" class="label">Model plugin</text><text x="602" y="368">Input and output rules</text>
@@ -74,7 +74,7 @@
   <div id="player" aria-label="Architecture walkthrough"></div>
   <div class="legend"><span></span>Gold marks the current step. Click a component or use the step controls.</div>
   <p class="note">Input and output can overlap. The model profile determines the stage layout.</p>
-  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/c10115052ef691e4d0270f1ddf5bce5bc4d140f8/docs/design/fullduplex.md" target="_blank" rel="noopener">Framework design ↗</a></p>
+  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/docs/design/fullduplex.md" target="_blank" rel="noopener">Framework design ↗</a></p>
   <noscript><p>The walkthrough needs JavaScript. The full architecture is shown above and is also available as a static diagram.</p></noscript>
 </main>
 <script src="player.js"></script>
@@ -86,7 +86,7 @@ const steps = [
   {label: "Handle", title: "2 · Connect the application to a session", nodes: ["api", "engine"], edges: ["handle"],
    text: "EngineClient exposes a session handle, coordinates open, close, and resume operations, submits commands, and delivers events. It connects the application to the session runtime."},
   {label: "Coordinate", title: "3 · Order work and advance session state", nodes: ["engine", "manager", "runner"], edges: ["command"],
-   text: "SessionManager admits sessions and dispatches their work. Each SessionRunner consumes an ordered mailbox of commands and stage outputs. DuplexEngineSession tracks turns, responses, epochs, request resources, and playback progress."},
+   text: "DuplexSessionManager admits sessions and dispatches their work. Each DuplexSessionRunner consumes an ordered mailbox of commands and stage outputs. DuplexEngineSession tracks turns, responses, epochs, request resources, and playback progress."},
   {label: "Adapt", title: "4 · Apply the model's execution rules", nodes: ["runner", "plugin"], edges: [],
    text: "The model plugin declares capabilities, prepares model inputs and generation settings, supplies model-specific state, and interprets outputs. For MiniCPM, LISTEN is a session decision; it must not become text sent to speech synthesis."},
   {label: "Execute", title: "5 · Schedule computation on model stages", nodes: ["runner", "stages"], edges: ["dispatch", "stage-01", "stage-1n"],
