@@ -36,14 +36,9 @@ and an adventure-game environment. Here are the highlights:
 
 ## Same Request, Every Machine
 
-Choose an example and output size below: generate a food photograph, edit a reference image, lay out
-a poster, or imagine an explorer crossing a flooded observatory. Every panel
-uses the same prompt, reference bytes and seed **42**. The image edit uses one
-reference image; the other tasks start from text. Open the previews to compare
-the composition, details and lettering, and expand the prompt to see the request.
-
-Each panel labels its GPU count, precision, memory placement and **mean latency
-over three seeds**. The systems shown depend on the selected task and canvas.
+Food photography, image editing, English and Chinese posters, and game environments,
+generated on different systems with the same prompt, reference images and seed **42**.
+Each panel shows the output, serving configuration and **mean latency over three seeds**.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
@@ -73,18 +68,14 @@ those same requests. Each timing includes the complete PNG response.
 For **2K text-to-image**, a **single H200** averages **1.49 seconds** with
 BF16 and resident weights.
 
-Select the **mode**, **input reference count**, **output tier** and **hardware**
-below. Every result shows its GPU count and serving configuration. The 1K
-checks return 1024×1024 images; with the local model's default minimum canvas,
+Every result shows its GPU count and serving configuration. The 1K checks
+return 1024×1024 images; with the local model's default minimum canvas,
 they are generated at 2048×2048 and resized. They therefore do not represent
 native 1K diffusion compute.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 <noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-hardware.png" alt="Measured H3-Image text-to-image and image-edit latency on GB200, GB300 and Rubin"></noscript>
-
-[Open the interactive benchmark](/assets/figures/minimax-h3-image-rubin/workload-hardware.html)
-for a full-page view of the tested configurations.
 
 ### Reference Images
 
@@ -100,7 +91,7 @@ These compositions measure execution time and memory capacity; some outputs
 still miss or duplicate requested objects. Configurations that could not complete
 the workload are labeled in the figure.
 
-[Download the benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv)
+[Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv)
 for per-seed timings and configurations. Points show the mean of three seeds
 after warmup; the bars include the measured range. We use a **10-minute
 limit per generation**, including warmup. Configurations without a completed
@@ -204,15 +195,13 @@ saving. Each DiT forward generates one image; the replicas do not pack requests
 into a shared DiT batch.
 
 With **MXFP8/SP4 on all three platforms**, Rubin reaches **2.20× GB200 and 1.60× GB300
-peak throughput**. The
-[interactive chart](/assets/figures/minimax-h3-image-rubin/performance-benchmarks.html)
-lets readers select the SP4 curves and inspect the corresponding response times.
+peak throughput**.
 
 ### Serving Economics
 
 At the peak measured rate, a four-GPU Rubin system projects to **146,755 4K
-images/day**. Using **$0.06879 per billable image**, that is **$105.16/GPU/hour**
-in gross revenue. At 75% billable utilization, it becomes **$78.87/GPU/hour**.
+images/day**. Using **USD 0.06879 per billable image**, that is **USD 105.16/GPU/hour**
+in gross revenue. At 75% billable utilization, it becomes **USD 78.87/GPU/hour**.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/serving-economics.html" title="Daily image capacity and gross revenue per GPU-hour" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
@@ -224,7 +213,7 @@ The calculation is straightforward: **images/hour × price/image × billable
 utilization ÷ 4 GPUs**. These are gross-revenue scenarios, before hardware, power,
 network and other operating costs. Daily image counts extend the measured hourly
 rate to 24 hours; they are not results from a day-long load test. For the subsecond
-SP4 operating point, the same price gives **$57.86/GPU/hour** at full billable utilization.
+SP4 operating point, the same price gives **USD 57.86/GPU/hour** at full billable utilization.
 
 ## Other Hardware
 

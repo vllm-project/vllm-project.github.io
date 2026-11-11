@@ -119,36 +119,8 @@
     }
     labels.forEach(([x, y, s]) => text(x, y, s, 't-lab-b', {'text-anchor': 'middle'}));
     legend([...groups.values()].map(g => ({color: color(g[0]), dash: dashed(g[0]), label: shortName(g[0]) + ' · ' + g[0].precision.replace(' DiT', '')})));
-    $('note').textContent = 'Native 4096×4096 T2I; six steps; four GPUs; 160 prompt–seed pairs per point after warmup. C = closed-loop client concurrency, not DiT batch size. HTTP latency includes queueing, generation, PNG encoding and response receipt over loopback; client decoding/validation/saving is excluded from latency and included in throughput. ' + (groups.size > 4 ? 'Hover a point for concurrency. ' : '') + 'All curves use MXFP8 DiT linears; select SP4 to compare the same parallel layout. Peak configurations have different response latencies.';
-    economy(); reportHeight();
-  }
-  function operatingPoints() {
-    return platforms.map(platform => {
-      let eligible = primary.filter(p => p.platform === platform);
-      if ($('mode').value === 'one') eligible = eligible.filter(p => p.p95_latency_s <= 1);
-      return {platform, p: eligible.length ? eligible.reduce((a, b) => a.images_per_hour > b.images_per_hour ? a : b) : null};
-    });
-  }
-  function economy() {
-    const price = Math.max(0, Number($('price').value) || 0);
-    const utilization = Math.min(100, Math.max(0, Number($('utilization').value) || 0)) / 100;
-    const selected = operatingPoints();
-    const max = Math.max(1, ...selected.filter(x => x.p).map(x => revenuePerGPU(x.p, price, utilization)));
-    const container = $('economics'); container.replaceChildren();
-    selected.forEach(({platform, p}) => {
-      const row = document.createElement('div'); row.className = 'revenue';
-      const top = document.createElement('div'); top.className = 'revenue-top';
-      const name = document.createElement('span'); name.className = 'revenue-name'; name.textContent = platform + (p ? ' · ' + p.topology + ' · ' + p.precision + ' · C' + p.concurrency : '');
-      const value = document.createElement('span'); value.className = 'revenue-value'; value.textContent = p ? money(revenuePerGPU(p, price, utilization)) + '/GPU/hour' : 'No measured point meets the target';
-      top.append(name, value); row.appendChild(top);
-      if (p) {
-        const track = document.createElement('div'); track.className = 'track';
-        const fill = document.createElement('div'); fill.className = 'fill'; fill.style.background = platformColor(p); fill.style.width = (revenuePerGPU(p, price, utilization) / max * 100) + '%'; track.appendChild(fill);
-        const meta = document.createElement('div'); meta.className = 'revenue-meta'; meta.textContent = fmt(p.images_per_hour * 24) + ' images/day capacity across four GPUs · p50 ' + fmt(p.median_latency_s, 3) + ' s · p95 ' + fmt(p.p95_latency_s, 3) + ' s';
-        row.append(track, meta);
-      }
-      container.appendChild(row);
-    });
+    $('note').textContent = 'Native 4096×4096 T2I; six steps; four GPUs; 160 prompt–seed pairs per point after warmup. C = closed-loop client concurrency, not DiT batch size. HTTP latency includes queueing, generation, PNG encoding and response receipt over loopback; client decoding/validation/saving is excluded from latency and included in throughput. ' + 'All curves use MXFP8 DiT linears; SP4 curves share the same parallel layout. Peak configurations have different response latencies.';
+    reportHeight();
   }
   let barMode = kind === 'hardware' ? 'latency' : 'revenue';
   function drawBars() {
@@ -181,33 +153,15 @@
     legend(data.map(p => ({color: platformColor(p), label: p.platform + ' · MXFP8'})));
     reportHeight();
   }
-  function exportSVG() {
-    const clone = svg.cloneNode(true);
-    const sourceNodes = [svg, ...svg.querySelectorAll('*')], targetNodes = [clone, ...clone.querySelectorAll('*')];
-    sourceNodes.forEach((source, i) => {
-      const cs = getComputedStyle(source), target = targetNodes[i];
-      for (const property of ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'text-transform', 'text-anchor']) target.style.setProperty(property, cs.getPropertyValue(property));
-      target.style.transition = 'none';
-    });
-    clone.querySelectorAll('.hit').forEach(n => n.remove());
-    clone.querySelectorAll('[tabindex]').forEach(n => n.removeAttribute('tabindex'));
-    clone.setAttribute('xmlns', NS); clone.setAttribute('width', '736'); clone.setAttribute('height', '364');
-    clone.style.background = getComputedStyle(document.body).backgroundColor;
-    return new XMLSerializer().serializeToString(clone);
-  }
-  $('download').addEventListener('click', () => {
-    const url = URL.createObjectURL(new Blob([exportSVG()], {type: 'image/svg+xml'}));
-    const a = document.createElement('a'); a.href = url; a.download = 'h3-image-' + kind + '.svg'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
   if (kind === 'curve') {
     ['metric', 'precision', 'log', 'zoom'].forEach(id => $(id).addEventListener('change', drawCurve));
-    ['price', 'utilization', 'mode'].forEach(id => $(id).addEventListener('input', economy)); drawCurve();
+    drawCurve();
   } else {
     document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
       barMode = button.dataset.mode; document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b === button))); drawBars();
     })); drawBars();
   }
-  window.H3 = {points, selectedPoints, operatingPoints, revenuePerGPU, exportSVG};
+  window.H3 = {points, selectedPoints, revenuePerGPU};
   document.body.dataset.ready = '1';
   document.fonts.ready.then(reportHeight);
 })();
