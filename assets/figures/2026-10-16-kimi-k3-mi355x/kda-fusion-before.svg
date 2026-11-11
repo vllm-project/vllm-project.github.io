@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="530" viewBox="0 0 1200 530" role="img" aria-labelledby="title desc">
+<title id="title">Before: KDA decode uses three compute kernels and two copies</title><desc id="desc">Selected non-speculative single-token decode path. Convolution and SiLU feed a packed recurrent kernel, followed by an output placement copy, gated RMSNorm, and a final copy. Convolution history and recurrent state are saved in GPU memory.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/></marker></defs>
+<rect width="1200" height="530" fill="white"/>
+<style>text { font-family: Arial, Helvetica, sans-serif; fill: #19354b; } .small {font-size:20px;fill:#536a7d;} .label {font-size:23px;font-weight:600;} .muted {fill:#536a7d;} .title {font-size:31px;font-weight:700;}</style>
+<text x="24" y="43" class="title" text-anchor="start">Before · three compute kernels and two copies</text>
+<text x="24" y="80" class="small" text-anchor="start">Kimi K3 · single-token KDA decode</text>
+<rect x="24" y="130" width="184" height="145" rx="10" fill="#f3f6f8" stroke="#19354b" stroke-width="2"/>
+<text x="38" y="155" class="small" text-anchor="start">KERNEL</text>
+<text x="116.0" y="201" class="label" text-anchor="middle">Convolution</text>
+<text x="116.0" y="230" class="label" text-anchor="middle">+ SiLU</text>
+<rect x="248" y="130" width="274" height="145" rx="10" fill="#f3f6f8" stroke="#19354b" stroke-width="2"/>
+<text x="262" y="155" class="small" text-anchor="start">KERNEL</text>
+<text x="385.0" y="190" class="label" text-anchor="middle">Q/K normalization</text>
+<text x="385.0" y="219" class="label" text-anchor="middle">+ decay / beta gates</text>
+<text x="385.0" y="248" class="label" text-anchor="middle">+ recurrent update</text>
+<rect x="562" y="130" width="130" height="145" rx="10" fill="#fff3ce" stroke="#fdb515" stroke-width="2"/>
+<text x="576" y="155" class="small" text-anchor="start">COPY</text>
+<text x="627.0" y="201" class="label" text-anchor="middle">Place</text>
+<text x="627.0" y="230" class="label" text-anchor="middle">output</text>
+<rect x="732" y="130" width="226" height="145" rx="10" fill="#f3f6f8" stroke="#19354b" stroke-width="2"/>
+<text x="746" y="155" class="small" text-anchor="start">KERNEL</text>
+<text x="845.0" y="201" class="label" text-anchor="middle">RMSNorm</text>
+<text x="845.0" y="230" class="label" text-anchor="middle">× output gate</text>
+<rect x="998" y="130" width="178" height="145" rx="10" fill="#fff3ce" stroke="#fdb515" stroke-width="2"/>
+<text x="1012" y="155" class="small" text-anchor="start">COPY</text>
+<text x="1087.0" y="201" class="label" text-anchor="middle">Copy result</text>
+<text x="1087.0" y="230" class="label" text-anchor="middle">back</text>
+<path d="M213,207 L240,207" stroke="#fdb515" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M527,207 L554,207" stroke="#fdb515" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M697,207 L724,207" stroke="#fdb515" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M963,207 L990,207" stroke="#fdb515" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<text x="565" y="353" class="small" text-anchor="start">Temporary outputs pass through GPU memory.</text>
+<path d="M116,281 L116,363" stroke="#19354b" stroke-width="2.5" fill="none" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+<path d="M385,281 L385,363" stroke="#19354b" stroke-width="2.5" fill="none" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+<rect x="24" y="370" width="184" height="58" rx="10" fill="#fff8e8" stroke="#e3ac2d" stroke-width="2"/>
+<text x="116.0" y="405" class="small" text-anchor="middle">Conv history</text>
+<rect x="248" y="370" width="274" height="58" rx="10" fill="#fff8e8" stroke="#e3ac2d" stroke-width="2"/>
+<text x="385.0" y="405" class="small" text-anchor="middle">Recurrent state</text>
+<text x="565" y="399" class="small" text-anchor="start">These saved values are needed by the next token.</text>
+<text x="24" y="487" class="small" text-anchor="start">Each top-row box is one launch. Widths do not represent runtime.</text>
+</svg>

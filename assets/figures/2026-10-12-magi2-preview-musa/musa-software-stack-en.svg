@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" viewBox="0 0 1240 560" width="1240" height="560" role="img" aria-label="MAGI-2 software stack on MUSA: vLLM-Omni on vLLM and vllm-musa, torchada, torch_musa, MATE/muDNN/MCCL/Triton, and the MUSA driver over 8 MTT S5000">
+<title>Software stack for MAGI-2 on MUSA</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/></marker></defs>
+<rect width="1240" height="560" fill="#ffffff"/>
+<text x="24" y="28" font-size="18" fill="#1f2937" text-anchor="start" font-weight="600">Software stack for MAGI-2 on MUSA</text>
+<text x="24" y="47" font-size="11.5" fill="#4b5563" text-anchor="start">torchada sits between the framework and the MUSA PyTorch backend, so CUDA-style code runs unchanged</text>
+<text x="24" y="112" font-size="11.5" fill="#4b5563" text-anchor="start" font-weight="600">application</text>
+<rect x="140" y="78" width="660" height="58" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="156" y="103" font-size="13" fill="#1f2937" text-anchor="start" font-weight="600">vLLM-Omni · MAGI-2 pipeline</text>
+<text x="156" y="121" font-size="10.5" fill="#4b5563" text-anchor="start">Ulysses SP, CFG parallel, head-sharded EP, regional torch.compile</text>
+<text x="24" y="182" font-size="11.5" fill="#4b5563" text-anchor="start" font-weight="600">framework</text>
+<rect x="140" y="148" width="660" height="58" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.2"/>
+<text x="156" y="173" font-size="13" fill="#1f2937" text-anchor="start" font-weight="600">vLLM + vllm-musa</text>
+<text x="156" y="191" font-size="10.5" fill="#4b5563" text-anchor="start">MUSA platform plugin</text>
+<text x="24" y="252" font-size="11.5" fill="#4b5563" text-anchor="start" font-weight="600">compatibility</text>
+<rect x="140" y="218" width="660" height="58" rx="8" fill="#fffbeb" stroke="#b45309" stroke-width="1.2"/>
+<text x="156" y="243" font-size="13" fill="#1f2937" text-anchor="start" font-weight="600">torchada</text>
+<text x="156" y="261" font-size="10.5" fill="#4b5563" text-anchor="start">CUDA-compatible API layer — imported first, patches on import</text>
+<text x="24" y="322" font-size="11.5" fill="#4b5563" text-anchor="start" font-weight="600">backend</text>
+<rect x="140" y="288" width="660" height="58" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.2"/>
+<text x="156" y="313" font-size="13" fill="#1f2937" text-anchor="start" font-weight="600">torch_musa</text>
+<text x="156" y="331" font-size="10.5" fill="#4b5563" text-anchor="start">PyTorch backend for MUSA devices</text>
+<text x="24" y="392" font-size="11.5" fill="#4b5563" text-anchor="start" font-weight="600">libraries</text>
+<rect x="140" y="358" width="660" height="58" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.2"/>
+<text x="156" y="383" font-size="13" fill="#1f2937" text-anchor="start" font-weight="600">MATE · muDNN · MCCL · Triton (MUSA)</text>
+<text x="156" y="401" font-size="10.5" fill="#4b5563" text-anchor="start">FlashAttention-3, grouped GEMM, BLAS, collectives, Triton kernels</text>
+<text x="24" y="462" font-size="11.5" fill="#4b5563" text-anchor="start" font-weight="600">hardware</text>
+<rect x="140" y="428" width="660" height="58" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/>
+<text x="156" y="453" font-size="13" fill="#1f2937" text-anchor="start" font-weight="600">MUSA driver · 8× MTT S5000</text>
+<text x="156" y="471" font-size="10.5" fill="#4b5563" text-anchor="start">Moore Threads MTT S5000 GPUs</text>
+<rect x="830" y="78" width="394" height="268" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="842" y="97" font-size="12" fill="#2563eb" text-anchor="start" font-weight="600">What CUDA-style code keeps using</text>
+<text x="846" y="130" font-size="11" fill="#1f2937" text-anchor="start">torch.cuda.*  →  torch.musa</text>
+<text x="846" y="156" font-size="11" fill="#1f2937" text-anchor="start">"cuda" / "cuda:N" devices  →  MUSA</text>
+<text x="846" y="182" font-size="11" fill="#1f2937" text-anchor="start">NCCL process groups  →  MCCL</text>
+<text x="846" y="208" font-size="11" fill="#1f2937" text-anchor="start">CUDAGraph  →  MUSAGraph</text>
+<text x="846" y="234" font-size="11" fill="#1f2937" text-anchor="start">Triton tl.extra.cuda  →  tl.extra.musa</text>
+<text x="846" y="260" font-size="11" fill="#1f2937" text-anchor="start">CUDAExtension sources  →  MUSA builds</text>
+<text x="846" y="298" font-size="10.5" fill="#b45309" text-anchor="start" font-weight="600">MAGI-2's CUDA-authored Triton kernels</text>
+<text x="846" y="314" font-size="10.5" fill="#b45309" text-anchor="start" font-weight="600">(fused MoE, SwiGLU7, mHC) run unchanged.</text>
+<text x="24" y="522" font-size="11.5" fill="#4b5563" text-anchor="start">Versions in this post: vLLM 0.28 + vllm-musa 0.1.28; torch / torch_musa 2.11.0.post2 (MUSA SDK 5.2.0); MATE / flash_attn_3 0.2.7; Triton 3.2.0.</text>
+</svg>
