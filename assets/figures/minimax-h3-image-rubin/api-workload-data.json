@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "snapshot_utc": "2026-11-11T16:48:06.821734+00:00",
+  "snapshot_utc": "2026-11-11T17:18:05.222329+00:00",
   "model_revision": "7b6142f879bf7a973c449e1dea5480289736cdbd",
   "encoder_revision": "0919fb684102ef115126612f3fbb84d1027e7317",
   "source_csv": "api-workload-results.csv",
-  "source_csv_sha256": "d9574a0e1a6a827cb4ccc3e8802495b27a3f03b96a483b254501cea0b847f145",
+  "source_csv_sha256": "2b927b91c91f605c6b028da649f944362e0c97fdb19c18946b2dee0ce47468c8",
   "hardware": [
     {"id": "gb200", "label": "GB200", "gpus": 4, "precision": "mxfp8"},
     {"id": "gb300", "label": "GB300", "gpus": 4, "precision": "mxfp8"},
