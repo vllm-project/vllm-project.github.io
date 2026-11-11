@@ -45,33 +45,25 @@ The captions and editing reference are from MiniMax's
 Prompt enhancement is prepared ahead of time and excluded from these timings;
 the model's text encoder, generation, PNG encoding and response transfer are included.
 
-## Across Workloads
+## Generation and Editing
 
-Both systems use **MXFP8 DiT linears, Ulysses SP4, DiT TP1 and text-encoder TP4**,
-with resident weights and six sampling steps. Each request generates one image.
-We hold that four-GPU layout fixed while changing the task, output area and aspect
-ratio. This measures multi-GPU serving across workloads, not a 1→4 GPU scaling curve.
+On four GB300 GPUs, H3-Image generates the **4096×4096 food photograph in
+1.50 seconds** and completes the **podcast edit in 1.74 seconds**, averaged over
+three requests. The same examples take **2.05 seconds** and **2.39 seconds** on
+four GB200 GPUs.
 
-At **4096×4096**, the three-seed mean latency for the food photograph is
-**1.50 s on GB300** and **2.05 s on GB200**.
-The podcast edit takes **1.74 s** and **2.39 s**, respectively.
-These are two different creative requests; their gap does not isolate the cost
-of adding a reference image.
+Switch between generation and editing below, then choose an aspect ratio to see
+how latency changes from roughly **4 to 20 megapixels**.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-performance.html" title="H3-Image latency across tasks, output areas and aspect ratios" loading="lazy" scrolling="no" style="display:block;width:100%;height:680px;border:0;overflow:hidden;"></iframe>
 
 <noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-performance.png" alt="Three-request mean HTTP latency for square text-to-image workloads on GB200 and GB300"></noscript>
 
-All **384 measured requests** completed successfully. Each point is the arithmetic
-mean of seeds **0, 42 and 1234**, after a separate warmup; hover for the range.
-Latency runs from the client POST to the complete base64 PNG response over loopback.
-Model loading, warmup and client-side decoding, validation and saving are excluded.
-Different canvases change the amount and shape of DiT and VAE work, so the figure
-keeps the exact dimensions visible instead of reducing every request to “4K.”
+All **384 measured requests** completed successfully. Each point shows the mean
+of three seeds after warmup; hover for the measured range and exact image size.
+The figure includes the serving configuration and timing details.
 
-Additional reference-count cases and hardware profiles are still being tested.
-They will be added with the same three-sample rule; completed matching results
-are reused rather than rerun.
+Testing of additional hardware and multi-reference editing is ongoing.
 
 ## Serving the Model
 
