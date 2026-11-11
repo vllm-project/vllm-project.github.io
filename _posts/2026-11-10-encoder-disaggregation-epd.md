@@ -22,9 +22,9 @@ This post explains the engineering behind that progress, with a focus on five ch
 - **Dedicated encoder execution** with a separate Model Runner V2 path, encoder-only CUDA Graph support, and reduced checkpoint-loading I/O.
 - **Remote embedding transfer** through NIXL and Mooncake integrations.
 - **Cross-encoder output reuse** through Mooncake Store.
-- **Lower orchestration overhead** in the Python EPD proxy, data-parallel EPD routing in vLLM Router, and gRPC EPD in SMG.
+- **Lower orchestration overhead** in the Python EPD proxy and EPD orchestration with vLLM Router, SMG, and llm-d.
 
-The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). The routing integrations below use vLLM Router main and SMG main.
+The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). The vLLM Router and SMG integrations below use their respective main branches.
 
 ## Why Separate the Encoder?
 
@@ -164,6 +164,12 @@ vLLM Router supports HTTP [E+PD and E/P/D deployments](https://github.com/vllm-p
 ### EPD Orchestration in [SMG](https://github.com/smg-project/smg)
 
 [SMG supports vLLM E/P/D deployments](https://github.com/smg-project/smg/pull/5230) over gRPC, including metadata-only forwarding, encoder-side media preprocessing, and Mooncake and NIXL EC backends. It supports [both Python and Rust servicers](https://github.com/smg-project/smg/pull/5387) and can [distribute images within a single image-only request across multiple E workers](https://github.com/smg-project/smg/pull/5447), batching images assigned to the same encoder.
+
+### EPD Orchestration in [llm-d](https://llm-d.ai)
+
+llm-d runs vLLM EPD on Kubernetes, with E+PD and E/P/D layouts in its [multimodal serving guide](https://github.com/llm-d/llm-d/tree/main/guides/multimodal-serving). Each role runs as a separate pod tier, so encoders can scale independently of prefill and decode and use different hardware. The llm-d Router (an Endpoint Picker, or EPP) selects encoder pods, while the routing sidecar or [Coordinator](https://github.com/llm-d/llm-d/tree/main/guides/coord-disaggregation) distributes encode requests across them to process multiple images in parallel. Embeddings reach consumers through the NIXL-based EC connector, and text-only requests skip encoding.
+
+The llm-d team has collaborated with the vLLM community to provide a validated, Kubernetes-native deployment path for EPD. See [llm-d's multimodal serving blog](https://llm-d.ai/blog/serving-multimodal-at-scale-in-llm-d#when-the-encode-stage-needs-its-own-hardware) for more on the architecture and when to separate encoding.
 
 ## DeepSeek V4.1 Flash: EPD in Practice
 
