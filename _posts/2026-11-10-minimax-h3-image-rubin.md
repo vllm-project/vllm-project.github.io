@@ -51,15 +51,6 @@ so composition stays fixed.
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=e08274c6090c" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
-The [additional examples](/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=70db77d34bea)
-retain the food, editing, poster and game outputs across hardware. The food and
-original studio-edit prompts come from MiniMax's
-[released examples](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/tree/main/examples);
-the product, poster and game prompts follow its
-[H3-Image prompt-writing guide](https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/6ea7b9e55523a2177e4f759db372065ba6089510/skills/h3-image-prompt-writing/SKILL.md).
-Prompts are prepared ahead of time; the PE checkpoint is not part of these timings.
-The model's text encoder, generation, PNG encoding and response transfer are included.
-
 ## Performance
 
 The two API modes are straightforward: **Text-to-Image** takes a prompt;
