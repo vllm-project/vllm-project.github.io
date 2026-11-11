@@ -25,7 +25,7 @@
     return records.map(values=>{if(values.length!==keys.length)throw new Error('Invalid CSV row');return Object.fromEntries(keys.map((k,i)=>[k,values[i]]));});
   }
   try {
-    const responses=await Promise.all([fetch('hardware-workload-data.json'),fetch('extended-workload-results.csv')]);
+    const responses=await Promise.all([fetch('api-workload-data.json'),fetch('api-workload-results.csv')]);
     for(const response of responses)if(!response.ok)throw new Error('HTTP '+response.status);
     const [metadata,csv]=await Promise.all([responses[0].json(),responses[1].text()]);
     data={...metadata,cases:Object.fromEntries(Object.entries(metadata.cases).map(([id,c])=>[id,{
@@ -38,18 +38,19 @@
       eager:r.eager==='True',runtime_flags:JSON.parse(r.runtime_flags),status:r.status,n:Number(r.n),
       samples_s:Object.fromEntries([0,42,1234].filter(s=>r['seed_'+s+'_s']!=='').map(s=>[s,Number(r['seed_'+s+'_s'])])),
       mean_s:r.mean_s===''?null:Number(r.mean_s),min_s:r.min_s===''?null:Number(r.min_s),max_s:r.max_s===''?null:Number(r.max_s),
-      historical_samples_over_600s:Number(r.historical_samples_over_600s),prior_failed_requests:Number(r.prior_failed_requests)
+      historical_samples_over_600s:Number(r.historical_samples_over_600s),prior_failed_requests:Number(r.prior_failed_requests),profile_id:r.profile_id,first_sample_unix_s:Number(r.first_sample_unix_s)
     }))};
     delete data.prompts;
   } catch(error){$('note').textContent='Unable to load measurements. Please reload.';document.body.dataset.error=error.message;return;}
   function options(id, items, selected){$(id).replaceChildren();for(const x of items){const o=el('option',x.label);o.value=x.id;$(id).appendChild(o);}$(id).value=selected;}
   const hardware=Object.fromEntries(data.hardware.map(h=>[h.id,h]));
-  const tones={gb200:'blue',gb300:'gold',rubin:'green',h100:'blue',h200:'gold',a100:'stone',rtx5090:'blue',rtx5080:'gold',rtx6000d:'green',gb10:'stone'};
+  const tones={gb200:'blue',gb300:'gold',rubin:'green',h100:'blue',h200:'gold',h200_single:'green',a100:'stone',rtx5090:'blue',rtx5080:'gold',rtx6000d:'green',rtxpro6000:'stone'};
   function choose(caseId, hw){
     const attempts=data.rows.filter(r=>r.case_id===caseId&&r.hardware===hw&&r.precision===hardware[hw].precision);
     const complete=attempts.filter(r=>r.status==='completed'&&r.n===3);
     const baseline=complete.filter(r=>Object.keys(r.runtime_flags).length===0);
-    if(baseline.length>1||!baseline.length&&complete.length>1)throw new Error('Ambiguous configuration; select an explicit recipe');
+    const oldest=(a,b)=>a.first_sample_unix_s-b.first_sample_unix_s||a.profile_id.localeCompare(b.profile_id);
+    baseline.sort(oldest);complete.sort(oldest);
     const primary=baseline[0]||complete[0]||attempts.find(r=>r.status==='stopped_at_request_limit')||attempts.find(r=>r.status==='partial')||attempts[0]||null;
     return {hardware:hw,primary,attempts};
   }
@@ -70,6 +71,7 @@
     if(r.status==='completed'&&r.n===3)return r.mean_s.toFixed(2)+' s';
     if(r.status==='stopped_at_request_limit')return 'Exceeded 10 min';
     if(r.status==='partial')return 'Not completed';
+    if(r.status==='pending')return 'Awaiting result';
     return 'Could not complete';
   }
   function detailsText(r){
@@ -97,13 +99,13 @@
     $('panels').replaceChildren();
     for(const panel of panels){
       const c=panel.case,card=el('section',undefined,'workload-panel');card.dataset.caseId=c.id;
-      card.append(el('h2',c.title,'workload-panel-title'),el('p',c.width+'×'+c.height+' · '+c.reference_count+' reference'+(c.reference_count===1?'':'s'),'workload-panel-meta'));
+      card.append(el('h2',c.title,'workload-panel-title'),el('p',({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+'×'+c.height+' · '+c.reference_count+' reference'+(c.reference_count===1?'':'s'),'workload-panel-meta'));
       if(c.generation_canvas[0]!==c.width||c.generation_canvas[1]!==c.height)card.appendChild(el('p','Generated at '+c.generation_canvas.join('×')+', then resized','workload-panel-meta'));
       const list=el('div',undefined,'hardware-bars');list.setAttribute('role','list');
       for(const result of panel.results){
         const p=result.primary,h=hardware[result.hardware],row=el('div',undefined,'workload-bar-row');row.setAttribute('role','listitem');row.dataset.hardware=h.id;
         const head=el('div',undefined,'hardware-heading');head.append(el('span',h.gpus+'× '+h.label),el('strong',status(p),'tnum'));row.appendChild(head);
-        row.appendChild(el('p',(p?'SP'+p.sp+' · '+p.precision.toUpperCase()+' DiT · '+placement(p):'Not measured for this scene and size'),'workload-bar-config'));
+        row.appendChild(el('p',(p?'SP'+p.sp+' · '+p.precision.toUpperCase()+' DiT · '+placement(p):'Not measured for this mode and size'),'workload-bar-config'));
         if(p&&p.status==='completed'&&p.n===3){
           const track=el('div',undefined,'hardware-track');track.setAttribute('aria-hidden','true');
           const bar=el('span',undefined,'hardware-bar tone-'+tones[h.id]);bar.style.width=(100*p.mean_s/axis.max)+'%';
@@ -116,7 +118,7 @@
       card.append(list,axisElement(axis));
       const detail=el('details',undefined,'workload-measurements');detail.appendChild(el('summary','Test setup'));detail.addEventListener('toggle',height);
       for(const result of panel.results){detail.appendChild(el('h3',hardware[result.hardware].label));
-        detail.appendChild(el('p',result.primary?detailsText(result.primary):'Not measured for this scene and size.'));
+        detail.appendChild(el('p',result.primary?detailsText(result.primary):'Not measured for this mode and size.'));
       }
       const prompt=el('details',undefined,'workload-measurements');prompt.appendChild(el('summary','Exact prompt'));
       if(c.prompt)prompt.appendChild(el('pre',c.prompt,'workload-prompt'));
@@ -128,7 +130,7 @@
     $('page-label').textContent=(page*pageSize+1)+'–'+Math.min((page+1)*pageSize,matches.length)+' of '+matches.length+' workloads';
     $('prev').disabled=page===0;$('next').disabled=page===pages-1;$('pagination').hidden=pages===1;
     $('note').textContent='Shared seconds scale. Mean of three seeds after warmup; whiskers show min–max. HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.';
-    $('quality-note').textContent=$('scene').value==='reference-composition'?'Reference-composition timings measure execution time and capacity. Some outputs miss or duplicate requested objects.':panels.some(p=>p.case.corpus==='openai_image25_examples')?'H3-Image results using public example prompts; these are not head-to-head GPT Image measurements.':'';
+    $('quality-note').textContent=panels.some(p=>p.case.reference_count>1)?'Reference-composition timings measure execution time and capacity. Some outputs miss or duplicate requested objects.':panels.some(p=>p.case.corpus==='openai_image25_examples')?'H3-Image results using public example prompts; these are not head-to-head GPT Image measurements.':'';
     window.HardwareWorkloads.selection={scene:$('scene').value,references:$('references').value,resolution:$('resolution').value,group:group.id,page,pages,panels,axis};
     height();
   }
@@ -137,18 +139,18 @@
     const counts=[...new Set(cases.map(c=>c.reference_count))].sort((a,b)=>a-b);
     options('references',[{id:'all',label:'All reference counts'},...counts.map(n=>({id:String(n),label:n===0?'None · text-to-image':n+' reference'+(n===1?'':'s')}))],counts.some(n=>String(n)===reference)?reference:'all');
     const sizes=new Map();for(const c of cases.filter(c=>$('references').value==='all'||String(c.reference_count)===$('references').value))sizes.set(c.width+'x'+c.height,c);
-    options('resolution',[{id:'all',label:'All tested sizes'},...[...sizes].sort((a,b)=>a[1].width*a[1].height-b[1].width*b[1].height).map(([id,c])=>({id,label:c.width+' × '+c.height+' · '+(c.width*c.height/1e6).toFixed(1)+' MP'}))],sizes.has(resolution)?resolution:'all');
+    options('resolution',[{id:'all',label:'All output tiers'},...[...sizes].sort((a,b)=>a[1].width*a[1].height-b[1].width*b[1].height).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height}))],sizes.has(resolution)?resolution:'all');
     page=0;draw();
   }
   window.HardwareWorkloads={data,choose,axisLimit,parseCSV};
-  const initial=params.get('scene')||(params.get('suite')==='references'?'reference-composition':'featured');
-  options('scene',data.scenes,data.scenes.some(s=>s.id===initial)?initial:'featured');
+  const initial=params.get('mode')||(params.get('scene')==='reference-composition'?'image-edit':'all');
+  options('scene',data.scenes,data.scenes.some(s=>s.id===initial)?initial:'all');
   options('group',data.groups,'blackwell');
   $('scene').addEventListener('change',()=>updateFilters());$('references').addEventListener('change',()=>updateFilters());
   $('resolution').addEventListener('change',()=>{page=0;draw();});$('group').addEventListener('change',draw);
   $('prev').addEventListener('click',()=>{if(page>0){page--;draw();}});
   $('next').addEventListener('click',()=>{if((page+1)*pageSize<matching().length){page++;draw();}});
-  updateFilters(params.get('references')||'all',params.get('resolution')||(params.get('suite')==='references'?'4096x4096':'all'));
+  updateFilters(params.get('references')||'all',params.get('resolution')||'4096x4096');
   document.body.dataset.ready='1';
   if(document.fonts)document.fonts.ready.then(height);
   new ResizeObserver(height).observe(document.querySelector('main'));

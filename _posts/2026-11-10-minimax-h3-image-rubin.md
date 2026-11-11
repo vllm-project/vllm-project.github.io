@@ -25,9 +25,8 @@ We put it to work on food photography, studio edits, English and Chinese posters
 and an adventure-game environment. Here are the highlights:
 
 - **Different tasks, matched inputs.** Compare measured configurations across
-  **10 hardware types**, from product photographs and posters to editing and
-  multi-reference compositions. The GB200/GB300 canvas sweep covers **64 workloads
-  per system**, from roughly **4 to 20 megapixels** across eight aspect ratios.
+  **10 hardware types**, with results organized by text-to-image generation,
+  image editing, output resolution and reference-image count.
 - **Desktop generation.** A single RTX 5090 generates the **5472×3072 adventure
   scene in 59.77 seconds** with CPU layerwise offload. A single RTX 6000D produces
   the **3552×4736 workshop poster in 42.31 seconds**. Both are three-seed means.
@@ -37,9 +36,9 @@ and an adventure-game environment. Here are the highlights:
 
 ## Same Request, Every Machine
 
-Choose a task and canvas below: photograph a meal, edit a podcast scene, lay out
+Choose an example and output size below: generate a food photograph, edit a reference image, lay out
 a poster, or imagine an explorer crossing a flooded observatory. Every panel
-uses the same prompt, reference bytes and seed **42**. The podcast edit uses one
+uses the same prompt, reference bytes and seed **42**. The image edit uses one
 reference image; the other tasks start from text. Open the previews to compare
 the composition, details and lettering, and expand the prompt to see the request.
 
@@ -57,29 +56,32 @@ The model's text encoder, generation, PNG encoding and response transfer are inc
 
 ## Performance Across Hardware and Workloads
 
-### Creative Workloads
+### Text-to-Image and Image Edit
 
-A product shot, a poster and a scene edit ask different things of an image model.
-We keep each request fixed across machines, then compare their end-to-end times.
-The overview below shows five creative workloads together. Choose a hardware
-group to compare GB200/GB300/Rubin, H100/H200/A100, or single-GPU desktop systems.
+The two API modes are straightforward: **Text-to-Image** takes a prompt;
+**Image Edit** takes a prompt and one or more reference images. Our main
+comparisons use **2K (2048×2048)** and **4K (4096×4096)** output, with one
+image returned per request. The prompts and reference files stay fixed across
+machines. See MiniMax's [API guide](https://platform.minimax.io/docs/guides/image-generation)
+for the request parameters.
 
-For the **4096×4096 product photograph**, four GB300 GPUs average **1.48 seconds**;
-the **one-reference podcast scene edit** averages **1.77 seconds**. A single
-RTX 5090 with CPU layerwise offload takes **52.29 seconds** and **61.45 seconds**
-for those same requests. These are complete HTTP responses, including PNG encoding.
+For **4K text-to-image**, four GB300 GPUs average **1.48 seconds**. A **4K
+image edit with one reference** averages **1.77 seconds**. A single RTX 5090
+with CPU layerwise offload takes **52.29 seconds** and **61.45 seconds** for
+those same requests. Each timing includes the complete PNG response.
 
-Choose a **scene**, **reference-image count** and **resolution**, then select
-the hardware to compare. The filters show tested combinations, from product
-photography and text layout to editing and game art. Each panel includes the
-prompt and the configuration behind its result.
+Select the **mode**, **input reference count**, **output tier** and **hardware**
+below. Every result shows its GPU count and serving configuration. The 1K
+checks return 1024×1024 images; with the local model's default minimum canvas,
+they are generated at 2048×2048 and resized. They therefore do not represent
+native 1K diffusion compute.
 
-<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html" title="H3-Image performance across creative workloads and ten hardware types" loading="lazy" scrolling="no" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
-<noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-hardware.png" alt="Three-seed mean latency across five creative workloads on four-GPU GB200, GB300 and Rubin configurations"></noscript>
+<noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-hardware.png" alt="Measured H3-Image text-to-image and image-edit latency on GB200, GB300 and Rubin"></noscript>
 
-[Open the interactive workload explorer](/assets/figures/minimax-h3-image-rubin/workload-hardware.html)
-to select the scene, reference count, resolution and hardware in a full-page view.
+[Open the interactive benchmark](/assets/figures/minimax-h3-image-rubin/workload-hardware.html)
+for a full-page view of the tested configurations.
 
 ### Reference Images
 
@@ -89,37 +91,21 @@ composition takes **39.84 seconds** and **60.63 seconds**, respectively. Each us
 four GPUs. The larger conditioning workload adds substantial work even though
 the output size is unchanged.
 
-<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html?scene=reference-composition&amp;resolution=4096x4096" title="4K reference-composition latency across hardware" loading="lazy" scrolling="no" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html?mode=image-edit&amp;resolution=4096x4096" title="4K image-edit latency across reference counts and hardware" loading="lazy" scrolling="no" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
 
 These compositions measure execution time and memory capacity; some outputs
 still miss or duplicate requested objects. Configurations that could not complete
 the workload are labeled in the figure.
 
-### Resolution and Aspect Ratio
+[Download the benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv)
+for per-seed timings and configurations. Points show the mean of three seeds
+after warmup; the bars include the measured range. We use a **10-minute
+limit per generation**, including warmup. Configurations without a completed
+measurement remain labeled in the figure.
 
-For a broader view of output size, we also run the food photograph and podcast
-edit at **32 canvases each** on four GB200 and four GB300 GPUs. Both systems use
-the same prompts, reference bytes and three seeds at every canvas.
-
-On four GB300 GPUs, H3-Image generates the **4096×4096 food photograph in
-1.50 seconds** and completes the **podcast edit in 1.74 seconds**, averaged over
-three requests. The same examples take **2.05 seconds** and **2.39 seconds** on
-four GB200 GPUs.
-
-Switch between generation and editing below, then choose an aspect ratio to see
-how latency changes from roughly **4 to 20 megapixels**.
-
-<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-performance.html" title="H3-Image latency across tasks, output areas and aspect ratios" loading="lazy" scrolling="no" style="display:block;width:100%;height:680px;border:0;overflow:hidden;"></iframe>
-
-<noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-performance.png" alt="Three-request mean HTTP latency for square text-to-image workloads on GB200 and GB300"></noscript>
-
-All **384 measured requests in this canvas sweep** completed successfully. Each point shows the mean
-of three seeds after warmup; hover for the measured range and exact image size.
-The figure includes the serving configuration and timing details.
-
-[Download the benchmark data](/assets/figures/minimax-h3-image-rubin/extended-workload-results.csv)
-for per-seed timings and configurations. We use a **10-minute generation limit**;
-older results exceeding it are marked in the figures.
+These tests measure image generation in vLLM-Omni using API-supported output
+sizes. Prompts are fixed before timing, so the numbers exclude prompt enhancement
+and do not measure MiniMax's hosted service.
 
 ## How It Runs
 
@@ -147,15 +133,14 @@ configuration uses BF16.
 DiT TP1 keeps the transformer weights replicated. Text-encoder TP4 and VAE tile
 distribution also use all four GPUs. The attention backend is **`TRTLLM_ATTN`**.
 VAE CUDA Graph replays captured tile computations, reducing repeated launch
-overhead; multiple streams let independent tiles overlap. The entire canvas
-sweep keeps this layout and the model weights resident.
+overhead; multiple streams let independent tiles overlap. The server-GPU comparisons keep this layout and the model weights resident.
 
-**Single-GPU systems.** RTX 5090, RTX 5080, RTX 6000D and GB10 use SP1, DiT TP1,
+**Single-GPU systems.** RTX 5090, RTX 5080, RTX 6000D and RTX PRO 6000 use SP1, DiT TP1,
 text-encoder TP1 and **`CUDNN_ATTN`**. On the RTX 5090 and RTX 5080, layerwise
 offload moves DiT and text-encoder weights between CPU memory and the GPU;
-the VAE runs eagerly. The RTX 6000D
-keeps DiT weights resident, offloads only the text encoder, and uses VAE CUDA
-Graph. The GB10 baseline keeps weights resident and uses VAE CUDA Graph.
+the VAE runs eagerly. The RTX 6000D and RTX PRO 6000
+keep DiT weights resident, offload only the text encoder, and use VAE CUDA
+Graph.
 Offload makes room for the model at the cost of weight-transfer work.
 
 **Hopper and Ampere.** H100, H200 and A100 run

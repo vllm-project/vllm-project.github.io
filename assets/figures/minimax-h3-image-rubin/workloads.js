@@ -6,6 +6,7 @@
   let data;
   try { const response=await fetch(mode==='gallery'?'showcase-data.json':'workload-data.json'); if(!response.ok)throw new Error('HTTP '+response.status);data=await response.json(); }
   catch(error){$('note').textContent='Unable to load measured results. Please reload.';document.body.dataset.error=error.message;return;}
+  if(mode==='gallery'){data.rows=data.rows.filter(p=>p.width*p.height<=20000000);if(data.title_map)data.title_map['podcast-edit']='Image Edit · 1 reference';}
   const titles=data.title_map||{'farm-to-table':'Food photography · text-to-image','podcast-edit':'Podcast edit · one reference'};
   const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
   function options(id, pairs, selected){$(id).replaceChildren();for(const [value,label] of pairs){const e=el('option',label);e.value=value;$(id).appendChild(e);}$(id).value=selected;}
