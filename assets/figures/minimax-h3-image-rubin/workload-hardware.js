@@ -90,10 +90,20 @@
       const c=data.cases[id];return String(c.reference_count)===$('references').value&&c.width+'x'+c.height===$('resolution').value;
     });
   }
+  function sortResults(results){
+    const order=$('sort').value;
+    if(order==='hardware')return results;
+    return [...results].sort((a,b)=>{
+      const ac=a.primary.status==='completed'&&a.primary.n===3,bc=b.primary.status==='completed'&&b.primary.n===3;
+      if(ac!==bc)return ac?-1:1;
+      if(!ac)return 0;
+      return (order==='latency-desc'?-1:1)*(a.primary.mean_s-b.primary.mean_s);
+    });
+  }
   function draw(){
     const group=data.groups.find(g=>g.id===$('group').value),matches=matching();
     const ids=matches;
-    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw)).filter(r=>r.primary&&((r.primary.status==='completed'&&r.primary.n===3)||r.primary.status==='stopped_at_request_limit'))}));
+    const panels=ids.map(id=>({case:data.cases[id],results:sortResults(group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw)).filter(r=>r.primary&&((r.primary.status==='completed'&&r.primary.n===3)||r.primary.status==='stopped_at_request_limit')))}));
     const values=panels.flatMap(p=>p.results.filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3).map(r=>r.primary.max_s));
     const axis=axisLimit(values.length?Math.max(...values):0);
     $('panels').replaceChildren();
@@ -129,26 +139,37 @@
     }
     $('note').textContent='Shared seconds scale. Mean of three seeds after warmup; whiskers show min–max. HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.';
     $('quality-note').textContent=panels.some(p=>p.case.reference_count>1)?'Reference-composition timings measure execution time and capacity. Some outputs miss or duplicate requested objects.':panels.some(p=>p.case.corpus==='openai_image25_examples')?'H3-Image results using public example prompts; these are not head-to-head GPT Image measurements.':'';
-    window.HardwareWorkloads.selection={references:$('references').value,resolution:$('resolution').value,group:group.id,panels,axis};
+    window.HardwareWorkloads.selection={mode:$('mode').value,sort:$('sort').value,references:$('references').value,resolution:$('resolution').value,group:group.id,panels,axis};
     height();
   }
   function updateReferences(reference=$('references').value){
-    const cases=Object.values(data.cases).filter(c=>c.width+'x'+c.height===$('resolution').value);
+    const cases=Object.values(data.cases).filter(c=>modeMatches(c)&&c.width+'x'+c.height===$('resolution').value);
     const counts=[...new Set(cases.map(c=>c.reference_count))].sort((a,b)=>a-b);
-    const selected=counts.some(n=>String(n)===reference)?reference:'0';
+    const selected=counts.some(n=>String(n)===reference)?reference:String(counts[0]);
     options('references',counts.map(n=>({id:String(n),label:n===0?'None':String(n)})),selected);
+    $('reference-control').hidden=$('mode').value!=='multi-edit';
     draw();
   }
+  function modeMatches(c){return $('mode').value==='t2i'?c.reference_count===0:$('mode').value==='single-edit'?c.reference_count===1:c.reference_count>1;}
+  function updateSizes(reference=$('references').value){
+    const sizes=new Map();for(const c of Object.values(data.cases).filter(modeMatches))sizes.set(c.width+'x'+c.height,c);
+    const previous=$('resolution').value||params.get('resolution')||'4096x4096';
+    options('resolution',[...sizes].sort((a,b)=>a[1].width-b[1].width).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height})),sizes.has(previous)?previous:'4096x4096');
+    updateReferences(reference);
+  }
   window.HardwareWorkloads={data,choose,axisLimit,parseCSV};
-  const sizes=new Map();for(const c of Object.values(data.cases))sizes.set(c.width+'x'+c.height,c);
-  const resolution=params.get('resolution')||'4096x4096';
-  options('resolution',[...sizes].sort((a,b)=>a[1].width-b[1].width).map(([id,c])=>({id,label:({1024:'1K',2048:'2K',4096:'4K'}[c.width]||'')+' · '+c.width+' × '+c.height})),sizes.has(resolution)?resolution:'4096x4096');
+  const requestedRefs=params.get('references'),requestedMode=params.get('mode');
+  const initialMode=Number(requestedRefs)>1||requestedMode==='multi-edit'?'multi-edit':requestedRefs==='1'||requestedMode==='image-edit'||requestedMode==='single-edit'?'single-edit':'t2i';
+  options('mode',[{id:'t2i',label:'Text-to-image'},{id:'single-edit',label:'Image edit · 1 reference'},{id:'multi-edit',label:'Image edit · multiple references'}],initialMode);
+  const sorts=[{id:'latency-desc',label:'Latency: high to low'},{id:'latency-asc',label:'Latency: low to high'},{id:'hardware',label:'Hardware order'}];
+  options('sort',sorts,sorts.some(s=>s.id===params.get('sort'))?params.get('sort'):'latency-desc');
   const groups=[data.groups.find(g=>g.id==='all'),...data.groups.filter(g=>g.id!=='all')];
   const group=params.get('group')||'all';
   options('group',groups.map(g=>({...g,label:g.id==='all'?'All tested hardware':g.label})),groups.some(g=>g.id===group)?group:'all');
   $('references').addEventListener('change',draw);
-  $('resolution').addEventListener('change',()=>updateReferences());$('group').addEventListener('change',draw);
-  updateReferences(params.get('references')||(params.get('mode')==='image-edit'?'1':'0'));
+  $('resolution').addEventListener('change',()=>updateReferences());$('group').addEventListener('change',draw);$('sort').addEventListener('change',draw);
+  $('mode').addEventListener('change',()=>updateSizes());
+  updateSizes(requestedRefs||'0');
   document.body.dataset.ready='1';
   if(document.fonts)document.fonts.ready.then(height);
   new ResizeObserver(height).observe(document.querySelector('main'));

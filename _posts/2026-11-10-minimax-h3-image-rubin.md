@@ -34,17 +34,23 @@ and an adventure-game environment. Here are the highlights:
   4096×4096 generation. A separate throughput configuration reaches
   **6,115 images/hour**. We examine both operating points at the end.
 
-## Same Request, Every Machine
+## Resolution and Detail
 
-Food photography, image editing, English and Chinese posters, and game environments,
-generated on different systems with the same prompt, reference images and seed **42**.
-Each panel shows the output, serving configuration and **mean latency over three seeds**.
+Paper grain, fabric, skin and lettering reveal what resolution changes. The
+comparison below covers **1K, 2K and 4K** for product photography and a portrait
+edit, using the same prompt, reference images and seed **42** on four GB300 GPUs.
+The same-image view holds the composition fixed by resizing one 4K output;
+the measured-output view shows the actual API results at each size. These runs
+generate 1K output on a 2K canvas before resizing. Native 2K and 4K generations
+can differ in composition.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=4e16b6df9528" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" height="900" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=f423ce22907f" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
-The food and podcast requests come from MiniMax's
-[released examples](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/tree/main/examples).
-The poster and game prompts follow its
+The [additional examples](/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=70db77d34bea)
+retain the food, editing, poster and game outputs across hardware. The food and
+original studio-edit prompts come from MiniMax's
+[released examples](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/tree/main/examples);
+the product, poster and game prompts follow its
 [H3-Image prompt-writing guide](https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/6ea7b9e55523a2177e4f759db372065ba6089510/skills/h3-image-prompt-writing/SKILL.md).
 Prompts are prepared ahead of time; the PE checkpoint is not part of these timings.
 The model's text encoder, generation, PNG encoding and response transfer are included.
@@ -60,6 +66,10 @@ image returned per request. The prompts and reference files stay fixed across
 machines. See MiniMax's [API guide](https://platform.minimax.io/docs/guides/image-generation)
 for the request parameters.
 
+The performance figure groups these requests as text-to-image, single-reference
+editing and multi-reference editing. The two editing groups use the same API
+mode; the reference-image count distinguishes them.
+
 For **4K text-to-image**, four GB300 GPUs average **1.48 seconds**. A **4K
 image edit with one reference** averages **1.77 seconds**. A single RTX 5090
 with CPU layerwise offload takes **52.29 seconds** and **61.45 seconds** for
@@ -73,7 +83,7 @@ return 1024×1024 images; with the local model's default minimum canvas,
 they are generated at 2048×2048 and resized. They therefore do not represent
 native 1K diffusion compute.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=289cc4d1b20c" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=d937acdd574a" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 ### Reference Images
 
@@ -82,8 +92,6 @@ Keeping the output at **4096×4096**, the two-reference composition averages
 composition takes **39.84 seconds** and **60.63 seconds**, respectively. Each uses
 four GPUs. The larger conditioning workload adds substantial work even though
 the output size is unchanged.
-
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?mode=image-edit&amp;resolution=4096x4096&amp;v=289cc4d1b20c" title="4K image-edit latency across reference counts and hardware" loading="lazy" scrolling="no" height="1100" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
 
 These compositions measure execution time and memory capacity; some outputs
 still miss or duplicate requested objects.

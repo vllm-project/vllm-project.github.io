@@ -1,5 +1,6 @@
 .fig{padding:8px 0}.workload-controls{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
 .workload-controls label{font:500 12px/1.5 var(--mono);color:var(--muted);display:flex;align-items:center;gap:8px}
+.workload-controls [hidden]{display:none!important}
 .workload-controls select{max-width:100%;padding:7px;background:var(--bg);color:var(--ink);border:1px solid var(--rule);font:inherit}
 .output-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0}.output-card{margin:0;border-top:1px solid var(--rule);padding-top:12px;min-width:0}
 .output-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:16px;margin:0 0 8px;font-weight:600}
