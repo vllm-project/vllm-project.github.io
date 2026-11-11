@@ -70,6 +70,9 @@ image edit with one reference** averages **1.77 seconds**. A single RTX 5090
 with CPU layerwise offload takes **52.29 seconds** and **61.45 seconds** for
 those same requests. Each timing includes the complete PNG response.
 
+For **2K text-to-image**, a **single H200** averages **1.49 seconds** with
+BF16 and resident weights.
+
 Select the **mode**, **input reference count**, **output tier** and **hardware**
 below. Every result shows its GPU count and serving configuration. The 1K
 checks return 1024×1024 images; with the local model's default minimum canvas,
@@ -129,6 +132,10 @@ these matrix multiplications reduces their weight footprint; attention, the
 text encoder and the VAE retain their configured precision. The H200 gallery
 configuration uses BF16.
 
+**AdaLN reuse.** Exact runtime caching reuses AdaLN projections across requests
+when their conditioning inputs and weights match. All six denoising steps still
+run; this optimization avoids repeating those conditioning projections.
+
 **GB200 and GB300.** Ulysses SP4 splits sequence work across four GPUs while
 DiT TP1 keeps the transformer weights replicated. Text-encoder TP4 and VAE tile
 distribution also use all four GPUs. The attention backend is **`TRTLLM_ATTN`**.
@@ -145,7 +152,9 @@ Offload makes room for the model at the cost of weight-transfer work.
 
 **Hopper and Ampere.** H100, H200 and A100 run
 with BF16 and **`FLASH_ATTN`**. The H200 poster in the gallery uses resident
-weights and SP4. These results describe the configurations we tested; GPU count,
+weights and SP4. The measured H100 systems use **H100 NVL**. **A100 PCIe** and
+**A100 SXM4** appear separately because their interconnects differ.
+These results describe the configurations we tested; GPU count,
 precision and placement remain visible when comparing machines.
 
 ## Other Hardware

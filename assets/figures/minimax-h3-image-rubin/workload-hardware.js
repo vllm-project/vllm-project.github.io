@@ -44,7 +44,7 @@
   } catch(error){$('note').textContent='Unable to load measurements. Please reload.';document.body.dataset.error=error.message;return;}
   function options(id, items, selected){$(id).replaceChildren();for(const x of items){const o=el('option',x.label);o.value=x.id;$(id).appendChild(o);}$(id).value=selected;}
   const hardware=Object.fromEntries(data.hardware.map(h=>[h.id,h]));
-  const tones={gb200:'blue',gb300:'gold',rubin:'green',h100:'blue',h200:'gold',h200_single:'green',a100:'stone',rtx5090:'blue',rtx5080:'gold',rtx6000d:'green',rtxpro6000:'stone'};
+  const tones={gb200:'blue',gb300:'gold',rubin:'green',h100:'blue',h200:'gold',h200_single:'green',a100:'stone',a100_sxm:'blue',rtx5090:'blue',rtx5080:'gold',rtx6000d:'green',rtxpro6000:'stone'};
   function choose(caseId, hw){
     const attempts=data.rows.filter(r=>r.case_id===caseId&&r.hardware===hw&&r.precision===hardware[hw].precision);
     const complete=attempts.filter(r=>r.status==='completed'&&r.n===3);
@@ -93,7 +93,7 @@
     const group=data.groups.find(g=>g.id===$('group').value),matches=matching();
     const pages=Math.ceil(matches.length/pageSize);page=Math.min(page,pages-1);
     const ids=matches.slice(page*pageSize,(page+1)*pageSize);
-    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.map(hw=>choose(id,hw))}));
+    const panels=ids.map(id=>({case:data.cases[id],results:group.hardware.filter(hw=>!hardware[hw].workloads||hardware[hw].workloads.includes(id)).map(hw=>choose(id,hw))}));
     const values=panels.flatMap(p=>p.results.filter(r=>r.primary&&r.primary.status==='completed'&&r.primary.n===3).map(r=>r.primary.max_s));
     const axis=axisLimit(values.length?Math.max(...values):0);
     $('panels').replaceChildren();

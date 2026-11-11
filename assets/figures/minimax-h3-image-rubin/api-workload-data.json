@@ -1,18 +1,19 @@
 {
   "schema_version": 2,
-  "snapshot_utc": "2026-11-11T15:49:25.770760+00:00",
+  "snapshot_utc": "2026-11-11T16:48:06.821734+00:00",
   "model_revision": "7b6142f879bf7a973c449e1dea5480289736cdbd",
   "encoder_revision": "0919fb684102ef115126612f3fbb84d1027e7317",
   "source_csv": "api-workload-results.csv",
-  "source_csv_sha256": "5ea51c8229079b8c8a8a966e86f2669288221734f8610479654d0b82b5250be6",
+  "source_csv_sha256": "d9574a0e1a6a827cb4ccc3e8802495b27a3f03b96a483b254501cea0b847f145",
   "hardware": [
     {"id": "gb200", "label": "GB200", "gpus": 4, "precision": "mxfp8"},
     {"id": "gb300", "label": "GB300", "gpus": 4, "precision": "mxfp8"},
     {"id": "rubin", "label": "Vera Rubin", "gpus": 4, "precision": "mxfp8"},
-    {"id": "h100", "label": "H100", "gpus": 4, "precision": "bf16"},
+    {"id": "h100", "label": "H100 NVL", "gpus": 4, "precision": "bf16"},
     {"id": "h200", "label": "H200", "gpus": 4, "precision": "bf16"},
-    {"id": "h200_single", "label": "H200", "gpus": 1, "precision": "bf16"},
-    {"id": "a100", "label": "A100", "gpus": 4, "precision": "bf16"},
+    {"id": "h200_single", "label": "H200", "gpus": 1, "precision": "bf16", "workloads": ["api_modes/coffee-product-2048x2048"]},
+    {"id": "a100", "label": "A100 80GB PCIe", "gpus": 4, "precision": "bf16"},
+    {"id": "a100_sxm", "label": "A100 SXM4 80GB", "gpus": 4, "precision": "bf16", "workloads": ["api_modes/coffee-product-1024x1024", "api_modes/podcast-fist-bump-1024x1024", "api_modes/podcast-fist-bump-2048x2048"]},
     {"id": "rtx5090", "label": "RTX 5090", "gpus": 1, "precision": "mxfp8"},
     {"id": "rtx5080", "label": "RTX 5080", "gpus": 1, "precision": "mxfp8"},
     {"id": "rtx6000d", "label": "RTX 6000D", "gpus": 1, "precision": "mxfp8"},
@@ -20,9 +21,9 @@
   ],
   "groups": [
     {"id": "blackwell", "label": "GB200 / GB300 / Rubin", "hardware": ["gb200", "gb300", "rubin"]},
-    {"id": "hopper_ampere", "label": "H100 / H200 / A100", "hardware": ["h100", "h200", "h200_single", "a100"]},
+    {"id": "hopper_ampere", "label": "H100 / H200 / A100", "hardware": ["h100", "h200", "h200_single", "a100", "a100_sxm"]},
     {"id": "desktop", "label": "Desktop GPUs", "hardware": ["rtx5090", "rtx5080", "rtx6000d", "rtxpro6000"]},
-    {"id": "all", "label": "All configurations", "hardware": ["gb200", "gb300", "rubin", "h100", "h200", "h200_single", "a100", "rtx5090", "rtx5080", "rtx6000d", "rtxpro6000"]}
+    {"id": "all", "label": "All configurations", "hardware": ["gb200", "gb300", "rubin", "h100", "h200", "h200_single", "a100", "a100_sxm", "rtx5090", "rtx5080", "rtx6000d", "rtxpro6000"]}
   ],
   "prompts": {
     "api_modes/coffee-product": {"corpus": "api_modes", "case": "coffee-product", "title": "Text-to-Image", "reference_count": 0, "prompt": "A studio product photograph centers one upright cream paper coffee bag on a low rectangular slab of pale limestone. The bag has a folded top with two neat side creases, a softly textured matte surface, and a small charcoal rectangular label facing the camera. The label contains exactly two centered lines of lettering: \"FIELD NOTES\" above \"COFFEE\", with generous spacing and no other words, numbers, badges, or logos. A single short espresso cup stands at the lower right of the bag, entirely on the same slab, with its small handle pointing right. The cup has a warm gray ceramic glaze and a thin ring of crema visible inside. Five separate roasted coffee beans lie in a loose arc on the slab in front of the bag; none cover the label. The camera looks slightly down from the front, showing the full bag, cup, slab, and their contact shadows without cropping. A large soft light from the upper left creates a long smooth highlight along the bag's left fold and gentle shadows toward the right. The background is an uninterrupted warm off-white studio sweep. Fine paper fibers, small variations in the ceramic glaze, and the porous stone surface remain visible. The composition feels quiet and spacious, with no people, plants, floating objects, additional packages, or decorative lettering.", "prompt_sha256": "6be5c833f0771fcc0e3f4c64dee24b7cbc5bd1cfdcb1ca5a422796e6a631785c", "prompt_source": "https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/6ea7b9e55523a2177e4f759db372065ba6089510/skills/h3-image-prompt-writing/SKILL.md", "reference_sha256": []},
