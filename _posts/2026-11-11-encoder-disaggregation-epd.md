@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Encoder Disaggregation in vLLM: Scaling Multimodal Serving with EPD"
+author: "Inferact, InferMatrix, and IBM"
 summary: "Recent advances in vLLM encoder disaggregation: metadata-only multimodal requests, dedicated encoder execution, remote embedding transfer, cross-encoder caching, and lower-overhead EPD routing."
 image: /assets/figures/2026-10-18-encoder-disaggregation-epd/01-epd-architecture.png
 social_image: /assets/figures/2026-10-18-encoder-disaggregation-epd/01-epd-architecture.png
@@ -12,9 +13,9 @@ tags:
 
 Multimodal inference adds an encoding stage before language-model execution. Images, video frames, and audio must be processed into embeddings before the language model can use them. The demand on this stage varies with media size, modality, and request mix, and can change independently of prefill and decode demand.
 
-Encoder / Prefill / Decode (EPD) disaggregation separates these stages into independently deployed vLLM instances. Over the past two months, the vLLM community has expanded EPD across model execution, remote embedding transfer, shared caching, multimodal input handling, and request routing.
+Encoder / Prefill / Decode (EPD) disaggregation separates these stages into independently deployed vLLM instances. Recent work in the vLLM community has expanded EPD across model execution, remote embedding transfer, shared caching, multimodal input handling, and request routing.
 
-DeepSeek's [inference deployment Q&A](https://github.com/deepseek-ai/DeepInfer/blob/main/doc/inference_deployment_qa.md) describes an E/P/D architecture with a separately deployed vision encoder. vLLM has supported encoder disaggregation since [our December 2025 architecture post](https://vllm.ai/blog/2025-12-15-vllm-epd), and continues to improve that support. DeepSeek V4.1 Flash can use vLLM's raw-image EPD path; the experiment below evaluates a metadata-only extension to that path.
+DeepSeek's [inference deployment Q&A](https://github.com/deepseek-ai/DeepInfer/blob/main/doc/inference_deployment_qa.md) describes an E/P/D architecture with a separately deployed vision encoder. vLLM has supported encoder disaggregation since [our December 2025 architecture post](https://vllm.ai/blog/2025-12-15-vllm-epd), and continues to improve that support. vLLM main now also supports metadata-only EPD for DeepSeek V4.1 Flash.
 
 This post explains the engineering behind that progress, with a focus on five changes:
 
@@ -24,7 +25,7 @@ This post explains the engineering behind that progress, with a focus on five ch
 - **Cross-encoder output reuse** through Mooncake Store.
 - **Lower orchestration overhead** in the Python EPD proxy and EPD orchestration with vLLM Router, SMG, and llm-d.
 
-The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. The DeepSeek metadata-only experiment instead uses main plus [#62802](https://github.com/vllm-project/vllm/pull/62802). The vLLM Router and SMG integrations below use their respective main branches.
+The [EPD tracker](https://github.com/vllm-project/vllm/issues/52409) links the ongoing work. The core vLLM capabilities described below, including MiMo and XPU support, are included in vLLM v0.32.0. DeepSeek V4.1 Flash metadata-only support is available on main through [#62802](https://github.com/vllm-project/vllm/pull/62802). The vLLM Router and SMG integrations below use their respective main branches.
 
 ## Why Separate the Encoder?
 
@@ -85,24 +86,22 @@ The audio evaluation below illustrates the benefit of this handoff. The audio ch
 
 In this [audio evaluation](https://github.com/vllm-project/vllm/pull/57887), metadata-only forwarding increased throughput from **62.21 to 73.13 requests/s** and reduced mean latency from **980 to 853 ms**. Accuracy changed from 75.90% to 75.65%; that difference remains to be investigated. The comparison measures two audio input paths within EPD, rather than EPD against colocated serving.
 
-### GPU Video Processing
-
-Beyond avoiding duplicate work on the consumer, GPU NVDEC accelerates the encoder's own video media processing. In a [30-frame MMVU evaluation](https://github.com/vllm-project/vllm/pull/53675), end-to-end throughput improved by approximately 94–115% over three runs, each on a separate 4-GPU GB200 node. Each run used Qwen3.5-35B-A3B, a 1E+3PD topology with a shared-storage EC connector, eager execution, and concurrency 64. The gains include both GPU preprocessing and hardware video decoding; as the encoder became faster, the PD tier became the bottleneck.
-
 ## A Dedicated Execution Path for Encoder Instances
 
 An encoder-only instance runs no language model, maintains no language-model KV cache, and produces no sampled tokens. Its execution lifecycle should reflect those differences.
 
-Model Runner V2 now consolidates encoder-only execution in a dedicated `MMEncoderModelRunner`. This removes encoder-specific branches from the shared runner and addresses a synchronization issue exposed by the different output lifecycle.
-
-In ordinary generation, returning sampled outputs includes a device wait associated with copying results to the CPU. An encoder-only step can instead construct an empty runner output on the host. Without an equivalent synchronization point, the host can advance far enough to recycle a pooled host buffer while a GPU kernel is still using it, causing an illegal memory access. The dedicated runner places the required synchronization in the encoder-only path.
+Model Runner V2 isolates encoder-only execution in a dedicated `MMEncoderModelRunner`. It manages GPU completion without relying on token sampling, preventing premature buffer reuse while encoder work is still in flight.
 
 Related changes make encoder execution more consistent:
 
 - **Configuration normalization:** producer-only EC instances automatically enter encoder-only mode.
-- **Correct asynchronous execution:** the engine uses `is_mm_encoder_only` to determine whether a step needs the subsequent sampling path. This fixes standalone `--mm-encoder-only` instances incorrectly entering `sample_tokens()` when no EC connector is configured.
+- **Correct asynchronous execution:** encoder-only steps skip token sampling, including standalone `--mm-encoder-only` instances without an EC connector.
 - **Reduced startup I/O:** encoder-only loading skips pure language-model checkpoint shards when the weight layout can be classified safely. On a pruned Kimi-K3 checkpoint, the encoder read 2 of 96 shards and weight loading dropped from 683 s to 0.31 s.
 - **Encoder CUDA Graph capture:** the encoder-only V2 runner supports opt-in ViT graph capture using the existing budget selection, replay, and eager fallback mechanisms.
+
+### GPU Video Processing
+
+GPU preprocessing and NVDEC hardware decoding accelerate media processing on E. In a [30-frame MMVU evaluation](https://github.com/vllm-project/vllm/pull/53675), end-to-end throughput improved by approximately 94–115% over three runs, each on a separate 4-GPU GB200 node. Each run used Qwen3.5-35B-A3B, a 1E+3PD topology with a shared-storage EC connector, eager execution, and concurrency 64. The gains include both GPU preprocessing and hardware video decoding; as the encoder became faster, the PD tier became the bottleneck.
 
 ## Remote Embedding Transfer and Failure Isolation
 
@@ -143,19 +142,11 @@ A [controlled reassignment experiment](https://github.com/vllm-project/vllm/pull
 
 This was a single run of a workload in which every image was reassigned, so it shows the best case for shared reuse. Production savings depend on how often outputs are reused, against the Store's memory and I/O costs.
 
-## Reducing Proxy Overhead on the Critical Path
+## EPD Orchestration and Routing
 
-EPD also depends on the CPU work that connects its stages. The proxy distributes media, collects encoder metadata, rewrites consumer requests, and forwards responses. Multi-image requests may generate multiple encoder subrequests, multiplying orchestration work.
+**Independent scaling of the compute stages requires an orchestration path that can keep pace.** Distributing media, collecting encoder metadata, and forwarding requests can become a bottleneck as encoding gets faster or cache hits eliminate it.
 
-As model execution becomes faster—or a cache hit removes encoding entirely—request parsing, serialization, and forwarding can account for a larger share of latency. Under concurrency, that CPU work can accumulate into queueing and limit how quickly requests reach otherwise available GPU workers. **Independent scaling of the compute stages requires an orchestration path that can keep pace.**
-
-Metadata-only requests reduce the amount of media carried downstream. JSON metadata removes tensor serialization and base64 conversion for small structural fields. The Python EPD proxy also reduces encoding and forwarding overhead:
-
-- Use `msgspec` for request and E/P metadata JSON encoding and decoding.
-- Forward final non-streaming response bytes without parsing and re-encoding the JSON body.
-- Forward streaming response bytes directly, removing per-chunk text decoding and using `iter_any()` to receive available data.
-
-Routing and metadata inspection still parse JSON, but final responses now pass through without conversion, which matters at high request rates and for long streaming responses.
+Metadata-only requests reduce downstream media traffic, while JSON metadata avoids tensor serialization for structural fields. The [Python EPD proxy](https://github.com/vllm-project/vllm/pull/56657) further reduces CPU overhead with faster JSON encoding and decoding and direct forwarding of final response bytes, including streaming responses, without decoding and re-encoding them.
 
 ### EPD Orchestration in [vLLM Router](https://github.com/vllm-project/router)
 
