@@ -31,11 +31,8 @@
     loadImage(next).catch(()=>{});
   }
   function sceneNavigation(){
-    const index=data.cases.findIndex(c=>c.id===state.scene),next=data.cases[(index+1)%data.cases.length];
+    const index=data.cases.findIndex(c=>c.id===state.scene);
     sceneButtons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===index)));
-    $('scene-position').textContent=(index+1)+' / '+data.cases.length;
-    $('previous-scene').disabled=index===0;
-    $('next-scene').textContent=(index===data.cases.length-1?'Back to: ':'Next: ')+next.title+' →';
   }
   function chooseScene(id){
     if(!data.cases.some(c=>c.id===id))return;
@@ -102,12 +99,8 @@
       cards=currentCards;$('outputs').replaceChildren(...cards.map(c=>c.node));
       const ratio=original.width/original.height;
       $('comparison-stage').style.aspectRatio=original.width+' / '+original.height;$('comparison-stage').style.maxWidth=Math.round(660*ratio)+'px';$('pair-labels').style.maxWidth=Math.round(660*ratio)+'px';
-    $('demo-title').textContent=scene.demo_title;
-    $('detail-hint').textContent=scene.detail_hint;
-    $('setup').textContent=scene.hardware+' · '+scene.configuration+'.';
-    $('prompt').textContent=scene.prompt;$('originals').replaceChildren();
-    for(const output of scene.outputs){const a=el('a',output.width+' × '+output.height+' · '+output.mean_s.toFixed(2)+' s mean');a.href=imageURL(output);a.target='_blank';a.rel='noopener';$('originals').appendChild(a);}
-    $('reference').replaceChildren();if(scene.reference_count){const a=el('a','Reference image');a.href='cases/podcast-reference.png';a.target='_blank';a.rel='noopener';$('reference').appendChild(a);}
+      $('demo-title').textContent=scene.demo_title;
+      $('detail-hint').textContent=scene.detail_hint;
       updateView();$('comparison-stage').setAttribute('aria-busy','false');
       if($('outputs').animate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches))$('outputs').animate([{opacity:.5},{opacity:1}],{duration:180,easing:'ease-out'});
       $('status').textContent='';document.body.dataset.imagesReady='1';if(focusVersion===interaction)focusDetail();warmNext();
@@ -122,8 +115,6 @@
     button.addEventListener('keydown',e=>{let next=index;if(e.key==='ArrowRight')next=(index+1)%data.cases.length;else if(e.key==='ArrowLeft')next=(index+data.cases.length-1)%data.cases.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=data.cases.length-1;else return;e.preventDefault();sceneButtons[next].focus();chooseScene(data.cases[next].id);});
     sceneButtons.push(button);$('scenes').appendChild(button);
   }
-  $('previous-scene').addEventListener('click',()=>{const index=data.cases.findIndex(c=>c.id===state.scene);if(index>0)chooseScene(data.cases[index-1].id);});
-  $('next-scene').addEventListener('click',()=>{const index=data.cases.findIndex(c=>c.id===state.scene);chooseScene(data.cases[(index+1)%data.cases.length].id);});
   for(const side of ['left','right'])$(side+'-resolution').addEventListener('change',()=>{state[side]=$(side+'-resolution').value;draw();});
   $('swap').addEventListener('click',()=>{[state.left,state.right]=[state.right,state.left];draw();});
   $('zoom').addEventListener('input',()=>zoom($('zoom').value));$('reset').addEventListener('click',reset);
@@ -133,7 +124,6 @@
   $('wipe-handle').addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const r=$('comparison-stage').getBoundingClientRect();state.split=clamp(100*(e.clientX-r.left)/r.width,0,100);updateView();});
   for(const event of ['pointerup','pointercancel','lostpointercapture'])$('wipe-handle').addEventListener(event,()=>{pointer=null;});
   $('wipe-handle').addEventListener('keydown',e=>{stopMotion(true);if(e.key==='ArrowLeft')state.split-=5;else if(e.key==='ArrowRight')state.split+=5;else if(e.key==='Home')state.split=0;else if(e.key==='End')state.split=100;else return;state.split=clamp(state.split,0,100);e.preventDefault();updateView();});
-  $('source-details').addEventListener('toggle',height);
   if(typeof IntersectionObserver==='function')new IntersectionObserver(entries=>{
     inView=entries[0].isIntersecting&&entries[0].intersectionRatio>=.3;
     document.body.dataset.inView=String(inView);
