@@ -2,7 +2,7 @@
 layout: post
 title: "H3-Image Day-0 Support: 4K in 0.87s with Vera Rubin"
 author: "vLLM-Omni team and NVIDIA team"
-summary: "MiniMax H3-Image on four Rubin GPUs: 0.87s 4K latency, up to 3.05× GB200 throughput, and 146,755 images/day at the peak measured rate."
+summary: "MiniMax H3-Image in vLLM-Omni: real generation and editing examples, 64 matched workloads on four-GPU GB200 and GB300 systems, plus subsecond 4K serving on Rubin."
 image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 social_image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 tags:
@@ -16,31 +16,97 @@ tags:
 
 *Cover adapted from [MiniMax’s H3-Image release artwork](https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/main/assets/minimax-h3-image.jpg).*
 
-[vLLM now supports NVIDIA Vera Rubin NVL72](https://vllm.ai/blog/2026-10-09-vera-rubin-preview).
-With the release of [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image),
-we put that support to work on image generation with **vLLM-Omni**.
+[MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image) brings
+text-to-image generation and image editing into one open-weight checkpoint.
+It uses six sampling steps, generates native high-resolution images without an
+upscaler, and supports up to 16 reference images.
 
-H3-Image is MiniMax's open-weight image generation model, derived from H3. It
-supports text-to-image generation, reference-guided generation and image editing,
-with up to 16 reference images. Native **4096×4096** generation makes it a useful
-test of what the new GPU platform can deliver.
+With vLLM-Omni, we test the model on actual creative requests: a food photograph
+from text and a targeted edit of a podcast scene. We run each across **32 canvases
+on four GB200 GPUs and four GB300 GPUs**: **64 workloads per system**, covering
+approximately **4–20 megapixels and eight aspect ratios**. Each workload has three
+measured seeds. The same prompts, reference bytes and seeds go to both systems.
 
-This first look focuses on text-to-image serving. On four Rubin GPUs, a native 4K
-image can arrive in less than a second. The same GPUs can also serve a larger queue
-of requests, trading response time for more images per hour.
+The examples come first, followed by multi-GPU performance across workloads.
+At the end, a separate Rubin serving benchmark explores **4K in 0.87 seconds**
+and the tradeoff between response time and throughput.
 
-Here are the results:
+## Same Request, Every Machine
 
-- **4K in 0.87 seconds:** 0.866 s median latency and 0.944 s p95, using SP4 at concurrency 1.
-- **Up to 3.05× GB200 throughput and 2.21× GB300 throughput:** 6,115 images/hour with four single-GPU replicas.
-- **About 146,755 images/day from four GPUs:** at $0.06879 per image and full billable utilization, that capacity is worth **$105.16 per GPU per hour in gross revenue**.
+Choose a task and canvas below. The food photograph starts from text alone.
+The podcast edit takes one reference image: remove the man's headphones and
+have the two hosts fist-bump while retaining the studio scene. Each panel shows
+the actual seed-42 output and the **mean latency of three measured requests**.
 
-The latency and throughput headlines use different operating points. The peak-rate
-comparison uses Rubin with SP1×DP4, versus GB200 and GB300 with SP4. All three
-use MXFP8 DiT linears. The ratios compare measured serving configurations at
-different response latencies; the SP4 comparison is reported below.
+<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: the same request on four GB200 and four GB300 GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
-## 4K Latency
+The captions and editing reference are from MiniMax's
+[released examples](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/tree/main/examples).
+Prompt enhancement is prepared ahead of time and excluded from these timings;
+the model's text encoder, generation, PNG encoding and response transfer are included.
+
+## Across Workloads
+
+Both systems use **MXFP8 DiT linears, Ulysses SP4, DiT TP1 and text-encoder TP4**,
+with resident weights and six sampling steps. Each request generates one image.
+We hold that four-GPU layout fixed while changing the task, output area and aspect
+ratio. This measures multi-GPU serving across workloads, not a 1→4 GPU scaling curve.
+
+At **4096×4096**, the three-seed mean latency for the food photograph is
+**1.50 s on GB300** and **2.05 s on GB200**.
+The podcast edit takes **1.74 s** and **2.39 s**, respectively.
+These are two different creative requests; their gap does not isolate the cost
+of adding a reference image.
+
+<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-performance.html" title="H3-Image latency across tasks, output areas and aspect ratios" loading="lazy" scrolling="no" style="display:block;width:100%;height:680px;border:0;overflow:hidden;"></iframe>
+
+<noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-performance.png" alt="Three-request mean HTTP latency for square text-to-image workloads on GB200 and GB300"></noscript>
+
+All **384 measured requests** completed successfully. Each point is the arithmetic
+mean of seeds **0, 42 and 1234**, after a separate warmup; hover for the range.
+Latency runs from the client POST to the complete base64 PNG response over loopback.
+Model loading, warmup and client-side decoding, validation and saving are excluded.
+Different canvases change the amount and shape of DiT and VAE work, so the figure
+keeps the exact dimensions visible instead of reducing every request to “4K.”
+
+Additional reference-count cases and hardware profiles are still being tested.
+They will be added with the same three-sample rule; completed matching results
+are reused rather than rerun.
+
+## Serving the Model
+
+The image pipeline combines a text encoder, a diffusion transformer and
+a tiled VAE decoder. Output size changes the generated latent sequence and VAE
+work; editing also introduces reference conditioning. We keep the exact task
+and canvas attached to every timing.
+
+**MXFP8 and attention.** Eligible DiT linears use MXFP8 through vLLM and FlashInfer.
+The recorded attention backend on both GB200 and GB300 is **`TRTLLM_ATTN`**.
+Linear-layer quantization does not make the entire pipeline MXFP8: attention,
+the text encoder and the VAE retain their configured precision.
+
+**Four-GPU execution.** Ulysses SP4 partitions sequence work while DiT TP1 keeps
+the transformer weights replicated. Text-encoder TP4 and VAE tile distribution
+also use the four GPUs. The VAE graph path replays captured tile computations;
+multiple streams allow independent tiles to overlap. All workloads in the
+comparison use the same layout and resident weights.
+
+The Rubin section below adds four independent single-GPU replicas as a separate
+throughput mode. HTTP concurrency, replica count and the number of images in a
+DiT forward are different settings; these measurements use one image per forward.
+
+## Rubin Bringup
+
+The expanded workload matrix above is separate from this earlier serving sweep.
+Here we keep one request contract: **4096×4096 text-to-image, no references,
+six steps and MXFP8 DiT linears**, using the same 160 prompt–seed pairs at each
+concurrency point. The following figures retain those measured statistics.
+
+Four Rubin GPUs reached **0.866 s median / 0.944 s p95** with SP4 at concurrency 1.
+Four single-GPU replicas reached **6,115 images/hour**, at **4.411 s median**
+latency. The latency and throughput headlines are different operating points.
+
+### 4K Latency
 
 The workload is deliberately simple: one prompt, no reference images, and a native
 **4096×4096** output from [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image).
@@ -53,7 +119,7 @@ latency. All three use SP4 and MXFP8 DiT linears for this latency comparison.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/hardware-comparison.html" title="4K image latency and peak throughput across Rubin, GB200 and GB300" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
-## Throughput
+### Throughput
 
 Fast responses and a busy image service need different configurations. SP4 splits
 one image's DiT work across four GPUs. SP1×DP4 instead runs four independent
@@ -80,7 +146,7 @@ peak throughput**. The
 [interactive chart](/assets/figures/minimax-h3-image-rubin/performance-benchmarks.html)
 lets readers select the SP4 curves and inspect the corresponding response times.
 
-## Serving Economics
+### Serving Economics
 
 At the peak measured rate, a four-GPU Rubin system projects to **146,755 4K
 images/day**. Using **$0.06879 per billable image**, that is **$105.16/GPU/hour**
@@ -97,21 +163,6 @@ utilization ÷ 4 GPUs**. These are gross-revenue scenarios, before hardware, pow
 network and other operating costs. Daily image counts extend the measured hourly
 rate to 24 hours; they are not results from a day-long load test. For the subsecond
 SP4 operating point, the same price gives **$57.86/GPU/hour** at full billable utilization.
-
-## Optimizations
-
-The image pipeline needs to do two substantial jobs: the DiT produces latents,
-and the VAE turns them into pixels. We optimize both:
-
-- **DiT execution:** `TRTLLM_ATTN` attention and MXFP8 linear layers, using vLLM's online quantization and FlashInfer's CuTe-DSL kernel.
-- **Parallelism:** Ulysses SP4 and encoder TP4 reduce single-request latency; four SP1/encoder-TP1 replicas increase node throughput.
-- **VAE execution:** CUDA Graph replay reduces repeated launch overhead. Six streams per GPU allow tiled decoding work to overlap; SP4 also distributes tiles across GPUs.
-
-In a separate native-precision Rubin test, enabling the combined VAE graph-and-stream
-path reduced 4K HTTP latency from **2.01 to 1.04 seconds**, a **1.94× speedup**, with
-pixel-identical outputs across six tested workloads. This ablation is separate
-from the MXFP8 headline. Model weights stay resident, and the encoder and VAE
-retain the release pipeline's precision.
 
 ## Acknowledgements
 
