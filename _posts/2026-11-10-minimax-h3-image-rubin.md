@@ -21,9 +21,9 @@ text-to-image generation and image editing into one open-weight checkpoint.
 It uses six sampling steps, generates native high-resolution images without an
 upscaler, and supports up to 16 reference images.
 
-With vLLM-Omni, we test the model on actual creative requests: a food photograph
-from text and a targeted edit of a podcast scene. We run each across **32 canvases
-on four GB200 GPUs and four GB300 GPUs**: **64 workloads per system**, covering
+With vLLM-Omni, we put H3-Image to work on food photography, a podcast edit,
+a workshop poster and an adventure-game environment. For the food photograph
+and podcast edit, we run **32 canvases on four GB200 GPUs and four GB300 GPUs**: **64 workloads per system**, covering
 approximately **4–20 megapixels and eight aspect ratios**. Each workload has three
 measured seeds. The same prompts, reference bytes and seeds go to both systems.
 
@@ -33,17 +33,21 @@ and the tradeoff between response time and throughput.
 
 ## Same Request, Every Machine
 
-Choose a task and canvas below. The food photograph starts from text alone.
-The podcast edit takes one reference image: remove the man's headphones and
-have the two hosts fist-bump while retaining the studio scene. Each panel shows
-the actual seed-42 output and the **mean latency of three measured requests**.
+Choose a task and canvas below. Photograph a meal, redesign a studio interaction,
+lay out a workshop poster, or imagine an explorer crossing a flooded observatory.
+The podcast edit uses one reference image; the other three tasks start from text.
+Each panel shows the same preselected seed, **42**, alongside the **mean latency
+of three measured requests**. The poster also includes an H200 BF16 result,
+labeled separately from the MXFP8 runs.
 
-<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: the same request on four GB200 and four GB300 GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
-The captions and editing reference are from MiniMax's
+The food and podcast requests come from MiniMax's
 [released examples](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/tree/main/examples).
-Prompt enhancement is prepared ahead of time and excluded from these timings;
-the model's text encoder, generation, PNG encoding and response transfer are included.
+The poster and game prompts follow its
+[H3-Image prompt-writing guide](https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/6ea7b9e55523a2177e4f759db372065ba6089510/skills/h3-image-prompt-writing/SKILL.md).
+Prompts are prepared ahead of time; the PE checkpoint is not part of these timings.
+The model's text encoder, generation, PNG encoding and response transfer are included.
 
 ## Generation and Editing
 
@@ -59,7 +63,7 @@ how latency changes from roughly **4 to 20 megapixels**.
 
 <noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-performance.png" alt="Three-request mean HTTP latency for square text-to-image workloads on GB200 and GB300"></noscript>
 
-All **384 measured requests** completed successfully. Each point shows the mean
+All **384 measured requests in this canvas sweep** completed successfully. Each point shows the mean
 of three seeds after warmup; hover for the measured range and exact image size.
 The figure includes the serving configuration and timing details.
 

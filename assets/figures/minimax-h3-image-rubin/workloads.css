@@ -3,7 +3,8 @@
 .workload-controls select{max-width:100%;padding:7px;background:var(--bg);color:var(--ink);border:1px solid var(--rule);font:inherit}
 .output-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:16px 0}.output-card{margin:0;border-top:1px solid var(--rule);padding-top:12px;min-width:0}
 .output-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:16px;margin:0 0 8px;font-weight:600}
-.output-card img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:var(--bg);border:1px solid var(--rule)}
+.output-card img{display:block;width:100%;height:auto;max-height:440px;object-fit:contain;background:var(--bg);border:1px solid var(--rule)}
+.image-download{font:12px/1.7 var(--mono);color:var(--muted);text-underline-offset:3px}
 .output-card figcaption,.workload-meta{font:12px/1.7 var(--mono);color:var(--muted);margin:8px 0}
 .source-reference img{max-width:160px;max-height:160px;display:block;margin:12px 0}.source-reference a{color:var(--ink)}
 .workload-prompt{font:13px/1.7 var(--font);white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;padding:14px;border:1px solid var(--rule);max-height:300px;overflow:auto}
