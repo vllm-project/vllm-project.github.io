@@ -197,10 +197,15 @@ These examples use the same realtime web client to explore two execution modes. 
 
 ### MiniCPM-o 4.5: native audio-video interaction
 
-Install the MiniCPM talker dependencies and start the backend:
+The Code2Wav path uses `step-audio2==1.0.0`, which is included in the repository's [development dependencies](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/pyproject.toml#L94-L96). If your serving environment does not already include it, install it first:
 
 ```bash
-pip install stepaudio2-minicpmo
+pip install step-audio2==1.0.0
+```
+
+Start the backend:
+
+```bash
 vllm serve openbmb/MiniCPM-o-4_5 --omni --trust-remote-code \
   --deploy-config vllm_omni/deploy/minicpmo_4_5_2gpu.yaml \
   --port 8099
