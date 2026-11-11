@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "H3-Image Day-0 Support: 4K in 0.87s with Vera Rubin"
-author: "vLLM-Omni team and NVIDIA team"
+author: "vLLM-Omni team"
 summary: "MiniMax H3-Image in vLLM-Omni: real generation and editing examples, 64 matched workloads on four-GPU GB200 and GB300 systems, plus subsecond 4K serving on Rubin."
 image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 social_image: /assets/figures/minimax-h3-image-rubin/social-preview.png
