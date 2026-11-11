@@ -43,13 +43,13 @@ Intel and Moore Threads (MUSA)**, as well as **Huawei Ascend NPUs**.
 
 ## Quality
 
-Oil-paint strokes, pencil hatching, botanical illustrations and tiny lettering
-on a rice grain reveal what a smaller image can lose. Explore these alongside
-architecture, food and a game environment. Each uses one H3-Image-generated
+Oil-paint strokes, a multi-view camera drawing, Japanese poster lettering and
+tiny words on a rice grain reveal what a smaller image can lose. A game
+environment adds weathered stone and reflected light. Each uses one H3-Image-generated
 **4K** image, resized to **1K** and **2K** with its aspect ratio preserved,
 so composition stays fixed.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=95b2486ffc11" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=a8c48dba26e6" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
 The [additional examples](/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=70db77d34bea)
 retain the food, editing, poster and game outputs across hardware. The food and

@@ -42,15 +42,15 @@
     {
       "id": "twin-lens-camera-sketch",
       "title": "Sketch",
-      "demo_title": "Light & Line",
-      "prompt": "A highly detailed graphite-and-ink drawing of a classic unbranded twin-lens reflex camera fills a square sheet of softly textured ivory paper. The main camera is drawn large in a precise front-right three-quarter view, centered on the page. Its tall rectangular body has black pebbled leather panels with individually drawn grain, brushed metal edge rails, recessed screw heads with clear slots, a large knurled side focusing knob, a smaller film-advance crank and two strap lugs. Exactly two glass lenses are vertically aligned on the front board: an upper viewing lens and a lower taking lens. The two concentric lens barrels have fine radial grooves, thin adjustment rings, tiny engraved tick marks and restrained window reflections. The open waist-level finder rises from the top of the body as four thin folded hood panels around a small horizontal focusing screen. The front panel, side controls and top hood are physically connected.\n\nThe composition is an artist's finished object study, not a labeled engineering diagram. Every shadow is built from varied pencil pressure, close parallel hatching, fine cross-hatching and stippling. Faint construction arcs and erased perspective lines remain visible beside the finished contours. Draw the metal and glass with fine smooth strokes and the leather with small irregular interlocking marks. Two small unlabeled studies occupy the lower corners: a straightforward front elevation with the same two stacked lenses at lower left, and a circular magnified study of a ridged metal knob at lower right. The main drawing remains much larger than these studies. The only lettering anywhere on the page is the hand-lettered heading \"TWIN-LENS REFLEX\" at the top and the small subtitle \"A STUDY IN LIGHT & LINE\" beneath it. There are no part labels, leader lines, arrows, brand names, written measurements, stray annotations, watermarks or surrounding desktop. Fine paper fibers, dense hatching, leather grain, screw slots and closely spaced lens-ring ticks provide rich detail on close inspection.",
+      "demo_title": "Camera Blueprint",
+      "prompt": "A complex industrial-design drawing sheet for one original, unbranded twin-lens reflex camera fills a square ivory canvas. The visual language is precise black graphite and fine technical ink on lightly textured drafting paper: thin construction lines, heavier cut edges, subtle pencil hatching, concentric machining marks, small fastener details and restrained pale-gray shadows. The whole composition is a coherent multi-view concept drawing, not a product photograph. A compact header reads exactly \"TLR-01\" and below it \"TWIN-LENS REFLEX / DESIGN STUDY\".\n\nA neatly ruled three-column, two-row grid contains exactly six main panels with generous gaps and aligned baselines. Each panel has its own small, legible uppercase title. All six depict the same tall rectangular camera with two identical-sized circular lens assemblies stacked vertically on the front, a large knurled focusing knob on its right side, a smaller film winding crank farther back on that side, textured leather panels, metal edge rails and an open folding waist-level viewing hood on top. The main body has illustrative overall dimensions 95 mm wide, 145 mm tall and 110 mm deep; these proportions remain consistent across the orthographic views.\n\nThe top-left panel is titled \"01 / FRONT\". It is a large orthographic front elevation: exactly two front lenses in a vertical column, upper and lower, four corner fasteners, fine nested lens rings, a small aperture-setting lever beside the lower lens and a rectangular top hood. Fine horizontal and vertical dimension lines outside the silhouette read \"95 mm\" and \"145 mm\" respectively, with tiny arrowheads and extension lines. The top-center panel is titled \"02 / RIGHT SIDE\". It shows the same camera from its right side, with the large ridged focusing knob, a small folded winding crank, strap lug, connected front lens board and back-door hinge. A dimension line along the bottom reads \"110 mm\". The top-right panel is titled \"03 / REAR\". It shows the closed rear film door, its rectangular border, a small circular film counter, the latch, hinges, leather grain and narrow metal seams, with no lenses on this back surface.\n\nThe middle-left panel is titled \"04 / TOP\". It is a true overhead plan view of the open waist-level hood: four thin hood panels surround a rectangular ground-glass focusing screen. The front edge of the camera and side controls align with the other views. A horizontal width dimension reads \"95 mm\" and a perpendicular depth dimension reads \"110 mm\". The middle-center panel is titled \"05 / OPTICAL SECTION\". It is a carefully hatched side cutaway of the same camera, with the front facing right and film back facing left. Two front lens assemblies are vertically aligned at the right edge. In the upper chamber, a dashed ray enters the upper viewing lens from the right, travels left to a diagonal 45-degree mirror and then turns upward to the horizontal focusing screen beneath the open hood. In the separate lower chamber, a straight dashed ray passes from the lower taking lens toward the flat vertical film plane at the left, without a mirror in this lower optical path. A horizontal divider separates the viewing chamber from the taking chamber. Metal section faces have consistent diagonal hatching; glass has delicate paired contours. The middle-right panel is titled \"06 / ASSEMBLY\". It shows a small, detailed three-quarter exploded assembly of the same body: the two-lens front board is pulled a short distance forward, the rear door backward and the folding hood upward along clean dotted alignment axes. The central body remains intact, and every separated part aligns with its corresponding mounting location.\n\nA narrow band across the bottom contains three sharply drawn circular detail studies titled \"LENS RINGS\", \"FOCUS GEAR\" and \"FILM TRANSPORT\". These reveal fine concentric grooves and an aperture blade pattern, a meshing rack-and-pinion mechanism with machined teeth, and small rollers with a winding spool. Each circular study remains subordinate to the six main views. A tidy lower-right title block has exactly these short entries: \"TLR-01\", \"CONCEPT STUDY\", \"UNITS: mm\" and \"SHEET 01 / 01\". Preserve all six panel titles and their reading order, the same object identity across views, the upper viewing and lower taking lens relationship, and consistent 95 / 145 / 110 dimensions. Small typography, construction marks, screws, leather grain, cutaway hatching, gear teeth and lens-ring engraving create high information density. Avoid a dominant single perspective drawing, decorative pseudo-writing, branded logos, a surrounding desk, hands, photographic materials, gratuitous labels or extra panels.",
       "reference_count": 0,
       "hardware": "4× GB200",
       "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
-      "detail_hint": "Pencil hatching, leather grain and engraved lens rings.",
+      "detail_hint": "Multiple views, fine hatching and mechanical details.",
       "detail_focus": [
-        0.6,
-        0.55
+        0.25,
+        0.3
       ],
       "outputs": [
         {
@@ -61,31 +61,31 @@
             4096,
             4096
           ],
-          "image": "cases/resolution-gb200-twin-lens-camera-sketch-4096x4096-seed42-lossless.webp",
-          "image_sha256": "dd3199b62dc2e4b6516069f2ca7bf1c19294e68ce120754fc86894ca3c98f5e2",
-          "pixel_sha256": "2a22e16ed9a9968e90f6b76542eed72da11218eca9f90fd69e716bd9380112b0",
-          "original_png_sha256": "4a98fd70d96cc78e3438beaadc7771ce58be0549b05d25544c2fc0e208b684c2",
+          "image": "cases/resolution-gb200-twin-lens-camera-design-4096x4096-seed42-lossless.webp",
+          "image_sha256": "ac4f0706924b0090951e587c0942ce38d0f3abfdd882ff737afd026d5b978176",
+          "pixel_sha256": "63afd4d7a7f41157f4002481f6ffac054b1ce747a2894ced6e78a703b28d8869",
+          "original_png_sha256": "7d5c45661033ae3cc2176ad76541c24b78d3178949c9a0fb8fce34fe75149ed8",
           "seed": 42,
-          "prompt_sha256": "a34a929a8d29d4152e1591e4a02e73b45a1a82151ee1350dfba140ed12149561",
+          "prompt_sha256": "1577642ed8b9059ffdb4dd3748d304e95641f7a342f4678d6523b7fdb3ee37ac",
           "reference_sha256": [],
-          "source_job": "3200145",
+          "source_job": "3200276",
           "purpose": "Visual example; not a performance-chart data point."
         }
       ],
-      "thumbnail": "cases/scene-gb200-twin-lens-camera-sketch-seed42-preview.webp?v=b4822a55a499"
+      "thumbnail": "cases/scene-gb200-twin-lens-camera-design-seed42-preview.webp?v=efb8d0ecf2fd"
     },
     {
-      "id": "botany-basics-poster",
-      "title": "Botany",
-      "demo_title": "Type & Structure",
-      "prompt": "A finished, information-rich educational poster fills a square canvas. It combines refined botanical watercolor and precise pen illustration with highly readable editorial typography on warm ivory paper. Its large dark green title is exactly \"BOTANY BASICS\". Directly beneath it is the subtitle \"Plant Structure & Photosynthesis\". Forest green, muted sage, soft ochre and restrained terracotta form a coherent palette. A fine grid, thin rules and generous internal spacing keep the abundant information organized. The poster is viewed straight on, with no frame or surrounding room.\n\nThe middle half of the poster has three columns. The broad center column contains a large, anatomically plausible illustration of one flowering herbaceous plant, extending from branching exposed roots below a fine soil line to the upper leaves, buds and flowers. The stem, root hairs, narrow side shoots, leaf veins and delicate flower structures are exquisitely drawn. This central plant has NO labels or leader lines. A small separate detailed leaf study sits near its lower right without overlapping it. A quiet caption directly beneath this central illustration reads \"ONE PLANT, CONNECTED SYSTEMS\".\n\nThe left column is a neatly typeset text panel titled \"01 / PLANT STRUCTURE\". It contains four clearly separated entries in this exact order, with the bold heading and the explanatory copy directly underneath each heading: \"ROOTS\" followed by \"Absorb water and minerals. Anchor the plant.\"; \"STEMS\" followed by \"Support leaves and flowers. Transport water and sugars.\"; \"LEAVES\" followed by \"Capture light. Exchange gases with the air.\"; \"FLOWERS\" followed by \"Support reproduction. Help form fruits and seeds.\". These four entries contain text only, with no icons, small pictures or arrows. Below them, a delicate standalone watercolor flower fills the remaining space, with the simple caption \"FLOWER STUDY\" and no part labels.\n\nThe right column is titled \"02 / A CLOSER LOOK\". Its upper panel shows a finely drawn cutaway section through a leaf, with a thin top surface, tightly arranged elongated green cells beneath it, a lower layer of irregular cells and visible air spaces, and a protective lower surface. The illustration contains NO text or pointing lines. Its caption, placed BELOW the picture in a separate text block, is \"INSIDE A LEAF\", followed by \"Layers of living cells capture light and allow gases to move.\". The lower panel shows a magnified oval chloroplast with a double boundary and several connected stacks of small green discs. Its illustration also has NO labels or pointing lines. Below it, a separate caption reads \"CHLOROPLAST\", followed by \"Chlorophyll captures light. Photosynthesis stores energy in sugars.\". Fine cell boundaries and repeated disc edges make the illustrations rich in detail.\n\nA wide bottom section is titled \"03 / PHOTOSYNTHESIS\". It contains exactly three clearly separated boxes arranged LEFT TO RIGHT. The left box is headed \"INPUTS\" and contains two lines: \"Carbon dioxide / CO2\" and \"Water / H2O\". The center box is headed \"LIGHT ENERGY\" and contains a small sun-and-leaf illustration with the caption \"Captured by chlorophyll\". The right box is headed \"OUTPUTS\" and contains two lines: \"Glucose / C6H12O6\" and \"Oxygen / O2\". A single thin arrow points RIGHT from the left box into the center box, and a second thin arrow points RIGHT from the center box into the right box. These two arrows are the only arrows anywhere in the poster. Under the boxes, the balanced equation occupies its own uncluttered centered line and reads exactly \"6 CO2 + 6 H2O + light → C6H12O6 + 6 O2\". A narrow footer reads \"Roots collect. Stems transport. Leaves transform.\". Preserve all supplied wording, the title, box ordering and equation. Maintain crisp small type, careful spacing, fine botanical detail and consistent typography. Do not add labels onto drawings, duplicate copy, extra arrows, unexplained symbols, branding, decorative illegible writing or QR codes.",
+      "id": "japanese-bakery-poster",
+      "title": "Poster",
+      "demo_title": "vLLM-Omni Bakery",
+      "prompt": "An artistic Japanese-language marketing poster for a fictional neighborhood bakery named \"vLLM-Omni ベーカリー\" fills a square canvas. The design feels like a beautifully printed contemporary Japanese bakery advertisement, combining hand-painted gouache, delicate woodcut-style linework, tactile rice-paper grain and confident editorial typography. Warm ivory, dark pine green, vermilion, honey gold and small muted blue accents create a refined, inviting palette. The poster is viewed straight on and fills the frame, with no surrounding wall, frame or desktop. It is a finished advertisement with purposeful hierarchy and generous breathing room, not a photograph of bread and not a generic template.\n\nAt the top, the exact bakery name \"vLLM-Omni ベーカリー\" appears in a clean, highly legible dark-green logotype. The Roman lettering vLLM-Omni is preserved exactly. A large expressive Japanese headline directly beneath it reads exactly \"毎朝、焼きたて。\". A smaller line reads \"ひとくちに、小さな幸せ。\". Fine hand-drawn wheat stems, a small rising sun and flourishes inspired by Japanese printmaking frame these words without crossing any characters. All other authored copy is Japanese.\n\nThe large central illustration is a richly detailed, imaginative still life of fresh breads arranged in an elegant sweeping composition on a rust-red cloth. A golden croissant at upper left has dozens of individually painted laminated flakes, with a small torn end revealing its airy interior. A pale flour-dusted round country loaf occupies the center right, its deeply scored crust revealing warm brown fissures, with one sliced piece showing irregular open crumb. A shiny salted butter roll and a split bread roll with dark red bean paste and a neat pale-yellow slab of butter occupy the foreground. The breads have distinct realistic shapes, even though the medium is painterly illustration. Fine toasted edges, tiny bubbles in the crust, butter sheen, scattered flour and cloth-weave lines make the illustration rewarding to inspect at full resolution. Wheat stalks, a small ceramic coffee cup with a delicate curl of steam, and a folded paper bread bag with a simple green wheat emblem complete the composition without crowding it. Thin offset-print contours and subtle colored hatching add an artistic crafted finish.\n\nA neatly ruled lower menu panel is titled exactly \"本日のおすすめ\". It contains exactly four clearly separated entries in a balanced two-column, two-row layout. The upper-left entry reads \"クロワッサン\" with \"280円\" beneath it. The upper-right entry reads \"塩バターロール\" with \"180円\" beneath it. The lower-left entry reads \"あんバターパン\" with \"320円\" beneath it. The lower-right entry reads \"カンパーニュ\" with \"680円\" beneath it. Keep each product name and its price together in their own cell, with crisp Japanese typography, consistent baseline alignment and no duplicated entries. A small botanical wheat ornament separates the two columns without interfering with text.\n\nBelow the menu, a clean horizontal line of Japanese copy reads exactly \"焼きたてパンと、淹れたてコーヒー。\". A restrained footer contains \"営業時間 8:00–18:00\" and \"火曜定休\", separated by a small dot. The typography combines a bold display headline with readable smaller Japanese type, while every supplied phrase is preserved exactly. The finished poster balances a striking artistic bread illustration with readable Japanese advertising copy, fine texture and careful layout. No QR codes, website addresses, contact details, fabricated awards, additional slogans, photorealistic background, English paragraphs, gibberish, watermark or unrelated logos.",
       "reference_count": 0,
       "hardware": "4× GB200",
       "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
-      "detail_hint": "Fine leaf veins, repeated cell structures and small type.",
+      "detail_hint": "Japanese lettering, flaky pastry and printed textures.",
       "detail_focus": [
-        0.79,
-        0.73
+        0.3,
+        0.8
       ],
       "outputs": [
         {
@@ -96,32 +96,31 @@
             4096,
             4096
           ],
-          "image": "cases/resolution-gb200-botany-basics-poster-4096x4096-seed42-lossless.webp",
-          "image_sha256": "ce2fab4d16dd4dff9cc99e3ae44644430fcfd0fdc095da6b80c8c26ad6c82f25",
-          "pixel_sha256": "d05864a9718d019fdfd1d24dc59b90a308b5f4dcda5aa15e1d243fd6c8c9a8ef",
-          "original_png_sha256": "2548ccbcc4dd6078e73962f58268611d01876af2e51ba98975f3e9b05d8e5b62",
+          "image": "cases/resolution-gb200-japanese-bakery-poster-4096x4096-seed42-lossless.webp",
+          "image_sha256": "00422285d5f4a1f7a7a53384d9d66bad41433ca1801a7bad8d4d9f93ed5e32ee",
+          "pixel_sha256": "80fede332b72310b8379213928669c5f4260109fa92b104fbc32927f972ce4f8",
+          "original_png_sha256": "a678da3f6f702a1454e4df3670a09e34dffc171200956af069d92cf0328324ec",
           "seed": 42,
-          "prompt_sha256": "034666e39ed71158029c6b2d725bbc707216dc0ef5f5fd80448edfcc83c670fc",
+          "prompt_sha256": "4776bffc3c40a9f3a5b0a2158d5d674eba552303ad2dbc34fe20bd9bfbec0c83",
           "reference_sha256": [],
-          "source_job": "3200145",
+          "source_job": "3200276",
           "purpose": "Visual example; not a performance-chart data point."
         }
       ],
-      "thumbnail": "cases/scene-gb200-botany-basics-poster-seed42-preview.webp?v=9f4319b34f59",
-      "review_note": "Unretouched model output: the first sentence renders Absorb as Absord; this is a visual example, not a claim of error-free lettering."
+      "thumbnail": "cases/scene-gb200-japanese-bakery-poster-seed42-preview.webp?v=90844d039b31"
     },
     {
       "id": "rice-made-you-look",
       "title": "Rice",
       "demo_title": "Made You Look",
-      "prompt": "A high-resolution macro photograph fills the entire square frame with a loose mound of uncooked white rice. Hundreds of individual grains overlap naturally at varied angles, with delicate longitudinal ridges, small chips, translucent edges and soft contact shadows. The pile is real rice rather than a repeated graphic texture; individual grains have subtly different shapes and tones. Soft directional daylight from the upper left gives the ivory-white surfaces gentle relief against pale neutral shadows.\n\nNear the exact center, one complete rice grain lies horizontally on top of the pile, unobstructed, approximately eight percent of the full image width. Only this grain carries lettering: the exact lowercase phrase \"made you look\", written in one fine black line along its long axis. The tiny letters are legible on close inspection, fit entirely within the grain's edges, and follow its curved surface as miniature ink lettering. The grain remains ordinary rice in shape and size, with no separate plaque, raised sign or giant text overlay. All surrounding rice grains are completely unmarked. Focus stacking keeps the central grain and nearby layered grains sharply resolved, revealing the fine ink strokes, minute starch texture and small surface imperfections. The edges of the full composition soften only slightly. The image contains no hands, utensils, packaging, borders, watermark or other text.",
+      "prompt": "A wide overhead still-life photograph shows an entire low mound of uncooked white long-grain rice on a dark gray matte tabletop. The camera looks straight down from well above the table, far enough away that the complete oval outline of the mound and a broad clean border of tabletop are visible on every side. The rice mound covers about three quarters of the square frame. It contains thousands of ordinary small grains, arranged in many overlapping layers, with dozens of grains spanning its width. The pile reads first as a dense, finely textured mass of rice, rather than a close-up of a few large grains. Individual grains are tiny within the overall composition: their long sides are approximately one to two percent of the full frame width. The viewpoint is a normal overhead product photograph of a large tabletop arrangement, not macro photography. Soft daylight from the upper left gives the shallow mound subtle relief and a natural shadow on the tabletop. Focus remains sharp throughout the pile.\n\nHidden near the exact center is one ordinary grain resting horizontally on the surface of the pile. It has the same small size, shape and ivory color as its immediate neighbors; it is not elevated, isolated, enlarged or framed by empty space. On this single tiny grain, fine black miniature handwriting spells the exact lowercase phrase \"made you look\" along its long axis. All three words fit completely within the grain. At the full wide view, this is only a minute dark detail that a viewer has to search for; zooming into the high-resolution photograph reveals the lettering. The photograph contains no conspicuous central hero grain, no large lettering, no digital text overlay, no giant rice grains and no magnified inset. Every other grain is unmarked. Preserve the broad distant framing, the thousands of small grains, the complete mound boundary, and the exact hidden phrase. Natural longitudinal grooves, subtle translucency, tiny chips and delicate contact shadows distinguish the grains on close inspection. No hands, utensils, containers, packaging, logos, borders or watermarks.",
       "reference_count": 0,
       "hardware": "4× GB200",
       "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
-      "detail_hint": "One grain, three words: made you look.",
+      "detail_hint": "Find three words on one grain of rice.",
       "detail_focus": [
-        0.5,
-        0.5
+        0.508,
+        0.53
       ],
       "outputs": [
         {
@@ -132,90 +131,18 @@
             4096,
             4096
           ],
-          "image": "cases/resolution-gb200-rice-made-you-look-4096x4096-seed42-lossless.webp",
-          "image_sha256": "1ffa7efc7ffa6f7c0a1938674937d0773e46629cc3029a1cbeeb92b9cbb2e2bc",
-          "pixel_sha256": "8ec46887a9b0b6a300431bf4a591544690d2a8d9bbaf881849ecde20f26def98",
-          "original_png_sha256": "0f1ab5660b72d34dc66a41935089918c38a078b05d35865563e07eab1a42cabe",
+          "image": "cases/resolution-gb200-rice-made-you-look-wide-4096x4096-seed42-lossless.webp",
+          "image_sha256": "7217c879ffd064baafef63216f0b4bc3981ec8fb459df16a73fb9261c224b40f",
+          "pixel_sha256": "c2d57387b7e6b60b3d3a6990cb6fad6bf1a5477cd112d2db2bfafc753012a133",
+          "original_png_sha256": "3233ed7f8b0939b9c21af4f9158c9954ee245cad331e9d6b9896768447210de0",
           "seed": 42,
-          "prompt_sha256": "21e57254b8cb42a217170c6ca6f32d7fc97b4f4279991ef593dde049d69a2cc2",
+          "prompt_sha256": "c048d50ac18b6b699cd97a14cabe825dfa090ed489661ca571cff6ba59e37b05",
           "reference_sha256": [],
-          "source_job": "3200109",
+          "source_job": "3200213",
           "purpose": "Visual example; not a performance-chart data point."
         }
       ],
-      "thumbnail": "cases/scene-gb200-rice-made-you-look-seed42-preview.webp?v=51eb493862c6"
-    },
-    {
-      "id": "library-interior",
-      "title": "Architecture",
-      "prompt": "An architectural interior photograph shows a quiet contemporary reading room from just inside its entrance, at standing eye level with straight vertical lines. A long oak reading table extends away from the camera through the center of the room. Exactly six matching wooden chairs are arranged around it, three evenly spaced along each long side, with no chairs at either end. The tabletop is mostly clear except for two closed cloth-bound books stacked near its far end; their spines carry no lettering. Floor-to-ceiling bookcases cover the left wall, with narrow vertical uprights and books of varied muted colors. The right wall has three tall rectangular windows separated by pale stone piers. Beyond the windows, soft green tree canopies appear out of focus. Late-afternoon light enters from the right and lays three broad bands of sunlight across the table and the matte stone floor. At the back, a single open doorway reveals a dim adjoining room and establishes depth without adding a second focal point. The exposed oak ceiling beams run consistently from left to right and meet the walls cleanly. Oak grain, linen book covers, finely textured plaster, and subtle wear on chair edges are visible. The room contains no people, screens, signs, decorative plants, warped shelves, or floating furniture.",
-      "reference_count": 0,
-      "hardware": "4× GB300",
-      "configuration": "SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
-      "detail_hint": "Book spines, wood grain and repeated architectural details.",
-      "detail_focus": [
-        0.22,
-        0.47
-      ],
-      "outputs": [
-        {
-          "tier": "4K",
-          "width": 6272,
-          "height": 2688,
-          "generation_canvas": [
-            6272,
-            2688
-          ],
-          "image": "cases/resolution-gb300-library-interior-6272x2688-seed42-lossless.webp",
-          "image_sha256": "2621298c5b29129eed60e7d5efc7cb5cb4843effd7fbd91060b47ae09e71715b",
-          "pixel_sha256": "644c6830745fa75f860692f675c4d9546f6e0494ec2f2d3d5f87a99377018189",
-          "original_png_sha256": "1be2d9c50a4bce1b370e1004a7e92f6e988e0f4c25ccbc5af2179121f233733d",
-          "mean_s": 1.499646305727462,
-          "n": 3,
-          "seed": 42,
-          "prompt_sha256": "d3fc7c7e2b466644db53b571221474f3bc66091452f8b62593fc67b332ea1ee7",
-          "reference_sha256": [],
-          "source_job": "3192553"
-        }
-      ],
-      "demo_title": "Books & Timber",
-      "thumbnail": "cases/scene-gb300-library-interior-seed42-preview.webp?v=e41def156b10"
-    },
-    {
-      "id": "farm-to-table",
-      "title": "Food",
-      "prompt": "The image is an overhead, top-down photograph of a rustic farm-to-table feast spread across a weathered, dark brown wooden table with visible grain, knots, and a worn finish. In the center, a large woven basket holds a freshly baked rustic loaf of bread with a cracked golden-brown crust and scattered flour, alongside a halved loaf. To the left, a large dark ceramic plate presents an assortment of colorful seasonal vegetables, including bright orange carrots, deep red heirloom tomatoes, purple cabbage, and a mound of vibrant green leafy kale and arugula. On the right side, a wooden board displays artisanal cheeses: a wedge of sharp aged cheddar, a round of creamy brie with a rind, a soft blue cheese, and a few scattered almonds and walnuts. Below the bread in the lower center, a shallow bowl contains roasted root vegetables, including golden potatoes and beets, sprinkled with fresh rosemary sprigs. At the upper right, a glass jar of golden olive oil stands beside a smaller jar of honey with a wooden dipper. In the lower left, a rustic cloth napkin holds a silver knife and fork. At the upper left, a bunch of purple and red grapes rests near a small bowl of black olives. Scattered herbs, including fresh thyme and sprigs of oregano, decorate the table. The lighting is natural and warm, coming from the upper left and casting soft, long shadows to the lower right, enhancing the texture of the bread, the moisture of the vegetables, and the overall cozy, bountiful atmosphere of the meal.",
-      "reference_count": 0,
-      "hardware": "1× RTX 5090",
-      "configuration": "SP1 · MXFP8 DiT · CPU layerwise offload: DiT + encoder · six steps · seed 42",
-      "detail_hint": "Bread crust, leafy vegetables, cheese and woven fibers.",
-      "detail_focus": [
-        0.49,
-        0.47
-      ],
-      "outputs": [
-        {
-          "tier": "4K",
-          "width": 6272,
-          "height": 2688,
-          "generation_canvas": [
-            6272,
-            2688
-          ],
-          "image": "cases/resolution-rtx5090-farm-to-table-6272x2688-seed42-lossless.webp",
-          "image_sha256": "603767df280a8393264c76797b4506dca864d4a994f84af4e1253367e5f230d8",
-          "pixel_sha256": "907031cc9353e6db70ce5aa68af80b123f1eafab4c09adffba4e6d2501a8a06c",
-          "original_png_sha256": "84928cfd27c5e23ad040baaf95dd44cbd96b206b2452411cbd5caffeb4d6bdef",
-          "mean_s": 60.84476963663474,
-          "n": 3,
-          "seed": 42,
-          "prompt_sha256": "367c3aaf0f694072ce85e17d1a3754ba6352f350c4d7c4d0a88935ce09030483",
-          "reference_sha256": [],
-          "source_job": "3196121"
-        }
-      ],
-      "demo_title": "Food Textures",
-      "thumbnail": "cases/rtx5090-farm-to-table-6272x2688-seed42.webp?v=9934ed894f47"
+      "thumbnail": "cases/scene-gb200-rice-made-you-look-wide-seed42-preview.webp?v=ce85ce28509c"
     },
     {
       "id": "game-third-person-adventure",
