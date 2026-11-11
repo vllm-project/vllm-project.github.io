@@ -24,7 +24,7 @@
     return records.map(values=>{if(values.length!==keys.length)throw new Error('Invalid CSV row');return Object.fromEntries(keys.map((k,i)=>[k,values[i]]));});
   }
   try {
-    const responses=await Promise.all([fetch('api-workload-data.json?v=1f71a5771d53'),fetch('api-workload-results.csv?v=2b927b91c91f')]);
+    const responses=await Promise.all([fetch('api-workload-data.json?v=d37c150a7590'),fetch('api-workload-results.csv?v=2b927b91c91f')]);
     for(const response of responses)if(!response.ok)throw new Error('HTTP '+response.status);
     const [metadata,csv]=await Promise.all([responses[0].json(),responses[1].text()]);
     data={...metadata,cases:Object.fromEntries(Object.entries(metadata.cases).map(([id,c])=>[id,{
@@ -77,8 +77,15 @@
   }
   function detailsText(r){
     const value=r.n?'n='+r.n+'; mean '+r.mean_s.toFixed(3)+' s; range '+r.min_s.toFixed(3)+'–'+r.max_s.toFixed(3)+' s; seeds '+Object.entries(r.samples_s).map(([s,v])=>s+': '+v.toFixed(3)+' s').join(', '):'No measured samples';
-    const attention=['gb200','gb300','rubin'].includes(r.hardware)?'TRTLLM_ATTN':r.hardware.startsWith('rtx')?'CUDNN_ATTN':'FLASH_ATTN';
+    const attention=hardware[r.hardware].measured_specs.attention;
     return r.gpus+' GPU(s), SP'+r.sp+', DiT TP'+r.dit_tp+', encoder TP'+r.encoder_tp+', '+r.precision.toUpperCase()+' DiT; attention '+attention+'. '+placement(r)+'. VAE '+(r.eager?'eager':'CUDA Graph')+'. '+value+'. '+(flags(r)||'Default runtime settings')+'.';
+  }
+  function hardwareText(r){
+    const s=hardware[r.hardware].measured_specs;
+    const links=r.gpus===1?'Single GPU; no inter-GPU communication':s.gpu_link_labels.every(x=>x.startsWith('NV'))
+      ?'NVLink between GPUs ('+s.gpu_link_labels.join(', ')+')'
+      :'PCIe/CPU interconnect ('+s.gpu_link_labels.join(', ')+'); no GPU-to-GPU NVLink connections in the tested host';
+    return s.gpu_model+' · SM '+s.sm+'. CUDA-visible VRAM: '+(s.cuda_visible_memory_bytes/2**30).toFixed(1)+' GiB per GPU. '+links+'. Configured power limit: '+s.power_limit_w.join(' / ')+' W per GPU; driver '+s.driver_versions.join(', ')+'.';
   }
   function axisElement(axis){
     const node=el('div',undefined,'hardware-axis');node.setAttribute('aria-hidden','true');
@@ -132,16 +139,19 @@
       }
       card.append(list,axisElement(axis));
       const detail=el('details',undefined,'workload-measurements');detail.appendChild(el('summary','Test setup'));detail.addEventListener('toggle',height);
-      for(const result of panel.results){detail.appendChild(el('h3',hardware[result.hardware].label));
+      for(const result of panel.results){detail.appendChild(el('h3',result.primary.gpus+'× '+hardware[result.hardware].label));
+        detail.appendChild(el('p',hardwareText(result.primary),'hardware-specs'));
         detail.appendChild(el('p',result.primary?detailsText(result.primary):'No completed measurements.'));
         if(result.primary.status==='stopped_at_request_limit')detail.appendChild(el('p',limitReason(result.primary)));
       }
       detail.appendChild(el('p','Bars show completed three-seed measurements within the 10-minute cutoff. Linear axis starts at zero. Mean of seeds 0, 42 and 1234 after warmup; whiskers show min–max. Timing completion is not a semantic-quality score.'));
-      detail.appendChild(el('p','HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. MXFP8 applies to DiT linears; H100/H200/A100 use BF16. Each hardware comparison uses identical inputs.'));
+      detail.appendChild(el('p','HTTP latency includes text encoding, generation, PNG encoding and the complete response. Prompt enhancement and client saving are excluded. Inputs are fixed across hardware, while GPU count, precision, offload and interconnect vary. These are measured deployments, not a controlled GPU-only comparison. MXFP8 applies to DiT linears; H100/H200/A100 use BF16.'));
+      detail.appendChild(el('p','VRAM is the total visible to CUDA on each tested GPU, not free memory or a shared multi-GPU pool. Power limits are configured caps, not measured consumption. The first complete default profile is shown when available; otherwise the first complete custom profile is used. This selection does not establish the fastest possible configuration.'));
+      if(c.width===1024)detail.appendChild(el('p','1K is generated on a 2K canvas and then resized. Some 1K and 2K entries come from separate runs with different allocator settings, listed above; their difference does not isolate resolution cost.'));
       if(c.reference_count>1)detail.appendChild(el('p','Reference-composition results measure execution time and capacity. Some outputs miss or duplicate requested objects.'));
       card.append(detail);$('panels').appendChild(card);
     }
-    $('note').textContent='Mean of three requests; whiskers show min–max.';
+    $('note').textContent='Mean of three seeds; whiskers show min–max. GPU count, precision and memory placement vary; see Test setup.';
     $('quality-note').textContent='';
     window.HardwareWorkloads.selection={mode:$('mode').value,sort:$('sort').value,references:$('references').value,resolution:$('resolution').value,group:group.id,panels,axis};
     height();

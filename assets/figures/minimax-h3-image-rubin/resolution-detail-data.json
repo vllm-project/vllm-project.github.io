@@ -113,14 +113,14 @@
       "id": "rice-made-you-look",
       "title": "Rice",
       "demo_title": "Made You Look",
-      "prompt": "A wide overhead still-life photograph shows an entire low mound of uncooked white long-grain rice on a dark gray matte tabletop. The camera looks straight down from well above the table, far enough away that the complete oval outline of the mound and a broad clean border of tabletop are visible on every side. The rice mound covers about three quarters of the square frame. It contains thousands of ordinary small grains, arranged in many overlapping layers, with dozens of grains spanning its width. The pile reads first as a dense, finely textured mass of rice, rather than a close-up of a few large grains. Individual grains are tiny within the overall composition: their long sides are approximately one to two percent of the full frame width. The viewpoint is a normal overhead product photograph of a large tabletop arrangement, not macro photography. Soft daylight from the upper left gives the shallow mound subtle relief and a natural shadow on the tabletop. Focus remains sharp throughout the pile.\n\nHidden near the exact center is one ordinary grain resting horizontally on the surface of the pile. It has the same small size, shape and ivory color as its immediate neighbors; it is not elevated, isolated, enlarged or framed by empty space. On this single tiny grain, fine black miniature handwriting spells the exact lowercase phrase \"made you look\" along its long axis. All three words fit completely within the grain. At the full wide view, this is only a minute dark detail that a viewer has to search for; zooming into the high-resolution photograph reveals the lettering. The photograph contains no conspicuous central hero grain, no large lettering, no digital text overlay, no giant rice grains and no magnified inset. Every other grain is unmarked. Preserve the broad distant framing, the thousands of small grains, the complete mound boundary, and the exact hidden phrase. Natural longitudinal grooves, subtle translucency, tiny chips and delicate contact shadows distinguish the grains on close inspection. No hands, utensils, containers, packaging, logos, borders or watermarks.",
+      "prompt": "A wide overhead environmental still-life photograph shows an expansive, nearly empty dark slate-gray worktable. The table is the dominant subject area, occupying most of the composition as quiet negative space. At the exact center sits one small three-dimensional heap of uncooked ivory rice. The entire mound, from its highest point to the scattered outermost grains, occupies only thirty percent of the square image width and about thirty percent of its height. There is far more bare tabletop than rice in the picture. This is a distant whole-table view, with generous empty space extending several mound-widths around the rice, never a close-up. Hundreds of small grains overlap naturally to form the low central heap. They have realistic translucent edges, pale ivory tones, slight length variations and tiny shadows beneath them. Soft broad daylight creates gentle natural contrast and keeps the entire pile in focus.\n\nAmong the ordinary grains in the upper-right quarter of this small central mound, one unobstructed grain has the exact lowercase words \"made you look\" written along it in extremely fine, very pale warm-gray pencil. The lettering is faint, light and slightly uneven, close in tone to the shading of the rice itself. This marked grain is neither longer nor larger than neighboring grains and has no cleared space around it. All three words fit within its small physical surface. At full composition scale, the grain and its lettering are almost impossible to notice; high-resolution zoom reveals the exact words. No grain is enlarged to accommodate text. All other grains have no marks. The composition remains a wide view of a small rice heap on a large tabletop, with the rice occupying a minor central area. The viewer has to look closely to discover the single faint inscription. No bowl, hands, utensils, packaging, arrow, magnifying inset, frame, separate label, large typography, logo or watermark is present. Avoid a frame-filling rice pile or dominant foreground grains. Preserve the very distant framing, the low-contrast pencil lettering and the complete ordinary rice heap.",
       "reference_count": 0,
       "hardware": "4× GB200",
       "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
       "detail_hint": "Find three words on one grain of rice.",
       "detail_focus": [
-        0.508,
-        0.53
+        0.532,
+        0.438
       ],
       "outputs": [
         {
@@ -131,18 +131,18 @@
             4096,
             4096
           ],
-          "image": "cases/resolution-gb200-rice-made-you-look-wide-4096x4096-seed42-lossless.webp",
-          "image_sha256": "7217c879ffd064baafef63216f0b4bc3981ec8fb459df16a73fb9261c224b40f",
-          "pixel_sha256": "c2d57387b7e6b60b3d3a6990cb6fad6bf1a5477cd112d2db2bfafc753012a133",
-          "original_png_sha256": "3233ed7f8b0939b9c21af4f9158c9954ee245cad331e9d6b9896768447210de0",
+          "image": "cases/resolution-gb200-rice-made-you-look-distant-4096x4096-seed42-lossless.webp",
+          "image_sha256": "74c0548c89bcd5fe9f2b6f8b763fbd0a7738c37deb8ac5837f837cbcedf9f4ca",
+          "pixel_sha256": "9af1c5c47c36616b9bfb245c18e54e4cb9ec4678c060ab72253f32a1a84f3757",
+          "original_png_sha256": "4ec865cfab3f432055b1b52a18e5c61e7107fc3f97b4895b47f9c814140ec62e",
           "seed": 42,
-          "prompt_sha256": "c048d50ac18b6b699cd97a14cabe825dfa090ed489661ca571cff6ba59e37b05",
+          "prompt_sha256": "f594512a31b0d982e4e0a8b39bfc34ffaff12ec2360eec36ba213aeebe094093",
           "reference_sha256": [],
-          "source_job": "3200213",
+          "source_job": "3200389",
           "purpose": "Visual example; not a performance-chart data point."
         }
       ],
-      "thumbnail": "cases/scene-gb200-rice-made-you-look-wide-seed42-preview.webp?v=ce85ce28509c"
+      "thumbnail": "cases/scene-gb200-rice-made-you-look-distant-seed42-preview.webp?v=aea96d8ba1bc"
     },
     {
       "id": "game-third-person-adventure",

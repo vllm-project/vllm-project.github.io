@@ -49,7 +49,7 @@ environment adds weathered stone and reflected light. Each uses one H3-Image-gen
 **4K** image, resized to **1K** and **2K** with its aspect ratio preserved,
 so composition stays fixed.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=a8c48dba26e6" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=e08274c6090c" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
 The [additional examples](/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=70db77d34bea)
 retain the food, editing, poster and game outputs across hardware. The food and
@@ -86,12 +86,16 @@ at 4K. The **0.87-second** headline comes from a separate short-prompt serving
 benchmark in **Rubin Bringup**, not this request. Both use four GPUs, SP4 and
 MXFP8; the request corpus, HTTP client and summary statistic differ.
 
-Every result shows its GPU count; serving configurations are in **Test setup**. The 1K checks
+Every result shows its GPU count. **Test setup** lists the exact GPU model,
+CUDA-visible VRAM per GPU, interconnect, power limit and serving configuration.
+GPU count, precision and memory placement vary, so these figures compare deployed
+systems rather than isolate GPU architecture. The 1K checks
 return 1024×1024 images; with the local model's default minimum canvas,
 they are generated at 2048×2048 and resized. They therefore do not represent
-native 1K diffusion compute.
+native 1K diffusion compute. Some 1K and 2K runs also use different allocator
+settings, shown in Test setup.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=60b3f217546e" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-workload-hardware.html?v=4ee1b739f497" title="H3-Image text-to-image and editing performance across hardware" loading="lazy" scrolling="no" height="1250" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 [Benchmark data](/assets/figures/minimax-h3-image-rubin/api-workload-results.csv).
 Bars show three-seed means after warmup, with min–max ranges. Configurations,

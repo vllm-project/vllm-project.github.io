@@ -4,7 +4,7 @@
   const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
   const height=()=>window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.querySelector('main').getBoundingClientRect().height+8)},'*');
   let data;
-  try{const r=await fetch('resolution-detail-data.json?v=f5e8ced9e41e');if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();}
+  try{const r=await fetch('resolution-detail-data.json?v=b5f566f746ff');if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();}
   catch(error){$('status').textContent='Unable to load image sources. Please reload.';document.body.dataset.error=error.message;return;}
   const state={scene:data.cases[0].id,left:'1K',right:'4K',zoom:1,x:.5,y:.5,split:50};
   const images=new Map(),sceneButtons=[];let cards=[],revision=0,motion=0,interaction=0,pendingFocus=false;
@@ -118,8 +118,7 @@
   }
   for(const side of ['left','right'])$(side+'-resolution').addEventListener('change',()=>{state[side]=$(side+'-resolution').value;draw();});
   $('swap').addEventListener('click',()=>{[state.left,state.right]=[state.right,state.left];draw();});
-  $('zoom').addEventListener('input',()=>zoom($('zoom').value));$('reset').addEventListener('click',reset);
-  $('detail').addEventListener('click',focusDetail);
+  $('zoom').addEventListener('input',()=>zoom($('zoom').value));$('full').addEventListener('click',reset);
   let pointer=null;
   $('wipe-handle').addEventListener('pointerdown',e=>{stopMotion(true);if(e.button!==0)return;pointer=e.pointerId;$('wipe-handle').setPointerCapture(e.pointerId);e.preventDefault();});
   $('wipe-handle').addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const r=$('comparison-stage').getBoundingClientRect();state.split=clamp(100*(e.clientX-r.left)/r.width,0,100);updateView();});
