@@ -13,7 +13,7 @@ Through [vLLM Recipes](https://recipes.vllm.ai/), the community maintains struct
 
 Much of the performance those recipes encode comes from joint engineering efforts between vLLM and NVIDIA engineering teams. Enabling NVIDIA Blackwell in vLLM spanned [more than a hundred pull requests](https://vllm.ai/blog/2025-10-09-blackwell-inferencemax) developed with NVIDIA engineers: FlashInfer kernels for FP8 attention and NVFP4 GEMMs, MoE backends, FP8 KV cache, async scheduling, and disaggregated serving. The result is that a recipe calling for NVFP4 on a B200 is not an aspiration. It is a tested path built on kernels both teams worked on together.
 
-Performance optimized NIM microservices take recipes a step further by turning them into defaults. Starting from engine defaults, the existing NIM profile, and published recipes, an automated optimization workflow searches for the best runtime configuration for each model and GPU, then ships the winner as a validated NIM profile that developers get out of the box.
+Performance-optimized NVIDIA NIM microservices build on vLLM and its community recipes, turning tested serving configurations into defaults. An automated optimization workflow starts with vLLM engine defaults, existing NIM profiles, and published recipes, tunes each model and GPU combination, and ships the result as a validated NIM profile developers can use out of the box.
 
 ![Diagram showing engine defaults, an existing NIM profile, and vLLM recipes feeding an optimization search that produces a validated NIM profile and tuned deployment, with findings contributed upstream](/assets/figures/2026-11-12-vllm-nim/vllm_nim_recipe_pipeline_nvidia.png)
 
