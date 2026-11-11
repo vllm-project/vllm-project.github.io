@@ -2,6 +2,7 @@
 layout: post
 title: "Introducing vLLM Hardware Plugin, Best Practice from Ascend NPU"
 author: "The Ascend Team on vLLM"
+summary: "How vLLM hardware plugins decouple backend integrations from core vLLM, using Platform, Executor, Worker, ModelRunner, AttentionBackend, and Communicator hooks to support Ascend NPU and IBM Spyre."
 image: /assets/logos/vllm-logo-only-light.png
 tags:
   - hardware

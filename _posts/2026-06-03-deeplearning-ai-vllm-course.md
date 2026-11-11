@@ -2,6 +2,7 @@
 layout: post
 title: "Fast & Efficient LLM Inference with vLLM: A New Course with DeepLearning.AI"
 author: "Cedric Clyburn"
+summary: "What the DeepLearning.AI vLLM course teaches: optimizing, deploying, and benchmarking LLM inference with LLM Compressor quantization, GuideLLM, KV cache sizing, serving, and memory tradeoffs."
 image: /assets/figures/2026-06-03-deeplearning-ai-course/course-banner.png
 tags:
   - community

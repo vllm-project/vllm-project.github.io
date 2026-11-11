@@ -2,6 +2,7 @@
 layout: post
 title: "Run Highly Efficient and Accurate AI Agents with NVIDIA Nemotron 3 Nano on vLLM"
 author: "NVIDIA Nemotron Team"
+summary: "How to serve NVIDIA Nemotron 3 Nano with vLLM for efficient agentic AI, including BF16, FP8, and NVFP4 checkpoints, 1M-token context, hybrid MoE architecture, Thinking Budget, supported GPUs, and OpenAI-compatible deployment."
 image: /assets/figures/2025-vllm-nvidia-nemotron/figure1.png
 tags:
   - model-support

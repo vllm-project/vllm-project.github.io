@@ -2,6 +2,7 @@
 layout: post
 title: "Chasing 100% Accuracy: A Deep Dive into Debugging Kimi K2's Tool-Calling on vLLM"
 author: "Linian Wang (Peking University)"
+summary: "How vLLM debugged Kimi K2 tool-calling accuracy, covering chat-template compatibility, add_generation_prompt handling, schema validation failures, benchmark fixes, and tool-use reliability."
 image: /assets/figures/kimi-k2-accuracy/k2-vendor-verifier.jpeg
 tags:
   - model-support

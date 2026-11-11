@@ -2,6 +2,7 @@
 layout: post
 title: "Elastic Expert Parallelism in vLLM"
 author: "Itay Alroy (NVIDIA), Yongji Wu (Sky Computing), Rui Qiao (Anyscale), Tyler Michael Smith (Red Hat), Moein Khazraee (NVIDIA), Omri Kahalon (NVIDIA), Tzu-Ling Kan (NVIDIA), Ron Tourgeman (NVIDIA)"
+summary: "How Elastic Expert Parallelism lets vLLM scale Mixture-of-Experts serving up or down at runtime by changing data-parallel workers, redistributing experts, and coordinating live topology changes without server restarts."
 image: /assets/figures/2026-05-14-elastic-expert-parallelism/elastic-ep.png
 tags:
   - large-scale-serving

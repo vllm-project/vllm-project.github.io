@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#30a2ff"/>
+    </marker>
+    <marker id="arrow-gold" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#d49400"/>
+    </marker>
+    <marker id="arrow-neutral" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arrow-gold-sm" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#c48800"/>
+    </marker>
+  </defs>
+
+  <!-- White background -->
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <!-- ===== vLLM Scheduler / Cache Context wrapper ===== -->
+  <rect x="310" y="40" width="1100" height="830" rx="16" ry="16"
+        fill="none" stroke="#c0c0c0" stroke-width="2" stroke-dasharray="10,6"/>
+  <text x="860" y="74" text-anchor="middle" font-size="15" fill="#999" font-weight="500"
+        letter-spacing="1.5">vLLM Scheduler / Cache Context</text>
+
+  <!-- ===== Layer Router (left) ===== -->
+  <rect x="60" y="390" width="190" height="80" rx="12" ry="12"
+        fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+  <text x="155" y="436" text-anchor="middle" font-size="17" fill="#222" font-weight="600">Layer Router</text>
+
+  <!-- Dense branch arrow: Router -> Standard Attention -->
+  <path d="M 250,410 C 310,410 310,210 390,210" fill="none" stroke="#30a2ff" stroke-width="2.5"
+        marker-end="url(#arrow-blue)"/>
+  <text x="290" y="290" text-anchor="middle" font-size="13" fill="#30a2ff" font-weight="600"
+        transform="rotate(-42, 290, 290)">Dense Layer</text>
+
+  <!-- Sparse branch arrow: Router -> MSA Backend -->
+  <path d="M 250,450 C 310,450 310,570 390,570" fill="none" stroke="#d49400" stroke-width="2.5"
+        marker-end="url(#arrow-gold)"/>
+  <text x="290" y="530" text-anchor="middle" font-size="13" fill="#d49400" font-weight="600"
+        transform="rotate(35, 290, 530)">Sparse Layer</text>
+
+  <!-- ======================================================= -->
+  <!--               DENSE BRANCH (top, blue tones)            -->
+  <!-- ======================================================= -->
+
+  <rect x="400" y="145" width="310" height="120" rx="12" ry="12"
+        fill="#e8f4ff" stroke="#30a2ff" stroke-width="2"/>
+  <text x="555" y="195" text-anchor="middle" font-size="17" fill="#1a6bbf" font-weight="600">Standard Attention</text>
+  <text x="555" y="220" text-anchor="middle" font-size="15" fill="#1a6bbf" font-weight="400">Backend</text>
+  <text x="555" y="248" text-anchor="middle" font-size="12" fill="#5aa0d4" font-style="italic">(FlashAttention / xFormers)</text>
+
+  <!-- Dense branch to output convergence -->
+  <path d="M 710,205 L 1350,205 L 1350,410" fill="none"
+        stroke="#30a2ff" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+
+  <!-- ======================================================= -->
+  <!--           SPARSE BRANCH (bottom, gold/amber tones)      -->
+  <!-- ======================================================= -->
+
+  <!-- MSA Backend outer box -->
+  <rect x="400" y="360" width="880" height="470" rx="14" ry="14"
+        fill="#fffaf0" stroke="#fdb517" stroke-width="2.5"/>
+  <text x="840" y="400" text-anchor="middle" font-size="18" fill="#b37d00" font-weight="700">MiniMax MSA Backend</text>
+
+  <!-- Prefill Lane -->
+  <rect x="430" y="420" width="820" height="140" rx="10" ry="10"
+        fill="#fff7e0" stroke="#e6a800" stroke-width="1.5"/>
+  <text x="455" y="448" font-size="14" fill="#8c6900" font-weight="700" letter-spacing="1">PREFILL</text>
+
+  <!-- Prefill box 1: Index Score -->
+  <rect x="450" y="462" width="160" height="56" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="530" y="495" text-anchor="middle" font-size="14" fill="#8c6900" font-weight="500">Index Score</text>
+
+  <line x1="610" y1="490" x2="648" y2="490" stroke="#c48800" stroke-width="2" marker-end="url(#arrow-gold-sm)"/>
+
+  <!-- Prefill box 2: Top-k Block IDs -->
+  <rect x="655" y="462" width="180" height="56" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="745" y="495" text-anchor="middle" font-size="14" fill="#8c6900" font-weight="500">Top-k Block IDs</text>
+
+  <line x1="835" y1="490" x2="873" y2="490" stroke="#c48800" stroke-width="2" marker-end="url(#arrow-gold-sm)"/>
+
+  <!-- Prefill box 3: CSR or KV-Block-Major Sparse GQA -->
+  <rect x="880" y="455" width="340" height="70" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="1050" y="485" text-anchor="middle" font-size="13" fill="#8c6900" font-weight="500">CSR or KV-Block-Major</text>
+  <text x="1050" y="505" text-anchor="middle" font-size="13" fill="#8c6900" font-weight="500">Sparse GQA</text>
+
+  <!-- Decode Lane -->
+  <rect x="430" y="580" width="820" height="140" rx="10" ry="10"
+        fill="#fff7e0" stroke="#e6a800" stroke-width="1.5"/>
+  <text x="455" y="608" font-size="14" fill="#8c6900" font-weight="700" letter-spacing="1">DECODE</text>
+
+  <!-- Decode box 1: Index Score -->
+  <rect x="450" y="622" width="140" height="56" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="520" y="655" text-anchor="middle" font-size="14" fill="#8c6900" font-weight="500">Index Score</text>
+
+  <line x1="590" y1="650" x2="618" y2="650" stroke="#c48800" stroke-width="2" marker-end="url(#arrow-gold-sm)"/>
+
+  <!-- Decode box 2: Top-k Merge -->
+  <rect x="625" y="622" width="145" height="56" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="697" y="655" text-anchor="middle" font-size="14" fill="#8c6900" font-weight="500">Top-k Merge</text>
+
+  <line x1="770" y1="650" x2="798" y2="650" stroke="#c48800" stroke-width="2" marker-end="url(#arrow-gold-sm)"/>
+
+  <!-- Decode box 3: Sparse GQA Decode -->
+  <rect x="805" y="622" width="185" height="56" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="897" y="655" text-anchor="middle" font-size="13.5" fill="#8c6900" font-weight="500">Sparse GQA Decode</text>
+
+  <line x1="990" y1="650" x2="1018" y2="650" stroke="#c48800" stroke-width="2" marker-end="url(#arrow-gold-sm)"/>
+
+  <!-- Decode box 4: Output Merge -->
+  <rect x="1025" y="622" width="155" height="56" rx="8" ry="8"
+        fill="#ffffff" stroke="#d49400" stroke-width="1.5"/>
+  <text x="1102" y="655" text-anchor="middle" font-size="14" fill="#8c6900" font-weight="500">Output Merge</text>
+
+  <!-- Prefill lane exit arrow curving to convergence -->
+  <path d="M 1220,490 L 1270,490 L 1270,445 L 1290,445" fill="none"
+        stroke="#d49400" stroke-width="2"/>
+
+  <!-- Decode lane exit arrow curving to convergence -->
+  <path d="M 1180,650 L 1270,650 L 1270,455 L 1290,455" fill="none"
+        stroke="#d49400" stroke-width="2"/>
+
+  <!-- MSA convergence dot -->
+  <circle cx="1290" cy="450" r="5" fill="#d49400"/>
+
+  <!-- MSA Backend exit arrow to Output -->
+  <path d="M 1290,450 L 1350,450" fill="none" stroke="#d49400" stroke-width="2.5"
+        marker-end="url(#arrow-gold)"/>
+
+  <!-- ===== Output box (right) ===== -->
+  <rect x="1370" y="400" width="160" height="80" rx="12" ry="12"
+        fill="#f0f0f0" stroke="#555" stroke-width="2"/>
+  <text x="1450" y="446" text-anchor="middle" font-size="17" fill="#333" font-weight="600">Output</text>
+
+
+  <!-- Subtitle -->
+  <text x="800" y="890" text-anchor="middle" font-size="13" fill="#aaa" font-weight="400">vLLM MiniMax M3 Hybrid Layer Dispatch</text>
+</svg>

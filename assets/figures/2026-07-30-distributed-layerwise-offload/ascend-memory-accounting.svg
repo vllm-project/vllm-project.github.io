@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820" data-generator="fireworks-tech-graph" data-schema-version="1" data-text-metrics="heuristic-v1" data-style-id="1" data-visual-theme="Flat Icon" data-diagram-type="architecture" data-motion-scene="" data-semantic-profile="generic" data-semantic-valid="true" data-quality-profile="showcase" data-max-bends-per-edge="2" data-max-total-bends="8" data-max-route-stretch="1.35" data-max-bridged-crossings="0" data-min-node-gap="40.0" data-min-container-gutter="20.0" data-min-label-clearance="4.0" data-min-segment-length="16.0">
+  <defs>
+    <marker id="arrowA" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowB" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arrowC" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+    </marker>
+    <marker id="arrowF" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowH" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+    <filter id="shadowSoft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowGlass" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#020617" flood-opacity="0.28"/>
+    </filter>
+    <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .title { font-size: 30px; font-weight: 700; fill: #111827; }
+    .subtitle { font-size: 14px; font-weight: 500; fill: #6b7280; }
+    .section { font-size: 13px; font-weight: 700; fill: #2563eb; letter-spacing: 1.4px; }
+    .section-sub { font-size: 12px; font-weight: 500; fill: #94a3b8; }
+    .node-title { font-weight: 700; fill: #111827; }
+    .node-sub { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .node-type { font-size: 12px; font-weight: 700; fill: #9ca3af; letter-spacing: 0.08em; }
+    .arrow-label { font-size: 12px; font-weight: 600; fill: #6b7280; }
+    .legend { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .footnote { font-size: 12px; font-weight: 500; fill: #94a3b8; }
+    .metric-label { font-size: 8.5px; font-weight: 700; fill: #94a3b8; text-transform: uppercase; }
+    .metric-value { font-size: 9.5px; font-weight: 700; fill: #111827; }
+    </style>
+  </defs>
+  <rect data-graph-role="background" width="1200.0" height="820.0" fill="#ffffff"/>
+  <text x="600.0" y="56" text-anchor="middle" class="title">Ascend Memory Accounting: What the cgroup Sees</text>
+  <text x="600.0" y="82" text-anchor="middle" class="subtitle">Cosmos3-Nano · DP2 · fresh cgroup · 64 GB NPU HBM per card</text>
+  <g id="cgroup" data-graph-role="container" data-container-id="cgroup" data-semantic-role="boundary" data-graph-bounds="40,120,1160,310">
+  <rect data-graph-role="container" x="40.0" y="120.0" width="1120.0" height="190.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="58.0" y="144.0" class="section">CGROUP-VISIBLE SYSTEM RAM</text>
+    <rect id="cgroup-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="126" width="212.26" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="driver" data-graph-role="container" data-container-id="driver" data-semantic-role="boundary" data-graph-bounds="40,350,1160,510">
+  <rect data-graph-role="container" x="40.0" y="350.0" width="1120.0" height="160.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="58.0" y="374.0" class="section">DRIVER-MANAGED CPU DMA MEMORY · OUTSIDE CGROUP ACCOUNTING</text>
+    <rect id="driver-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="356" width="442.1" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="hbm" data-graph-role="container" data-container-id="hbm" data-semantic-role="boundary" data-graph-bounds="40,550,1160,730">
+  <rect data-graph-role="container" x="40.0" y="550.0" width="1120.0" height="180.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="58.0" y="574.0" class="section">NPU HBM · PER CARD</text>
+    <rect id="hbm-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="556" width="157.4" height="30" fill="none" stroke="none"/>
+  </g>
+  <path id="pin-shards" data-graph-role="edge" data-edge-id="pin-shards" data-source="page-cache" data-target="pinned-shards" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 305,280 L 305,300.4 L 600,300.4 L 600,405" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
+  <path id="h2d" data-graph-role="edge" data-edge-id="h2d" data-source="pinned-shards" data-target="double-buffer" data-edge-kind="flow" data-topic-id="" data-flow="data" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 600,475 L 600,620" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowE)"/>
+  <g id="node-page-cache" data-graph-role="node" data-node-id="page-cache" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,190,520,280">
+  <rect x="90.0" y="201.25" width="430.0" height="67.5" fill="#eff6ff" stroke="none"/>
+  <ellipse cx="305.0" cy="201.25" rx="215.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <path d="M 90,201.25 L 90,268.75 M 520,201.25 L 520,268.75" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+  <ellipse cx="305.0" cy="268.75" rx="215.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <text x="305.0" y="229.0" text-anchor="middle" class="node-title" font-size="18.0">Safetensors page cache</text>
+  <text x="305.0" y="253.0" text-anchor="middle" class="node-sub">31 GB · shared mmap views · cgroup cache</text>
+  </g>
+  <g id="node-framework" data-graph-role="node" data-node-id="framework" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="680,190,1110,280">
+  <rect x="680.0" y="190.0" width="430.0" height="90.0" rx="10.0" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="895.0" y="235.0" text-anchor="middle" class="node-title" font-size="18.0">Framework processes</text>
+  <text x="895.0" y="257.0" text-anchor="middle" class="node-sub">Python + torch + HCCL + VAE · cgroup RSS</text>
+  </g>
+  <g id="node-pinned-shards" data-graph-role="node" data-node-id="pinned-shards" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="250,405,950,475">
+  <rect x="250.0" y="405.0" width="700.0" height="70.0" rx="10.0" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.8"/>
+  <text x="600.0" y="440.0" text-anchor="middle" class="node-title" font-size="18.0">/dev/davinci_manager pinned shards</text>
+  <text x="600.0" y="462.0" text-anchor="middle" class="node-sub">Rank 0: 14.5 GB · Rank 1: 14.5 GB · CPU DMA · RSS=0</text>
+  </g>
+  <g id="node-hbm-framework" data-graph-role="node" data-node-id="hbm-framework" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,620,350,690">
+  <rect x="90.0" y="620.0" width="260.0" height="70.0" rx="10.0" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="220.0" y="655.0" text-anchor="middle" class="node-title" font-size="18.0">Framework + HCCL</text>
+  <text x="220.0" y="677.0" text-anchor="middle" class="node-sub">~2 GB</text>
+  </g>
+  <g id="node-double-buffer" data-graph-role="node" data-node-id="double-buffer" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="470,620,730,690">
+  <rect x="470.0" y="620.0" width="260.0" height="70.0" rx="10.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.0"/>
+  <rect x="476.0" y="626.0" width="248.0" height="58.0" rx="7.0" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.65"/>
+  <text x="600.0" y="655.0" text-anchor="middle" class="node-title" font-size="18.0">Two prefetch slots</text>
+  <text x="600.0" y="677.0" text-anchor="middle" class="node-sub">~0.8 GB · 2 × max block</text>
+  </g>
+  <g id="node-activations" data-graph-role="node" data-node-id="activations" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="850,620,1110,690">
+  <rect x="850.0" y="620.0" width="260.0" height="70.0" rx="10.0" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="980.0" y="655.0" text-anchor="middle" class="node-title" font-size="18.0">Inference activations</text>
+  <text x="980.0" y="677.0" text-anchor="middle" class="node-sub">~7 GB · total HBM ~10 GB</text>
+  </g>
+  <g id="pin-shards-label" data-graph-role="label" data-owner="pin-shards" data-graph-bounds="411.42,287.4,493.58,307.4">
+  <text x="452.5" y="301.4" text-anchor="middle" class="arrow-label">shard + pin</text>
+  </g>
+  <g id="h2d-label" data-graph-role="label" data-owner="h2d" data-graph-bounds="502.12,533.5,597,553.5">
+  <text x="549.56" y="547.5" text-anchor="middle" class="arrow-label">H2D prefetch</text>
+  </g>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,778,608,794">
+  <text x="48.0" y="790.0" class="footnote">Pinned shards remain in physical host RAM but are neither cgroup RSS nor NPU HBM</text>
+  </g>
+</svg>

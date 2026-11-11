@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="507" viewBox="0 0 900 507" role="img" aria-labelledby="title desc">
+<title id="title">Replace correction dependencies with input coefficients</title>
+<desc id="desc">An exact three-position scalar KDA illustration, with initial state zero, unit keys, values two, and decay and beta both one half. Corrections obey c1=b1, c2=b2 minus c1/4, c3=b3 minus c1/8 minus c2/4. The inverse coefficient matrix has rows [1,0,0], [-1/4,1,0], [-1/16,-1/4,1]. With known b values all one, the corrections are 1,3/4,11/16. Precomputing coefficients lets each row use known inputs rather than earlier computed corrections. This is the within-chunk correction system, not inversion of the recurrent state matrix.</desc>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L7 4L1 7" fill="none" stroke="#526677" stroke-width="1.7"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#16324b;font-size:18px}.title{font-size:27px;font-weight:700}.mt{font-size:24px;font-weight:700}.h{font-size:21px;font-weight:700}.b{font-weight:700}.s{font-size:16px}.m{fill:#526677}</style>
+<rect width="900" height="507" fill="white"/>
+<text x="24" y="38" class="title" text-anchor="start">Resolve dependencies before applying the inputs</text>
+<text x="24" y="73" class="m" text-anchor="start">Three-position illustration: each correction affects the positions after it.</text>
+<rect x="24" y="99" width="212" height="50" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="130.0" y="130.0" class="b" text-anchor="middle" style="fill:#16324b">Correction 1</text>
+<rect x="344" y="99" width="212" height="50" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="450.0" y="130.0" class="b" text-anchor="middle" style="fill:#16324b">Correction 2</text>
+<rect x="664" y="99" width="212" height="50" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="770.0" y="130.0" class="b" text-anchor="middle" style="fill:#16324b">Correction 3</text>
+<path d="M238 124H342" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="290" y="116" class="s" text-anchor="middle">× −¼</text>
+<path d="M558 124H662" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="610" y="116" class="s" text-anchor="middle">× −¼</text>
+<path d="M130 151V184H770V151" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="450" y="208" class="s" text-anchor="middle">Correction 1 also reaches correction 3 directly: × −⅛</text>
+<rect x="24" y="231" width="852" height="233" rx="7" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="44" y="268" class="h" text-anchor="start">Combine the dependency paths into coefficients</text>
+<text x="118" y="329" class="s" text-anchor="middle">Known inputs</text>
+<text x="118" y="352" class="s" text-anchor="middle">b₁ = b₂ = b₃ = 1</text>
+<path d="M214 359H283" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="424" y="310" class="b" text-anchor="middle">b1</text>
+<text x="490" y="310" class="b" text-anchor="middle">b2</text>
+<text x="556" y="310" class="b" text-anchor="middle">b3</text>
+<text x="376" y="349" class="b" text-anchor="end">c1</text>
+<rect x="394" y="324" width="59" height="33" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="423.5" y="347" class="s" text-anchor="middle">1</text>
+<rect x="460" y="324" width="59" height="33" rx="7" fill="white" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="489.5" y="347" class="s" text-anchor="middle">0</text>
+<rect x="526" y="324" width="59" height="33" rx="7" fill="white" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="555.5" y="347" class="s" text-anchor="middle">0</text>
+<text x="376" y="388" class="b" text-anchor="end">c2</text>
+<rect x="394" y="363" width="59" height="33" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="423.5" y="386" class="s" text-anchor="middle">−¼</text>
+<rect x="460" y="363" width="59" height="33" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="489.5" y="386" class="s" text-anchor="middle">1</text>
+<rect x="526" y="363" width="59" height="33" rx="7" fill="white" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="555.5" y="386" class="s" text-anchor="middle">0</text>
+<text x="376" y="427" class="b" text-anchor="end">c3</text>
+<rect x="394" y="402" width="59" height="33" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="423.5" y="425" class="s" text-anchor="middle">−¹⁄₁₆</text>
+<rect x="460" y="402" width="59" height="33" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="489.5" y="425" class="s" text-anchor="middle">−¼</text>
+<rect x="526" y="402" width="59" height="33" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="555.5" y="425" class="s" text-anchor="middle">1</text>
+<path d="M601 376H651" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="761" y="340" class="b" text-anchor="middle" style="fill:#16324b">c₁ = 1</text>
+<text x="761" y="377" class="b" text-anchor="middle" style="fill:#16324b">c₂ = ¾</text>
+<text x="761" y="414" class="b" text-anchor="middle" style="fill:#16324b">c₃ = ¹¹⁄₁₆</text>
+<text x="24" y="497" class="s m" text-anchor="start">Each row now uses known inputs. No row waits for an earlier correction to be calculated.</text>
+</svg>

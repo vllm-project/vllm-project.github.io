@@ -2,6 +2,7 @@
 layout: post
 title: "Structured Decoding in vLLM: a gentle introduction"
 author: "Guest Post by BentoML and Red Hat"
+summary: "How structured decoding works in vLLM, covering JSON outputs, grammar-guided generation, outlines, XGrammar, TPOT improvements, constrained decoding, and agentic workflow use cases."
 image: /assets/figures/struct-decode-intro/vllm-xgrammar-decode-time-per-output-token.png
 tags:
   - performance

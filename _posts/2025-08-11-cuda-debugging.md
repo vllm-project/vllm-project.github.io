@@ -2,6 +2,7 @@
 layout: post
 title: "CUDA Core Dump: An Effective Tool to Debug Memory Access Issues and Beyond"
 author: "Kaichao You"
+summary: "How to debug vLLM CUDA illegal memory access errors with CUDA core dumps, environment variables, cuda-gdb, and GPU state inspection when Python stack traces or CUDA_LAUNCH_BLOCKING are insufficient."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - developer

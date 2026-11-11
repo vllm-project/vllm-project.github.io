@@ -2,6 +2,7 @@
 layout: post
 title: "High Performance and Easy Deployment of vLLM in K8S with vLLM production-stack"
 author: LMCache Team
+summary: "What vLLM production-stack adds for Kubernetes serving: prefix-aware routing, LMCache-backed KV cache sharing, autoscaling, observability, fault tolerance, and cluster deployment with higher throughput and lower latency."
 image: /assets/figures/stack/stack-thumbnail.png
 tags:
   - large-scale-serving

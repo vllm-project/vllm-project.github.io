@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Triton Attention Backend Deep Dive"
 author: "vLLM Team at IBM Research"
+summary: "A technical walkthrough of the vLLM Triton attention backend, covering performance-portable paged attention kernels, backend selection, autotuning, CUDA graph behavior, benchmarks, and NVIDIA, AMD, and Intel support."
 image: /assets/figures/2026-03-04-vllm-triton-backend/image1.png
 math: true
 tags:

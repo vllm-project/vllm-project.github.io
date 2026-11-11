@@ -2,6 +2,7 @@
 layout: post
 title: "Disaggregated Serving for Hybrid SSM Models in vLLM"
 author: "Nicolò Lucchesi, Zhanqiu Hu (Red Hat), and the vLLM team"
+summary: "How vLLM extends NIXL prefill/decode disaggregation to hybrid SSM-attention models with dual descriptor views, physical-logical block bridging, and Mamba conv-state transfer support."
 image: /assets/figures/2026-04-21-hybrid-ssm-disagg/disagg-vs-colocated.png
 tags:
   - disaggregation

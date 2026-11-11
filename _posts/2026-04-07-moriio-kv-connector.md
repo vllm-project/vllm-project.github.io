@@ -2,6 +2,7 @@
 layout: post
 title: "Next-Level Inference: Why Your Single-Node vLLM Setup Needs Prefill-Decode Disaggregation"
 author: "AMD and Embedded LLM"
+summary: "How single-node prefill/decode disaggregation in vLLM uses AMD MORI-IO on an 8-GPU MI300X node to separate prefill and decode, transfer KV cache efficiently, stabilize ITL, and improve goodput."
 image: /assets/figures/2026-04-07-moriio-kv-connector/write-mode-request-flow-diagram.svg
 tags:
   - disaggregation

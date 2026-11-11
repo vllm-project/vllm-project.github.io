@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 430" width="960" height="430" role="img" aria-labelledby="f4t f4d">
+<title id="f4t">Async decode overlap through asynchronous host readback</title>
+<desc id="f4d">Without overlap the device idles while the host reads back and samples the previous decode step. With async decode the device runs consecutive decode steps while the host schedules the next step and finalizes the previous one, blocking on ttnn read events only at finalization.</desc>
+
+  <style>
+    .bg-panel  { fill: #f6f6fb; stroke: #d9d9e8; }
+    .bg-box    { fill: #ffffff; stroke: #c3c3d6; }
+    .idle      { fill: #eeeef4; stroke: #b6b6c8; }
+    .t         { fill: #16162a; font-family: ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+    .t-mut     { fill: #5c5c78; font-family: ui-sans-serif,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; }
+    .ln        { stroke: #9a9ab4; fill: none; }
+    .ln-div    { stroke: #d2d2e2; fill: none; }
+    .acc-s     { stroke: #6C5CE7; fill: none; }
+    .acc-f     { fill: #6C5CE7; }
+    .acc-soft  { fill: #ece9fd; stroke: #6C5CE7; }
+    .acc-mid   { fill: #d8d2fb; stroke: #6C5CE7; }
+    .fab       { stroke: #6C5CE7; opacity: 0.8; fill: none; }
+    .acc2-s    { stroke: #0E8A7D; fill: none; }
+    .acc2-f    { fill: #0E8A7D; }
+    .acc2-soft { fill: #e2f4f1; stroke: #0E8A7D; }
+    .acc2-mid  { fill: #c6e9e3; stroke: #0E8A7D; }
+    .warn-f    { fill: #C2410C; }
+    .warn-s    { stroke: #C2410C; fill: none; }
+    .warn-soft { fill: #fdeee4; stroke: #C2410C; }
+    .ah        { fill: #9a9ab4; }
+    .ah-acc    { fill: #6C5CE7; }
+    .ah-acc2   { fill: #0E8A7D; }
+    .ah-warn   { fill: #C2410C; }
+    @media (prefers-color-scheme: dark) {
+      .bg-panel  { fill: #1b1b2b; stroke: #34344a; }
+      .bg-box    { fill: #23233a; stroke: #45455e; }
+      .idle      { fill: #26263a; stroke: #4b4b62; }
+      .t         { fill: #e9e9f2; }
+      .t-mut     { fill: #a2a2bd; }
+      .ln        { stroke: #6a6a86; }
+      .ln-div    { stroke: #3a3a52; }
+      .acc-s     { stroke: #A29BFE; }
+      .acc-f     { fill: #A29BFE; }
+      .acc-soft  { fill: #2e2b52; stroke: #A29BFE; }
+      .acc-mid   { fill: #423a78; stroke: #A29BFE; }
+      .fab       { stroke: #A29BFE; opacity: 1; }
+      .acc2-s    { stroke: #4ECDC4; }
+      .acc2-f    { fill: #4ECDC4; }
+      .acc2-soft { fill: #1d3a3a; stroke: #4ECDC4; }
+      .acc2-mid  { fill: #27514e; stroke: #4ECDC4; }
+      .warn-f    { fill: #FB923C; }
+      .warn-s    { stroke: #FB923C; }
+      .warn-soft { fill: #3a2a1c; stroke: #FB923C; }
+      .ah        { fill: #6a6a86; }
+      .ah-acc    { fill: #A29BFE; }
+      .ah-acc2   { fill: #4ECDC4; }
+      .ah-warn   { fill: #FB923C; }
+    }
+  </style>
+
+<text x="20" y="30" class="t" font-size="17" text-anchor="start" font-weight="700">Async decode: submit now, read back later</text>
+<rect x="540" y="19" width="15" height="11" rx="2.5" class="acc-mid" stroke-width="1.1"/><text x="561" y="28.5" class="t-mut" font-size="12.5" text-anchor="start">device work</text>
+<rect x="660" y="19" width="15" height="11" rx="2.5" class="acc2-mid" stroke-width="1.1"/><text x="681" y="28.5" class="t-mut" font-size="12.5" text-anchor="start">host work</text>
+<rect x="772" y="19" width="15" height="11" rx="2.5" class="idle" stroke-width="1.1"/><text x="793" y="28.5" class="t-mut" font-size="12.5" text-anchor="start">device idle</text>
+<text x="20" y="88" class="t" font-size="15" text-anchor="start" font-weight="600">Without overlap</text>
+<text x="24" y="123" class="t-mut" font-size="12.5" text-anchor="start">device</text>
+<text x="24" y="167" class="t-mut" font-size="12.5" text-anchor="start">host</text>
+<rect x="118" y="100" width="168" height="36" rx="4" class="acc-mid" stroke-width="1.1"/><text x="202.0" y="122.375" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">decode N</text>
+<rect x="286" y="100" width="84" height="36" rx="4" class="idle" stroke-width="1.1"/><text x="328.0" y="122.375" class="t-mut" font-size="12.5" text-anchor="middle" font-weight="600">idle</text>
+<rect x="118" y="144" width="168" height="36" rx="4" class="bg-box" stroke-width="1.1"/><text x="202.0" y="166.375" class="t-mut" font-size="12.5" text-anchor="middle" font-weight="600">waiting on the device</text>
+<rect x="286" y="144" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="328.0" y="159.275" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">read back +</text><text x="328.0" y="172.775" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">sample + sched</text>
+<rect x="370" y="100" width="168" height="36" rx="4" class="acc-mid" stroke-width="1.1"/><text x="454.0" y="122.375" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">decode N+1</text>
+<rect x="538" y="100" width="84" height="36" rx="4" class="idle" stroke-width="1.1"/><text x="580.0" y="122.375" class="t-mut" font-size="12.5" text-anchor="middle" font-weight="600">idle</text>
+<rect x="370" y="144" width="168" height="36" rx="4" class="bg-box" stroke-width="1.1"/><text x="454.0" y="166.375" class="t-mut" font-size="12.5" text-anchor="middle" font-weight="600">waiting on the device</text>
+<rect x="538" y="144" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="580.0" y="159.275" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">read back +</text><text x="580.0" y="172.775" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">sample + sched</text>
+<rect x="622" y="100" width="168" height="36" rx="4" class="acc-mid" stroke-width="1.1"/><text x="706.0" y="122.375" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">decode N+2</text>
+<rect x="790" y="100" width="84" height="36" rx="4" class="idle" stroke-width="1.1"/><text x="832.0" y="122.375" class="t-mut" font-size="12.5" text-anchor="middle" font-weight="600">idle</text>
+<rect x="622" y="144" width="168" height="36" rx="4" class="bg-box" stroke-width="1.1"/><text x="706.0" y="166.375" class="t-mut" font-size="12.5" text-anchor="middle" font-weight="600">waiting on the device</text>
+<rect x="790" y="144" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="832.0" y="159.275" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">read back +</text><text x="832.0" y="172.775" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">sample + sched</text>
+<text x="20" y="206" class="t-mut" font-size="13" text-anchor="start">The host cannot start the next step until it has read back and sampled the last one, so the device idles in between.</text>
+<text x="20" y="240" class="t" font-size="15" text-anchor="start" font-weight="600">With async decode (steady state)</text>
+<text x="24" y="275" class="t-mut" font-size="12.5" text-anchor="start">device</text>
+<text x="24" y="319" class="t-mut" font-size="12.5" text-anchor="start">host</text>
+<rect x="118" y="252" width="168" height="36" rx="4" class="acc-mid" stroke-width="1.1"/><text x="202.0" y="274.375" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">decode N</text>
+<rect x="286" y="252" width="168" height="36" rx="4" class="acc-mid" stroke-width="1.1"/><text x="370.0" y="274.375" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">decode N+1</text>
+<rect x="454" y="252" width="168" height="36" rx="4" class="acc-mid" stroke-width="1.1"/><text x="538.0" y="274.375" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">decode N+2</text>
+<rect x="118" y="296" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="160.0" y="318.025" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">schedule N+1</text>
+<rect x="202" y="296" width="84" height="36" rx="4" class="bg-box" stroke-width="1.1"/><text x="244.0" y="318.025" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">async read N</text>
+<rect x="286" y="296" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="328.0" y="318.025" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">finalize N</text>
+<rect x="370" y="296" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="412.0" y="318.025" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">schedule N+2</text>
+<rect x="454" y="296" width="84" height="36" rx="4" class="bg-box" stroke-width="1.1"/><text x="496.0" y="318.025" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">async read N+1</text>
+<rect x="538" y="296" width="84" height="36" rx="4" class="acc2-mid" stroke-width="1.1"/><text x="580.0" y="318.025" class="acc2-f" font-size="11.5" text-anchor="middle" font-weight="600">finalize N+1</text>
+<path d="M286,246 L286,240 L622,240 L622,246" class="acc-s" stroke-width="1.3" fill="none"/><text x="454.0" y="234" class="acc-f" font-size="12.5" text-anchor="middle" font-weight="600">at most two steps outstanding</text>
+<line x1="286" y1="332" x2="286" y2="345" class="acc2-s" stroke-width="1.3"/>
+<text x="292" y="357" class="acc2-f" font-size="12.5" text-anchor="start" font-weight="600">ttnn.event_synchronize() — the only blocking wait</text>
+<text x="20" y="396" class="t" font-size="13.5" text-anchor="start">Decode is submitted with read_from_device=False and read asynchronously, so the host schedules ahead while readback is in flight.</text>
+<text x="20" y="418" class="t-mut" font-size="13" text-anchor="start">Schematic, not measured: overlap holds only while the batch is steady, and prefill stays synchronous.</text>
+</svg>

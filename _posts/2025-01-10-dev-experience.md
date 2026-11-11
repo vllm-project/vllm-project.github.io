@@ -2,6 +2,7 @@
 layout: post
 title: "Installing and Developing vLLM with Ease"
 author: "vLLM Team"
+summary: "How to install and develop vLLM using stable releases, nightly wheels, uv, source builds, Python and C++/CUDA workflows, and version tracking for production deployments."
 image: /assets/logos/vllm-logo-text-light.png
 tags:
   - developer

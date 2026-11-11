@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" viewBox="0 0 1320 560" width="1320" height="560" role="img" aria-label="Per-step time of the MAGI-2 optimization work on a log scale, from 15.6 s on the first run to 565 ms on the full PR stack, 27.6 times faster">
+<title>Per-step time from the first run to the full PR stack</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/></marker></defs>
+<rect width="1320" height="560" fill="#ffffff"/>
+<text x="24" y="28" font-size="18" fill="#1f2937" text-anchor="start" font-weight="600">Per-step time, from the first working run to the full PR stack</text>
+<text x="24" y="47" font-size="11.5" fill="#4b5563" text-anchor="start">Log scale. Every point applies one change from Section 4. The sequence re-baselines once, when the changes were re-applied to a clean tree.</text>
+<line x1="56" y1="200.0" x2="1128" y2="200.0" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="44" y="204.0" font-size="11" fill="#4b5563" text-anchor="end">10 s</text>
+<line x1="56" y1="304.5757490560675" x2="1128" y2="304.5757490560675" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="44" y="308.5757490560675" font-size="11" fill="#4b5563" text-anchor="end">3 s</text>
+<line x1="56" y1="400.0" x2="1128" y2="400.0" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="44" y="404.0" font-size="11" fill="#4b5563" text-anchor="end">1 s</text>
+<line x1="56" y1="460.20599913279625" x2="1128" y2="460.20599913279625" stroke="#e5e7eb" stroke-width="1.0"/>
+<text x="44" y="464.20599913279625" font-size="11" fill="#4b5563" text-anchor="end">500 ms</text>
+<line x1="526" y1="104" x2="526" y2="470" stroke="#9ca3af" stroke-width="1.2" stroke-dasharray="4 5"/>
+<text x="526" y="96" font-size="10.5" fill="#4b5563" text-anchor="middle">re-baselined</text>
+<line x1="456" y1="422.7018549655036" x2="596" y2="280.0233855852624" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="4 5"/>
+<polyline points="96.0,161.4 156.0,324.2 216.0,349.2 276.0,404.2 336.0,416.9 396.0,421.8 456.0,422.7" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round"/>
+<circle cx="96.0" cy="161.4" r="4.5" fill="#2563eb"/>
+<circle cx="156.0" cy="324.2" r="4.5" fill="#2563eb"/>
+<circle cx="216.0" cy="349.2" r="4.5" fill="#2563eb"/>
+<circle cx="276.0" cy="404.2" r="4.5" fill="#2563eb"/>
+<circle cx="336.0" cy="416.9" r="4.5" fill="#2563eb"/>
+<circle cx="396.0" cy="421.8" r="4.5" fill="#2563eb"/>
+<circle cx="456.0" cy="422.7" r="4.5" fill="#2563eb"/>
+<polyline points="596.0,280.0 660.0,307.6 724.0,388.9 788.0,414.4 852.0,424.4 916.0,426.9 980.0,429.0 1044.0,435.2 1108.0,449.6" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round"/>
+<circle cx="596.0" cy="280.0" r="4.5" fill="#2563eb"/>
+<circle cx="660.0" cy="307.6" r="4.5" fill="#2563eb"/>
+<circle cx="724.0" cy="388.9" r="4.5" fill="#2563eb"/>
+<circle cx="788.0" cy="414.4" r="4.5" fill="#2563eb"/>
+<circle cx="852.0" cy="424.4" r="4.5" fill="#2563eb"/>
+<circle cx="916.0" cy="426.9" r="4.5" fill="#2563eb"/>
+<circle cx="980.0" cy="429.0" r="4.5" fill="#2563eb"/>
+<circle cx="1044.0" cy="435.2" r="4.5" fill="#2563eb"/>
+<circle cx="1108.0" cy="449.6" r="4.5" fill="#2563eb"/>
+<text x="88" y="156" font-size="12.5" fill="#2563eb" text-anchor="end" font-weight="600">15.6 s</text>
+<text x="456" y="405" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">770 ms</text>
+<text x="596" y="264" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">4.0 s</text>
+<text x="1108" y="432" font-size="12.5" fill="#2563eb" text-anchor="middle" font-weight="600">565 ms</text>
+<rect x="996" y="104" width="300" height="78" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="1016" y="138" font-size="17" fill="#2563eb" text-anchor="start" font-weight="600">27.6× faster per step</text>
+<text x="1016" y="162" font-size="12" fill="#4b5563" text-anchor="start">15.6 s → 565 ms</text>
+<line x1="56" y1="486" x2="1128" y2="486" stroke="#9ca3af" stroke-width="1.2"/>
+<text x="56" y="508" font-size="11" fill="#4b5563" text-anchor="start">one point per change, in the order the work was done</text>
+<text x="24" y="534" font-size="11" fill="#4b5563" text-anchor="start">The final point is the full PR stack measured on 19 October (Section 5.3). Section 5.2's 591 ms comes from a separate session and is not plotted.</text>
+</svg>

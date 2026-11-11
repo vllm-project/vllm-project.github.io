@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" data-generator="fireworks-tech-graph" data-schema-version="1" data-text-metrics="heuristic-v1" data-style-id="1" data-visual-theme="Flat Icon" data-diagram-type="comparison" data-motion-scene="" data-semantic-profile="generic" data-semantic-valid="true" data-quality-profile="showcase" data-max-bends-per-edge="2" data-max-total-bends="8" data-max-route-stretch="1.35" data-max-bridged-crossings="0" data-min-node-gap="40.0" data-min-container-gutter="20.0" data-min-label-clearance="4.0" data-min-segment-length="16.0">
+  <defs>
+    <marker id="arrowA" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowB" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arrowC" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowE" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+    </marker>
+    <marker id="arrowF" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowH" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+    <filter id="shadowSoft" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadowGlass" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#020617" flood-opacity="0.28"/>
+    </filter>
+    <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .title { font-size: 30px; font-weight: 700; fill: #111827; }
+    .subtitle { font-size: 14px; font-weight: 500; fill: #6b7280; }
+    .section { font-size: 13px; font-weight: 700; fill: #2563eb; letter-spacing: 1.4px; }
+    .section-sub { font-size: 12px; font-weight: 500; fill: #94a3b8; }
+    .node-title { font-weight: 700; fill: #111827; }
+    .node-sub { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .node-type { font-size: 12px; font-weight: 700; fill: #9ca3af; letter-spacing: 0.08em; }
+    .arrow-label { font-size: 12px; font-weight: 600; fill: #6b7280; }
+    .legend { font-size: 12px; font-weight: 500; fill: #6b7280; }
+    .footnote { font-size: 12px; font-weight: 500; fill: #94a3b8; }
+    .metric-label { font-size: 8.5px; font-weight: 700; fill: #94a3b8; text-transform: uppercase; }
+    .metric-value { font-size: 9.5px; font-weight: 700; fill: #111827; }
+    </style>
+  </defs>
+  <rect data-graph-role="background" width="1200.0" height="720.0" fill="#ffffff"/>
+  <text x="600.0" y="56" text-anchor="middle" class="title">Cold-start Host Memory: Private Copies vs mmap</text>
+  <text x="600.0" y="82" text-anchor="middle" class="subtitle">Cosmos3-Nano · 33 GB weights · DP4</text>
+  <g id="baseline" data-graph-role="container" data-container-id="baseline" data-semantic-role="boundary" data-graph-bounds="40,120,560,620">
+  <rect data-graph-role="container" x="40.0" y="120.0" width="520.0" height="500.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="58.0" y="144.0" class="section">BASELINE · OBSERVED PEAK 178 GB</text>
+    <rect id="baseline-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="126" width="246.06" height="30" fill="none" stroke="none"/>
+  </g>
+  <g id="optimized" data-graph-role="container" data-container-id="optimized" data-semantic-role="boundary" data-graph-bounds="640,120,1160,620">
+  <rect data-graph-role="container" x="640.0" y="120.0" width="520.0" height="500.0" rx="16.0" fill="none" stroke="#dbe5f1" stroke-width="1.4" stroke-dasharray="6 5"/>
+  <text x="658.0" y="144.0" class="section">META + MMAP · OBSERVED PEAK 47 GB</text>
+    <rect id="optimized-header" data-graph-role="reserved" data-reserved-kind="container-header" x="648" y="126" width="268.16" height="30" fill="none" stroke="none"/>
+  </g>
+  <path id="mmap-view" data-graph-role="edge" data-edge-id="mmap-view" data-source="meta-views" data-target="shared-cache" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="" data-motion-stage="" data-motion-order="" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 900,300 L 900,350" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
+  <g id="node-private-copies" data-graph-role="node" data-node-id="private-copies" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,200,510,300">
+  <rect x="90.0" y="200.0" width="420.0" height="100.0" rx="10.0" fill="#fef2f2" stroke="#dc2626" stroke-width="1.8"/>
+  <text x="300.0" y="250.0" text-anchor="middle" class="node-title" font-size="18.0">Four private model copies</text>
+  <text x="300.0" y="272.0" text-anchor="middle" class="node-sub">4 × 33 GB = 132 GB</text>
+  </g>
+  <g id="node-baseline-cache" data-graph-role="node" data-node-id="baseline-cache" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,350,510,440">
+  <rect x="90.0" y="361.25" width="420.0" height="67.5" fill="#eff6ff" stroke="none"/>
+  <ellipse cx="300.0" cy="361.25" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <path d="M 90,361.25 L 90,428.75 M 510,361.25 L 510,428.75" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+  <ellipse cx="300.0" cy="428.75" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <text x="300.0" y="389.0" text-anchor="middle" class="node-title" font-size="18.0">Shared page cache</text>
+  <text x="300.0" y="413.0" text-anchor="middle" class="node-sub">33 GB safetensors</text>
+  </g>
+  <g id="node-baseline-overhead" data-graph-role="node" data-node-id="baseline-overhead" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="90,490,510,580">
+  <rect x="90.0" y="490.0" width="420.0" height="90.0" rx="10.0" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <text x="300.0" y="535.0" text-anchor="middle" class="node-title" font-size="18.0">Framework + transient overhead</text>
+  <text x="300.0" y="557.0" text-anchor="middle" class="node-sub">about 13 GB · total observed peak 178 GB</text>
+  </g>
+  <g id="node-meta-views" data-graph-role="node" data-node-id="meta-views" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="690,200,1110,300">
+  <rect x="690.0" y="200.0" width="420.0" height="100.0" rx="10.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.0"/>
+  <rect x="696.0" y="206.0" width="408.0" height="88.0" rx="7.0" fill="none" stroke="#16a34a" stroke-width="1.2" opacity="0.65"/>
+  <text x="900.0" y="250.0" text-anchor="middle" class="node-title" font-size="18.0">Ranks 0–3 use meta parameters</text>
+  <text x="900.0" y="272.0" text-anchor="middle" class="node-sub">0 private weight copies</text>
+  </g>
+  <g id="node-shared-cache" data-graph-role="node" data-node-id="shared-cache" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="690,350,1110,440">
+  <rect x="690.0" y="361.25" width="420.0" height="67.5" fill="#eff6ff" stroke="none"/>
+  <ellipse cx="900.0" cy="361.25" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <path d="M 690,361.25 L 690,428.75 M 1110,361.25 L 1110,428.75" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+  <ellipse cx="900.0" cy="428.75" rx="210.0" ry="11.25" fill="#eff6ff" stroke="#2563eb" stroke-width="2.2"/>
+  <text x="900.0" y="389.0" text-anchor="middle" class="node-title" font-size="18.0">One shared mmap page cache</text>
+  <text x="900.0" y="413.0" text-anchor="middle" class="node-sub">33 GB · read-only · reclaimable</text>
+  </g>
+  <g id="node-optimized-overhead" data-graph-role="node" data-node-id="optimized-overhead" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="690,490,1110,580">
+  <rect x="690.0" y="490.0" width="420.0" height="90.0" rx="10.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+  <text x="900.0" y="535.0" text-anchor="middle" class="node-title" font-size="18.0">Framework RSS + cache</text>
+  <text x="900.0" y="557.0" text-anchor="middle" class="node-sub">observed cgroup peak 47 GB · 73% lower</text>
+  </g>
+  <g id="mmap-view-label" data-graph-role="label" data-owner="mmap-view" data-graph-bounds="819.16,311,897,331">
+  <text x="858.08" y="325.0" text-anchor="middle" class="arrow-label">mmap views</text>
+  </g>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,668,727,684">
+  <text x="48.0" y="680.0" class="footnote">Baseline arithmetic: 132 GB private copies + 33 GB cache + ~13 GB overhead = 178 GB observed peak</text>
+  </g>
+</svg>

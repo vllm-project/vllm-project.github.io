@@ -2,6 +2,7 @@
 layout: post
 title: "Run Highly Efficient and Accurate Multi-Agent AI with NVIDIA Nemotron 3 Super Using vLLM"
 author: "NVIDIA Nemotron Team"
+summary: "How to serve NVIDIA Nemotron 3 Super with vLLM for multi-agent AI, including BF16, FP8, and NVFP4 checkpoints, 1M-token context, Thinking Budget, MTP, supported GPUs, and OpenAI-compatible deployment."
 image: /assets/figures/2026-nemotron-3-super/figure1.png
 tags:
   - model-support

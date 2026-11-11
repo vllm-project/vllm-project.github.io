@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Semantic Router: Next Phase in LLM inference"
 author: "vLLM Semantic Router Team"
+summary: "How vLLM Semantic Router routes requests by intent, covering semantic classification, smart reasoning-path selection, Rust and Candle execution, and Kubernetes Envoy integration for efficient inference."
 image: /assets/figures/semantic-router/architecture.png
 tags:
   - ecosystem

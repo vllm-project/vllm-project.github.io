@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KDA group dependency sequence</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #16324b; background: #fff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 12px; }
+    main { max-width: 900px; margin: 0 auto; }
+    .diagram { overflow-x: auto; border-radius: 4px; }
+    .diagram img, .diagram svg { display: block; width: 100%; min-width: 680px; height: auto; }
+    .hint { display: none; margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: #526677; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+    [hidden] { display: none !important; }
+    button { appearance: none; border: 1px solid #527188; border-radius: 4px; padding: 10px 14px; min-height: 44px; font: inherit; font-size: 14px; line-height: 1.3; color: #16324b; background: #e8f4ff; cursor: pointer; }
+    button:hover { background: #dceeff; }
+    .play { background: #fdb515; }
+    .play:hover { background: #ffc744; }
+    :focus-visible { outline: 3px solid #0065b3; outline-offset: 3px; }
+    .status { flex-basis: 100%; min-height: 3em; margin: 0; font-size: 14px; line-height: 1.5; }
+    .stage-focus { fill: none; stroke: #0065b3; stroke-width: 2.5; stroke-dasharray: 7 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+    .playing .stage-focus { animation: stage-flow 2s linear infinite; }
+    @keyframes stage-flow { to { stroke-dashoffset: -22; } }
+    @media (max-width: 703px) { .hint { display: block; } }
+    @media (prefers-reduced-motion: reduce) { .play { display: none; } .stage-focus { animation: none; stroke-dasharray: none; } }
+    @media print { body { padding: 0; } .controls, .hint, .stage-focus { display: none; } .diagram { overflow: visible; } .diagram img, .diagram svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="diagram" tabindex="0" role="region" aria-label="KDA dependency diagram; scroll horizontally on narrow screens">
+      <img src="../figures/2026-10-16-kimi-k3-mi355x/kda-group-rules.svg" width="900" height="585" alt="Combine ordered token updates into group rules, scan the summaries to find group starting states, then replay the groups in parallel while keeping tokens within each group ordered.">
+    </div>
+    <p class="hint">Scroll horizontally to read the full diagram.</p>
+    <div class="controls" role="group" aria-label="KDA dependency sequence" hidden>
+      <button class="play" type="button">Play sequence</button>
+      <button class="next" type="button">Next step</button>
+      <button class="reset" type="button">Reset</button>
+      <p class="status" role="status" aria-live="polite" aria-atomic="true">Step through the dependency order. Animation timing is illustrative.</p>
+    </div>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const diagram = document.querySelector(".diagram");
+      const controls = document.querySelector(".controls");
+      const play = document.querySelector(".play");
+      const next = document.querySelector(".next");
+      const reset = document.querySelector(".reset");
+      const status = document.querySelector(".status");
+      const initialLabel = status.textContent;
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const labels = [
+        "1 / 3 — Build each group’s summary before its incoming state is known.",
+        "2 / 3 — Scan the summaries in sequence order to find each group’s starting state.",
+        "3 / 3 — Replay the groups in parallel; tokens inside each group stay in order."
+      ];
+
+      async function enhance() {
+        const img = diagram.querySelector("img");
+        try {
+          const response = await fetch(img.src);
+          if (!response.ok) return;
+          const parsed = new DOMParser().parseFromString(await response.text(), "image/svg+xml");
+          const source = parsed.documentElement;
+          if (source.localName !== "svg" || parsed.querySelector("parsererror, script, foreignObject")) return;
+          if (![1, 2, 3].every((value) => source.querySelector(`[data-stage="${value}"]`))) return;
+          const svg = document.importNode(source, true);
+          img.replaceWith(svg);
+
+          let stage = 0;
+          let timer = null;
+          function stop() {
+            clearTimeout(timer);
+            timer = null;
+            play.textContent = "Play sequence";
+            diagram.classList.remove("playing");
+          }
+          function show(value) {
+            stage = value;
+            svg.querySelectorAll(".stage-focus").forEach((node) => node.remove());
+            status.textContent = stage ? labels[stage - 1] : initialLabel;
+            if (!stage) { diagram.scrollLeft = 0; return; }
+            const group = svg.querySelector(`[data-stage="${stage}"]`);
+            const bounds = group.getBBox();
+            const focus = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            for (const [key, value] of Object.entries({ x: bounds.x - 8, y: bounds.y - 8, width: bounds.width + 16, height: bounds.height + 16, rx: 8, class: "stage-focus", "aria-hidden": "true" })) {
+              focus.setAttribute(key, value);
+            }
+            group.append(focus);
+            const scale = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+            diagram.scrollLeft = (bounds.x + bounds.width / 2) * scale - diagram.clientWidth / 2;
+          }
+          function advance() {
+            if (stage >= 3) { stop(); return; }
+            show(stage + 1);
+            timer = setTimeout(advance, 2400);
+          }
+          play.addEventListener("click", () => {
+            if (timer !== null) { stop(); return; }
+            if (reducedMotion.matches) return;
+            if (stage >= 3) stage = 0;
+            diagram.classList.add("playing");
+            advance();
+            play.textContent = "Pause";
+          });
+          next.addEventListener("click", () => { stop(); show(stage % 3 + 1); });
+          reset.addEventListener("click", () => { stop(); show(0); });
+          reducedMotion.addEventListener("change", stop);
+          addEventListener("beforeprint", stop);
+          document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+          if ("IntersectionObserver" in window) {
+            new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) stop(); }).observe(diagram);
+          }
+          controls.hidden = false;
+        } catch {
+          // The original SVG remains readable if enhancement is unavailable.
+        }
+      }
+      enhance();
+
+      let lastHeight = 0;
+      const sendHeight = () => {
+        const height = Math.ceil(document.body.getBoundingClientRect().height);
+        if (height !== lastHeight) {
+          lastHeight = height;
+          parent.postMessage({ type: "vllm-embed-resize", height }, "*");
+        }
+      };
+      addEventListener("load", sendHeight);
+      if ("ResizeObserver" in window) new ResizeObserver(sendHeight).observe(document.body);
+    })();
+  </script>
+</body>
+</html>

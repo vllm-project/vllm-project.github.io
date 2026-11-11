@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="660" viewBox="0 0 1280 660" role="img" aria-labelledby="title desc">
+  <title id="title">MiniMax H3 quantization paths in vLLM-Omni</title>
+  <desc id="desc">Comparison of online FP8 quantization from a BF16 checkpoint and offline SVDQuant W4A4 with a BF16 low-rank correction.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0d9488"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .title { font-size: 27px; font-weight: 750; fill: #0f172a; }
+      .subtitle { font-size: 15px; font-weight: 500; fill: #64748b; }
+      .panel-title { font-size: 20px; font-weight: 750; fill: #0f172a; }
+      .panel-sub { font-size: 13px; font-weight: 600; fill: #64748b; }
+      .node-title { font-size: 15px; font-weight: 720; fill: #0f172a; }
+      .node-sub { font-size: 12.5px; font-weight: 500; fill: #475569; }
+      .formula { font-size: 17px; font-weight: 700; fill: #4c1d95; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .arrow-label { font-size: 11.5px; font-weight: 700; fill: #64748b; }
+      .foot { font-size: 12px; font-weight: 550; fill: #64748b; }
+      .arrow { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .arrow-purple { stroke: #7c3aed; stroke-width: 2.4; fill: none; marker-end: url(#arrowPurple); }
+      .arrow-teal { stroke: #0d9488; stroke-width: 2.4; fill: none; marker-end: url(#arrowTeal); }
+    </style>
+  </defs>
+
+  <rect width="1280" height="660" fill="#ffffff"/>
+  <text x="44" y="50" class="title">Two MiniMax H3 quantization paths</text>
+  <text x="44" y="77" class="subtitle">Online FP8 changes runtime weights at load; SVDQuant stores a precomputed 4-bit residual plus a BF16 correction.</text>
+
+  <!-- Online FP8 -->
+  <rect x="40" y="108" width="580" height="492" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="40" y="108" width="580" height="66" rx="18" fill="#fff7ed"/>
+  <rect x="40" y="150" width="580" height="24" fill="#fff7ed"/>
+  <text x="68" y="139" class="panel-title">Online FP8 · W8A8</text>
+  <text x="68" y="161" class="panel-sub">Ordinary BF16 checkpoint · quantize once at load · dynamic activations</text>
+
+  <rect x="70" y="212" width="165" height="74" rx="12" fill="#ffedd5" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="152" y="241" text-anchor="middle" class="node-title">BF16 checkpoint</text>
+  <text x="152" y="264" text-anchor="middle" class="node-sub">the released H3 weights</text>
+
+  <rect x="285" y="202" width="185" height="94" rx="12" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="377" y="232" text-anchor="middle" class="node-title">Layerwise load</text>
+  <text x="377" y="254" text-anchor="middle" class="node-sub">materialize one BF16 layer</text>
+  <text x="377" y="276" text-anchor="middle" class="node-sub">compute frozen weight scale</text>
+  <path class="arrow" d="M 235 249 L 271 249"/>
+
+  <rect x="510" y="212" width="80" height="74" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="550" y="240" text-anchor="middle" class="node-title">W8</text>
+  <text x="550" y="262" text-anchor="middle" class="node-sub">+ s_w</text>
+  <path class="arrow-purple" d="M 470 249 L 496 249"/>
+
+  <rect x="70" y="350" width="165" height="74" rx="12" fill="#ecfeff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="152" y="379" text-anchor="middle" class="node-title">BF16 activation x</text>
+  <text x="152" y="402" text-anchor="middle" class="node-sub">changes each denoise step</text>
+
+  <rect x="285" y="340" width="185" height="94" rx="12" fill="#ecfeff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="377" y="370" text-anchor="middle" class="node-title">Dynamic A8 quant</text>
+  <text x="377" y="392" text-anchor="middle" class="node-sub">a8 + per-batch s_a</text>
+  <text x="377" y="414" text-anchor="middle" class="node-sub">recomputed every forward</text>
+  <path class="arrow-teal" d="M 235 387 L 271 387"/>
+
+  <rect x="490" y="344" width="100" height="86" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="540" y="375" text-anchor="middle" class="node-title">FP8 GEMM</text>
+  <text x="540" y="397" text-anchor="middle" class="node-sub">scaled epilogue</text>
+  <text x="540" y="418" text-anchor="middle" class="node-sub">→ BF16 y</text>
+  <path class="arrow-purple" d="M 550 286 L 550 330"/>
+  <path class="arrow-teal" d="M 470 387 L 476 387"/>
+
+  <rect x="70" y="486" width="520" height="72" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="90" y="514" class="node-title">Steady state</text>
+  <text x="90" y="536" class="node-sub">Eligible linears retain FP8 weights and frozen scales.</text>
+  <text x="90" y="553" class="node-sub">The BF16 checkpoint remains on disk.</text>
+
+  <!-- SVDQuant -->
+  <rect x="660" y="108" width="580" height="492" rx="18" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="660" y="108" width="580" height="66" rx="18" fill="#eef2ff"/>
+  <rect x="660" y="150" width="580" height="24" fill="#eef2ff"/>
+  <text x="688" y="139" class="panel-title">Offline SVDQuant · W4A4 + BF16 rank correction</text>
+  <text x="688" y="161" class="panel-sub">Pre-quantized rank-32 checkpoint · two compute branches</text>
+
+  <!-- Serialized checkpoint tensors -->
+  <rect x="690" y="205" width="180" height="130" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="780" y="232" text-anchor="middle" class="node-title">Checkpoint tensors</text>
+  <text x="780" y="260" text-anchor="middle" class="node-sub">R4 + block scales</text>
+  <text x="780" y="286" text-anchor="middle" class="node-sub">BF16 U / V + smooth</text>
+  <text x="780" y="311" text-anchor="middle" class="node-sub">precomputed offline</text>
+
+  <!-- Request activation with two explicit output ports -->
+  <rect x="690" y="385" width="180" height="80" rx="12" fill="#ecfeff" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="780" y="414" text-anchor="middle" class="node-title">Activation x</text>
+  <text x="780" y="440" text-anchor="middle" class="node-sub">A4 for base · BF16 for rank</text>
+
+  <!-- Two compute branches -->
+  <rect x="930" y="205" width="190" height="100" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+  <text x="1025" y="237" text-anchor="middle" class="node-title">4-bit base branch</text>
+  <text x="1025" y="272" text-anchor="middle" class="formula">Qw4(R) · Qa4(x)</text>
+
+  <rect x="930" y="365" width="190" height="105" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.6"/>
+  <text x="1025" y="396" text-anchor="middle" class="node-title">BF16 low-rank</text>
+  <text x="1025" y="426" text-anchor="middle" class="formula">U(Vᵀx)</text>
+  <text x="1025" y="452" text-anchor="middle" class="node-sub">outlier correction</text>
+
+  <!-- Clean, non-crossing input routes -->
+  <path class="arrow-purple" d="M 870 250 L 926 250"/>
+  <text x="893" y="240" text-anchor="middle" class="arrow-label">R4 + scales</text>
+
+  <path class="arrow-purple" d="M 780 335 L 780 345 L 1025 345 L 1025 361"/>
+  <text x="860" y="338" text-anchor="middle" class="arrow-label">U / V</text>
+
+  <path class="arrow-teal" d="M 870 405 L 900 405 L 900 325 L 1025 325 L 1025 309"/>
+  <text x="914" y="316" text-anchor="middle" class="arrow-label">A4</text>
+
+  <path class="arrow-teal" d="M 870 445 L 926 445"/>
+  <text x="893" y="437" text-anchor="middle" class="arrow-label">x</text>
+
+  <!-- Side-mounted merge keeps branch outputs separate -->
+  <circle cx="1150" cy="337" r="24" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+  <text x="1150" y="346" text-anchor="middle" class="formula">+</text>
+  <path class="arrow-purple" d="M 1120 255 C 1142 255, 1125 305, 1138 319"/>
+  <path class="arrow-teal" d="M 1120 417 C 1142 417, 1125 370, 1138 355"/>
+
+  <rect x="1190" y="312" width="42" height="50" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.6"/>
+  <text x="1211" y="344" text-anchor="middle" class="node-title">y</text>
+  <path class="arrow-teal" d="M 1174 337 L 1186 337"/>
+
+  <rect x="690" y="526" width="510" height="58" rx="11" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="945" y="549" text-anchor="middle" class="node-sub">Merged loader and correctness baseline.</text>
+  <text x="945" y="570" text-anchor="middle" class="node-sub">Native fused performance remains follow-up work.</text>
+
+  <text x="40" y="634" class="foot">H3 keeps precision-sensitive components outside these paths. Diagram adapted from the vLLM-Omni cookbook FP8 and SVDQuant explainers.</text>
+</svg>

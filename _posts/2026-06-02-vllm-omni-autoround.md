@@ -2,6 +2,7 @@
 layout: post
 title: "Accelerating vLLM-Omni Inference with AutoRound Quantization"
 author: "vLLM-Omni Community, Intel AutoRound Team"
+summary: "How AutoRound integrates with vLLM-Omni to serve W4A16 quantized multimodal, diffusion, image, and video models with smaller checkpoints, preserved quality, Intel XPU acceleration, and NVIDIA GPU support."
 image: /assets/figures/2026-06-02-vllm-omni-autoround/fig1_omnibench.png
 tags:
   - quantization

@@ -2,6 +2,7 @@
 layout: post
 title: "Serving Agentic Workloads at Scale with vLLM x Mooncake"
 author: "Yifan Qiao, Trong Dao Le, Ao Shen, Zhewen Li, Bowen Wang"
+summary: "How vLLM integrates Mooncake Store as a distributed KV cache for agentic workloads, reusing shared prefixes across turns and instances to improve throughput, TTFT, end-to-end latency, and multi-GPU scaling."
 image: /assets/figures/2026-05-06-mooncake-store/hero_vllm_mooncake.svg
 tags:
   - agentic

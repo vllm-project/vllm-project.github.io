@@ -2,6 +2,7 @@
 layout: post
 title: "Introducing vLLM Inference Provider in Llama Stack"
 author: "Yuan Tang (Red Hat) and Ashwin Bharambe (Meta)"
+summary: "How Llama Stack integrates vLLM as an inference provider through remote and inline providers, enabling OpenAI-compatible vLLM serving for local and Kubernetes generative AI application deployments."
 image: /assets/figures/llama-stack/llama-stack.png
 tags:
   - model-support

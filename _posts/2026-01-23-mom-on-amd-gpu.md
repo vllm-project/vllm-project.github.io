@@ -2,6 +2,7 @@
 layout: post
 title: "Building Mixture-of-Models on AMD GPUs with vLLM-SR"
 author: "The AMD and vLLM Semantic Router Team"
+summary: "How vLLM Semantic Router builds a Mixture-of-Models system on AMD MI300X and MI355X GPUs, routing across specialized models with signals, decisions, safety checks, semantic caching, and live MoM deployment."
 image: /assets/figures/semantic-router/mom-0.png
 tags:
   - hardware

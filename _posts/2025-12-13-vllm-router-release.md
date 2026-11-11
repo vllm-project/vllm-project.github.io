@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Router: A High-Performance and Prefill/Decode Aware Load Balancer for Large-scale Serving"
 author: "vLLM Team"
+summary: "What vLLM Router provides for large-scale serving: Rust-based state-aware load balancing, KV-cache affinity, prefill/decode disaggregation orchestration, Kubernetes discovery, retries, circuit breakers, and Prometheus metrics."
 image: /assets/figures/vllm-router/vllm-router.png
 tags:
   - large-scale-serving

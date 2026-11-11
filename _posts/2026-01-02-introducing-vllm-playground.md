@@ -3,6 +3,7 @@ layout: post
 title: "Introducing vLLM Playground: A Modern Web Interface for Managing and Interacting with vLLM Servers"
 date: 2026-01-02
 author: micytao
+summary: "How vLLM Playground provides a web UI for starting, configuring, testing, and monitoring vLLM servers across local macOS, Linux GPU or CPU, Kubernetes, and OpenShift environments."
 categories: [community, tools]
 image: /assets/figures/vllm-playground/vllm-playground-newUI.png
 tags:

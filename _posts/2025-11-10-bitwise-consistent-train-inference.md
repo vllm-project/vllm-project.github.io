@@ -2,6 +2,7 @@
 layout: post
 title: "No More Train-Inference Mismatch: Bitwise Consistent On-Policy Reinforcement Learning with vLLM and TorchTitan"
 author: "vLLM and TorchTitan Teams"
+summary: "How vLLM and TorchTitan demonstrate bitwise consistent on-policy RL by matching training and inference numerics, using batch-invariant kernels to reduce train-inference mismatch and stabilize reinforcement learning."
 image: /assets/figures/2025-11-10-bitwise-exact-rl/reward-comparison.png
 tags:
   - performance

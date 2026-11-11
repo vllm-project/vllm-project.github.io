@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM V1: A Major Upgrade to vLLM's Core Architecture"
 author: "vLLM Team"
+summary: "What changed in vLLM V1: a re-architected engine with a simpler scheduler, near-zero-overhead prefix caching, cleaner tensor parallelism, multiprocessing API server, and default optimizations for higher-throughput serving."
 image: /assets/figures/v1/vLLM_V1_Logo.png
 tags:
   - performance

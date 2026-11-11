@@ -2,6 +2,7 @@
 layout: post
 title: "Zero-Reload Model Switching with vLLM Sleep Mode"
 author: "Embedded LLM"
+summary: "How vLLM Sleep Mode enables fast model switching by hibernating weights to CPU RAM or discarding them while preserving process state, CUDA graphs, allocators, and kernel warmup to avoid full reloads."
 image: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
 thumbnail-img: /assets/figures/2025-vllm-sleep-mode/sleepmode.png
 share-img: /assets/figures/2025-vllm-sleep-mode/sleepmode.png

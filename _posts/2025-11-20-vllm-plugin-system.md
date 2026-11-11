@@ -2,6 +2,7 @@
 layout: post
 title: "Building Clean, Maintainable vLLM Modifications Using the Plugin System"
 author: "Dhruvil Bhatt (AWS SageMaker)"
+summary: "How the vLLM plugin system helps teams customize scheduling, KV-cache behavior, hardware integrations, and model execution without long-lived forks, monkey patches, or brittle internal modifications."
 image: /assets/figures/2025-11-20-vllm-plugin-system/vllm-plugin-system-arch.png
 tags:
   - developer

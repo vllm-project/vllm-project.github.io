@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="362" viewBox="0 0 960 362" role="img" aria-labelledby="t5 d5">
+  <title id="t5">Three row layouts: indexed, grouped contiguous, grouped masked</title>
+  <desc id="d5">Three columns of per-expert rows. Indexed reads vLLM sorted_ids and expert_ids; its activation rows are unpadded and padding sentinels live in the routing indices instead. Grouped contiguous concatenates rows by expert and pads to 128-row boundaries, marking padding with minus one in m_indices. Grouped masked gives every expert a fixed row budget and carries the valid count in masked_m, so unused budget trails each expert.</desc>
+  <defs>
+    <style>
+    .s{font-family:Inter,ui-sans-serif,-apple-system,"Segoe UI",Arial,sans-serif}
+    .bg{fill:#fcfcfb}
+    .ttl{font-size:19px;font-weight:600;fill:#1a1a19}
+    .h{font-size:14.5px;font-weight:600;fill:#1a1a19}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;fill:#6b6b64}
+    .mut{font-size:12px;fill:#6b6b64}
+    .card{fill:#f4f4f0;stroke:#dededa;stroke-width:1}
+    .blue{fill:#2a78d6}
+    .pad{fill:#d7d7d1}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#1a1a19}
+      .ttl,.h{fill:#ecece6}.mono,.mut{fill:#9a9a92}
+      .card{fill:#232320;stroke:#3d3d38}
+      .blue{fill:#3987e5}
+      .pad{fill:#41413b}
+    }
+    </style>
+  </defs>
+  <rect class="bg" width="960" height="362"/>
+  <text class="s ttl" x="34" y="36">Same weights, three row layouts</text>
+  <rect class="blue" x="34" y="54" width="11" height="11" rx="2"/><text class="s mut" x="52" y="64">routed rows</text>
+  <rect class="pad" x="150" y="54" width="11" height="11" rx="2"/><text class="s mut" x="168" y="64">padding / unused budget</text>
+  <rect class="card" x="34" y="86" width="280" height="222" rx="10"/>
+  <text class="s h" x="52" y="114">indexed</text>
+  <text class="s mono" x="52" y="134">sorted_ids · expert_ids</text>
+  <text class="s mut" x="52" y="165">E0</text>
+    <rect class="blue" x="82" y="154" width="20" height="14" rx="2"/>
+    <rect class="blue" x="105" y="154" width="20" height="14" rx="2"/>
+    <rect class="blue" x="128" y="154" width="20" height="14" rx="2"/>
+  <text class="s mut" x="52" y="189">E1</text>
+    <rect class="blue" x="82" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="105" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="128" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="151" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="174" y="178" width="20" height="14" rx="2"/>
+  <text class="s mut" x="52" y="213">E2</text>
+    <rect class="blue" x="82" y="202" width="20" height="14" rx="2"/>
+    <rect class="blue" x="105" y="202" width="20" height="14" rx="2"/>
+  <text class="s mut" x="52" y="237">E3</text>
+    <rect class="blue" x="82" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="105" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="128" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="151" y="226" width="20" height="14" rx="2"/>
+  <text class="s mut" x="52" y="272">activations unpadded;</text>
+  <text class="s mut" x="52" y="290">sentinels live in the indices</text>
+  <rect class="card" x="340" y="86" width="280" height="222" rx="10"/>
+  <text class="s h" x="358" y="114">grouped_contiguous</text>
+  <text class="s mono" x="358" y="134">m_indices (−1 = pad)</text>
+  <text class="s mut" x="358" y="165">E0</text>
+    <rect class="blue" x="388" y="154" width="20" height="14" rx="2"/>
+    <rect class="blue" x="411" y="154" width="20" height="14" rx="2"/>
+    <rect class="blue" x="434" y="154" width="20" height="14" rx="2"/>
+    <rect class="pad" x="457" y="154" width="20" height="14" rx="2"/>
+  <text class="s mut" x="358" y="189">E1</text>
+    <rect class="blue" x="388" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="411" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="434" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="457" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="480" y="178" width="20" height="14" rx="2"/>
+    <rect class="pad" x="503" y="178" width="20" height="14" rx="2"/>
+    <rect class="pad" x="526" y="178" width="20" height="14" rx="2"/>
+    <rect class="pad" x="549" y="178" width="20" height="14" rx="2"/>
+  <text class="s mut" x="358" y="213">E2</text>
+    <rect class="blue" x="388" y="202" width="20" height="14" rx="2"/>
+    <rect class="blue" x="411" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="434" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="457" y="202" width="20" height="14" rx="2"/>
+  <text class="s mut" x="358" y="237">E3</text>
+    <rect class="blue" x="388" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="411" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="434" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="457" y="226" width="20" height="14" rx="2"/>
+  <rect class="card" x="646" y="86" width="280" height="222" rx="10"/>
+  <text class="s h" x="664" y="114">grouped_masked</text>
+  <text class="s mono" x="664" y="134">masked_m · expert_layout</text>
+  <text class="s mut" x="664" y="165">E0</text>
+    <rect class="blue" x="694" y="154" width="20" height="14" rx="2"/>
+    <rect class="blue" x="717" y="154" width="20" height="14" rx="2"/>
+    <rect class="pad" x="740" y="154" width="20" height="14" rx="2"/>
+    <rect class="pad" x="763" y="154" width="20" height="14" rx="2"/>
+    <rect class="pad" x="786" y="154" width="20" height="14" rx="2"/>
+    <rect class="pad" x="809" y="154" width="20" height="14" rx="2"/>
+  <text class="s mut" x="664" y="189">E1</text>
+    <rect class="blue" x="694" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="717" y="178" width="20" height="14" rx="2"/>
+    <rect class="blue" x="740" y="178" width="20" height="14" rx="2"/>
+    <rect class="pad" x="763" y="178" width="20" height="14" rx="2"/>
+    <rect class="pad" x="786" y="178" width="20" height="14" rx="2"/>
+    <rect class="pad" x="809" y="178" width="20" height="14" rx="2"/>
+  <text class="s mut" x="664" y="213">E2</text>
+    <rect class="blue" x="694" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="717" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="740" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="763" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="786" y="202" width="20" height="14" rx="2"/>
+    <rect class="pad" x="809" y="202" width="20" height="14" rx="2"/>
+  <text class="s mut" x="664" y="237">E3</text>
+    <rect class="blue" x="694" y="226" width="20" height="14" rx="2"/>
+    <rect class="blue" x="717" y="226" width="20" height="14" rx="2"/>
+    <rect class="pad" x="740" y="226" width="20" height="14" rx="2"/>
+    <rect class="pad" x="763" y="226" width="20" height="14" rx="2"/>
+    <rect class="pad" x="786" y="226" width="20" height="14" rx="2"/>
+    <rect class="pad" x="809" y="226" width="20" height="14" rx="2"/>
+  <text class="s mut" x="34" y="340">A weight packed for one grouped mode is rejected by the other, so the mode is fixed at load time.</text>
+</svg>

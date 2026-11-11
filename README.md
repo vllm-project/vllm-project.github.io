@@ -10,6 +10,7 @@
 To add a new blogpost, please refer to `_posts/2023-06-20-vllm.md` as an example. Some notes:
 - Google Doc can be saved as markdown format which will make your life easier.
 - Note that the blogpost will only show when its date is in the past.
+- Add `summary` front matter for SEO. Keep it concise, specific, and 240 characters or fewer.
 - Put figures under `assets/figures/yourblogname/`.
 - Make a pull request.
 

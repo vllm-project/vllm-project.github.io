@@ -2,6 +2,7 @@
 layout: post
 title: "Notes on vLLM v.s. DeepSpeed-FastGen"
 author: "vLLM Team"
+summary: "A performance comparison of vLLM and DeepSpeed-FastGen, explaining when Dynamic SplitFuse helps, where vLLM is faster, and how memory allocation, output length, and workload shape affect throughput."
 image: /assets/figures/notes-vllm-vs-deepspeed/s2.png
 tags:
   - performance

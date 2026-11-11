@@ -2,6 +2,7 @@
 layout: post
 title: "Shared Memory IPC Caching: Accelerating Data Transfer in LLM Inference Systems"
 author: "Donglu Wang (Cohere)"
+summary: "How shared memory IPC caching in vLLM reduces redundant data transfers for multimodal and multi-process inference, improving prefill throughput and TTFT by sharing large inputs across coordinator and worker processes."
 image: /assets/figures/2025-shm-ipc-cache/processes1.png
 tags:
   - performance

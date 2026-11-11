@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Tops the Artificial Analysis Leaderboard"
 author: "vLLM Team"
+summary: "How vLLM achieved leading Artificial Analysis results for DeepSeek V3.2, MiniMax-M2.5, and Qwen 3.5 397B using open-source kernel fusion, speculative decoding, Blackwell optimizations, and model-specific serving work."
 image: /assets/figures/2026-05-11-vllm-tops-artificial-analysis/hero_image.png
 social_image: /assets/figures/2026-05-11-vllm-tops-artificial-analysis/hero_image.png
 read_time_minutes: 15

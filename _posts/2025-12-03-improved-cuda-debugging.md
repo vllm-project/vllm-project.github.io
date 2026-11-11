@@ -2,6 +2,7 @@
 layout: post
 title: "Tracing Hanging and Complicated GPU Kernels Down To The Source Code"
 author: "Kaichao You (vLLM)"
+summary: "How vLLM developers debug hanging and complex CUDA kernels by triggering GPU core dumps, identifying stuck kernels, and mapping failures back to source code lines for faster kernel debugging."
 image: /assets/figures/2025-12-03-improved-cuda-debugging/cuda-debugging.png
 tags:
   - developer

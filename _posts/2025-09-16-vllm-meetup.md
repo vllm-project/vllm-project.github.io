@@ -2,6 +2,7 @@
 layout: post
 title: "The First vLLM Meetup in Korea"
 author: "vLLM Team"
+summary: "What the first vLLM Korea meetup covered: community adoption, llm-d, TPU integration, contribution workflows, hardware plugin architecture, Rebellions NPU work, and production inference lessons."
 image: /assets/figures/vllm-meetup/image-3.png
 tags:
   - community

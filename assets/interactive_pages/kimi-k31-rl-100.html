@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kimi K3.1 Pro 100-step LoRA RL run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── figkit tokens (Inferact blog-figures kit) ───────────────────────── */
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bg: #ffffff; --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e6e1da;
+  --s-a: #2a78d6; --s-b: #eb6834; --s-c: #1baf7a;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #18181a; --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e;
+    --s-a: #3987e5; --s-b: #d95926; --s-c: #199e70;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e;
+  --s-a: #3987e5; --s-b: #d95926; --s-c: #199e70;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+.page { padding: 28px 16px 32px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0 0 18px; text-wrap: balance; }
+.panel + .panel { margin-top: 18px; }
+.p-title { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+svg { width: 100%; display: block; overflow: visible; }
+svg text { font-family: var(--font); }
+.grid { stroke: var(--rule); stroke-width: 1; }
+.axis { font: 500 11px var(--mono); fill: var(--faint); }
+.note { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.c-zero { fill: var(--s-c); }
+.c-dot { fill: var(--s-a); opacity: .4; }
+.l-a { fill: none; stroke: var(--s-a); stroke-width: 2; }
+.l-b { fill: none; stroke: var(--s-b); stroke-width: 2; }
+.c-b { fill: var(--s-b); }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--muted); margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<main class="page">
+<div class="fig">
+  <p class="fig-kicker">Figure 10 · 100 RL steps</p>
+  <h1 class="fig-title">Zero rollout/trainer mismatch for 100 RL steps</h1>
+<div class="panel"><p class="p-title">Rollout/trainer PPO KL</p>
+<svg viewBox="0 0 736 72" role="img" aria-label="Rollout/trainer PPO KL">
+<line x1="40" y1="29.0" x2="728" y2="29.0" class="grid"/>
+<text x="34" y="33.0" class="axis" text-anchor="end">0</text>
+<text x="40.0" y="68" class="axis" text-anchor="start">0</text>
+<text x="177.6" y="68" class="axis" text-anchor="middle">20</text>
+<text x="315.2" y="68" class="axis" text-anchor="middle">40</text>
+<text x="452.8" y="68" class="axis" text-anchor="middle">60</text>
+<text x="590.4" y="68" class="axis" text-anchor="middle">80</text>
+<text x="728.0" y="68" class="axis" text-anchor="end">step 100</text>
+<circle cx="46.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="53.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="60.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="67.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="74.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="81.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="88.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="95.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="101.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="108.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="115.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="122.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="129.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="136.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="143.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="150.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="157.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="163.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="170.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="177.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="184.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="191.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="198.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="205.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="212.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="218.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="225.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="232.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="239.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="246.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="253.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="260.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="267.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="273.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="280.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="287.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="294.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="301.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="308.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="315.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="322.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="329.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="335.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="342.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="349.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="356.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="363.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="370.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="377.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="384.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="390.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="397.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="404.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="411.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="418.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="425.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="432.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="439.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="445.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="452.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="459.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="466.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="473.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="480.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="487.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="494.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="501.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="507.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="514.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="521.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="528.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="535.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="542.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="549.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="556.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="562.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="569.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="576.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="583.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="590.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="597.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="604.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="611.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="617.9" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="624.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="631.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="638.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="645.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="652.3" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="659.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="666.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="673.0" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="679.8" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="686.7" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="693.6" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="700.5" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="707.4" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="714.2" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="721.1" cy="29.0" r="2.2" class="c-zero"/>
+<circle cx="728.0" cy="29.0" r="2.2" class="c-zero"/>
+<text x="384.0" y="19.0" class="note" text-anchor="middle">0.0 at every step</text>
+</svg></div>
+<div class="panel"><p class="p-title">Training reward (dots: per step, line: 10-step mean)</p>
+<svg viewBox="0 0 736 150" role="img" aria-label="Training reward (dots: per step, line: 10-step mean)">
+<line x1="40" y1="130.0" x2="728" y2="130.0" class="grid"/>
+<text x="34" y="134.0" class="axis" text-anchor="end">−0.8</text>
+<line x1="40" y1="99.0" x2="728" y2="99.0" class="grid"/>
+<text x="34" y="103.0" class="axis" text-anchor="end">−0.4</text>
+<line x1="40" y1="68.0" x2="728" y2="68.0" class="grid"/>
+<text x="34" y="72.0" class="axis" text-anchor="end">0.0</text>
+<line x1="40" y1="37.0" x2="728" y2="37.0" class="grid"/>
+<text x="34" y="41.0" class="axis" text-anchor="end">+0.4</text>
+<line x1="40" y1="6.0" x2="728" y2="6.0" class="grid"/>
+<text x="34" y="10.0" class="axis" text-anchor="end">+0.8</text>
+<text x="40.0" y="146" class="axis" text-anchor="start">0</text>
+<text x="177.6" y="146" class="axis" text-anchor="middle">20</text>
+<text x="315.2" y="146" class="axis" text-anchor="middle">40</text>
+<text x="452.8" y="146" class="axis" text-anchor="middle">60</text>
+<text x="590.4" y="146" class="axis" text-anchor="middle">80</text>
+<text x="728.0" y="146" class="axis" text-anchor="end">step 100</text>
+<circle cx="46.9" cy="111.6" r="2.3" class="c-dot"/>
+<circle cx="53.8" cy="119.4" r="2.3" class="c-dot"/>
+<circle cx="60.6" cy="81.4" r="2.3" class="c-dot"/>
+<circle cx="67.5" cy="122.6" r="2.3" class="c-dot"/>
+<circle cx="74.4" cy="93.8" r="2.3" class="c-dot"/>
+<circle cx="81.3" cy="110.2" r="2.3" class="c-dot"/>
+<circle cx="88.2" cy="109.2" r="2.3" class="c-dot"/>
+<circle cx="95.0" cy="87.6" r="2.3" class="c-dot"/>
+<circle cx="101.9" cy="108.2" r="2.3" class="c-dot"/>
+<circle cx="108.8" cy="48.0" r="2.3" class="c-dot"/>
+<circle cx="115.7" cy="46.2" r="2.3" class="c-dot"/>
+<circle cx="122.6" cy="73.8" r="2.3" class="c-dot"/>
+<circle cx="129.4" cy="54.4" r="2.3" class="c-dot"/>
+<circle cx="136.3" cy="65.2" r="2.3" class="c-dot"/>
+<circle cx="143.2" cy="62.6" r="2.3" class="c-dot"/>
+<circle cx="150.1" cy="45.3" r="2.3" class="c-dot"/>
+<circle cx="157.0" cy="54.7" r="2.3" class="c-dot"/>
+<circle cx="163.8" cy="84.2" r="2.3" class="c-dot"/>
+<circle cx="170.7" cy="60.5" r="2.3" class="c-dot"/>
+<circle cx="177.6" cy="28.7" r="2.3" class="c-dot"/>
+<circle cx="184.5" cy="29.9" r="2.3" class="c-dot"/>
+<circle cx="191.4" cy="45.6" r="2.3" class="c-dot"/>
+<circle cx="198.2" cy="33.0" r="2.3" class="c-dot"/>
+<circle cx="205.1" cy="49.0" r="2.3" class="c-dot"/>
+<circle cx="212.0" cy="38.8" r="2.3" class="c-dot"/>
+<circle cx="218.9" cy="66.1" r="2.3" class="c-dot"/>
+<circle cx="225.8" cy="25.2" r="2.3" class="c-dot"/>
+<circle cx="232.6" cy="21.9" r="2.3" class="c-dot"/>
+<circle cx="239.5" cy="46.5" r="2.3" class="c-dot"/>
+<circle cx="246.4" cy="32.9" r="2.3" class="c-dot"/>
+<circle cx="253.3" cy="28.7" r="2.3" class="c-dot"/>
+<circle cx="260.2" cy="60.2" r="2.3" class="c-dot"/>
+<circle cx="267.0" cy="45.0" r="2.3" class="c-dot"/>
+<circle cx="273.9" cy="33.5" r="2.3" class="c-dot"/>
+<circle cx="280.8" cy="24.2" r="2.3" class="c-dot"/>
+<circle cx="287.7" cy="38.9" r="2.3" class="c-dot"/>
+<circle cx="294.6" cy="37.8" r="2.3" class="c-dot"/>
+<circle cx="301.4" cy="51.9" r="2.3" class="c-dot"/>
+<circle cx="308.3" cy="50.5" r="2.3" class="c-dot"/>
+<circle cx="315.2" cy="37.1" r="2.3" class="c-dot"/>
+<circle cx="322.1" cy="37.8" r="2.3" class="c-dot"/>
+<circle cx="329.0" cy="56.0" r="2.3" class="c-dot"/>
+<circle cx="335.8" cy="49.6" r="2.3" class="c-dot"/>
+<circle cx="342.7" cy="26.5" r="2.3" class="c-dot"/>
+<circle cx="349.6" cy="41.9" r="2.3" class="c-dot"/>
+<circle cx="356.5" cy="52.4" r="2.3" class="c-dot"/>
+<circle cx="363.4" cy="27.5" r="2.3" class="c-dot"/>
+<circle cx="370.2" cy="63.9" r="2.3" class="c-dot"/>
+<circle cx="377.1" cy="37.9" r="2.3" class="c-dot"/>
+<circle cx="384.0" cy="32.6" r="2.3" class="c-dot"/>
+<circle cx="390.9" cy="28.5" r="2.3" class="c-dot"/>
+<circle cx="397.8" cy="41.2" r="2.3" class="c-dot"/>
+<circle cx="404.6" cy="48.5" r="2.3" class="c-dot"/>
+<circle cx="411.5" cy="68.1" r="2.3" class="c-dot"/>
+<circle cx="418.4" cy="27.0" r="2.3" class="c-dot"/>
+<circle cx="425.3" cy="49.8" r="2.3" class="c-dot"/>
+<circle cx="432.2" cy="54.1" r="2.3" class="c-dot"/>
+<circle cx="439.0" cy="53.1" r="2.3" class="c-dot"/>
+<circle cx="445.9" cy="50.1" r="2.3" class="c-dot"/>
+<circle cx="452.8" cy="41.8" r="2.3" class="c-dot"/>
+<circle cx="459.7" cy="49.7" r="2.3" class="c-dot"/>
+<circle cx="466.6" cy="30.9" r="2.3" class="c-dot"/>
+<circle cx="473.4" cy="31.3" r="2.3" class="c-dot"/>
+<circle cx="480.3" cy="73.0" r="2.3" class="c-dot"/>
+<circle cx="487.2" cy="59.2" r="2.3" class="c-dot"/>
+<circle cx="494.1" cy="38.3" r="2.3" class="c-dot"/>
+<circle cx="501.0" cy="25.1" r="2.3" class="c-dot"/>
+<circle cx="507.8" cy="47.3" r="2.3" class="c-dot"/>
+<circle cx="514.7" cy="40.6" r="2.3" class="c-dot"/>
+<circle cx="521.6" cy="22.2" r="2.3" class="c-dot"/>
+<circle cx="528.5" cy="6.2" r="2.3" class="c-dot"/>
+<circle cx="535.4" cy="34.0" r="2.3" class="c-dot"/>
+<circle cx="542.2" cy="29.6" r="2.3" class="c-dot"/>
+<circle cx="549.1" cy="22.6" r="2.3" class="c-dot"/>
+<circle cx="556.0" cy="24.1" r="2.3" class="c-dot"/>
+<circle cx="562.9" cy="47.9" r="2.3" class="c-dot"/>
+<circle cx="569.8" cy="50.0" r="2.3" class="c-dot"/>
+<circle cx="576.6" cy="57.8" r="2.3" class="c-dot"/>
+<circle cx="583.5" cy="11.9" r="2.3" class="c-dot"/>
+<circle cx="590.4" cy="37.3" r="2.3" class="c-dot"/>
+<circle cx="597.3" cy="28.0" r="2.3" class="c-dot"/>
+<circle cx="604.2" cy="51.1" r="2.3" class="c-dot"/>
+<circle cx="611.0" cy="27.6" r="2.3" class="c-dot"/>
+<circle cx="617.9" cy="31.3" r="2.3" class="c-dot"/>
+<circle cx="624.8" cy="37.4" r="2.3" class="c-dot"/>
+<circle cx="631.7" cy="41.1" r="2.3" class="c-dot"/>
+<circle cx="638.6" cy="19.5" r="2.3" class="c-dot"/>
+<circle cx="645.4" cy="40.4" r="2.3" class="c-dot"/>
+<circle cx="652.3" cy="42.1" r="2.3" class="c-dot"/>
+<circle cx="659.2" cy="30.5" r="2.3" class="c-dot"/>
+<circle cx="666.1" cy="39.4" r="2.3" class="c-dot"/>
+<circle cx="673.0" cy="31.5" r="2.3" class="c-dot"/>
+<circle cx="679.8" cy="36.0" r="2.3" class="c-dot"/>
+<circle cx="686.7" cy="31.6" r="2.3" class="c-dot"/>
+<circle cx="693.6" cy="16.9" r="2.3" class="c-dot"/>
+<circle cx="700.5" cy="45.4" r="2.3" class="c-dot"/>
+<circle cx="707.4" cy="38.5" r="2.3" class="c-dot"/>
+<circle cx="714.2" cy="44.6" r="2.3" class="c-dot"/>
+<circle cx="721.1" cy="14.9" r="2.3" class="c-dot"/>
+<circle cx="728.0" cy="37.0" r="2.3" class="c-dot"/>
+<polyline points="46.9,111.6 53.8,115.5 60.6,104.1 67.5,108.8 74.4,105.8 81.3,106.5 88.2,106.9 95.0,104.5 101.9,104.9 108.8,99.2 115.7,92.7 122.6,88.1 129.4,85.4 136.3,79.7 143.2,76.5 150.1,70.0 157.0,64.6 163.8,64.3 170.7,59.5 177.6,57.6 184.5,55.9 191.4,53.1 198.2,51.0 205.1,49.3 212.0,47.0 218.9,49.0 225.8,46.1 232.6,39.9 239.5,38.5 246.4,38.9 253.3,38.8 260.2,40.2 267.0,41.4 273.9,39.9 280.8,38.4 287.7,35.7 294.6,37.0 301.4,40.0 308.3,40.4 315.2,40.8 322.1,41.7 329.0,41.3 335.8,41.7 342.7,41.0 349.6,42.8 356.5,44.2 363.4,43.1 370.2,44.3 377.1,43.1 384.0,42.6 390.9,41.7 397.8,40.2 404.6,40.1 411.5,44.3 418.4,42.8 425.3,42.5 432.2,45.2 439.0,44.1 445.9,45.3 452.8,46.2 459.7,48.3 466.6,47.3 473.4,45.6 480.3,46.1 487.2,49.3 494.1,48.2 501.0,45.3 507.8,44.7 514.7,43.7 521.6,41.8 528.5,37.4 535.4,37.7 542.2,37.6 549.1,32.5 556.0,29.0 562.9,30.0 569.8,32.5 576.6,33.5 583.5,30.6 590.4,32.1 597.3,34.3 604.2,36.0 611.0,35.8 617.9,36.7 624.8,38.0 631.7,37.4 638.6,34.3 645.4,32.6 652.3,35.6 659.2,34.9 666.1,36.0 673.0,34.1 679.8,34.9 686.7,35.0 693.6,32.9 700.5,33.3 707.4,35.2 714.2,35.7 721.1,32.9 728.0,33.6" class="l-a"/>
+</svg></div>
+<div class="panel"><p class="p-title">AIME mean@8</p>
+<svg viewBox="0 0 736 140" role="img" aria-label="AIME mean@8">
+<line x1="40" y1="120.0" x2="728" y2="120.0" class="grid"/>
+<text x="34" y="124.0" class="axis" text-anchor="end">0.4</text>
+<line x1="40" y1="82.0" x2="728" y2="82.0" class="grid"/>
+<text x="34" y="86.0" class="axis" text-anchor="end">0.5</text>
+<line x1="40" y1="44.0" x2="728" y2="44.0" class="grid"/>
+<text x="34" y="48.0" class="axis" text-anchor="end">0.6</text>
+<line x1="40" y1="6.0" x2="728" y2="6.0" class="grid"/>
+<text x="34" y="10.0" class="axis" text-anchor="end">0.7</text>
+<text x="40.0" y="136" class="axis" text-anchor="start">0</text>
+<text x="177.6" y="136" class="axis" text-anchor="middle">20</text>
+<text x="315.2" y="136" class="axis" text-anchor="middle">40</text>
+<text x="452.8" y="136" class="axis" text-anchor="middle">60</text>
+<text x="590.4" y="136" class="axis" text-anchor="middle">80</text>
+<text x="728.0" y="136" class="axis" text-anchor="end">step 100</text>
+<polyline points="40.0,100.6 315.2,57.7 384.0,54.6 452.8,47.0 659.2,38.3 728.0,19.7" class="l-b"/>
+<circle cx="40.0" cy="100.6" r="3.4" class="c-b"/>
+<circle cx="315.2" cy="57.7" r="3.4" class="c-b"/>
+<circle cx="384.0" cy="54.6" r="3.4" class="c-b"/>
+<circle cx="452.8" cy="47.0" r="3.4" class="c-b"/>
+<circle cx="659.2" cy="38.3" r="3.4" class="c-b"/>
+<circle cx="728.0" cy="19.7" r="3.4" class="c-b"/>
+<text x="46.0" y="118.6" class="note">0.451</text>
+<text x="722.0" y="37.7" class="note" text-anchor="end">0.664</text>
+</svg></div>
+  <p class="fig-note">Full model, rank-32 LoRA, GRPO on DAPO-17k, 32 GB300 GPUs. mean@8: AIME 2024–2026, temperature 1.0.</p>
+</div>
+</main>
+<script>
+/* Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = "hidden";
+  var last = 0;
+  function report() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  }
+  if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+  window.addEventListener("load", report);
+  window.addEventListener("resize", report);
+  setTimeout(report, 300); setTimeout(report, 1500);
+  report();
+})();
+</script>
+</body>
+</html>

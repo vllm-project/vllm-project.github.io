@@ -1,0 +1,1518 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 1400 820"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg124"
+   sodipodi:docname="figure-method-summary-updated.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview124"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.50532265"
+     inkscape:cx="735.17385"
+     inkscape:cy="461.09154"
+     inkscape:window-width="1440"
+     inkscape:window-height="830"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg124" />
+  <title
+     id="title">Drafting method structures and token generation patterns</title>
+  <desc
+     id="desc">A comparison of Native MTP, Gemma 4 MTP, EAGLE-3, DFlash, and DSpark draft structures and token generation patterns.</desc>
+  <defs
+     id="defs3">
+    <marker
+       style="overflow:visible"
+       id="Triangle"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+    <style
+       id="style1">
+      text { font-family: Arial, Helvetica, sans-serif; }
+      .title { font-size: 19px; font-weight: 700; fill: #111827; }
+      .method { font-size: 18px; font-weight: 700; fill: #0b2f8f; }
+      .body { font-size: 16px; font-weight: 600; fill: #111827; }
+      .small { font-size: 13px; font-weight: 600; fill: #111827; }
+      .target-text { font-size: 16px; font-weight: 600; fill: #2457ff; }
+      .subscript { font-size: 11px; font-weight: 600; }
+      .note-green { font-size: 14px; font-weight: 700; fill: #0b7d33; }
+      .note-orange { font-size: 14px; font-weight: 700; fill: #f05a24; }
+      .note { font-size: 13px; font-weight: 500; fill: #111827; }
+      .grid { stroke: #b8b8b8; stroke-width: 1.2; fill: none; }
+      .target { stroke: #2457ff; fill: #ffffff; stroke-width: 2; }
+      .draft { stroke: #0b7d33; fill: #ffffff; stroke-width: 2; }
+      .parallel { stroke: #0b7d33; fill: none; stroke-width: 1.8; stroke-dasharray: 8 7; }
+      .refine { stroke: #ff6b2c; fill: #ffffff; stroke-width: 2; }
+      .token { stroke: #111827; fill: #ffffff; stroke-width: 1.5; }
+      .token-draft { stroke: #0b7d33; fill: #ffffff; stroke-width: 1.5; }
+      .token-base { stroke: #0b7d33; fill: #ffffff; stroke-width: 1.5; }
+      .token-final { stroke: #ff6b2c; fill: #ffffff; stroke-width: 1.5; }
+      .arrow { stroke: #111827; stroke-width: 1.8; fill: none; marker-end: url(#arrow); }
+      .arrow-green { stroke: #0b7d33; stroke-width: 1.8; fill: none; marker-end: url(#arrow-green); }
+      .arrow-green-double { stroke: #0b7d33; stroke-width: 1.8; fill: none; marker-start: url(#arrow-green-start); marker-end: url(#arrow-green); }
+      .arrow-orange { stroke: #ff6b2c; stroke-width: 1.8; fill: none; marker-end: url(#arrow-orange); }
+      .shared-cache { stroke: #0b7d33; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+      .feedback-bracket { stroke: #0b7d33; stroke-width: 1.8; fill: none; }
+      .legend-text { font-size: 14px; font-weight: 500; fill: #111827; }
+    </style>
+    <marker
+       id="arrow"
+       markerWidth="9"
+       markerHeight="9"
+       refX="7"
+       refY="4"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M0,0 L7,4 L0,8 Z"
+         fill="#111827"
+         id="path1" />
+    </marker>
+    <marker
+       id="arrow-green"
+       markerWidth="9"
+       markerHeight="9"
+       refX="7"
+       refY="4"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M0,0 L7,4 L0,8 Z"
+         fill="#0b7d33"
+         id="path2" />
+    </marker>
+    <marker
+       id="arrow-green-start"
+       markerWidth="9"
+       markerHeight="9"
+       refX="0"
+       refY="4"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M7,0 L0,4 L7,8 Z"
+         fill="#0b7d33"
+         id="path2-start" />
+    </marker>
+    <marker
+       id="arrow-orange"
+       markerWidth="9"
+       markerHeight="9"
+       refX="7"
+       refY="4"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M0,0 L7,4 L0,8 Z"
+         fill="#ff6b2c"
+         id="path3" />
+    </marker>
+  </defs>
+  <rect
+     width="1400"
+     height="820"
+     rx="10"
+     fill="#ffffff"
+     id="rect3" />
+  <rect
+     class="grid"
+     x="8"
+     y="8"
+     width="1384"
+     height="804"
+     rx="10"
+     id="rect4" />
+  <line
+     class="grid"
+     x1="8"
+     y1="50"
+     x2="1392"
+     y2="50"
+     id="line4" />
+  <line
+     class="grid"
+     x1="8"
+     y1="174"
+     x2="1392"
+     y2="174"
+     id="line5" />
+  <line
+     class="grid"
+     x1="8"
+     y1="298"
+     x2="1392"
+     y2="298"
+     id="line6" />
+  <line
+     class="grid"
+     x1="8"
+     y1="422"
+     x2="1392"
+     y2="422"
+     id="line7" />
+  <line
+     class="grid"
+     x1="8"
+     y1="546"
+     x2="1392"
+     y2="546"
+     id="line8" />
+  <line
+     class="grid"
+     x1="8"
+     y1="730"
+     x2="1392"
+     y2="730"
+     id="line9" />
+  <line
+     class="grid"
+     x1="970"
+     y1="8"
+     x2="970"
+     y2="730"
+     id="line10" />
+  <text
+     class="title"
+     x="515"
+     y="35"
+     text-anchor="middle"
+     id="text10">Draft structure</text>
+  <text
+     class="title"
+     x="1180"
+     y="35"
+     text-anchor="middle"
+     id="text11">Token generation pattern</text>
+  <!-- Native MTP -->
+  <text
+     class="method"
+     x="24"
+     y="82"
+     id="text12">Native MTP</text>
+  <rect
+     class="target"
+     x="158"
+     y="65"
+     width="90"
+     height="64"
+     rx="8"
+     id="rect12" />
+  <text
+     class="target-text"
+     x="203"
+     y="91"
+     text-anchor="middle"
+     id="text13">Target</text>
+  <text
+     class="target-text"
+     x="203"
+     y="115"
+     text-anchor="middle"
+     id="text14">model</text>
+  <line
+     class="arrow"
+     x1="285"
+     y1="97"
+     x2="360"
+     y2="97"
+     id="line14" />
+  <rect
+     class="draft"
+     x="380"
+     y="65"
+     width="180"
+     height="64"
+     rx="8"
+     id="rect14" />
+  <text
+     class="body"
+     x="470"
+     y="92"
+     text-anchor="middle"
+     id="text15">Model-native</text>
+  <text
+     class="body"
+     x="470"
+     y="116"
+     text-anchor="middle"
+     id="text16">MTP path</text>
+  <path
+     class="arrow-green"
+     d="m 560.73279,96.344804 h 39.6935 V 150.52333 H 535.92435 V 136.6637"
+     id="path16"
+     style="stroke-width:1.8;stroke-linejoin:miter;stroke-dasharray:none;marker-end:url(#Triangle);paint-order:markers fill stroke" />
+  <text
+     class="note-green"
+     x="430.81912"
+     y="150.80205"
+     text-anchor="middle"
+     id="text17">reused for additional tokens</text>
+  <text
+     class="note"
+     x="480.20142"
+     y="167.50171"
+     text-anchor="middle"
+     id="text18">(previous MTP hidden state + latest drafted token)</text>
+  <g
+     transform="translate(1015 64)"
+     id="g24">
+    <rect
+       class="token"
+       x="0"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect18" />
+    <text
+       class="body"
+       x="23"
+       y="25"
+       text-anchor="middle"
+       id="text19">t₁</text>
+    <line
+       class="arrow"
+       x1="64"
+       y1="19"
+       x2="92"
+       y2="19"
+       id="line19" />
+    <rect
+       class="token"
+       x="112"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect19" />
+    <text
+       class="body"
+       x="135"
+       y="25"
+       text-anchor="middle"
+       id="text20">t₂</text>
+    <line
+       class="arrow"
+       x1="176"
+       y1="19"
+       x2="204"
+       y2="19"
+       id="line20" />
+    <rect
+       class="token"
+       x="224"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect20" />
+    <text
+       class="body"
+       x="247"
+       y="25"
+       text-anchor="middle"
+       id="text21">t₃</text>
+    <line
+       class="arrow"
+       x1="288"
+       y1="19"
+       x2="316"
+       y2="19"
+       id="line21" />
+    <text
+       class="body"
+       x="345"
+       y="25"
+       id="text22">...</text>
+    <text
+       class="body"
+       x="0"
+       y="74"
+       id="text23">Sequential through repeated MTP steps</text>
+    <text
+       class="body"
+       x="0"
+       y="98"
+       id="text24" />
+  </g>
+  <!-- Gemma 4 MTP -->
+  <text
+     class="method"
+     x="24"
+     y="206"
+     id="text25">Gemma 4 MTP</text>
+  <rect
+     class="target"
+     x="158"
+     y="198"
+     width="90"
+     height="64"
+     rx="8"
+     id="rect25" />
+  <text
+     class="target-text"
+     x="203"
+     y="224"
+     text-anchor="middle"
+     id="text26">Target</text>
+  <text
+     class="target-text"
+     x="203"
+     y="248"
+     text-anchor="middle"
+     id="text27">model</text>
+  <line
+     class="arrow"
+     x1="285"
+     y1="230"
+     x2="360"
+     y2="230"
+     id="line27" />
+  <rect
+     class="draft"
+     x="380"
+     y="198"
+     width="180"
+     height="64"
+     rx="8"
+     id="rect27" />
+  <text
+     class="body"
+     x="470"
+     y="225"
+     text-anchor="middle"
+     id="text28">Gemma 4 MTP</text>
+  <text
+     class="body"
+     x="470"
+     y="249"
+     text-anchor="middle"
+     id="text29">assistant drafter</text>
+  <path
+     class="shared-cache"
+     d="M 203,262 V 286 H 470 V 262"
+     id="path29" />
+  <text
+     class="note-green"
+     x="336.5"
+     y="279"
+     text-anchor="middle"
+     id="text30">shared target KV cache</text>
+  <text
+     class="note"
+     x="470"
+     y="293.44208"
+     text-anchor="middle"
+     id="text31" />
+  <g
+     transform="translate(1015 192)"
+     id="g37">
+    <rect
+       class="token"
+       x="0"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect31" />
+    <text
+       class="body"
+       x="23"
+       y="25"
+       text-anchor="middle"
+       id="text32">t₁</text>
+    <line
+       class="arrow"
+       x1="64"
+       y1="19"
+       x2="92"
+       y2="19"
+       id="line32" />
+    <rect
+       class="token"
+       x="112"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect32" />
+    <text
+       class="body"
+       x="135"
+       y="25"
+       text-anchor="middle"
+       id="text33">t₂</text>
+    <line
+       class="arrow"
+       x1="176"
+       y1="19"
+       x2="204"
+       y2="19"
+       id="line33" />
+    <rect
+       class="token"
+       x="224"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect33" />
+    <text
+       class="body"
+       x="247"
+       y="25"
+       text-anchor="middle"
+       id="text34">t₃</text>
+    <line
+       class="arrow"
+       x1="288"
+       y1="19"
+       x2="316"
+       y2="19"
+       id="line34" />
+    <text
+       class="body"
+       x="345"
+       y="25"
+       id="text35">...</text>
+    <text
+       class="body"
+       x="0"
+       y="74"
+       id="text36">Sequential through the assistant drafter</text>
+    <text
+       class="body"
+       x="0"
+       y="98"
+       id="text37" />
+  </g>
+  <!-- EAGLE-3 -->
+  <text
+     class="method"
+     x="24"
+     y="335"
+     id="text38">EAGLE-3</text>
+  <rect
+     class="target"
+     x="122"
+     y="316"
+     width="90"
+     height="64"
+     rx="8"
+     id="rect38" />
+  <text
+     class="target-text"
+     x="167"
+     y="341"
+     text-anchor="middle"
+     id="text39">Target</text>
+  <text
+     class="target-text"
+     x="167"
+     y="363"
+     text-anchor="middle"
+     id="text40">model</text>
+  <text
+     class="small"
+     x="255"
+     y="333"
+     text-anchor="middle"
+     id="text41">fuse</text>
+  <text
+     class="small"
+     x="255"
+     y="352"
+     text-anchor="middle"
+     id="text42">selected</text>
+  <text
+     class="small"
+     x="255"
+     y="371"
+     text-anchor="middle"
+     id="text43">layers</text>
+  <line
+     class="arrow"
+     x1="285"
+     y1="348"
+     x2="320"
+     y2="348"
+     id="line43" />
+  <rect
+     class="draft"
+     x="340"
+     y="316"
+     width="180"
+     height="64"
+     rx="8"
+     id="rect43" />
+  <text
+     class="body"
+     x="430"
+     y="342"
+     text-anchor="middle"
+     id="text44">EAGLE-3</text>
+  <text
+     class="body"
+     x="430"
+     y="365"
+     text-anchor="middle"
+     id="text45">draft model</text>
+  <line
+     class="arrow"
+     x1="540"
+     y1="348"
+     x2="565"
+     y2="348"
+     id="line45" />
+  <rect
+     class="token-draft"
+     x="585"
+     y="330"
+     width="38"
+     height="36"
+     rx="6"
+     id="rect45" />
+  <text
+     class="body"
+     x="604"
+     y="353"
+     text-anchor="middle"
+     id="text46">t₁</text>
+  <line
+     class="arrow"
+     x1="633"
+     y1="348"
+     x2="660"
+     y2="348"
+     id="line46" />
+  <rect
+     class="token-draft"
+     x="680"
+     y="330"
+     width="38"
+     height="36"
+     rx="6"
+     id="rect46" />
+  <text
+     class="body"
+     x="699"
+     y="353"
+     text-anchor="middle"
+     id="text47">t₂</text>
+  <line
+     class="arrow"
+     x1="728"
+     y1="348"
+     x2="755"
+     y2="348"
+     id="line47" />
+  <rect
+     class="token-draft"
+     x="775"
+     y="330"
+     width="38"
+     height="36"
+     rx="6"
+     id="rect47" />
+  <text
+     class="body"
+     x="794"
+     y="353"
+     text-anchor="middle"
+     id="text48">t₃</text>
+  <line
+     class="arrow"
+     x1="824"
+     y1="348"
+     x2="850"
+     y2="348"
+     id="line48" />
+  <text
+     class="body"
+     x="880"
+     y="354"
+     id="text49">...</text>
+  <path
+     class="feedback-bracket"
+     d="M 585,368 V 382 H 813 V 368"
+     id="path49"
+     sodipodi:nodetypes="ccccc" />
+  <text
+     class="note-green"
+     x="699"
+     y="400"
+     text-anchor="middle"
+     id="text50">autoregressive feedback</text>
+  <text
+     class="note"
+     x="699"
+     y="417"
+     text-anchor="middle"
+     id="text51">(each selected token conditions the next step)</text>
+  <g
+     transform="translate(1015 318)"
+     id="g57">
+    <rect
+       class="token"
+       x="0"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect51" />
+    <text
+       class="body"
+       x="23"
+       y="25"
+       text-anchor="middle"
+       id="text52">t₁</text>
+    <line
+       class="arrow"
+       x1="64"
+       y1="19"
+       x2="92"
+       y2="19"
+       id="line52" />
+    <rect
+       class="token"
+       x="112"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect52" />
+    <text
+       class="body"
+       x="135"
+       y="25"
+       text-anchor="middle"
+       id="text53">t₂</text>
+    <line
+       class="arrow"
+       x1="176"
+       y1="19"
+       x2="204"
+       y2="19"
+       id="line53" />
+    <rect
+       class="token"
+       x="224"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect53" />
+    <text
+       class="body"
+       x="247"
+       y="25"
+       text-anchor="middle"
+       id="text54">t₃</text>
+    <line
+       class="arrow"
+       x1="288"
+       y1="19"
+       x2="316"
+       y2="19"
+       id="line54" />
+    <text
+       class="body"
+       x="345"
+       y="25"
+       id="text55">...</text>
+    <text
+       class="body"
+       x="0"
+       y="74"
+       id="text56">Autoregressive / sequential</text>
+    <text
+       class="body"
+       x="0"
+       y="98"
+       id="text57">(each token conditions the next)</text>
+  </g>
+  <!-- DFlash -->
+  <text
+     class="method"
+     x="24"
+     y="459"
+     id="text58">DFlash</text>
+  <rect
+     class="target"
+     x="122"
+     y="440"
+     width="90"
+     height="64"
+     rx="8"
+     id="rect58" />
+  <text
+     class="target-text"
+     x="167"
+     y="465"
+     text-anchor="middle"
+     id="text59">Target</text>
+  <text
+     class="target-text"
+     x="167"
+     y="487"
+     text-anchor="middle"
+     id="text60">model</text>
+  <text
+     class="small"
+     x="255"
+     y="457"
+     text-anchor="middle"
+     id="text61">fuse</text>
+  <text
+     class="small"
+     x="255"
+     y="476"
+     text-anchor="middle"
+     id="text62">selected</text>
+  <text
+     class="small"
+     x="255"
+     y="495"
+     text-anchor="middle"
+     id="text63">layers</text>
+  <line
+     class="arrow"
+     x1="285"
+     y1="472"
+     x2="320"
+     y2="472"
+     id="line63" />
+  <rect
+     class="draft"
+     x="340"
+     y="440"
+     width="180"
+     height="64"
+     rx="8"
+     id="rect63" />
+  <text
+     class="body"
+     x="430"
+     y="467"
+     text-anchor="middle"
+     id="text64">DFlash draft</text>
+  <text
+     class="body"
+     x="430"
+     y="489"
+     text-anchor="middle"
+     id="text65">model</text>
+  <line
+     class="arrow"
+     x1="540"
+     y1="472"
+     x2="570"
+     y2="472"
+     id="line65" />
+  <rect
+     class="parallel"
+     x="603.8374"
+     y="437.98489"
+     width="282.13547"
+     height="68.030228"
+     rx="11.594607"
+     id="rect65" />
+  <rect
+     class="token-draft"
+     x="615"
+     y="455"
+     width="36"
+     height="34"
+     rx="6"
+     id="rect66" />
+  <text
+     class="small"
+     x="633"
+     y="476"
+     text-anchor="middle"
+     id="text66">t₁</text>
+  <rect
+     class="token-draft"
+     x="680"
+     y="455"
+     width="36"
+     height="34"
+     rx="6"
+     id="rect67" />
+  <text
+     class="small"
+     x="698"
+     y="476"
+     text-anchor="middle"
+     id="text67">t₂</text>
+  <rect
+     class="token-draft"
+     x="745"
+     y="455"
+     width="36"
+     height="34"
+     rx="6"
+     id="rect68" />
+  <text
+     class="small"
+     x="763"
+     y="476"
+     text-anchor="middle"
+     id="text68">t₃</text>
+  <text
+     class="body"
+     x="812"
+     y="478"
+     id="text69">...</text>
+  <rect
+     class="token-draft"
+     x="840"
+     y="455"
+     width="36"
+     height="34"
+     rx="6"
+     id="rect69" />
+  <text
+     class="small"
+     x="858"
+     y="476"
+     text-anchor="middle"
+     id="text70">tₖ</text>
+  <text
+     class="note-green"
+     x="736"
+     y="520"
+     text-anchor="middle"
+     id="text71">all positions computed together</text>
+  <text
+     class="note"
+     x="736"
+     y="535"
+     text-anchor="middle"
+     id="text72">(in one forward pass)</text>
+  <g
+     transform="translate(1015 445)"
+     id="g79">
+    <rect
+       class="token-draft"
+       x="0"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect72" />
+    <text
+       class="body"
+       x="23"
+       y="25"
+       text-anchor="middle"
+       id="text73">t₁</text>
+    <rect
+       class="token-draft"
+       x="72"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect73" />
+    <text
+       class="body"
+       x="95"
+       y="25"
+       text-anchor="middle"
+       id="text74">t₂</text>
+    <rect
+       class="token-draft"
+       x="144"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect74" />
+    <text
+       class="body"
+       x="167"
+       y="25"
+       text-anchor="middle"
+       id="text75">t₃</text>
+    <text
+       class="body"
+       x="220"
+       y="24"
+       id="text76">...</text>
+    <rect
+       class="token-draft"
+       x="285"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect76" />
+    <text
+       class="body"
+       x="308"
+       y="25"
+       text-anchor="middle"
+       id="text77">tₖ</text>
+    <text
+       class="body"
+       x="0"
+       y="66"
+       id="text78">Parallel block prediction</text>
+    <text
+       class="body"
+       x="0"
+       y="90"
+       id="text79">(all candidate positions at once)</text>
+  </g>
+  <!-- DSpark -->
+  <text
+     class="method"
+     x="24"
+     y="584"
+     id="text80">DSpark</text>
+  <rect
+     class="target"
+     x="18"
+     y="600"
+     width="90"
+     height="64"
+     rx="8"
+     id="rect80" />
+  <text
+     class="target-text"
+     x="63"
+     y="626"
+     text-anchor="middle"
+     id="text81">Target</text>
+  <text
+     class="target-text"
+     x="63"
+     y="650"
+     text-anchor="middle"
+     id="text82">model</text>
+  <text
+     class="small"
+     x="138"
+     y="611"
+     text-anchor="middle"
+     id="text83">fuse</text>
+  <text
+     class="small"
+     x="138"
+     y="630"
+     text-anchor="middle"
+     id="text84">selected</text>
+  <text
+     class="small"
+     x="138"
+     y="649"
+     text-anchor="middle"
+     id="text85">layers</text>
+  <line
+     class="arrow"
+     x1="168"
+     y1="632"
+     x2="194"
+     y2="632"
+     id="line85" />
+  <rect
+     class="draft"
+     x="205"
+     y="600"
+     width="96"
+     height="64"
+     rx="8"
+     id="rect85" />
+  <text
+     class="small"
+     x="253"
+     y="625"
+     text-anchor="middle"
+     id="text86">Parallel</text>
+  <text
+     class="small"
+     x="253"
+     y="645"
+     text-anchor="middle"
+     id="text87">backbone</text>
+  <line
+     class="arrow"
+     x1="312"
+     y1="632"
+     x2="336"
+     y2="632"
+     id="line87" />
+  <rect
+     class="parallel"
+     x="348.01575"
+     y="600.01575"
+     width="227.88423"
+     height="63.96846"
+     rx="12.430049"
+     id="rect87" />
+  <rect
+     class="token-base"
+     x="362"
+     y="617"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect88" />
+  <text
+     class="small"
+     x="379"
+     y="639"
+     text-anchor="middle"
+     id="text88">U₁</text>
+  <rect
+     class="token-base"
+     x="408"
+     y="617"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect89" />
+  <text
+     class="small"
+     x="425"
+     y="639"
+     text-anchor="middle"
+     id="text89">U₂</text>
+  <rect
+     class="token-base"
+     x="454"
+     y="617"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect90" />
+  <text
+     class="small"
+     x="471"
+     y="639"
+     text-anchor="middle"
+     id="text90">U₃</text>
+  <text
+     class="body"
+     x="512"
+     y="641"
+     id="text91">...</text>
+  <rect
+     class="token-base"
+     x="532"
+     y="617"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect91" />
+  <text
+     class="small"
+     x="549"
+     y="639"
+     text-anchor="middle"
+     id="text92">Uₖ</text>
+  <line
+     class="arrow"
+     x1="576"
+     y1="632"
+     x2="598"
+     y2="632"
+     id="line92" />
+  <rect
+     class="refine"
+     x="610"
+     y="600"
+     width="112"
+     height="64"
+     rx="8"
+     id="rect92" />
+  <text
+     class="small"
+     x="666"
+     y="626"
+     text-anchor="middle"
+     id="text93">Sequential head</text>
+  <text
+     class="small"
+     x="666"
+     y="647"
+     text-anchor="middle"
+     id="text94">(Markov)</text>
+  <line
+     class="arrow"
+     x1="732"
+     y1="632"
+     x2="758"
+     y2="632"
+     id="line94" />
+  <rect
+     class="token-final"
+     x="770"
+     y="615"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect94" />
+  <text
+     class="small"
+     x="787"
+     y="637"
+     text-anchor="middle"
+     id="text95">t₁</text>
+  <line
+     class="arrow"
+     x1="808"
+     y1="632"
+     x2="830"
+     y2="632"
+     id="line95"
+     style="fill:#1a1a1a" />
+  <rect
+     class="token-final"
+     x="834"
+     y="615"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect95" />
+  <text
+     class="small"
+     x="851"
+     y="637"
+     text-anchor="middle"
+     id="text96">t₂</text>
+  <line
+     class="arrow"
+     x1="872"
+     y1="632"
+     x2="890"
+     y2="632"
+     id="line96" />
+  <rect
+     class="token-final"
+     x="894"
+     y="615"
+     width="34"
+     height="34"
+     rx="6"
+     id="rect96" />
+  <text
+     class="small"
+     x="911"
+     y="637"
+     text-anchor="middle"
+     id="text97">t₃</text>
+  <text
+     class="note-green"
+     x="458"
+     y="681"
+     text-anchor="middle"
+     id="text98">base logits (one per position)</text>
+  <text
+     class="note-green"
+     x="458"
+     y="699"
+     text-anchor="middle"
+     id="text99">from parallel backbone</text>
+  <text
+     class="note-orange"
+     x="820"
+     y="681"
+     text-anchor="middle"
+     id="text100">left-to-right token</text>
+  <text
+     class="note-orange"
+     x="820"
+     y="699"
+     text-anchor="middle"
+     id="text101">selection/refinement</text>
+  <g
+     transform="translate(1010 568)"
+     id="g114">
+    <rect
+       class="token-base"
+       x="0"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect101" />
+    <text
+       class="body"
+       x="23"
+       y="25"
+       text-anchor="middle"
+       id="text102">U₁</text>
+    <rect
+       class="token-base"
+       x="64"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect102" />
+    <text
+       class="body"
+       x="87"
+       y="25"
+       text-anchor="middle"
+       id="text103">U₂</text>
+    <rect
+       class="token-base"
+       x="128"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect103" />
+    <text
+       class="body"
+       x="151"
+       y="25"
+       text-anchor="middle"
+       id="text104">U₃</text>
+    <text
+       class="body"
+       x="195"
+       y="24"
+       id="text105">...</text>
+    <rect
+       class="token-base"
+       x="250"
+       y="0"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect105" />
+    <text
+       class="body"
+       x="273"
+       y="25"
+       text-anchor="middle"
+       id="text106">Uₖ</text>
+    <text
+       class="note-green"
+       x="0"
+       y="60"
+       id="text107">1) Parallel backbone (one pass)</text>
+    <rect
+       class="token-final"
+       x="0"
+       y="78"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect107" />
+    <text
+       class="body"
+       x="23"
+       y="103"
+       text-anchor="middle"
+       id="text108">t₁</text>
+    <line
+       class="arrow"
+       x1="50"
+       y1="95"
+       x2="78"
+       y2="95"
+       id="line108" />
+    <rect
+       class="token-final"
+       x="90"
+       y="78"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect108" />
+    <text
+       class="body"
+       x="113"
+       y="103"
+       text-anchor="middle"
+       id="text109">t₂</text>
+    <line
+       class="arrow"
+       x1="140"
+       y1="95"
+       x2="168"
+       y2="95"
+       id="line109" />
+    <rect
+       class="token-final"
+       x="180"
+       y="78"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect109" />
+    <text
+       class="body"
+       x="203"
+       y="103"
+       text-anchor="middle"
+       id="text110">t₃</text>
+    <text
+       class="body"
+       x="245"
+       y="101"
+       id="text111">...</text>
+    <rect
+       class="token-final"
+       x="285"
+       y="78"
+       width="46"
+       height="38"
+       rx="7"
+       id="rect111" />
+    <text
+       class="body"
+       x="308"
+       y="103"
+       text-anchor="middle"
+       id="text112">tₖ</text>
+    <text
+       class="note-orange"
+       x="0"
+       y="134"
+       id="text113">2) Sequential head (left-to-right refinement)</text>
+    <text
+       class="note-orange"
+       x="0"
+       y="153"
+       id="text114">to select final tokens</text>
+  </g>
+  <!-- Legend -->
+  <g
+     transform="translate(28 758)"
+     id="g124">
+    <rect
+       class="target"
+       x="0"
+       y="0"
+       width="24"
+       height="24"
+       rx="5"
+       id="rect114" />
+    <text
+       class="legend-text"
+       x="38"
+       y="18"
+       id="text115">Target model</text>
+    <rect
+       class="draft"
+       x="220"
+       y="0"
+       width="24"
+       height="24"
+       rx="5"
+       id="rect115" />
+    <text
+       class="legend-text"
+       x="258"
+       y="18"
+       id="text116">Drafting component</text>
+    <rect
+       class="parallel"
+       x="500"
+       y="0"
+       width="28"
+       height="28"
+       rx="6"
+       id="rect116" />
+    <text
+       class="legend-text"
+       x="544"
+       y="12"
+       id="text117">Parallel /</text>
+    <text
+       class="legend-text"
+       x="544"
+       y="30"
+       id="text118">all-position computation</text>
+    <rect
+       class="refine"
+       x="750"
+       y="0"
+       width="24"
+       height="24"
+       rx="5"
+       id="rect118" />
+    <text
+       class="legend-text"
+       x="788"
+       y="18"
+       id="text119">Sequential refinement</text>
+    <rect
+       class="token"
+       x="1030"
+       y="0"
+       width="28"
+       height="28"
+       rx="5"
+       id="rect119" />
+    <text
+       class="small"
+       x="1044"
+       y="20"
+       text-anchor="middle"
+       id="text120">tᵢ</text>
+    <text
+       class="legend-text"
+       x="1072"
+       y="18"
+       id="text121">Drafted token</text>
+    <rect
+       class="token-base"
+       x="1210"
+       y="0"
+       width="28"
+       height="28"
+       rx="5"
+       id="rect121" />
+    <text
+       class="small"
+       x="1224"
+       y="20"
+       text-anchor="middle"
+       id="text122">Uᵢ</text>
+    <text
+       class="legend-text"
+       x="1252"
+       y="12"
+       id="text123">Base logits</text>
+    <text
+       class="legend-text"
+       x="1252"
+       y="30"
+       id="text124">(from backbone)</text>
+  </g>
+</svg>

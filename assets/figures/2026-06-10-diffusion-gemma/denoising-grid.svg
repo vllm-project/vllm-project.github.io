@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1078" height="414" viewBox="-19 25 1078 414" font-family="'Inter','Helvetica Neue',Arial,sans-serif">
+<rect id="cream-bg" x="-19" y="25" width="1078" height="414" rx="21" ry="21" fill="#FBF7EE"/>
+  <defs>
+    <style>
+      .title{font-size:19px;font-weight:700;fill:#0f172a}
+      .cap  {font-size:13px;font-weight:600;fill:#334155}
+      .step {font-size:13px;font-weight:600;fill:#64748b}
+      .tok  {font-size:14px;text-anchor:middle}
+      .mono {font-family:'SF Mono',Menlo,Consolas,monospace}
+      .nzT{fill:#9c4a38}.acT{fill:#7a5410;font-weight:700}.hdT{fill:#2b3344}.pmT{fill:#334155}
+      .note{font-size:12px;fill:#64748b}
+    </style>
+  </defs>
+
+  <!-- downward time arrow -->
+  <polygon points="36,104 52,104 52,300 62,300 44,324 26,300 36,300" fill="#CBD5E1"/>
+  <text x="22" y="214" transform="rotate(-90 22 214)" text-anchor="middle" class="step">denoising steps</text>
+
+  <!-- prompt label + canvas bracket -->
+  <text x="192" y="64" text-anchor="middle" class="cap">prompt (committed)</text>
+  <path d="M330,82 V74 H850 V82" fill="none" stroke="#94A3B8" stroke-width="1.5"/>
+  <text x="590" y="64" text-anchor="middle" class="cap">fixed-size canvas — 256 positions</text>
+
+  <!-- divider between prompt and canvas -->
+  <path d="M311,92 V332" stroke="#94A3B8" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+  <!-- step labels -->
+  <text x="866" y="130" class="step">step 1</text>
+  <text x="866" y="190" class="step">step 2</text>
+  <text x="866" y="250" class="step">step 3</text>
+  <text x="866" y="310" class="step" fill="#16a34a">converged → commit</text>
+
+  <!-- ============ PROMPT cells (persist every row) ============ -->
+  <!-- row1 -->
+  <rect x="92" y="100" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="140" y="130" class="tok pmT">The</text>
+  <rect x="196" y="100" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="244" y="130" class="tok pmT">early</text>
+  <!-- row2 -->
+  <rect x="92" y="160" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="140" y="190" class="tok pmT">The</text>
+  <rect x="196" y="160" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="244" y="190" class="tok pmT">early</text>
+  <!-- row3 -->
+  <rect x="92" y="220" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="140" y="250" class="tok pmT">The</text>
+  <rect x="196" y="220" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="244" y="250" class="tok pmT">early</text>
+  <!-- row4 -->
+  <rect x="92" y="280" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="140" y="310" class="tok pmT">The</text>
+  <rect x="196" y="280" width="96" height="48" rx="9" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.6"/><text x="244" y="310" class="tok pmT">early</text>
+
+  <!-- ============ CANVAS row 1 : all random ============ -->
+  <rect x="330" y="100" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="378" y="130" class="tok mono nzT">z4k</text>
+  <rect x="436" y="100" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="484" y="130" class="tok mono nzT">qp9</text>
+  <rect x="542" y="100" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="590" y="130" class="tok mono nzT">mvx</text>
+  <rect x="648" y="100" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="696" y="130" class="tok mono nzT">v2c</text>
+  <rect x="754" y="100" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="802" y="130" class="tok mono nzT">8tk</text>
+
+  <!-- CANVAS row 2 -->
+  <rect x="330" y="160" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="378" y="190" class="tok acT">bird</text>
+  <rect x="436" y="160" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="484" y="190" class="tok mono nzT">rp3</text>
+  <rect x="542" y="160" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="590" y="190" class="tok acT">the</text>
+  <rect x="648" y="160" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="696" y="190" class="tok mono nzT">9qk</text>
+  <rect x="754" y="160" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="802" y="190" class="tok mono nzT">mz1</text>
+
+  <!-- CANVAS row 3 -->
+  <rect x="330" y="220" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="378" y="250" class="tok acT">bird</text>
+  <rect x="436" y="220" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="484" y="250" class="tok mono nzT">ld4</text>
+  <rect x="542" y="220" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="590" y="250" class="tok acT">the</text>
+  <rect x="648" y="220" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="696" y="250" class="tok acT">worm</text>
+  <rect x="754" y="220" width="96" height="48" rx="9" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.6"/><text x="802" y="250" class="tok mono nzT">qx7</text>
+
+  <!-- CANVAS row 4 : converged (all accepted) -->
+  <rect x="330" y="280" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="378" y="310" class="tok acT">bird</text>
+  <rect x="436" y="280" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="484" y="310" class="tok acT">catches</text>
+  <rect x="542" y="280" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="590" y="310" class="tok acT">the</text>
+  <rect x="648" y="280" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="696" y="310" class="tok acT">worm</text>
+  <rect x="754" y="280" width="96" height="48" rx="9" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.6"/><text x="802" y="310" class="tok acT">.</text>
+
+  <!-- legend -->
+  <rect x="92"  y="356" width="20" height="15" rx="4" fill="#E0E7F2" stroke="#9DB0CC" stroke-width="1.4"/><text x="120" y="368" class="note">prompt (committed)</text>
+  <rect x="280" y="356" width="20" height="15" rx="4" fill="#FCEFC7" stroke="#E0B13C" stroke-width="1.4"/><text x="308" y="368" class="note">accepted — model's sample (low-entropy)</text>
+  <rect x="600" y="356" width="20" height="15" rx="4" fill="#F6D9D2" stroke="#D98C7A" stroke-width="1.4"/><text x="628" y="368" class="note">renoised — random</text>
+
+  <text x="32" y="398" class="note">Every step re-samples all canvas positions: those under the entropy bound keep the model's sample, the rest renoise to random.</text>
+</svg>

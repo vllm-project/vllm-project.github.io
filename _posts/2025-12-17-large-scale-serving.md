@@ -2,6 +2,7 @@
 layout: post
 title: "vLLM Large Scale Serving: DeepSeek @ 2.2k tok/s/H200 with Wide-EP"
 author: "vLLM Team"
+summary: "How vLLM reaches 2.2k tokens per second per H200 for DeepSeek-style MoE serving with Wide-EP, async scheduling, dual-batch overlap, disaggregated serving, CUDA graphs, DeepGEMM, and expert load balancing."
 image: /assets/figures/2025-12-17-large-scale-serving/prefill_throughput.png
 tags:
   - large-scale-serving

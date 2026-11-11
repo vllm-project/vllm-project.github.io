@@ -2,6 +2,7 @@
 layout: post
 title: "Diving into speculative decoding training support for vLLM with Speculators v0.3.0"
 author: "Fynn Schmitt-Ulms, Helen Zhao, Rahul Tuli and Dipika Sikka (Red Hat AI Model Optimization Team)"
+summary: "How Speculators v0.3.0 supports end-to-end Eagle3 draft model training for vLLM, including hidden-state data generation, MoE and non-MoE verifiers, offline workflows, and seamless speculative decoding serving."
 image: /assets/figures/2025-12-13-speculators-v030/cropped_workflow.png
 tags:
   - speculative-decoding

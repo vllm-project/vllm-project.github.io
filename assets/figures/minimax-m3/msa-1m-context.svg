@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="arrowGold" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#fdb517"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#30a2ff"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <path d="M0,0 L10,3.5 L0,7 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="800" y="55" text-anchor="middle" font-size="30" font-weight="700" fill="#1e293b">MiniMax Sparse Attention (MSA) for 1M-Token Context</text>
+  <text x="800" y="90" text-anchor="middle" font-size="17" fill="#64748b">Each KV block = 128 tokens. Sparse layers attend only to selected blocks, not the full sequence.</text>
+
+  <!-- ====== LEGEND LABELS ABOVE BLOCKS ====== -->
+  <!-- Configured prefix blocks label -->
+  <rect x="38" y="160" width="240" height="36" rx="5" fill="#fdb517" fill-opacity="0.12" stroke="#fdb517" stroke-width="1.5"/>
+  <text x="158" y="184" text-anchor="middle" font-size="16" fill="#92400e" font-weight="600">Configured prefix blocks</text>
+  <line x1="158" y1="196" x2="158" y2="250" stroke="#fdb517" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- Index-selected far blocks label -->
+  <rect x="610" y="160" width="280" height="36" rx="5" fill="#0d9488" fill-opacity="0.12" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="750" y="184" text-anchor="middle" font-size="16" fill="#0f766e" font-weight="600">Index-selected far blocks</text>
+  <line x1="750" y1="196" x2="750" y2="250" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- Recent local blocks label -->
+  <rect x="1170" y="160" width="220" height="36" rx="5" fill="#30a2ff" fill-opacity="0.12" stroke="#30a2ff" stroke-width="1.5"/>
+  <text x="1280" y="184" text-anchor="middle" font-size="16" fill="#1d4ed8" font-weight="600">Recent local blocks</text>
+  <line x1="1280" y1="196" x2="1280" y2="250" stroke="#30a2ff" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- ====== TIMELINE AREA ====== -->
+  <!-- Timeline baseline -->
+  <line x1="60" y1="320" x2="1400" y2="320" stroke="#cbd5e1" stroke-width="2.5"/>
+
+  <!-- Timeline axis labels -->
+  <text x="60" y="370" text-anchor="middle" font-size="15" fill="#94a3b8" font-weight="500">Token 0</text>
+  <text x="1400" y="370" text-anchor="middle" font-size="15" fill="#94a3b8" font-weight="500">Token 1M</text>
+
+  <!-- Timeline title -->
+  <text x="730" y="400" text-anchor="middle" font-size="16" font-weight="600" fill="#475569">1M-Token Sequence  --  128-token KV blocks</text>
+
+  <!-- ====== CONFIGURED INITIAL BLOCKS (gold) at START ====== -->
+  <rect x="60"  y="275" width="52" height="48" rx="5" fill="#fdb517" fill-opacity="0.25" stroke="#fdb517" stroke-width="2.5"/>
+  <rect x="118" y="275" width="52" height="48" rx="5" fill="#fdb517" fill-opacity="0.25" stroke="#fdb517" stroke-width="2.5"/>
+  <rect x="176" y="275" width="52" height="48" rx="5" fill="#fdb517" fill-opacity="0.25" stroke="#fdb517" stroke-width="2.5"/>
+
+  <!-- Block index labels -->
+  <text x="86"  y="304" text-anchor="middle" font-size="14" fill="#92400e" font-weight="700">0</text>
+  <text x="144" y="304" text-anchor="middle" font-size="14" fill="#92400e" font-weight="700">1</text>
+  <text x="202" y="304" text-anchor="middle" font-size="14" fill="#92400e" font-weight="700">2</text>
+
+  <!-- ====== GRAY (unselected) BLOCKS - early-mid region ====== -->
+  <rect x="240" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <rect x="298" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <rect x="356" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Dash marks on unselected blocks -->
+  <text x="266" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+  <text x="324" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+  <text x="382" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+
+  <!-- Ellipsis gap 1 -->
+  <text x="440" y="305" text-anchor="middle" font-size="26" fill="#94a3b8" letter-spacing="4">...</text>
+
+  <!-- ====== INDEX-SELECTED FAR BLOCKS (teal) - scattered in MIDDLE ====== -->
+  <rect x="490" y="275" width="52" height="48" rx="5" fill="#0d9488" fill-opacity="0.2" stroke="#0d9488" stroke-width="2.5"/>
+  <text x="516" y="304" text-anchor="middle" font-size="13" fill="#0f766e" font-weight="700">k<tspan font-size="9" dy="3">1</tspan></text>
+
+  <!-- Gray blocks around far-selected -->
+  <rect x="548" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="574" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+
+  <!-- Ellipsis gap 2 -->
+  <text x="635" y="305" text-anchor="middle" font-size="26" fill="#94a3b8" letter-spacing="4">...</text>
+
+  <!-- Another far-selected block -->
+  <rect x="680" y="275" width="52" height="48" rx="5" fill="#0d9488" fill-opacity="0.2" stroke="#0d9488" stroke-width="2.5"/>
+  <text x="706" y="304" text-anchor="middle" font-size="13" fill="#0f766e" font-weight="700">k<tspan font-size="9" dy="3">2</tspan></text>
+
+  <!-- Gray -->
+  <rect x="738" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="764" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+
+  <!-- Ellipsis gap 3 -->
+  <text x="825" y="305" text-anchor="middle" font-size="26" fill="#94a3b8" letter-spacing="4">...</text>
+
+  <!-- Gray -->
+  <rect x="870" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="896" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+
+  <!-- Another far-selected block -->
+  <rect x="928" y="275" width="52" height="48" rx="5" fill="#0d9488" fill-opacity="0.2" stroke="#0d9488" stroke-width="2.5"/>
+  <text x="954" y="304" text-anchor="middle" font-size="13" fill="#0f766e" font-weight="700">k<tspan font-size="9" dy="3">3</tspan></text>
+
+  <!-- Gray -->
+  <rect x="986" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="1012" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+
+  <!-- Ellipsis gap 4 -->
+  <text x="1070" y="305" text-anchor="middle" font-size="26" fill="#94a3b8" letter-spacing="4">...</text>
+
+  <!-- Another far-selected block -->
+  <rect x="1110" y="275" width="52" height="48" rx="5" fill="#0d9488" fill-opacity="0.2" stroke="#0d9488" stroke-width="2.5"/>
+  <text x="1136" y="304" text-anchor="middle" font-size="13" fill="#0f766e" font-weight="700">k<tspan font-size="9" dy="3">4</tspan></text>
+
+  <!-- Gray -->
+  <rect x="1168" y="275" width="52" height="48" rx="5" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="1194" y="305" text-anchor="middle" font-size="18" fill="#cbd5e1" font-weight="300">-</text>
+
+  <!-- ====== RECENT LOCAL BLOCKS (blue) near END ====== -->
+  <rect x="1232" y="275" width="52" height="48" rx="5" fill="#30a2ff" fill-opacity="0.2" stroke="#30a2ff" stroke-width="2.5"/>
+  <rect x="1290" y="275" width="52" height="48" rx="5" fill="#30a2ff" fill-opacity="0.2" stroke="#30a2ff" stroke-width="2.5"/>
+  <rect x="1348" y="275" width="52" height="48" rx="5" fill="#30a2ff" fill-opacity="0.2" stroke="#30a2ff" stroke-width="2.5"/>
+
+  <!-- Block index labels for local -->
+  <text x="1258" y="304" text-anchor="middle" font-size="13" fill="#1d4ed8" font-weight="700">n-2</text>
+  <text x="1316" y="304" text-anchor="middle" font-size="13" fill="#1d4ed8" font-weight="700">n-1</text>
+  <text x="1374" y="304" text-anchor="middle" font-size="13" fill="#1d4ed8" font-weight="700">n</text>
+
+  <!-- ====== QUERY TOKEN (diamond marker — single token, not a block) ====== -->
+  <polygon points="1450,262 1478,299 1450,336 1422,299" fill="#1e293b" stroke="#0f172a" stroke-width="2.5"/>
+  <text x="1450" y="305" text-anchor="middle" font-size="16" fill="#ffffff" font-weight="700">Q</text>
+  <text x="1450" y="355" text-anchor="middle" font-size="14" fill="#475569" font-weight="600">Query</text>
+
+  <!-- ====== CONNECTION LINES FROM QUERY TO SELECTED BLOCKS ====== -->
+  <!-- Curves from Query to prefix blocks (gold) -->
+  <path d="M1430,280 C1150,100 350,100 86,275" fill="none" stroke="#fdb517" stroke-width="2.2" stroke-opacity="0.7" marker-end="url(#arrowGold)"/>
+  <path d="M1430,283 C1150,115 380,115 144,275" fill="none" stroke="#fdb517" stroke-width="2.2" stroke-opacity="0.5" marker-end="url(#arrowGold)"/>
+  <path d="M1430,286 C1150,130 400,130 202,275" fill="none" stroke="#fdb517" stroke-width="2.2" stroke-opacity="0.35" marker-end="url(#arrowGold)"/>
+
+  <!-- Curves from Query to far-selected blocks (teal) -->
+  <path d="M1430,290 C1300,150 700,150 516,275" fill="none" stroke="#0d9488" stroke-width="2.2" stroke-opacity="0.6" marker-end="url(#arrowTeal)"/>
+  <path d="M1430,293 C1300,165 850,165 706,275" fill="none" stroke="#0d9488" stroke-width="2.2" stroke-opacity="0.6" marker-end="url(#arrowTeal)"/>
+  <path d="M1430,296 C1350,190 1050,190 954,275" fill="none" stroke="#0d9488" stroke-width="2.2" stroke-opacity="0.6" marker-end="url(#arrowTeal)"/>
+  <path d="M1430,299 C1380,210 1200,210 1136,275" fill="none" stroke="#0d9488" stroke-width="2.2" stroke-opacity="0.6" marker-end="url(#arrowTeal)"/>
+
+  <!-- Curves from Query to local blocks (blue) -->
+  <path d="M1430,302 Q1410,290 1400,288" fill="none" stroke="#30a2ff" stroke-width="2.5" stroke-opacity="0.7"/>
+  <path d="M1430,302 Q1400,292 1342,290" fill="none" stroke="#30a2ff" stroke-width="2.5" stroke-opacity="0.7"/>
+  <path d="M1430,302 Q1390,296 1284,295" fill="none" stroke="#30a2ff" stroke-width="2.5" stroke-opacity="0.7"/>
+
+  <!-- ====== BLOCK SIZE ANNOTATION ====== -->
+  <line x1="60" y1="335" x2="60" y2="345" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="60" y1="345" x2="112" y2="345" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="112" y1="345" x2="112" y2="335" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="86" y="362" text-anchor="middle" font-size="13" fill="#94a3b8">128 tokens</text>
+
+  <!-- ====== PIPELINE ANNOTATION (bottom section) ====== -->
+  <!-- Pipeline label -->
+  <text x="730" y="490" text-anchor="middle" font-size="20" font-weight="700" fill="#334155">MSA Pipeline</text>
+
+  <!-- Step 1: Score Blocks -->
+  <rect x="280" y="510" width="260" height="62" rx="10" fill="#fdb517" fill-opacity="0.1" stroke="#fdb517" stroke-width="2"/>
+  <text x="410" y="537" text-anchor="middle" font-size="17" fill="#92400e" font-weight="700">1. Score Blocks</text>
+  <text x="410" y="558" text-anchor="middle" font-size="14" fill="#a16207">per head, per query group</text>
+
+  <!-- Arrow 1->2 -->
+  <line x1="545" y1="541" x2="610" y2="541" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <!-- Step 2: Top-k Block IDs -->
+  <rect x="615" y="510" width="280" height="62" rx="10" fill="#0d9488" fill-opacity="0.1" stroke="#0d9488" stroke-width="2"/>
+  <text x="755" y="537" text-anchor="middle" font-size="17" fill="#0f766e" font-weight="700">2. Top-k Block IDs</text>
+  <text x="755" y="558" text-anchor="middle" font-size="14" fill="#0f766e">select relevant KV blocks</text>
+
+  <!-- Arrow 2->3 -->
+  <line x1="900" y1="541" x2="965" y2="541" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <!-- Step 3: Sparse GQA -->
+  <rect x="970" y="510" width="260" height="62" rx="10" fill="#30a2ff" fill-opacity="0.1" stroke="#30a2ff" stroke-width="2"/>
+  <text x="1100" y="537" text-anchor="middle" font-size="17" fill="#1d4ed8" font-weight="700">3. Sparse GQA</text>
+  <text x="1100" y="558" text-anchor="middle" font-size="14" fill="#2563eb">attend only to selected</text>
+
+  <!-- ====== DENSE LAYER NOTE ====== -->
+  <rect x="410" y="610" width="600" height="42" rx="8" fill="#fefce8" stroke="#fde68a" stroke-width="2"/>
+  <text x="440" y="637" font-size="15" fill="#854d0e" font-weight="700">Note:</text>
+  <text x="498" y="637" font-size="15" fill="#92400e">Dense layers still use regular attention (full sequence)</text>
+
+  <!-- ====== LEGEND BOX (bottom center) ====== -->
+  <g transform="translate(370, 690)">
+    <rect x="0" y="0" width="720" height="52" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+
+    <!-- Gold block -->
+    <rect x="16" y="16" width="22" height="16" rx="3" fill="#fdb517" fill-opacity="0.25" stroke="#fdb517" stroke-width="2"/>
+    <text x="46" y="30" font-size="14" fill="#475569">Prefix (preserved)</text>
+
+    <!-- Teal block -->
+    <rect x="205" y="16" width="22" height="16" rx="3" fill="#0d9488" fill-opacity="0.2" stroke="#0d9488" stroke-width="2"/>
+    <text x="235" y="30" font-size="14" fill="#475569">Far blocks (top-k)</text>
+
+    <!-- Blue block -->
+    <rect x="400" y="16" width="22" height="16" rx="3" fill="#30a2ff" fill-opacity="0.2" stroke="#30a2ff" stroke-width="2"/>
+    <text x="430" y="30" font-size="14" fill="#475569">Local (sliding window)</text>
+
+    <!-- Gray block -->
+    <rect x="600" y="16" width="22" height="16" rx="3" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="630" y="30" font-size="14" fill="#475569">Skipped</text>
+  </g>
+</svg>

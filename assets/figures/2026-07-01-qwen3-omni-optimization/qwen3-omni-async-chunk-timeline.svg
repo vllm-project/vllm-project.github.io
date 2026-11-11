@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="600" viewBox="0 0 1024 600" role="img" aria-labelledby="title desc">
+  <title id="title">Async chunk before/after timeline</title>
+  <desc id="desc">Barrier-synchronized execution waits for full Thinker and Talker payloads before first audio; async chunk pipelines partial handoffs so first audio arrives much earlier.</desc>
+  <defs>
+    <marker id="dim" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="dimr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b91c1c"/>
+    </marker>
+    <marker id="dimrstart" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 10 0 L 0 5 L 10 10 z" fill="#b91c1c"/>
+    </marker>
+    <marker id="dimg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#15803d"/>
+    </marker>
+    <marker id="dimgstart" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 10 0 L 0 5 L 10 10 z" fill="#15803d"/>
+    </marker>
+    <style>
+      .card { fill: #ffffff; stroke: #e5e7eb; }
+      .title { font: 700 21px system-ui, -apple-system, Segoe UI, sans-serif; fill: #111827; }
+      .subtitle { font: 500 13px system-ui, -apple-system, Segoe UI, sans-serif; fill: #6b7280; }
+      .phase { font: 700 15px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .phase-sub { font: 500 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #6b7280; }
+      .row-label { font: 600 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #374151; }
+      .bar-text { font: 600 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #1f2937; }
+      .dimtext { font: 700 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #b91c1c; }
+      .dimtext-good { font: 700 12px system-ui, -apple-system, Segoe UI, sans-serif; fill: #15803d; }
+      .axis { font: 500 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #9ca3af; }
+      .before-box { fill: #eaf1fb; stroke: #c7dbf6; }
+      .after-box { fill: #eafaf0; stroke: #bfe7cf; }
+      .thinker { fill: #dbeafe; stroke: #93c5fd; }
+      .talker { fill: #fed7aa; stroke: #fdba74; }
+      .code2wav { fill: #bbf7d0; stroke: #4ade80; }
+      .guide { stroke: #e5e7eb; stroke-width: 1; }
+      .guide-red { stroke: #f0a8a8; stroke-width: 1; stroke-dasharray: 4 3; }
+      .tl-good { stroke: #15803d; stroke-width: 2; stroke-dasharray: 5 4; }
+      .tl-bad { stroke: #b91c1c; stroke-width: 2; stroke-dasharray: 5 4; }
+      .barrier-line { stroke: #fca5a5; stroke-width: 1.5; stroke-dasharray: 4 4; }
+      .dim { stroke: #475569; stroke-width: 1.4; fill: none; marker-end: url(#dim); }
+      .dimred { stroke: #b91c1c; stroke-width: 2; }
+      .stat-blue { fill: #eef4ff; stroke: #c7dbf6; }
+      .stat-green { fill: #eafaf0; stroke: #bfe7cf; }
+      .stat-gray { fill: #f4f5f7; stroke: #e2e5ea; }
+      .stat-cap { font: 600 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #6b7280; }
+      .stat-big { font: 800 18px system-ui, -apple-system, Segoe UI, sans-serif; fill: #111827; }
+      .stat-sub { font: 500 11px system-ui, -apple-system, Segoe UI, sans-serif; fill: #6b7280; }
+    </style>
+  </defs>
+
+  <rect x="14" y="14" width="996" height="572" rx="14" class="card"/>
+
+  <text x="44" y="54" class="title">Async chunk: barrier-synchronized vs pipelined</text>
+  <text x="44" y="76" class="subtitle">Stage handoff timeline &#183; Thinker &#8594; Talker &#8594; Code2Wav</text>
+
+  <!-- ===================== BEFORE ===================== -->
+  <rect x="44" y="104" width="150" height="84" rx="10" class="before-box"/>
+  <text x="60" y="138" class="phase">Before</text>
+  <text x="60" y="158" class="phase-sub">full-payload barrier</text>
+  <text x="60" y="173" class="phase-sub">each stage waits</text>
+
+  <text x="224" y="130" class="row-label">Thinker</text>
+  <text x="224" y="162" class="row-label">Talker</text>
+  <text x="224" y="194" class="row-label">Code2Wav</text>
+
+  <line x1="330" y1="98" x2="330" y2="218" class="guide"/>
+
+  <rect x="330" y="114" width="220" height="26" rx="3" class="thinker"/>
+  <text x="440" y="131" text-anchor="middle" class="bar-text">full generation</text>
+
+  <rect x="550" y="146" width="220" height="26" rx="3" class="talker"/>
+  <text x="660" y="163" text-anchor="middle" class="bar-text">full prefill + codec</text>
+
+  <rect x="770" y="178" width="220" height="26" rx="3" class="code2wav"/>
+  <text x="880" y="195" text-anchor="middle" class="bar-text">decode</text>
+
+  <line x1="550" y1="104" x2="550" y2="218" class="barrier-line"/>
+  <line x1="770" y1="104" x2="770" y2="218" class="barrier-line"/>
+
+  <line x1="990" y1="96" x2="990" y2="222" class="tl-bad"/>
+  <text x="982" y="218" text-anchor="end" class="dimtext">first audio (late)</text>
+
+  <!-- ===================== AFTER ===================== -->
+  <rect x="44" y="248" width="150" height="84" rx="10" class="after-box"/>
+  <text x="60" y="282" class="phase">After</text>
+  <text x="60" y="302" class="phase-sub">pipelined partial</text>
+  <text x="60" y="317" class="phase-sub">handoffs</text>
+
+  <text x="224" y="274" class="row-label">Thinker</text>
+  <text x="224" y="306" class="row-label">Talker</text>
+  <text x="224" y="338" class="row-label">Code2Wav</text>
+
+  <line x1="330" y1="242" x2="330" y2="358" class="guide"/>
+
+  <!-- Thinker chunks -->
+  <rect x="330" y="258" width="52" height="26" rx="3" class="thinker"/>
+  <rect x="386" y="258" width="52" height="26" rx="3" class="thinker"/>
+  <rect x="442" y="258" width="52" height="26" rx="3" class="thinker"/>
+  <rect x="498" y="258" width="52" height="26" rx="3" class="thinker"/>
+
+  <!-- Talker chunks -->
+  <rect x="386" y="290" width="52" height="26" rx="3" class="talker"/>
+  <rect x="442" y="290" width="52" height="26" rx="3" class="talker"/>
+  <rect x="498" y="290" width="52" height="26" rx="3" class="talker"/>
+  <rect x="554" y="290" width="52" height="26" rx="3" class="talker"/>
+
+  <!-- Code2Wav chunks -->
+  <rect x="442" y="322" width="52" height="26" rx="3" class="code2wav"/>
+  <rect x="498" y="322" width="52" height="26" rx="3" class="code2wav"/>
+  <rect x="554" y="322" width="52" height="26" rx="3" class="code2wav"/>
+  <rect x="610" y="322" width="52" height="26" rx="3" class="code2wav"/>
+
+  <line x1="330" y1="356" x2="990" y2="356" class="dim"/>
+  <text x="982" y="372" text-anchor="end" class="axis">time</text>
+
+  <line x1="494" y1="250" x2="494" y2="360" class="tl-good"/>
+  <text x="502" y="370" class="dimtext-good">first audio (early)</text>
+
+  <!-- TTFP gap: early vs late -->
+  <line x1="494" y1="360" x2="494" y2="390" class="guide-red"/>
+  <line x1="990" y1="222" x2="990" y2="390" class="guide-red"/>
+  <line x1="494" y1="390" x2="990" y2="390" class="dimred" marker-start="url(#dimgstart)" marker-end="url(#dimr)"/>
+  <text x="494" y="412" text-anchor="middle" class="dimtext-good">early 655 ms</text>
+  <text x="986" y="412" text-anchor="end" class="dimtext">late 2790 ms</text>
+
+  <!-- ===================== STAT CARDS ===================== -->
+  <rect x="44" y="420" width="296" height="58" rx="9" class="stat-blue"/>
+  <text x="60" y="440" class="stat-cap">Mean audio TTFP (c=64) &#183; &#8722;77% in sweep</text>
+  <text x="60" y="464" class="stat-big">2790 ms &#8594; 655 ms</text>
+
+  <rect x="356" y="420" width="296" height="58" rx="9" class="stat-green"/>
+  <text x="372" y="440" class="stat-cap">Stage idle between handoffs</text>
+  <text x="372" y="464" class="stat-big">eliminated</text>
+  <text x="492" y="464" class="stat-sub">stages overlap in pipeline</text>
+
+  <rect x="668" y="420" width="312" height="58" rx="9" class="stat-gray"/>
+  <text x="684" y="440" class="stat-cap">Mechanism</text>
+  <text x="684" y="464" class="stat-big">async chunk</text>
+  <text x="812" y="464" class="stat-sub">incremental stage handoffs</text>
+</svg>

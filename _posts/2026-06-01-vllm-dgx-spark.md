@@ -2,10 +2,10 @@
 layout: post
 title: "vLLM on the DGX Spark: Architecture, Configuration, and Local Evaluation"
 author: "Inferact"
+summary: "How to run vLLM on NVIDIA DGX Spark and GB10 systems, including unified memory behavior, NVFP4 Nemotron-3-Super serving, Docker deployment, Prometheus metrics, and local evaluation results."
 image: /assets/figures/2026-05-26-vllm-dgx-spark/office-dgx-spark.jpg
 social_image: /assets/figures/2026-05-26-vllm-dgx-spark/office-dgx-spark.jpg
 read_time_minutes: 16
-summary: "A technical deep dive on running vLLM on NVIDIA DGX Spark and GB10 systems, covering sm_121 architecture, unified memory behavior, NVFP4 model serving, Nemotron-3-Super configuration, Docker deployment, Prometheus metrics, and local evaluation results."
 tags:
   - dgx-spark
   - nemotron
@@ -149,7 +149,7 @@ docker run -d --name vllm --ipc=host --restart unless-stopped \
   -e HF_TOKEN="$HF_TOKEN" \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   vllm/vllm-openai:cu130-nightly \
-  vllm serve nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4 \
+  nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4 \
     --served-model-name nemotron-3-super \
     --trust-remote-code \
     --max-model-len 131072 \
