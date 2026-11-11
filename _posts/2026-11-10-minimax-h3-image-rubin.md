@@ -2,7 +2,7 @@
 layout: post
 title: "H3-Image Day-0 Support: 4K in 0.87s with Vera Rubin"
 author: "vLLM-Omni team and NVIDIA team"
-summary: "MiniMax H3-Image on four Rubin GPUs: 0.87s 4K latency, up to 3.1× GB200 throughput, and 146,755 images/day at the peak measured rate."
+summary: "MiniMax H3-Image on four Rubin GPUs: 0.87s 4K latency, up to 3.05× GB200 throughput, and 146,755 images/day at the peak measured rate."
 image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 social_image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 tags:
@@ -32,13 +32,13 @@ of requests, trading response time for more images per hour.
 Here are the results:
 
 - **4K in 0.87 seconds:** 0.866 s median latency and 0.944 s p95, using SP4 at concurrency 1.
-- **Up to 3.13× GB200 throughput and 2.19× GB300 throughput:** 6,115 images/hour with four single-GPU replicas.
+- **Up to 3.05× GB200 throughput and 2.21× GB300 throughput:** 6,115 images/hour with four single-GPU replicas.
 - **About 146,755 images/day from four GPUs:** at $0.06879 per image and full billable utilization, that capacity is worth **$105.16 per GPU per hour in gross revenue**.
 
 The latency and throughput headlines use different operating points. The peak-rate
-comparison uses Rubin with MXFP8 and SP1×DP4, versus GB200 and GB300 with FP8 and SP4.
-It compares the best configurations we measured, with their respective response
-times, rather than isolating hardware at a common latency target.
+comparison uses Rubin with SP1×DP4, versus GB200 and GB300 with SP4. All three
+use MXFP8 DiT linears. The ratios compare measured serving configurations at
+different response latencies; the SP4 comparison is reported below.
 
 ## 4K Latency
 
@@ -47,10 +47,9 @@ The workload is deliberately simple: one prompt, no reference images, and a nati
 We use the released six-step schedule, with no upscaling. Latency includes image
 generation, PNG encoding and receipt of the full base64 response over loopback.
 
-At concurrency 1, the Rubin configuration delivers **2.22× faster generation than
-GB200 and 1.59× faster than GB300**, measured as reference latency divided by Rubin
-latency. All three use SP4 for this latency comparison; Rubin uses MXFP8 DiT while
-the Blackwell references use FP8 DiT.
+At concurrency 1, the Rubin configuration delivers **2.21× faster generation than
+GB200 and 1.64× faster than GB300**, measured as reference latency divided by Rubin
+latency. All three use SP4 and MXFP8 DiT linears for this latency comparison.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/hardware-comparison.html" title="4K image latency and peak throughput across Rubin, GB200 and GB300" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 720px; border: 0; overflow: hidden;"></iframe>
 
@@ -76,10 +75,10 @@ point contains 160 measured requests after warmup. Both Rubin sweeps completed
 saving. Each DiT forward generates one image; the replicas do not pack requests
 into a shared DiT batch.
 
-For a closer configuration comparison, the **FP8/SP4** runs give Rubin **2.06× GB200
-and 1.44× GB300 peak throughput**, with **2.05× and 1.46× C1 latency speedups**.
-The [interactive chart](/assets/figures/minimax-h3-image-rubin/performance-benchmarks.html)
-lets readers select these matched-precision curves and inspect response times.
+With **MXFP8/SP4 on all three platforms**, Rubin reaches **2.20× GB200 and 1.60× GB300
+peak throughput**. The
+[interactive chart](/assets/figures/minimax-h3-image-rubin/performance-benchmarks.html)
+lets readers select the SP4 curves and inspect the corresponding response times.
 
 ## Serving Economics
 

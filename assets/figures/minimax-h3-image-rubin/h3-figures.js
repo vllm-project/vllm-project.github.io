@@ -26,7 +26,7 @@
   const platformColor = p => p.platform === 'Vera Rubin' ? 'var(--gold-line)' : color(p);
   const shortName = p => (p.platform === 'Vera Rubin' ? 'Rubin' : p.platform) + ' ' + p.topology;
   const seriesKey = p => [p.platform, p.topology, p.precision].join(' / ');
-  const dashed = p => p.precision === 'Native' ? '2 4' : p.platform !== 'Vera Rubin' ? '6 4' : p.precision === 'FP8 DiT' ? '9 3' : '';
+  const dashed = p => p.platform !== 'Vera Rubin' ? '6 4' : '';
   let points;
   try {
     const response = await fetch('performance-benchmarks-data.json');
@@ -43,7 +43,7 @@
   const revenuePerGPU = (p, price, utilization) => p.images_per_hour * price * utilization / 4;
   function selectedPoints() {
     const filter = $('precision').value;
-    return points.filter(p => filter === 'all' || (filter === 'primary' ? p.primary_view : p.precision === filter));
+    return points.filter(p => filter === 'primary' ? p.primary_view : filter === 'sp4' ? p.topology === 'SP4' : filter === 'rubin' ? p.platform === 'Vera Rubin' : false);
   }
   function tooltip(target, lines) {
     target.setAttribute('tabindex', '0');
@@ -110,7 +110,7 @@
         node('circle', {cx: x, cy: y, r: 4.5, class: 'pt', style: 'fill:' + stroke}, plot);
         if (groups.size <= 4) text(x, y + (p.platform === 'Vera Rubin' ? -11 : 20), 'C' + p.concurrency, 't-mut', {'text-anchor': 'middle'});
         const hit = node('circle', {cx: x, cy: y, r: 11, class: 'hit', 'data-point': seriesKey(p) + '/C' + p.concurrency});
-        tooltip(hit, [shortName(p) + ' · ' + p.precision + ' · C' + p.concurrency, fmt(p.images_per_gpu_hour, 1) + ' images/GPU/hour', metricName + ' HTTP latency: ' + fmt(p[metric], 3) + ' s', 'p95: ' + fmt(p.p95_latency_s, 3) + ' s · 160 measured requests', fmt(p.images_per_hour, 1) + ' images/hour across four GPUs']);
+        tooltip(hit, [shortName(p) + ' · ' + p.precision + ' · C' + p.concurrency, fmt(p.images_per_gpu_hour, 1) + ' images/GPU/hour', metricName + ' HTTP latency: ' + fmt(p[metric], 3) + ' s', 'Sample p95: ' + fmt(p.p95_latency_s, 3) + ' s · 160 measured requests', fmt(p.images_per_hour, 1) + ' images/hour across four GPUs']);
       });
       if (!zoom && groups.size <= 4) {
         const a = group[group.length - 2], b = group[group.length - 1];
@@ -119,7 +119,7 @@
     }
     labels.forEach(([x, y, s]) => text(x, y, s, 't-lab-b', {'text-anchor': 'middle'}));
     legend([...groups.values()].map(g => ({color: color(g[0]), dash: dashed(g[0]), label: shortName(g[0]) + ' · ' + g[0].precision.replace(' DiT', '')})));
-    $('note').textContent = 'Native 4096×4096 T2I; six steps; four GPUs per system; 160 requests per point after warmup. C = total in-flight requests. Latency includes PNG encoding and the full base64 HTTP response; throughput also includes client validation and saving. ' + (groups.size > 4 ? 'Hover a point for concurrency. ' : '') + 'Rubin MXFP8 and Blackwell FP8 use different precisions; select FP8/SP4 for matched-precision curves.';
+    $('note').textContent = 'Native 4096×4096 T2I; six steps; four GPUs; 160 prompt–seed pairs per point after warmup. C = closed-loop client concurrency, not DiT batch size. HTTP latency includes queueing, generation, PNG encoding and response receipt over loopback; client decoding/validation/saving is excluded from latency and included in throughput. ' + (groups.size > 4 ? 'Hover a point for concurrency. ' : '') + 'All curves use MXFP8 DiT linears; select SP4 to compare the same parallel layout. Peak configurations have different response latencies.';
     economy(); reportHeight();
   }
   function operatingPoints() {
@@ -138,7 +138,7 @@
     selected.forEach(({platform, p}) => {
       const row = document.createElement('div'); row.className = 'revenue';
       const top = document.createElement('div'); top.className = 'revenue-top';
-      const name = document.createElement('span'); name.className = 'revenue-name'; name.textContent = platform + (p ? ' · ' + p.topology + ' · C' + p.concurrency : '');
+      const name = document.createElement('span'); name.className = 'revenue-name'; name.textContent = platform + (p ? ' · ' + p.topology + ' · ' + p.precision + ' · C' + p.concurrency : '');
       const value = document.createElement('span'); value.className = 'revenue-value'; value.textContent = p ? money(revenuePerGPU(p, price, utilization)) + '/GPU/hour' : 'No measured point meets the target';
       top.append(name, value); row.appendChild(top);
       if (p) {
@@ -162,7 +162,7 @@
     const X = v => x0 + v / vmax * (x1 - x0);
     const rubin = data[0], gb200 = data[2], gb300 = data[1];
     $('title').textContent = latency ? 'Native 4K in ' + fmt(value(rubin), 3) + ' seconds' : capacity ? fmt(value(rubin)) + ' images a day from four Rubin GPUs' : throughput ? 'Rubin: ' + fmt(value(rubin) / value(gb200), 2) + '× GB200 throughput' : money(value(rubin)) + ' per GPU-hour';
-    $('subtitle').textContent = kind === 'hardware' ? (latency ? 'C1 on SP4: ' + fmt(value(gb200) / value(rubin), 2) + '× faster than GB200 and ' + fmt(value(gb300) / value(rubin), 2) + '× faster than GB300.' : 'Best measured serving configurations: ' + fmt(value(rubin) / value(gb300), 2) + '× GB300 peak throughput. Peaks have different response times.') : 'At $0.06879/image and 100% billable utilization. Four GPUs per system.';
+    $('subtitle').textContent = kind === 'hardware' ? (latency ? 'C1 on SP4: ' + fmt(value(gb200) / value(rubin), 2) + '× faster than GB200 and ' + fmt(value(gb300) / value(rubin), 2) + '× faster than GB300.' : 'Best measured serving configurations: ' + fmt(value(rubin) / value(gb300), 2) + '× GB300 peak throughput. Peaks have different response times.') : 'Projected gross revenue at $0.06879/image and 100% billable utilization. Four GPUs per system.';
     reset($('title').textContent + '. ' + unit);
     text(x0, 15, unit, 't-head');
     for (let v = 0; v <= vmax; v += step) {
@@ -177,8 +177,8 @@
       text(x0, y + 51, p.topology + ' · C' + p.concurrency + ' · ' + p.precision + (latency ? '' : ' · p50 ' + fmt(p.median_latency_s, 3) + ' s'), 't-mut');
       tooltip(bar, [p.platform + ' · ' + p.topology + ' · ' + p.precision, unit + ': ' + fmt(v, latency ? 3 : 2), 'p50 ' + fmt(p.median_latency_s, 3) + ' s · p95 ' + fmt(p.p95_latency_s, 3) + ' s', fmt(p.images_per_hour, 1) + ' images/hour across four GPUs']);
     });
-    $('note').textContent = kind === 'hardware' ? (latency ? 'All three C1 runs use SP4. Rubin uses MXFP8 DiT; GB200 and GB300 use FP8 DiT. ' : 'Peak throughput: Rubin MXFP8/SP1×DP4, C8; GB300 FP8/SP4, C16; GB200 FP8/SP4, C2. These are best measured configurations, not a comparison at matched latency or precision. ') + 'Native 4096×4096; six steps; 160 measured requests per point. HTTP latency includes PNG encoding and the full base64 response.' : 'Revenue = measured images/hour × $0.06879 × billable utilization ÷ 4 GPUs, before operating costs. At 75% billable utilization, Rubin earns ' + money(revenuePerGPU(rubin, .06879, .75)) + '/GPU/hour gross. Daily capacity is the peak measured hourly rate × 24, not a 24-hour load test. Peak configurations and response times are shown under each bar.';
-    legend(data.map(p => ({color: platformColor(p), label: p.platform + (p.platform === 'Vera Rubin' ? ' · MXFP8' : ' · FP8 reference')})));
+    $('note').textContent = kind === 'hardware' ? (latency ? 'All three C1 runs use SP4 and MXFP8 DiT linears. ' : 'Peak throughput: Rubin MXFP8/SP1×DP4, C8; GB300 and GB200 MXFP8/SP4, C2. These are best measured configurations at different response latencies. ') + 'Native 4096×4096; six steps; 160 measured requests per point. HTTP latency includes PNG encoding and the full base64 response.' : 'Revenue = measured images/hour × $0.06879 × billable utilization ÷ 4 GPUs, before operating costs. At 75% billable utilization, Rubin projects to ' + money(revenuePerGPU(rubin, .06879, .75)) + '/GPU/hour gross. Daily capacity is the peak measured hourly rate × 24, not a 24-hour load test. Peak configurations and response times are shown under each bar.';
+    legend(data.map(p => ({color: platformColor(p), label: p.platform + ' · MXFP8'})));
     reportHeight();
   }
   function exportSVG() {
