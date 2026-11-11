@@ -2,7 +2,7 @@
 layout: post
 title: "H3-Image Day-0 Support: 4K in 0.87s with Vera Rubin"
 author: "vLLM-Omni team"
-summary: "H3-Image across server and desktop GPUs: matched creative examples, workload latency and the serving choices behind 0.87-second 4K generation on Vera Rubin."
+summary: "H3-Image across consumer and data-center GPUs and Ascend NPUs, with NVIDIA, AMD, Intel and MUSA support, plus 0.87-second 4K generation on Vera Rubin."
 image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 social_image: /assets/figures/minimax-h3-image-rubin/social-preview.png
 tags:
@@ -20,15 +20,14 @@ an open-weight model for text-to-image generation and image editing. One checkpo
 handles both tasks in six sampling steps, generates native high-resolution images
 without an upscaler, and supports up to 16 reference images.
 
-We put it to work on food photography, studio edits, English and Chinese posters,
-and an adventure-game environment. Here are the highlights:
+We bring H3-Image to **consumer and data-center GPUs**, spanning **NVIDIA, AMD,
+Intel and Moore Threads (MUSA)**, as well as **Huawei Ascend NPUs**.
 
-- **Different tasks, matched inputs.** Compare measured configurations across
-  **10 hardware types**, with results organized by text-to-image generation,
-  image editing, output resolution and reference-image count.
-- **Desktop generation.** A single RTX 5090 generates the **5472×3072 adventure
-  scene in 59.77 seconds** with CPU layerwise offload. A single RTX 6000D produces
-  the **3552×4736 workshop poster in 42.31 seconds**. Both are three-seed means.
+- **Single- and multi-GPU serving.** Run on a single RTX GPU or distribute
+  generation across multiple data-center GPUs, with configurations for different
+  memory capacities.
+- **Measured across 10 NVIDIA hardware types.** Compare latency for text-to-image
+  generation and editing across output resolutions and reference-image counts.
 - **Subsecond 4K on Rubin.** Four Rubin GPUs reach **0.87 seconds median** for
   4096×4096 generation. A separate throughput configuration reaches
   **6,115 images/hour**. We examine both operating points at the end.
