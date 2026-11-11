@@ -4,7 +4,7 @@
   const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
   const height=()=>window.parent.postMessage({type:'vllm-embed-resize',height:Math.ceil(document.querySelector('main').getBoundingClientRect().height+8)},'*');
   let data;
-  try{const r=await fetch('resolution-detail-data.json?v=b2ae6e0911ee');if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();}
+  try{const r=await fetch('resolution-detail-data.json?v=9c1514c4f796');if(!r.ok)throw new Error('HTTP '+r.status);data=await r.json();}
   catch(error){$('status').textContent='Unable to load image sources. Please reload.';document.body.dataset.error=error.message;return;}
   const state={scene:data.cases[0].id,left:'1K',right:'4K',zoom:1,x:.5,y:.5,split:50};
   const images=new Map(),sceneButtons=[];let cards=[],revision=0,motion=0,interaction=0,pendingFocus=false;
@@ -107,6 +107,7 @@
     }catch(error){if(current!==revision)return;$('status').textContent='Image could not load. Re-select the scene to retry.';document.body.dataset.imagesReady='0';}
     height();
   }
+  $('scenes').style.setProperty('--scene-count',String(data.cases.length));
   for(const [index,scene] of data.cases.entries()){
     const button=el('button',undefined,'scene-choice');button.type='button';button.dataset.scene=scene.id;button.setAttribute('aria-controls','comparison-stage');
     const thumbnail=el('img');thumbnail.src=scene.thumbnail;thumbnail.alt='';thumbnail.width=240;thumbnail.height=120;thumbnail.decoding='async';

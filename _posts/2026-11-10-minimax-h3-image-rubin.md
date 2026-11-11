@@ -2,7 +2,7 @@
 layout: post
 title: "H3-Image Day-0 Support: 4K in 0.87s with Vera Rubin"
 author: "vLLM-Omni team"
-summary: "H3-Image across consumer and data-center GPUs and Ascend NPUs, with NVIDIA, AMD, Intel and MUSA support, plus 0.87-second 4K generation on Vera Rubin."
+summary: "H3-Image on Vera Rubin: 0.87-second 4K generation or 6,115 images/hour on four GPUs, with projected API revenue and support across consumer and data-center hardware."
 image: /assets/figures/minimax-h3-image-rubin/social-preview-compact.png
 social_image: /assets/figures/minimax-h3-image-rubin/social-preview-compact.png
 tags:
@@ -15,8 +15,20 @@ tags:
 ![vLLM-Omni and MiniMax H3-Image.](/assets/figures/minimax-h3-image-rubin/social-preview-compact.png)
 
 
-vLLM-Omni now supports [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image),
-an open-weight model for text-to-image generation and image editing. One checkpoint
+We brought [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image)
+to **NVIDIA Vera Rubin** with vLLM-Omni. On four GPUs, native 4096×4096 generation
+reaches **0.87 seconds median** in our short-prompt serving benchmark. A separate
+throughput configuration delivers **6,115 images/hour**, projecting to
+**146,755 images/day**.
+
+At **USD 0.06879 per image**, using
+[MiniMax's official Standard 4K API pricing example](https://platform.minimax.io/docs/pricing/overview)
+before launch discounts as an assumed sale price, peak throughput projects to
+**USD 105.16/GPU/hour in gross revenue** at full billable utilization, or
+**USD 78.87/GPU/hour** at 75%. These estimates are before operating costs;
+the daily capacity is an extrapolation of the measured rate.
+
+H3-Image is an open-weight model for text-to-image generation and image editing. One checkpoint
 handles both tasks in six sampling steps, generates native high-resolution images
 without an upscaler, and supports up to 16 reference images.
 
@@ -28,19 +40,16 @@ Intel and Moore Threads (MUSA)**, as well as **Huawei Ascend NPUs**.
   memory capacities.
 - **Measured across 10 NVIDIA hardware types.** Compare latency for text-to-image
   generation and editing across output resolutions and reference-image counts.
-- **Subsecond 4K on Rubin.** Four Rubin GPUs reach **0.87 seconds median** for
-  4096×4096 generation in our short-prompt serving benchmark. A separate throughput configuration reaches
-  **6,115 images/hour**. We examine both operating points at the end.
 
 ## Quality
 
-Skin, individual hairs, book spines, food textures and weathered stone reveal
-what a smaller image can lose. The comparison opens on a portrait detail, with
-architecture, food and a game environment alongside it. Each uses one measured
+Oil-paint strokes, pencil hatching, botanical illustrations and tiny lettering
+on a rice grain reveal what a smaller image can lose. Explore these alongside
+architecture, food and a game environment. Each uses one H3-Image-generated
 **4K** image, resized to **1K** and **2K** with its aspect ratio preserved,
 so composition stays fixed.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=6f6f0192ff07" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=95b2486ffc11" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
 The [additional examples](/assets/interactive_pages/minimax-h3-image-workload-gallery.html?v=70db77d34bea)
 retain the food, editing, poster and game outputs across hardware. The food and
