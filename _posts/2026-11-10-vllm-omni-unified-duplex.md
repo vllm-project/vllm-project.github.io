@@ -27,7 +27,7 @@ vLLM-Omni's unified duplex framework brings these interactions into a common ses
 - **Model behavior stays model-specific.** Plugins adapt input preparation, capabilities, and output interpretation. Model-driven speech, local playback stop, and server cancellation remain distinct operations.
 - **Optimization targets the entire audio path.** Batching ready sessions, reusing execution graphs, reducing repeated codec work, and streaming stage outputs all matter. Evaluation must also measure audio continuity and interaction quality.
 
-**In this post:** [Interaction modes](#from-streaming-replies-to-continuous-interaction) · [Architecture](#a-session-runtime-with-clear-responsibilities) · [Model paths](#model-specific-execution-and-retained-state) · [Optimization and metrics](#optimizing-the-live-audio-path) · [Quickstart](#try-a-native-duplex-session) · [Next steps](#next-steps-for-the-framework)
+**In this post:** [Interaction modes](#from-streaming-replies-to-continuous-interaction) · [Architecture](#a-session-runtime-with-clear-responsibilities) · [Model paths](#model-specific-execution-and-retained-state) · [Optimization and metrics](#optimizing-the-live-audio-path) · [Quickstart](#try-minicpm-o-45-and-qwen3-omni) · [Next steps](#next-steps-for-the-framework)
 
 ## From streaming replies to continuous interaction
 
@@ -191,18 +191,59 @@ A paced duplex benchmark has a different clock. If it includes the time spent se
 
 vLLM-Omni also includes [**OmniInteract**](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/vllm_omni/benchmarks/omniinteract.py) and **Omni-DuplexEval** integrations to evaluate what the assistant understands and how it interacts with streamed inputs. These complement serving metrics: a system can emit audio quickly yet answer at the wrong time or miss an event in the video. Model adapters and task coverage determine which evaluations apply; the [Omni-DuplexEval CI guide](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/tests/e2e/accuracy/omni_duplex_eval/README.md) provides a concrete MiniCPM-o 4.5 evaluation path.
 
-## Try a native duplex session
+## Try MiniCPM-o 4.5 and Qwen3-Omni
 
-With vLLM-Omni installed, a supported GPU, and access to the gated PersonaPlex checkpoint, start the server from the repository checkout:
+These examples use the same realtime web client to explore two execution modes. Run the commands from the repository checkout with vLLM-Omni installed. The deploy profiles below use two GPUs: the Thinker runs on GPU 0, while Talker and Code2Wav share GPU 1. Run one backend at a time and select a deployment profile that fits your GPU memory.
+
+### MiniCPM-o 4.5: native audio-video interaction
+
+Install the MiniCPM talker dependencies and start the backend:
 
 ```bash
-python -m vllm_omni.entrypoints.cli.main serve \
-  /path/to/personaplex-7b-v1 \
-  --omni \
-  --deploy-config vllm_omni/deploy/personaplex.yaml
+pip install stepaudio2-minicpmo
+vllm serve openbmb/MiniCPM-o-4_5 --omni --trust-remote-code \
+  --deploy-config vllm_omni/deploy/minicpmo_4_5_2gpu.yaml \
+  --port 8099
 ```
 
-The shipped profile enables duplex serving. Connect through `ws://127.0.0.1:8000/v1/realtime?duplex=1`, select a bundled voice and persona, and continuously stream audio. The Python client preset configures **24 kHz `pcm_f32le` input** (32-bit little-endian floating-point samples) and **24 kHz `pcm16` output**. Send audio in the configured input format; the model supplies the speech behavior without client commits. Follow the [PersonaPlex quickstart](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/examples/online_serving/personaplex/README.md) for the client code and validation command.
+Once the backend is ready, start the web client in another terminal:
+
+```bash
+curl --fail http://127.0.0.1:8099/health
+python -m examples.online_serving.realtime_web --profile minicpm-native \
+  --backend ws://127.0.0.1:8099 --port 7862
+```
+
+Open `http://localhost:7862`, start a session, and enable **Camera**. Ask about an object, then add information while the assistant is speaking. The client keeps sending microphone audio and camera frames; the model controls `LISTEN` / `SPEAK` without client commits or Server VAD. The event log exposes those decisions alongside streaming output. Previously buffered audio may continue playing when the model yields, as discussed above.
+
+The backend uses the model-bundled reference voice by default; add `--ref-audio /path/to/reference.wav` to the client command to choose another. See the [MiniCPM serving guide](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/examples/online_serving/minicpmo/README.md) for other GPU layouts and the [shared UI guide](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/examples/online_serving/realtime_web/README.md) for remote access. Browser microphone and camera capture require localhost or HTTPS.
+
+### Qwen3-Omni: automatic turns with Server VAD
+
+This example keeps a live session while each committed utterance starts a new Thinker → Talker → Code2Wav request. Install ONNX Runtime and obtain the pinned Silero v6.2 ONNX model described in the [Server VAD setup guide](https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/examples/online_serving/realtime_web/README.md#qwen3-with-server-vad-automatic-turns). Create `qwen3_vad.yaml`, replacing both paths with absolute paths on the backend host:
+
+```yaml
+base_config: /path/to/vllm-omni/vllm_omni/deploy/qwen3_omni_duplex.yaml
+duplex_session:
+  server_vad_model_path: /path/to/silero_vad.onnx
+```
+
+Start the backend:
+
+```bash
+vllm serve Qwen/Qwen3-Omni-30B-A3B-Instruct --omni \
+  --deploy-config qwen3_vad.yaml --port 8091
+```
+
+Once it is ready, start the same web client with the Qwen profile:
+
+```bash
+curl --fail http://127.0.0.1:8091/health
+python -m examples.online_serving.realtime_web --profile qwen3-turn \
+  --backend ws://127.0.0.1:8091 --vad --port 7863
+```
+
+Open `http://localhost:7863`. Speak and pause to let Server VAD commit a turn, then speak during the answer to exercise cancellation and the next response. Enable **Camera** to include sampled frames with spoken turns. The session runtime coordinates input, interruption, playback feedback, and retained history; Qwen still generates each response from a committed turn. The MiniCPM example demonstrates model-native speech decisions, while this example demonstrates VAD-driven turn control through the same serving framework.
 
 ## Next steps for the framework
 
