@@ -1,0 +1,24 @@
+{
+  "generated_utc": "2026-11-11T13:01:38.535126+00:00",
+  "measurement_snapshot_utc": "2026-11-11T12:59:02.862550+00:00",
+  "rows": 606,
+  "hardware": [
+    "a100",
+    "gb10",
+    "gb200",
+    "gb300",
+    "h100",
+    "h200",
+    "rtx5080",
+    "rtx5090",
+    "rtx6000d",
+    "rubin"
+  ],
+  "measurement": "HTTP request to complete base64 PNG response. Mean/min/max of measured seeds only; warmups excluded. Complete cells have three measured seeds. No averaging across configurations.",
+  "request_limit_s": 600,
+  "limit_includes_warmup": true,
+  "historical_results": "Measurements made before the cutoff policy remain present and labeled when over600s; stopped requests are not recorded as600-second completions. Queuing and model initialization are outside the generation limit.",
+  "quality": "These are measurement records, not quality scores. Only separately reviewed outputs enter the gallery.",
+  "coverage": "Observed matrix records, including partial and failed configurations. Not all hardware ran every corpus; initial bringup-only tests and unstarted jobs are not in this CSV. No optimality claim.",
+  "candidates": "Runtime flags distinguish memory candidates from baselines. MXFP8 is used where supported; Hopper/Ampere use BF16. Ordinary FP8 is excluded."
+}

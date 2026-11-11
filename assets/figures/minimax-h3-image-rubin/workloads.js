@@ -51,7 +51,9 @@
     $('references').replaceChildren();
     if(c.reference_assets.length){const a=el('a','View MiniMax reference image');a.href='cases/podcast-reference.png';a.target='_blank';a.rel='noopener';const img=el('img');img.src=a.href;img.alt='Original podcast scene before editing';img.addEventListener('load',reportHeight);a.appendChild(img);$('references').appendChild(a);}
     const precisions=[...new Set(selected.map(p=>p.precision))];
-    const placementNote=selected.some(p=>p.offload)?' Server panels use four GPUs/SP4 with resident weights. RTX 5090 uses one GPU/SP1 with DiT and text-encoder CPU layerwise offload and eager execution.':' Weights are resident on the four-GPU systems shown.';
+    let placementNote=' Server panels use four GPUs/SP4 with resident weights.';
+    if(selected.some(p=>p.hardware==='RTX 5090'))placementNote+=' RTX 5090 uses one GPU/SP1 with DiT and text-encoder CPU layerwise offload and eager execution.';
+    if(selected.some(p=>p.hardware==='RTX 6000D'))placementNote+=' RTX 6000D uses one GPU/SP1 with resident DiT weights, text-encoder CPU layerwise offload and VAE CUDA Graph.';
     $('note').textContent='Same prompt, reference bytes and seeds on the systems shown. Six steps.'+placementNote+' Timings average three requests after warmup. Images are downscaled previews; open a preview to inspect the composition and lettering.'+(precisions.length>1?' H200 uses BF16; the other systems use MXFP8 DiT linears.':'')+(task==='game-third-person-adventure'?' Generated game-environment concepts, not captures from a running game.':'');
     reportHeight();
   }

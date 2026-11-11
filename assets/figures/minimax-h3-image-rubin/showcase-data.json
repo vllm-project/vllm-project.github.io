@@ -64,6 +64,44 @@
       "prompt_preparation": "Authored using the pinned H3 prompt-writing skill; PE inference not run.",
       "disclosure": "Generated game-art / interface concept, not a captured frame from a running game.",
       "quality_status": "pending_all_three_seed_review"
+    },
+    {
+      "id": "social-chinese-night-market-poster",
+      "task": "t2i",
+      "aspect": "3:4",
+      "brief": "An independent bookstore needs a Chinese event poster with exact opening hours, admission price and a useful three-stop visitor schedule.",
+      "source_ids": [
+        "chinese-poster"
+      ],
+      "reference_assets": [],
+      "prompt": "A finished portrait event poster for a fictional independent bookstore's evening arts market. The design combines large, exceptionally legible Simplified Chinese lettering with a warm screen-printed illustration of an open-air courtyard at dusk. Cream paper, deep indigo ink and persimmon orange create a restrained three-color palette. The illustration shows three distinct stalls: an open book display, a small ceramic display and a coffee cart. They sit beneath a string of glowing round lanterns. A few small adult visitors provide scale without covering the lettering. This is the poster artwork itself, with no wall, frame or device around it.\n\nAt the top, set the exact headline \"把夜晚交给灵感\" in very large confident Chinese display type. Immediately below it, a smaller line reads \"纸间书店 · 周末创意夜市\". Leave generous space around both lines. Beneath the courtyard illustration, put two clear information lines: \"2026年11月21日 18:00–22:00\" and \"河岸路18号 · 入场免费\". At the bottom, a tidy three-column schedule pairs each time with its activity. From left to right the columns read \"18:30 活字印刷\", \"19:30 手作陶艺\" and \"20:30 独立放映\". Each time and its activity appear together in the same column. Use crisp Chinese glyphs with complete strokes, aligned baselines and enough contrast for every detail to remain readable. The quoted phrases are the complete poster copy; include each exactly once, with no invented sponsor names, QR codes or filler text.",
+      "expected_text": [
+        "把夜晚交给灵感",
+        "纸间书店",
+        "周末创意夜市",
+        "2026年11月21日",
+        "18:00",
+        "22:00",
+        "河岸路18号",
+        "入场免费",
+        "18:30",
+        "活字印刷",
+        "19:30",
+        "手作陶艺",
+        "20:30",
+        "独立放映"
+      ],
+      "visual_review_checks": [
+        "Read every Chinese glyph, address, date and time at full resolution.",
+        "Three schedule columns preserve each time/activity pairing without omissions or duplicates.",
+        "Book, ceramic and coffee stalls are distinct and do not obscure the copy.",
+        "No filler text or additional invented event information."
+      ],
+      "prompt_sha256": "733ddd0537e34b849ea5356c20cb984208109f646ac5f9be17747ac12d85fa5c",
+      "prompt_skill": "https://github.com/MiniMax-AI/MiniMax-H3-Image/blob/6ea7b9e55523a2177e4f759db372065ba6089510/skills/h3-image-prompt-writing/SKILL.md",
+      "prompt_preparation": "Original detailed brief using the pinned H3 skill; no PE checkpoint inference.",
+      "quality_status": "pending_all_three_seed_review",
+      "comparison_scope": "Community-inspired task adaptation; no GPT Image 2.5 API execution or head-to-head quality claim."
     }
   ],
   "aspect_ratios": [
@@ -1585,6 +1623,202 @@
       ],
       "review_scope": "All15 measured originals SHA256-verified and inspected through five three-seed contact sheets at up to600px per image; full-resolution glyph/texture equivalence not certified.",
       "source_job": "3196121"
+    },
+    {
+      "id": "creative-poster-3552x4736",
+      "case": "creative-poster",
+      "tier_mp": 16,
+      "aspect": "3:4",
+      "width": 3552,
+      "height": 4736,
+      "actual_mp": 16.822272,
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        3552,
+        4736
+      ],
+      "hardware": "RTX 6000D",
+      "gpus": 1,
+      "topology": "SP1",
+      "precision": "MXFP8 DiT",
+      "offload": true,
+      "offload_config": {
+        "mode": "layer",
+        "components": [
+          "text_encoder"
+        ],
+        "pin_memory": false
+      },
+      "eager": false,
+      "attention_backend": "CUDNN_ATTN",
+      "memory_placement": "DiT resident · text-encoder CPU layerwise offload · VAE CUDA Graph",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 42.31217490726461,
+      "min_s": 42.28677388490178,
+      "max_s": 42.33760006399825,
+      "samples_s": [
+        42.28677388490178,
+        42.33760006399825,
+        42.3121507728938
+      ],
+      "preview": "cases/rtx6000d-creative-poster-3552x4736-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 42.33760006399825,
+      "original_png_sha256": "50511514655c7d6cb48d111cb812d852ca273d9f9b3e29cd517e50dc6a80ce7e",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "e1215a442c3ddf5979529f8eb9967eb3746d066767a667d1d1f61dc3f1d778cb",
+      "reference_sha256": [],
+      "review_scope": "All three seeds reviewed for composition and readable main poster copy. Not an exact-glyph or no-incidental-lettering compliance score.",
+      "source_job": "3193583"
+    },
+    {
+      "id": "social-chinese-night-market-poster-3552x4736",
+      "case": "social-chinese-night-market-poster",
+      "width": 3552,
+      "height": 4736,
+      "tier_mp": 16,
+      "actual_mp": 16.822272,
+      "aspect": "3:4",
+      "comparison_tier": "h3-native-16mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        3552,
+        4736
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "GB200",
+      "gpus": 4,
+      "topology": "SP4",
+      "precision": "MXFP8 DiT",
+      "offload": false,
+      "offload_config": null,
+      "eager": false,
+      "attention_backend": "TRTLLM_ATTN",
+      "memory_placement": "Resident weights",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 2.057238679321017,
+      "min_s": 2.0538855149643496,
+      "max_s": 2.0592651949846186,
+      "samples_s": [
+        2.0538855149643496,
+        2.0592651949846186,
+        2.058565328014083
+      ],
+      "preview": "cases/gb200-social-chinese-night-market-poster-3552x4736-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 2.0592651949846186,
+      "original_png_sha256": "02c83119371e69f4d0ecd29d34ceb153372c54c20a49afd27d1b75e211155a45",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "733ddd0537e34b849ea5356c20cb984208109f646ac5f9be17747ac12d85fa5c",
+      "reference_sha256": [],
+      "review_scope": "All three seeds reviewed for composition and readable main poster copy. Not an exact-glyph or no-incidental-lettering compliance score.",
+      "source_job": "3195416"
+    },
+    {
+      "id": "social-chinese-night-market-poster-3552x4736",
+      "case": "social-chinese-night-market-poster",
+      "width": 3552,
+      "height": 4736,
+      "tier_mp": 16,
+      "actual_mp": 16.822272,
+      "aspect": "3:4",
+      "comparison_tier": "h3-native-16mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        3552,
+        4736
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "GB300",
+      "gpus": 4,
+      "topology": "SP4",
+      "precision": "MXFP8 DiT",
+      "offload": false,
+      "offload_config": null,
+      "eager": false,
+      "attention_backend": "TRTLLM_ATTN",
+      "memory_placement": "Resident weights",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 1.5246144269985962,
+      "min_s": 1.5135640259977663,
+      "max_s": 1.5371499979992223,
+      "samples_s": [
+        1.5231292569988,
+        1.5371499979992223,
+        1.5135640259977663
+      ],
+      "preview": "cases/gb300-social-chinese-night-market-poster-3552x4736-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 1.5371499979992223,
+      "original_png_sha256": "6f9cc95cf0506055e6bc891efc252c06799003b9d0c85b75e0f2389e2b2013f7",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "733ddd0537e34b849ea5356c20cb984208109f646ac5f9be17747ac12d85fa5c",
+      "reference_sha256": [],
+      "review_scope": "All three seeds reviewed for composition and readable main poster copy. Not an exact-glyph or no-incidental-lettering compliance score.",
+      "source_job": "3195417"
+    },
+    {
+      "id": "social-chinese-night-market-poster-3552x4736",
+      "case": "social-chinese-night-market-poster",
+      "width": 3552,
+      "height": 4736,
+      "tier_mp": 16,
+      "actual_mp": 16.822272,
+      "aspect": "3:4",
+      "comparison_tier": "h3-native-16mp",
+      "reference_count": 0,
+      "expected_generation_canvas": [
+        3552,
+        4736
+      ],
+      "output_resized_after_generation": false,
+      "hardware": "Vera Rubin",
+      "gpus": 4,
+      "topology": "SP4",
+      "precision": "MXFP8 DiT",
+      "offload": false,
+      "offload_config": null,
+      "eager": false,
+      "attention_backend": "TRTLLM_ATTN",
+      "memory_placement": "Resident weights",
+      "n": 3,
+      "seeds": [
+        0,
+        42,
+        1234
+      ],
+      "mean_s": 0.9363556865913173,
+      "min_s": 0.9216252039186656,
+      "max_s": 0.9618950799340382,
+      "samples_s": [
+        0.9255467759212479,
+        0.9216252039186656,
+        0.9618950799340382
+      ],
+      "preview": "cases/rubin-social-chinese-night-market-poster-3552x4736-seed42.webp",
+      "gallery_seed": 42,
+      "gallery_request_s": 0.9216252039186656,
+      "original_png_sha256": "a5d413e9598e33f9f5b16420c8f948bad4c19e0ddd271499388d9b5aa16c81b3",
+      "preview_max_dimension": 1600,
+      "prompt_sha256": "733ddd0537e34b849ea5356c20cb984208109f646ac5f9be17747ac12d85fa5c",
+      "reference_sha256": [],
+      "review_scope": "All three seeds reviewed for composition and readable main poster copy. Not an exact-glyph or no-incidental-lettering compliance score.",
+      "source_job": "3195415"
     }
   ],
   "source_records": [
@@ -1662,13 +1896,42 @@
       "records_sha256": "bbd50cb1e8da200bb3afdfb62eac9bba7e13e20db9167421a4be014aafcf079b",
       "corpus_sha256": "568b5ccc6c6cec4d0677fb6f37511881f22eb66ad8cafdcfc15541d918417739",
       "review_sha256": "8887c5b88d7defffcf3758b48fab484df326c3049e0d8c0b79ce45d26be0baac"
+    },
+    {
+      "hardware": "rtx6000d",
+      "job_id": "3193583",
+      "records_sha256": "99647fd9d9df4eb2d566194bed2e5a1bd24a802f45355102fd6f02e32df9b05c",
+      "corpus_sha256": "2e2a6727e770d5f96605a07140b3572bf13a390d852bbcfec57203435124cc06",
+      "review_sha256": "2620e3bd8735aa075f28186ba5bc1187ec1395c4f23d97d6361c22973eef3a68"
+    },
+    {
+      "hardware": "gb200",
+      "job_id": "3195416",
+      "records_sha256": "0e3b01d67b4d69684f4d86b2b4d685755cae696c603a93367e6152039a639341",
+      "corpus_sha256": "d0bce14ffad58d8b5eaeaa484b9da87e740acafebefe9d50620b4371f7477a9c",
+      "review_sha256": "08e53cdd1b4f59f44a47940845b29944ea9b3908da763e0a0a5d770d6949e349"
+    },
+    {
+      "hardware": "gb300",
+      "job_id": "3195417",
+      "records_sha256": "3d9738b5f59a60b05831c6893aeee2b9f49eaab2040d0285a5983f31692de416",
+      "corpus_sha256": "d0bce14ffad58d8b5eaeaa484b9da87e740acafebefe9d50620b4371f7477a9c",
+      "review_sha256": "7c75ebd968ce3f4e602f53c2abc71cc48daa293be1bd8e29959d3a945d2c43da"
+    },
+    {
+      "hardware": "rubin",
+      "job_id": "3195415",
+      "records_sha256": "60c84f923342630d2f3a38eb007e5b1e666719b56a7bb4340fd4b76d3c1e9633",
+      "corpus_sha256": "d0bce14ffad58d8b5eaeaa484b9da87e740acafebefe9d50620b4371f7477a9c",
+      "review_sha256": "30994fa554bcef3b27775bb7af1de415a5686a797e2cfac47c11bad349fbae11"
     }
   ],
   "title_map": {
     "farm-to-table": "Food photography · text-to-image",
     "podcast-edit": "Podcast edit · one reference",
     "creative-poster": "Workshop poster · text and layout",
-    "game-third-person-adventure": "Adventure game · environment concept"
+    "game-third-person-adventure": "Adventure game · environment concept",
+    "social-chinese-night-market-poster": "Chinese event poster · text-to-image"
   },
-  "configuration_note": "Server panels use four GPUs/SP4 and resident weights. RTX5090 panels use one GPU/SP1, DiT+encoder CPU layerwise offload and eager execution. H200 poster uses BF16; other panels use MXFP8 DiT linears. These are labeled deployment recipes, not a GPU-count scaling experiment."
+  "configuration_note": "Server panels use four GPUs/SP4 and resident weights. RTX5090 uses one GPU/SP1, DiT+encoder CPU layerwise offload and eager VAE. RTX6000D uses one GPU/SP1, encoder-only CPU layerwise offload and VAE CUDA Graph. H200 poster uses BF16; other panels use MXFP8 DiT linears."
 }

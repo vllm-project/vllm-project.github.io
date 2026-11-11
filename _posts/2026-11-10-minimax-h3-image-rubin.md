@@ -22,7 +22,7 @@ It uses six sampling steps, generates native high-resolution images without an
 upscaler, and supports up to 16 reference images.
 
 With vLLM-Omni, we put H3-Image to work on food photography, a podcast edit,
-a workshop poster and an adventure-game environment. For the food photograph
+English and Chinese posters, and an adventure-game environment. For the food photograph
 and podcast edit, we run **32 canvases on four GB200 GPUs and four GB300 GPUs**: **64 workloads per system**, covering
 approximately **4–20 megapixels and eight aspect ratios**. Each workload has three
 measured seeds. The same prompts, reference bytes and seeds go to both systems.
@@ -34,13 +34,14 @@ and the tradeoff between response time and throughput.
 ## Same Request, Every Machine
 
 Choose a task and canvas below. Photograph a meal, redesign a studio interaction,
-lay out a workshop poster, or imagine an explorer crossing a flooded observatory.
-The podcast edit uses one reference image; the other three tasks start from text.
+lay out a workshop or Chinese event poster, or imagine an explorer crossing a flooded observatory.
+The podcast edit uses one reference image; the other four tasks start from text.
 Each panel shows the same preselected seed, **42**, alongside the **mean latency
 of three measured requests**. The poster also includes an H200 BF16 result,
 labeled separately from the MXFP8 runs. Selected food, podcast and adventure
 examples also include a single RTX 5090 using CPU layerwise offload, alongside
-the four-GPU server configurations.
+the four-GPU server configurations. The workshop poster adds a single RTX 6000D
+with text-encoder CPU offload.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-gallery.html" title="H3-Image examples: matched food, editing, typography and game-art requests across GPUs" loading="lazy" scrolling="no" style="display:block;width:100%;height:900px;border:0;overflow:hidden;"></iframe>
 
@@ -74,7 +75,16 @@ A single **RTX 5090** generates the adventure scene in **26.62 seconds at
 The **4096×4096 podcast edit takes 73.55 seconds** on the same single-GPU
 CPU-offload configuration. The gallery also includes its ultrawide and
 approximately 20 MP food and editing results.
-Testing of further hardware and multi-reference editing is ongoing.
+The workshop poster takes **42.31 seconds at 3552×4736** on a single
+**RTX 6000D**, with resident DiT weights and text-encoder CPU layerwise offload.
+
+[Extended workload measurements](/assets/figures/minimax-h3-image-rubin/extended-workload-results.csv)
+include completed, partial and failed attempts across hardware and configurations.
+The data labels tests stopped at our **10-minute limit per generation request**,
+including warmup. Earlier measurements remain recorded; request completion and
+image-quality review are separate checks. See the
+[measurement notes](/assets/figures/minimax-h3-image-rubin/extended-workload-results-metadata.json)
+for timing and coverage details.
 
 ## Serving the Model
 
@@ -97,7 +107,9 @@ GB200/GB300 canvas sweep use the same layout and resident weights.
 **Desktop execution.** The RTX 5090 runs one GPU with SP1, DiT TP1 and
 text-encoder TP1. Layerwise offload moves DiT and text-encoder weights between
 CPU memory and the GPU; VAE decoding uses eager execution. Its recorded attention
-backend is **`CUDNN_ATTN`**. The gallery labels this placement beside its timings.
+backend is **`CUDNN_ATTN`**. The RTX 6000D also uses SP1 and `CUDNN_ATTN`,
+but keeps DiT weights resident, offloads only the text encoder, and replays VAE
+tiles with CUDA Graph. The gallery labels each configuration beside its timings.
 
 The Rubin section below adds four independent single-GPU replicas as a separate
 throughput mode. HTTP concurrency, replica count and the number of images in a
