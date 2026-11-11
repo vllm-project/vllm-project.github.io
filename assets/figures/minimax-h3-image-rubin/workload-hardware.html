@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · hardware and workloads</title><link rel="stylesheet" href="figkit.css"><link rel="stylesheet" href="workloads.css"></head>
-<body><main class="fig"><div class="fig-head"><p class="fig-kicker">MiniMax H3-Image · measured configurations</p><h1 class="fig-title">Across hardware and workloads</h1><p class="fig-sub">Compare real requests on different machines. Three-seed mean latency; shorter is faster.</p></div>
-<div class="workload-controls"><label>Workloads <select id="suite"></select></label><label>Hardware <select id="group"></select></label></div>
+<body><main class="fig"><div class="fig-head"><p class="fig-kicker">MiniMax H3-Image · performance</p><h1 class="fig-title">Across hardware and workloads</h1><p class="fig-sub">Choose a scene, reference count and resolution to compare generation time across GPUs.</p></div>
+<div class="workload-controls"><label>Scene <select id="scene"></select></label><label>References <select id="references"></select></label><label>Resolution <select id="resolution"></select></label><label>Hardware <select id="group"></select></label></div>
 <p class="hardware-unit">HTTP latency · seconds · shared zero-based scale</p>
 <div class="workload-panel-grid" id="panels"></div>
 <div class="workload-pagination" id="pagination"><button class="fig-btn" id="prev" type="button">Previous</button><span id="page-label" aria-live="polite"></span><button class="fig-btn" id="next" type="button">Next</button></div>
 <p id="quality-note" class="fig-note"></p><p id="note" class="fig-note">Loading measured results…</p>
-<p class="workload-download"><a href="workload-gallery.html">Reviewed images</a> · <a href="hardware-workload-data.json">Chart data and prompts</a> · <a href="extended-workload-results.csv">All configuration records (CSV)</a> · <a href="extended-workload-results-metadata.json">Measurement notes</a></p>
+<p class="workload-download"><a href="workload-gallery.html">Reviewed images</a> · <a href="extended-workload-results.csv">Download benchmark data</a> · <a href="extended-workload-results-metadata.json">Measurement notes</a></p>
 <noscript><img class="hardware-fallback" src="workload-hardware.png" alt="Measured H3-Image creative-workload latency on four-GPU GB200, GB300 and Vera Rubin configurations. Download the CSV above for all measured systems."></noscript></main><script src="workload-hardware.js"></script></body></html>

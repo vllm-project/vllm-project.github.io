@@ -21,6 +21,11 @@ an open-weight model for text-to-image generation and image editing. One checkpo
 handles both tasks in six sampling steps, generates native high-resolution images
 without an upscaler, and supports up to 16 reference images.
 
+vLLM-Omni's hardware backends span NVIDIA CUDA, **AMD ROCm, Intel XPU and
+Moore Threads MUSA**. The [platform documentation](https://docs.vllm.ai/projects/vllm-omni/en/latest/getting_started/installation/gpu/)
+covers these deployment options; the H3-Image performance measurements in this
+post focus on NVIDIA GPUs.
+
 We put it to work on food photography, studio edits, English and Chinese posters,
 and an adventure-game environment. Here are the highlights:
 
@@ -34,6 +39,11 @@ and an adventure-game environment. Here are the highlights:
 - **Subsecond 4K on Rubin.** Four Rubin GPUs reach **0.87 seconds median** for
   4096×4096 generation. A separate throughput configuration reaches
   **6,115 images/hour**. We examine both operating points at the end.
+
+Day-0 work also reaches creative applications. OpenDirector's
+[draft H3-Image integration](https://github.com/ThinkFlowLab/OpenDirector/pull/280)
+adds generation and reference-guided editing to its canvas and agent through
+MiniMax's image API.
 
 ## Same Request, Every Machine
 
@@ -69,10 +79,10 @@ the **one-reference podcast scene edit** averages **1.77 seconds**. A single
 RTX 5090 with CPU layerwise offload takes **52.29 seconds** and **61.45 seconds**
 for those same requests. These are complete HTTP responses, including PNG encoding.
 
-The workload selector also opens the full measured suites: food and editing
-canvases, reference compositions, game art, text and interface tasks, and public
-example prompts. Missing measurements remain visible. Expand a panel for its
-exact prompt, three-seed range, configuration and any recorded retries.
+Choose a **scene**, **reference-image count** and **resolution**, then select
+the hardware to compare. The filters show tested combinations, from product
+photography and text layout to editing and game art. Each panel includes the
+prompt and the configuration behind its result.
 
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html" title="H3-Image performance across creative workloads and ten hardware types" loading="lazy" scrolling="no" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
@@ -86,12 +96,11 @@ composition takes **39.84 seconds** and **60.63 seconds**, respectively. Each us
 four GPUs. The larger conditioning workload adds substantial work even though
 the output size is unchanged.
 
-<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html?suite=references" title="4K reference-composition latency and completion status across hardware" loading="lazy" scrolling="no" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html?scene=reference-composition&amp;resolution=4096x4096" title="4K reference-composition latency across hardware" loading="lazy" scrolling="no" style="display:block;width:100%;height:1100px;border:0;overflow:hidden;"></iframe>
 
 These compositions measure execution time and memory capacity; some outputs
-still miss or duplicate requested objects. The figure keeps failed, partial and
-10-minute-cutoff records visible. Successful memory-configuration retries are
-labeled, with their earlier attempts available in the details.
+still miss or duplicate requested objects. Configurations that could not complete
+the workload are labeled in the figure.
 
 ### Resolution and Aspect Ratio
 
@@ -115,13 +124,9 @@ All **384 measured requests in this canvas sweep** completed successfully. Each 
 of three seeds after warmup; hover for the measured range and exact image size.
 The figure includes the serving configuration and timing details.
 
-[Extended workload measurements](/assets/figures/minimax-h3-image-rubin/extended-workload-results.csv)
-include completed, partial and failed attempts across hardware and configurations.
-The data labels tests stopped at our **10-minute limit per generation request**,
-including warmup. Earlier measurements remain recorded; request completion and
-image-quality review are separate checks. See the
-[measurement notes](/assets/figures/minimax-h3-image-rubin/extended-workload-results-metadata.json)
-for timing and coverage details.
+[Download the benchmark data](/assets/figures/minimax-h3-image-rubin/extended-workload-results.csv)
+for per-seed timings and configurations. We use a **10-minute generation limit**;
+older results exceeding it are marked in the figures.
 
 ## How It Runs
 
@@ -151,8 +156,8 @@ keeps DiT weights resident, offloads only the text encoder, and uses VAE CUDA
 Graph. The GB10 baseline keeps weights resident and uses VAE CUDA Graph.
 Offload makes room for the model at the cost of weight-transfer work.
 
-**Hopper and Ampere.** The extended measurements include H100, H200 and A100
-using BF16 and **`FLASH_ATTN`**. The H200 poster in the gallery uses resident
+**Hopper and Ampere.** H100, H200 and A100 run
+with BF16 and **`FLASH_ATTN`**. The H200 poster in the gallery uses resident
 weights and SP4. These results describe the configurations we tested; GPU count,
 precision and placement remain visible when comparing machines.
 
@@ -235,6 +240,9 @@ We thank MiniMax for releasing H3-Image and its model weights; the NVIDIA team a
 the vLLM community for their work on Vera Rubin support; and the vLLM-Omni and
 FlashInfer contributors for the serving and kernel infrastructure used in this
 work.
+
+We also thank the OpenDirector contributors for their work on H3-Image integration
+in creative workflows.
 
 <script>
 (function () {
