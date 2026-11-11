@@ -1,12 +1,12 @@
-# H3 image | vLLM-Omni design concepts
+# vLLM-Omni | H3 image design concepts
 
-Four alternative collaboration visuals, using a thin vertical separator.
+Four alternative collaboration visuals: vLLM-Omni on the left, H3 image on the right, with a thin vertical separator.
 
 - [Bloom](01-bloom.png)
 - [Creative studio](02-studio.png)
 - [Motion](03-motion.png)
 - [Create together](04-create-together.png)
-- [Download all four PNGs](h3-image-vllm-omni-four-designs.zip)
+- [Download all four PNGs](vllm-omni-h3-image-four-designs.zip)
 
 Generated with OpenAI imagegen as design concepts. These are not H3-Image benchmark outputs.
 Visual references: [MiniMax Brand VI](https://www.minimax.cn/brand-vi),
