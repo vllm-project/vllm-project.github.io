@@ -49,7 +49,7 @@ environment adds weathered stone and reflected light. Each uses one H3-Image-gen
 **4K** image, resized to **1K** and **2K** with its aspect ratio preserved,
 so composition stays fixed.
 
-<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=e08274c6090c" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
+<iframe class="vllm-embed" src="/assets/interactive_pages/minimax-h3-image-resolution-detail.html?v=6f003ee7fa2d" title="H3-Image texture and detail at 1K, 2K and 4K with synchronized zoom" loading="lazy" scrolling="no" height="850" style="display:block;width:100%;height:850px;border:0;overflow:hidden;"></iframe>
 
 ## Performance
 
