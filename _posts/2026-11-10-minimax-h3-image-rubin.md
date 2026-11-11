@@ -21,11 +21,6 @@ an open-weight model for text-to-image generation and image editing. One checkpo
 handles both tasks in six sampling steps, generates native high-resolution images
 without an upscaler, and supports up to 16 reference images.
 
-vLLM-Omni's hardware backends span NVIDIA CUDA, **AMD ROCm, Intel XPU and
-Moore Threads MUSA**. The [platform documentation](https://docs.vllm.ai/projects/vllm-omni/en/latest/getting_started/installation/gpu/)
-covers these deployment options; the H3-Image performance measurements in this
-post focus on NVIDIA GPUs.
-
 We put it to work on food photography, studio edits, English and Chinese posters,
 and an adventure-game environment. Here are the highlights:
 
@@ -39,11 +34,6 @@ and an adventure-game environment. Here are the highlights:
 - **Subsecond 4K on Rubin.** Four Rubin GPUs reach **0.87 seconds median** for
   4096×4096 generation. A separate throughput configuration reaches
   **6,115 images/hour**. We examine both operating points at the end.
-
-Day-0 work also reaches creative applications. OpenDirector's
-[draft H3-Image integration](https://github.com/ThinkFlowLab/OpenDirector/pull/280)
-adds generation and reference-guided editing to its canvas and agent through
-MiniMax's image API.
 
 ## Same Request, Every Machine
 
@@ -87,6 +77,9 @@ prompt and the configuration behind its result.
 <iframe class="vllm-embed" src="/assets/figures/minimax-h3-image-rubin/workload-hardware.html" title="H3-Image performance across creative workloads and ten hardware types" loading="lazy" scrolling="no" style="display:block;width:100%;height:1250px;border:0;overflow:hidden;"></iframe>
 
 <noscript><img src="/assets/figures/minimax-h3-image-rubin/workload-hardware.png" alt="Three-seed mean latency across five creative workloads on four-GPU GB200, GB300 and Rubin configurations"></noscript>
+
+[Open the interactive workload explorer](/assets/figures/minimax-h3-image-rubin/workload-hardware.html)
+to select the scene, reference count, resolution and hardware in a full-page view.
 
 ### Reference Images
 
@@ -161,9 +154,40 @@ with BF16 and **`FLASH_ATTN`**. The H200 poster in the gallery uses resident
 weights and SP4. These results describe the configurations we tested; GPU count,
 precision and placement remain visible when comparing machines.
 
-The Rubin section below adds four independent single-GPU replicas as a separate
-throughput mode. HTTP concurrency, replica count and the number of images in a
-DiT forward are different settings; these measurements use one image per forward.
+## Other Hardware
+
+H3-Image also has deployment recipes for AMD and Intel GPUs, with Moore Threads
+support under review. These community validations use their own workloads and
+configurations; the matched performance figures above cover our NVIDIA runs.
+
+**AMD Instinct.** The [AMD recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-AMD.md)
+includes text-to-image and editing measurements on **MI325X and MI350X**, from
+one to eight GPUs, using BF16 and `FLASH_ATTN`. It covers Ulysses sequence
+parallelism and tensor parallelism. ROCm uses a single VAE graph replica to
+avoid the hangs observed with concurrent graph replays.
+
+**Intel Arc Pro B70.** The [XPU recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/MiniMaxAI/MiniMax-H3-Image-XPU.md)
+documents measured one-, two- and four-GPU deployments. Its recommended
+four-card layout uses **DiT TP4 with text-encoder layerwise offload** to fit
+32 GB cards. The smaller layouts also offload DiT weights; VAE decoding runs
+eagerly on XPU.
+
+**Moore Threads MTT S5000.** [PR #10139](https://github.com/vllm-project/vllm-omni/pull/10139)
+enables VAE graph decoding on MUSA and includes a
+[model-specific recipe](https://github.com/vllm-project/vllm-omni/blob/5b757b77c05db3562239b19707f059d282de7a62/recipes/MiniMaxAI/MiniMax-H3-Image-MUSA.md)
+with measured **TP2 and TP4** layouts on 80 GB S5000 cards. The graph tests
+check bitwise agreement with eager decoding. This contribution is still under review.
+
+## OpenDirector
+
+Day-0 support also reaches the creative workflow. OpenDirector's
+[H3-Image integration](https://github.com/ThinkFlowLab/OpenDirector/pull/280)
+is merged: users can generate an image, place it on the canvas, and use it as
+a reference for the next edit, from either the canvas or the agent.
+
+The integration uses **MiniMax's hosted image API**, with standard and Highspeed
+presets and support for up to 16 ordered reference images. Its published
+examples show generation and subsequent edits using one or two references.
 
 ## Rubin Bringup
 
@@ -178,7 +202,7 @@ latency. The latency and throughput headlines are different operating points.
 
 ### 4K Latency
 
-The workload is deliberately simple: one prompt, no reference images, and a native
+Each request contains one prompt, no reference images, and a native
 **4096×4096** output from [MiniMax H3-Image](https://huggingface.co/MiniMaxAI/MiniMax-H3-Image).
 We use the released six-step schedule, with no upscaling. Latency includes image
 generation, PNG encoding and receipt of the full base64 response over loopback.
