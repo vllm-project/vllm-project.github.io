@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><base href="../figures/minimax-h3-image-rubin/"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · texture and detail</title><link rel="stylesheet" href="figkit.css?v=2c6a73b9af93"><link rel="stylesheet" href="resolution-detail.css?v=42a77fa0d0b1"></head>
+<body><main class="fig">
+<div class="fig-head"><h1 class="fig-title" id="demo-title">Paint &amp; Pigment</h1></div>
+<div id="scenes" class="scene-choices" role="group" aria-label="Image scenes"></div>
+<p id="detail-hint" class="detail-hint"></p>
+<div class="pair-controls"><label>Left <select id="left-resolution"><option>1K</option><option>2K</option><option>4K</option></select></label><button type="button" id="swap" aria-label="Swap left and right resolutions">Swap ⇄</button><label>Right <select id="right-resolution"><option>1K</option><option>2K</option><option>4K</option></select></label></div>
+<div class="zoom-controls"><label for="zoom">Zoom <output id="zoom-label">1×</output></label><input id="zoom" type="range" min="1" max="8" step="0.25" value="1" aria-label="Synchronized image zoom"><button type="button" id="full" aria-label="Show the full image">Full</button></div>
+<div id="pair-labels" class="pair-labels"><span id="left-label"></span><span id="right-label"></span></div>
+<div id="comparison-stage" class="comparison-stage"><div id="outputs"></div><div id="wipe-divider" class="wipe-divider"><button id="wipe-handle" type="button" role="slider" aria-label="Resolution comparison divider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">↔</button></div></div>
+<p id="status" class="detail-note" role="status" aria-live="polite"></p>
+<noscript><p>JavaScript is required for the image comparison.</p></noscript>
+</main><script src="resolution-detail.js?v=b58a76f7c439"></script></body></html>

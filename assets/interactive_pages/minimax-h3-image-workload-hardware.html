@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><base href="../figures/minimax-h3-image-rubin/"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>H3-Image · latency by hardware</title><link rel="stylesheet" href="figkit.css?v=2c6a73b9af93"><link rel="stylesheet" href="workloads.css?v=e21a3f6e36a1"><style>
+.api-controls{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;margin:16px 0}
+.api-controls [hidden]{display:none!important}.reference-control{display:flex;align-items:center;gap:8px;font:500 12px/1.5 var(--mono);color:var(--muted)}
+.api-controls .fig-seg button{min-height:36px;font-size:12px}.api-controls #references button{min-width:36px}
+@media(max-width:560px){.api-controls{gap:12px}.reference-control{flex-wrap:wrap}}
+</style></head>
+<body><main class="fig">
+<div class="fig-head"><h1 class="fig-title" id="hardware-title">Text-to-image · 4K (4096 × 4096)</h1></div>
+<div class="api-controls"><div class="fig-seg" id="mode" role="group" aria-label="API mode"></div><div class="reference-control" id="reference-control" hidden><span id="reference-label">Reference images</span><div class="fig-seg" id="references" role="group" aria-labelledby="reference-label"></div></div></div>
+<div class="workload-controls"><label>Output size <select id="resolution"></select></label><label>Hardware <select id="group"></select></label><label>Sort by <select id="sort"></select></label></div>
+<p class="hardware-unit">Latency · seconds</p>
+<div class="workload-panel-grid" id="panels"></div>
+<p id="quality-note" class="fig-note"></p><p id="note" class="fig-note">Loading measured results…</p>
+<p class="workload-download"><a href="workload-gallery.html">Reviewed images</a> · <a href="api-workload-results.csv?v=2b927b91c91f">Benchmark data</a> · <a href="api-workload-results-metadata.json?v=6afbf52b4bac">Measurement notes</a></p>
+<noscript><img class="hardware-fallback" src="workload-hardware.png" alt="Measured H3-Image text-to-image and image-edit latency on four-GPU GB200, GB300 and Vera Rubin configurations. The linked data includes all measured systems."></noscript></main><script src="workload-hardware.js?v=806ac26df0e4"></script></body></html>

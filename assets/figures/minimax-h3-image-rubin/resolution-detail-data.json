@@ -1,0 +1,186 @@
+{
+  "schema_version": 2,
+  "model": "MiniMax-H3-Image",
+  "model_revision": "7b6142f879bf7a973c449e1dea5480289736cdbd",
+  "encoder_revision": "0919fb684102ef115126612f3fbb84d1027e7317",
+  "cases": [
+    {
+      "id": "harbor-oil-painting",
+      "title": "Oil Painting",
+      "demo_title": "Paint & Pigment",
+      "prompt": "A richly worked oil painting fills the entire square image, showing a small Mediterranean harbor from a low stone quay in warm late-afternoon light. One weathered blue-and-white wooden sailboat sits slightly right of center in the foreground, its mast and fine rigging crossing the pale sky. Coils of rope, chipped paint along the gunwale, a folded ochre sail and a brass cleat are distinct. Behind it, a dense crescent of pastel waterfront houses climbs a hillside: terracotta roofs, narrow shutters, striped fabric awnings, balconies with flower pots, carved stone doorways and small staircases form a coherent inhabited town. Two small moored fishing boats rest farther away beside the quay. Olive trees and dark cypress foliage break up the architecture without hiding the building fronts. The deep blue water reflects the houses in fragmented turquoise, coral and gold strokes.\n\nThe image is unmistakably a physical oil painting viewed straight on, not a photograph or a smooth digital render. Confident thick impasto on sunlit walls and water highlights alternates with thin translucent paint in the shadows. Palette-knife ridges, overlapping brush hairs, small flecks of pigment and visible linen canvas weave create intricate tactile surface detail. Individual brush marks remain visible at every scale; fine rigging and window edges are painted with controlled thin strokes. The foreground boat and nearby reflections are sharply articulated, while the hillside becomes softly atmospheric. The painted composition reaches all four edges, with no outer frame, photographed studio, captions, signature or watermark.",
+      "reference_count": 0,
+      "hardware": "4× GB200",
+      "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "detail_hint": "Palette-knife ridges, rigging and reflected color.",
+      "detail_focus": [
+        0.58,
+        0.68
+      ],
+      "outputs": [
+        {
+          "tier": "4K",
+          "width": 4096,
+          "height": 4096,
+          "generation_canvas": [
+            4096,
+            4096
+          ],
+          "image": "cases/resolution-gb200-harbor-oil-painting-4096x4096-seed42-lossless.webp",
+          "image_sha256": "2e98a406df5b56dbe2491e85d7f55489a9ee72fca748189e9e713f1a2a74c4cf",
+          "pixel_sha256": "891466666886eae8f68b05b8f7b4f7cc8242fa13cfd612de65c523a6fa5ada72",
+          "original_png_sha256": "14518d71fabe27bcee8aada450ac8be93ed9f735eeb1b3c1e7194e514a249db7",
+          "seed": 42,
+          "prompt_sha256": "79160a9514aa5e23061d1746001849a983a8e58ffc41e6e537aa11ad1446d05a",
+          "reference_sha256": [],
+          "source_job": "3200109",
+          "purpose": "Visual example; not a performance-chart data point."
+        }
+      ],
+      "thumbnail": "cases/scene-gb200-harbor-oil-painting-seed42-preview.webp?v=ca202a215a68"
+    },
+    {
+      "id": "twin-lens-camera-sketch",
+      "title": "Sketch",
+      "demo_title": "Camera Blueprint",
+      "prompt": "A complex industrial-design drawing sheet for one original, unbranded twin-lens reflex camera fills a square ivory canvas. The visual language is precise black graphite and fine technical ink on lightly textured drafting paper: thin construction lines, heavier cut edges, subtle pencil hatching, concentric machining marks, small fastener details and restrained pale-gray shadows. The whole composition is a coherent multi-view concept drawing, not a product photograph. A compact header reads exactly \"TLR-01\" and below it \"TWIN-LENS REFLEX / DESIGN STUDY\".\n\nA neatly ruled three-column, two-row grid contains exactly six main panels with generous gaps and aligned baselines. Each panel has its own small, legible uppercase title. All six depict the same tall rectangular camera with two identical-sized circular lens assemblies stacked vertically on the front, a large knurled focusing knob on its right side, a smaller film winding crank farther back on that side, textured leather panels, metal edge rails and an open folding waist-level viewing hood on top. The main body has illustrative overall dimensions 95 mm wide, 145 mm tall and 110 mm deep; these proportions remain consistent across the orthographic views.\n\nThe top-left panel is titled \"01 / FRONT\". It is a large orthographic front elevation: exactly two front lenses in a vertical column, upper and lower, four corner fasteners, fine nested lens rings, a small aperture-setting lever beside the lower lens and a rectangular top hood. Fine horizontal and vertical dimension lines outside the silhouette read \"95 mm\" and \"145 mm\" respectively, with tiny arrowheads and extension lines. The top-center panel is titled \"02 / RIGHT SIDE\". It shows the same camera from its right side, with the large ridged focusing knob, a small folded winding crank, strap lug, connected front lens board and back-door hinge. A dimension line along the bottom reads \"110 mm\". The top-right panel is titled \"03 / REAR\". It shows the closed rear film door, its rectangular border, a small circular film counter, the latch, hinges, leather grain and narrow metal seams, with no lenses on this back surface.\n\nThe middle-left panel is titled \"04 / TOP\". It is a true overhead plan view of the open waist-level hood: four thin hood panels surround a rectangular ground-glass focusing screen. The front edge of the camera and side controls align with the other views. A horizontal width dimension reads \"95 mm\" and a perpendicular depth dimension reads \"110 mm\". The middle-center panel is titled \"05 / OPTICAL SECTION\". It is a carefully hatched side cutaway of the same camera, with the front facing right and film back facing left. Two front lens assemblies are vertically aligned at the right edge. In the upper chamber, a dashed ray enters the upper viewing lens from the right, travels left to a diagonal 45-degree mirror and then turns upward to the horizontal focusing screen beneath the open hood. In the separate lower chamber, a straight dashed ray passes from the lower taking lens toward the flat vertical film plane at the left, without a mirror in this lower optical path. A horizontal divider separates the viewing chamber from the taking chamber. Metal section faces have consistent diagonal hatching; glass has delicate paired contours. The middle-right panel is titled \"06 / ASSEMBLY\". It shows a small, detailed three-quarter exploded assembly of the same body: the two-lens front board is pulled a short distance forward, the rear door backward and the folding hood upward along clean dotted alignment axes. The central body remains intact, and every separated part aligns with its corresponding mounting location.\n\nA narrow band across the bottom contains three sharply drawn circular detail studies titled \"LENS RINGS\", \"FOCUS GEAR\" and \"FILM TRANSPORT\". These reveal fine concentric grooves and an aperture blade pattern, a meshing rack-and-pinion mechanism with machined teeth, and small rollers with a winding spool. Each circular study remains subordinate to the six main views. A tidy lower-right title block has exactly these short entries: \"TLR-01\", \"CONCEPT STUDY\", \"UNITS: mm\" and \"SHEET 01 / 01\". Preserve all six panel titles and their reading order, the same object identity across views, the upper viewing and lower taking lens relationship, and consistent 95 / 145 / 110 dimensions. Small typography, construction marks, screws, leather grain, cutaway hatching, gear teeth and lens-ring engraving create high information density. Avoid a dominant single perspective drawing, decorative pseudo-writing, branded logos, a surrounding desk, hands, photographic materials, gratuitous labels or extra panels.",
+      "reference_count": 0,
+      "hardware": "4× GB200",
+      "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "detail_hint": "Multiple views, fine hatching and mechanical details.",
+      "detail_focus": [
+        0.25,
+        0.3
+      ],
+      "outputs": [
+        {
+          "tier": "4K",
+          "width": 4096,
+          "height": 4096,
+          "generation_canvas": [
+            4096,
+            4096
+          ],
+          "image": "cases/resolution-gb200-twin-lens-camera-design-4096x4096-seed42-lossless.webp",
+          "image_sha256": "ac4f0706924b0090951e587c0942ce38d0f3abfdd882ff737afd026d5b978176",
+          "pixel_sha256": "63afd4d7a7f41157f4002481f6ffac054b1ce747a2894ced6e78a703b28d8869",
+          "original_png_sha256": "7d5c45661033ae3cc2176ad76541c24b78d3178949c9a0fb8fce34fe75149ed8",
+          "seed": 42,
+          "prompt_sha256": "1577642ed8b9059ffdb4dd3748d304e95641f7a342f4678d6523b7fdb3ee37ac",
+          "reference_sha256": [],
+          "source_job": "3200276",
+          "purpose": "Visual example; not a performance-chart data point."
+        }
+      ],
+      "thumbnail": "cases/scene-gb200-twin-lens-camera-design-seed42-preview.webp?v=efb8d0ecf2fd"
+    },
+    {
+      "id": "japanese-bakery-poster",
+      "title": "Poster",
+      "demo_title": "vLLM-Omni Bakery",
+      "prompt": "An artistic Japanese-language marketing poster for a fictional neighborhood bakery named \"vLLM-Omni ベーカリー\" fills a square canvas. The design feels like a beautifully printed contemporary Japanese bakery advertisement, combining hand-painted gouache, delicate woodcut-style linework, tactile rice-paper grain and confident editorial typography. Warm ivory, dark pine green, vermilion, honey gold and small muted blue accents create a refined, inviting palette. The poster is viewed straight on and fills the frame, with no surrounding wall, frame or desktop. It is a finished advertisement with purposeful hierarchy and generous breathing room, not a photograph of bread and not a generic template.\n\nAt the top, the exact bakery name \"vLLM-Omni ベーカリー\" appears in a clean, highly legible dark-green logotype. The Roman lettering vLLM-Omni is preserved exactly. A large expressive Japanese headline directly beneath it reads exactly \"毎朝、焼きたて。\". A smaller line reads \"ひとくちに、小さな幸せ。\". Fine hand-drawn wheat stems, a small rising sun and flourishes inspired by Japanese printmaking frame these words without crossing any characters. All other authored copy is Japanese.\n\nThe large central illustration is a richly detailed, imaginative still life of fresh breads arranged in an elegant sweeping composition on a rust-red cloth. A golden croissant at upper left has dozens of individually painted laminated flakes, with a small torn end revealing its airy interior. A pale flour-dusted round country loaf occupies the center right, its deeply scored crust revealing warm brown fissures, with one sliced piece showing irregular open crumb. A shiny salted butter roll and a split bread roll with dark red bean paste and a neat pale-yellow slab of butter occupy the foreground. The breads have distinct realistic shapes, even though the medium is painterly illustration. Fine toasted edges, tiny bubbles in the crust, butter sheen, scattered flour and cloth-weave lines make the illustration rewarding to inspect at full resolution. Wheat stalks, a small ceramic coffee cup with a delicate curl of steam, and a folded paper bread bag with a simple green wheat emblem complete the composition without crowding it. Thin offset-print contours and subtle colored hatching add an artistic crafted finish.\n\nA neatly ruled lower menu panel is titled exactly \"本日のおすすめ\". It contains exactly four clearly separated entries in a balanced two-column, two-row layout. The upper-left entry reads \"クロワッサン\" with \"280円\" beneath it. The upper-right entry reads \"塩バターロール\" with \"180円\" beneath it. The lower-left entry reads \"あんバターパン\" with \"320円\" beneath it. The lower-right entry reads \"カンパーニュ\" with \"680円\" beneath it. Keep each product name and its price together in their own cell, with crisp Japanese typography, consistent baseline alignment and no duplicated entries. A small botanical wheat ornament separates the two columns without interfering with text.\n\nBelow the menu, a clean horizontal line of Japanese copy reads exactly \"焼きたてパンと、淹れたてコーヒー。\". A restrained footer contains \"営業時間 8:00–18:00\" and \"火曜定休\", separated by a small dot. The typography combines a bold display headline with readable smaller Japanese type, while every supplied phrase is preserved exactly. The finished poster balances a striking artistic bread illustration with readable Japanese advertising copy, fine texture and careful layout. No QR codes, website addresses, contact details, fabricated awards, additional slogans, photorealistic background, English paragraphs, gibberish, watermark or unrelated logos.",
+      "reference_count": 0,
+      "hardware": "4× GB200",
+      "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "detail_hint": "Japanese lettering, flaky pastry and printed textures.",
+      "detail_focus": [
+        0.3,
+        0.8
+      ],
+      "outputs": [
+        {
+          "tier": "4K",
+          "width": 4096,
+          "height": 4096,
+          "generation_canvas": [
+            4096,
+            4096
+          ],
+          "image": "cases/resolution-gb200-japanese-bakery-poster-4096x4096-seed42-lossless.webp",
+          "image_sha256": "00422285d5f4a1f7a7a53384d9d66bad41433ca1801a7bad8d4d9f93ed5e32ee",
+          "pixel_sha256": "80fede332b72310b8379213928669c5f4260109fa92b104fbc32927f972ce4f8",
+          "original_png_sha256": "a678da3f6f702a1454e4df3670a09e34dffc171200956af069d92cf0328324ec",
+          "seed": 42,
+          "prompt_sha256": "4776bffc3c40a9f3a5b0a2158d5d674eba552303ad2dbc34fe20bd9bfbec0c83",
+          "reference_sha256": [],
+          "source_job": "3200276",
+          "purpose": "Visual example; not a performance-chart data point."
+        }
+      ],
+      "thumbnail": "cases/scene-gb200-japanese-bakery-poster-seed42-preview.webp?v=90844d039b31"
+    },
+    {
+      "id": "rice-made-you-look",
+      "title": "Rice",
+      "demo_title": "Made You Look",
+      "prompt": "A distant overhead photograph shows a small loose heap of uncooked long-grain basmati rice centered on a smooth matte charcoal-gray tabletop. The complete heap occupies the central half of the square frame, with generous quiet tabletop visible on every side. Roughly one hundred and fifty slender ivory grains overlap naturally in a low mound, with a few grains scattered immediately beside it. The grains are ordinary dry basmati rice, consistently seven millimeters long and one and a half millimeters wide, with tapered tips, slight translucency and softly rounded surfaces. All grains share this same physical scale. Near the upper-right shoulder of the heap, one ordinary grain lies horizontally, surrounded by several other horizontal grains of equal length. This single grain carries the exact lowercase phrase \"made you look\" in extremely small, faint graphite-gray microlettering along its length. The entire phrase fits within the ordinary seven-millimeter body, with very narrow letter strokes. Its two neighboring horizontal grains have exactly the same length and width, making their equal scale clear. The inscription is a hidden detail, barely discoverable without magnifying the high-resolution photograph; the whole pile remains the visual subject. Soft diffuse daylight from the upper left reveals delicate contact shadows between grains. The tabletop is smooth and nearly featureless, with subtle tonal variation. The camera keeps the whole heap in focus from a comfortable distance. There is one continuous photographic view, without inset views, signs, labels, captions, or other lettering.",
+      "reference_count": 0,
+      "hardware": "4× GB200",
+      "configuration": "Ulysses SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "detail_hint": "Find three words on one grain of rice.",
+      "detail_focus": [
+        0.674,
+        0.319
+      ],
+      "outputs": [
+        {
+          "tier": "4K",
+          "width": 4096,
+          "height": 4096,
+          "generation_canvas": [
+            4096,
+            4096
+          ],
+          "image": "cases/resolution-gb200-rice-normal-grain-4096x4096-seed42-lossless.webp",
+          "image_sha256": "5786ec19a9e60d9fe0f17383fa26964016eeb6d44822239840d505320f2d5c86",
+          "pixel_sha256": "1f28ea3c617308b6b024f1557c3ddb4a6ae95a286a42a3586d377e75394b6e12",
+          "original_png_sha256": "9c22ff1c5d15f67b842676b22a5ef937e37077e845a740eaf10d2c1beb76bef9",
+          "seed": 42,
+          "prompt_sha256": "238e333f7c04550576915cb580e33d69f1c41a30d519ecedf6e60f208c84cba4",
+          "reference_sha256": [],
+          "source_job": "3200657",
+          "purpose": "Visual example; not a performance-chart data point."
+        }
+      ],
+      "thumbnail": "cases/scene-gb200-rice-normal-grain-seed42-preview.webp?v=f0c46e8d41de"
+    },
+    {
+      "id": "game-third-person-adventure",
+      "title": "Game World",
+      "prompt": "A single full-frame landscape gameplay-style visual concept for an original third-person exploration game, rendered as detailed real-time 3D game art. The camera is behind and slightly above one adult explorer in the lower-left foreground. The explorer wears a short ochre rain cape, dark trousers and a compact canvas backpack, with both boots planted on a wet stone landing. Their head and body face the distant destination at screen right; one small brass lantern hangs from their right hand. The character occupies about one-fifth of the image height so the environment and route remain easy to read.\n\nA continuous narrow stone bridge begins at the foreground landing, bends through the center of the frame and ends at an open arched doorway on the right side of a ruined observatory. The entire bridge remains visible above calm floodwater, with plausible supports, shallow steps and a low parapet along its outer edge. Warm amber light inside the destination doorway contrasts with cool blue twilight outside. Broken telescope housings, oxidized copper domes and moss-covered masonry make the observatory distinctive. Reeds and floating leaves sit below the bridge, while distant mountains recede into low mist. Water reflects the architecture and doorway light in the correct places. Natural material detail, atmospheric depth and restrained bloom support a believable game environment. The frame contains exactly one human character, no enemies, no HUD, no written text, no logos and no outer monitor or device border.",
+      "reference_count": 0,
+      "hardware": "4× GB300",
+      "configuration": "SP4 · MXFP8 DiT · resident weights · six steps · seed 42",
+      "detail_hint": "Weathered masonry, metalwork, foliage and water reflections.",
+      "detail_focus": [
+        0.73,
+        0.47
+      ],
+      "outputs": [
+        {
+          "tier": "4K",
+          "width": 5472,
+          "height": 3072,
+          "generation_canvas": [
+            5472,
+            3072
+          ],
+          "image": "cases/resolution-gb300-game-third-person-adventure-5472x3072-seed42-lossless.webp",
+          "image_sha256": "52c170938b5a6c9a87f1d7eb5f3db66634b181d6d2440fc60373fb3df49345ff",
+          "pixel_sha256": "f5c28d253f9ed6498312126186e4cf83aa992409f926e1e472f2471a0cc633a4",
+          "original_png_sha256": "eddc4b1ed8715dceac9369a699f61320ba12854ebb1f95fd1eac107d125b31c1",
+          "mean_s": 1.522102692334253,
+          "n": 3,
+          "seed": 42,
+          "prompt_sha256": "f94a6ace0d224c53cc882c2097a1db0bcfe353817d46e5638a0636b9101b4016",
+          "reference_sha256": [],
+          "source_job": "3194814"
+        }
+      ],
+      "demo_title": "Stone & Water",
+      "thumbnail": "cases/gb300-game-third-person-adventure-5472x3072-seed42.webp?v=9c6ae07c9fee"
+    }
+  ],
+  "presentation": "Each scene compares browser-resized versions of one measured 4K image. Left and right output tiers are independent. Aspect ratios are preserved; actual dimensions are labeled. Separate archived generation sizes remain linked, without inventing missing measurements.",
+  "source_outputs": "Archived API outputs are linked per scene with their measured dimensions and timings. The 1K API output uses a 2K generation canvas before resizing. Missing generated sizes are not inferred from browser resizes."
+}
