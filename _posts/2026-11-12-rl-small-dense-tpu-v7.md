@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Reinforcement Learning: Optimizing 0.6B Dense Models on TPU v7 via vLLM"
-author: "Meta ASA and Meta Ranking AI Research"
+author: "Loki Chen, Yang Song, Hongye Xie, Ming Lei, Greg Rehm, Chongyang Bai, Dre Olgiati, Bob Kamma, Tej Choudhary, Hang Cui, Imed Zitouni, Hamed Firooz (Meta ASA); Mingfu Liang, Kavosh Asadi, Yufei Li, Frank Shyu, Parish Aggarwal, Senthil Manickavelu, Xi Liu, Luke Simon (Meta Ranking AI Research)"
 date: 2026-11-12 09:00:00 +0000
 summary: "Co-designing RL for a Qwen3-0.6B dense policy on Google Cloud TPU v7 across vLLM, Tunix, MaxText, and Pallas: 23 upstream PRs and a 107x end-to-end speedup, from ~100 minutes to ~56 seconds per true-8K RL cycle."
 image: /assets/figures/2026-10-09-rl-small-dense-tpu-v7/co-design-rl-0p6b-dense.webp
