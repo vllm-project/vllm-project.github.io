@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="890" viewBox="0 0 1100 890" role="img" aria-labelledby="title desc">
+  <title id="title">FP8 MoE latency: original versus routed-row kernel selection</title>
+  <desc id="desc">On eight H20 GPUs, the same FP8 MoE operator uses either original global-M dispatch or routed-row dispatch. Bars show the median of 24 per-sample slowest-rank timings; shorter is faster. Main-model cases: 1 uniform token, 0.114720 to 0.115072 milliseconds; 192 uniform, 1.796432 to 0.554848; 288 uniform, 1.808480 to 0.564080; 2048 uniform, 1.904528 to 0.720048; 288 with 75 percent sent to six experts, 2.020800 to 1.017488; 288 with six active experts on one rank, 0.791280 to 0.752768. Draft cases: 1 routed token with seven ranks idle, 0.075168 to 0.076032; 288 uniform, 0.633360 to 0.217344. Speedups use unrounded medians.</desc>
+  <rect width="1100" height="890" fill="#fff"/>
+  <text x="55" y="48" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#17233b">FP8 MoE latency: original vs routed-row dispatch</text>
+  <text x="55" y="78" font-family="Arial,sans-serif" font-size="15" fill="#63718a">Same FP8 operator; only kernel selection changes · 8× H20 · lower is better</text>
+
+  <g font-family="Arial,sans-serif" font-size="13" fill="#394861">
+    <text x="55" y="145">Main · 1 token, uniform</text>
+    <text x="55" y="220">Main · 192 tokens, uniform</text>
+    <text x="55" y="295">Main · 288 tokens, uniform</text>
+    <text x="55" y="370">Main · 2,048 tokens, uniform</text>
+    <text x="55" y="445">Main · 288 tokens, 75% to six experts</text>
+    <text x="55" y="520">Main · 288 tokens, six experts on one rank</text>
+    <text x="55" y="630">Draft · 1 routed token, seven ranks idle</text>
+    <text x="55" y="705">Draft · 288 tokens, uniform</text>
+  </g>
+
+  <g>
+    <rect x="340" y="126" width="27.53" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="151" width="27.62" height="20" rx="4" fill="#416fd0"/>
+    <rect x="340" y="201" width="431.14" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="226" width="133.16" height="20" rx="4" fill="#416fd0"/>
+    <rect x="340" y="276" width="434.04" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="301" width="135.38" height="20" rx="4" fill="#416fd0"/>
+    <rect x="340" y="351" width="457.09" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="376" width="172.81" height="20" rx="4" fill="#416fd0"/>
+    <rect x="340" y="426" width="484.99" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="451" width="244.20" height="20" rx="4" fill="#416fd0"/>
+    <rect x="340" y="501" width="189.91" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="526" width="180.66" height="20" rx="4" fill="#416fd0"/>
+    <line x1="55" y1="575" x2="980" y2="575" stroke="#d8dee8" stroke-width="1.5"/>
+    <rect x="340" y="611" width="18.04" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="636" width="18.25" height="20" rx="4" fill="#416fd0"/>
+    <rect x="340" y="686" width="152.01" height="20" rx="4" fill="#9aa7ba"/><rect x="340" y="711" width="52.16" height="20" rx="4" fill="#416fd0"/>
+  </g>
+
+  <g font-family="Arial,sans-serif" font-size="12.5" font-weight="700" fill="#34425a">
+    <text x="376" y="141">0.115 ms</text><text x="376" y="166">0.115 ms · 1.00×</text>
+    <text x="779" y="216">1.796 ms</text><text x="481" y="241">0.555 ms · 3.24×</text>
+    <text x="782" y="291">1.808 ms</text><text x="483" y="316">0.564 ms · 3.21×</text>
+    <text x="805" y="366">1.905 ms</text><text x="521" y="391">0.720 ms · 2.65×</text>
+    <text x="833" y="441">2.021 ms</text><text x="592" y="466">1.017 ms · 1.99×</text>
+    <text x="538" y="516">0.791 ms</text><text x="529" y="541">0.753 ms · 1.05×</text>
+    <text x="366" y="626">0.075 ms</text><text x="366" y="651">0.076 ms · 0.99×</text>
+    <text x="500" y="701">0.633 ms</text><text x="400" y="726">0.217 ms · 2.91×</text>
+  </g>
+
+  <line x1="340" y1="770" x2="940" y2="770" stroke="#aeb8c8" stroke-width="1.5"/>
+  <g font-family="Arial,sans-serif" font-size="13" fill="#63718a" text-anchor="middle">
+    <text x="340" y="794">0</text><text x="460" y="794">0.5</text><text x="580" y="794">1.0</text>
+    <text x="700" y="794">1.5</text><text x="820" y="794">2.0</text><text x="940" y="794">2.5 ms</text>
+  </g>
+  <rect x="55" y="826" width="18" height="14" rx="3" fill="#9aa7ba"/>
+  <text x="82" y="838" font-family="Arial,sans-serif" font-size="13" fill="#63718a">FP8 · original dispatch</text>
+  <rect x="260" y="826" width="18" height="14" rx="3" fill="#416fd0"/>
+  <text x="287" y="838" font-family="Arial,sans-serif" font-size="13" fill="#63718a">FP8 · routed-row dispatch</text>
+  <text x="55" y="870" font-family="Arial,sans-serif" font-size="12.5" fill="#63718a">24 samples; median of each sample's slowest rank. Speedup uses unrounded values.</text>
+</svg>

@@ -1,0 +1,9 @@
+model,input_tokens,routing_case,global_m_median_ms,per_expert_m_median_ms,speedup
+main,1,uniform,0.114720,0.115072,1.00
+main,192,uniform,1.796432,0.554848,3.24
+main,288,uniform,1.808480,0.564080,3.21
+main,2048,uniform,1.904528,0.720048,2.65
+main,288,75pct_to_six_experts,2.020800,1.017488,1.99
+main,288,six_active_experts_seven_ranks_idle,0.791280,0.752768,1.05
+draft,1,one_routed_token_seven_ranks_idle,0.075168,0.076032,0.99
+draft,288,uniform,0.633360,0.217344,2.91
