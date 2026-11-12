@@ -2,10 +2,10 @@
 layout: post
 title: "DeepSeek-V4.1-Flash on Vera Rubin NVL72: 58x Throughput vs. GB300 NVL72 at 387 tokens/s"
 author: "Inferact and the vLLM Team"
-date: 2026-11-11 09:00:00 +0000
+date: 2026-11-12 09:00:00 +0000
 summary: "On one NVIDIA Vera Rubin NVL72 rack, vLLM serves DeepSeek-V4.1-Flash on SemiAnalysis AgentX at 1.7M tokens/s per GPU at a P90 of 387 tokens/s per user, 58x GB300 NVL72 at the same interactivity."
-image: /assets/figures/2026-11-11-deepseek-v41-flash-vera-rubin/hero.jpg?v=20261112
-social_image: /assets/figures/2026-11-11-deepseek-v41-flash-vera-rubin/hero.jpg?v=20261112
+image: /assets/figures/2026-11-12-deepseek-v41-flash-vera-rubin/hero.png?v=20261112
+social_image: /assets/figures/2026-11-12-deepseek-v41-flash-vera-rubin/hero.png?v=20261112
 tags:
   - deepseek
   - performance
@@ -14,7 +14,7 @@ tags:
 ---
 
 <p align="center">
-<img src="/assets/figures/2026-11-11-deepseek-v41-flash-vera-rubin/hero.jpg?v=20261112" alt="58x throughput per GPU on Vera Rubin NVL72 against GB300 NVL72 running Dynamo + vLLM, at 387 tokens/s per user" width="100%">
+<img src="/assets/figures/2026-11-12-deepseek-v41-flash-vera-rubin/hero.png?v=20261112" alt="58x throughput per GPU on Vera Rubin NVL72 against GB300 NVL72 running Dynamo + vLLM, at 387 tokens/s per user" width="100%">
 </p>
 
 **TL;DR:** On one NVIDIA Vera Rubin NVL72 rack, vLLM serves DeepSeek-V4.1-Flash at **1.7M** tokens/s per GPU while each user gets **387** tokens/s, **58×** GB300 NVL72, and reaches **2.52M** at peak throughput and **1,810** tokens/s for a single user. The gains come from building on what is new in Rubin: kernels tuned for its split memory and FP4 tensor cores, specialized decode kernels for low latency, and a rack-wide KV cache and Engram tables shared over NVLink.
