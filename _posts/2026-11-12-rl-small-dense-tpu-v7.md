@@ -2,7 +2,7 @@
 layout: post
 title: "Reinforcement Learning: Optimizing 0.6B Dense Models on TPU v7 via vLLM"
 author: "Meta ASA and Meta Ranking AI Research"
-date: 2026-10-09 09:00:00 +0000
+date: 2026-11-12 09:00:00 +0000
 summary: "Co-designing RL for a Qwen3-0.6B dense policy on Google Cloud TPU v7 across vLLM, Tunix, MaxText, and Pallas: 23 upstream PRs and a 107x end-to-end speedup, from ~100 minutes to ~56 seconds per true-8K RL cycle."
 image: /assets/figures/2026-10-09-rl-small-dense-tpu-v7/co-design-rl-0p6b-dense.webp
 social_image: /assets/figures/2026-10-09-rl-small-dense-tpu-v7/co-design-rl-0p6b-dense.png
@@ -19,7 +19,7 @@ tags:
 **Takeaways**
 
 - Small dense-model RL exposes new challenges across hardware architectures: decode scheduling, synchronization, attention geometry, and KV-cache lifecycle become first-order bottlenecks.
-- By co-designing across the open-source TPU stack (**vLLM**, **Tunix**, **MaxText**, and **Pallas**) and upstreaming the work in **23 PRs**, developers spinning up Google Cloud TPU v7 today can reach the **56-second (130.5K tokens/s)** path by enabling the upstreamed flags listed in this post—without repeating this bring-up journey.
+- By co-designing across the open-source TPU stack (**vLLM**, **Tunix**, **MaxText**, and **Pallas**) and upstreaming the work in **23 PRs**, developers spinning up Google Cloud TPU v7 today can reach the **56-second (~183K tokens/s)** path by enabling the upstreamed flags listed in [Appendix B](#appendix-b--how-to-reproduce)—without repeating this bring-up journey.
 - The complete rollout-to-update cycle achieved a **107x end-to-end speedup** on Google Cloud TPU v7—falling from roughly 100 minutes to approximately 56 seconds—while preserving the full 8,192-token response budget.
 
 ## Why a small model matters for research
@@ -69,19 +69,34 @@ This is the central thesis of the project: small dense-model RL is not simply a 
 
 As with any distributed accelerator stack, the first step was aligning basic configuration parameters—parallelism, batch concurrency, mesh shape, and HBM limits—with our workload geometry to establish a clean baseline. The remaining bottlenecks were embedded deeper in the open-source stack and were specific to long-context, high-concurrency small-model RL with frequent on-policy weight synchronization.
 
-That motivated us to move from configuring the stack to co-designing it. We profiled the full RL cycle, identified the mechanism behind each new bottleneck, and then worked downward through MaxText, Tunix, vLLM/tpu-inference, Pathways/XLA, and Pallas—progressing from config tuning, to cross-stack decode co-design (XLA device loop, Pallas VMEM pipeline, and host-device scheduler), to Full-Cycle Optimization across KV-cache lifecycle and training attention geometry. Once configuration tuning plateaued at roughly 30K tokens/s, this cross-stack decode co-design pushed rollout throughput to approximately 130.5K tokens/s over the campaign.
+That motivated us to move from configuring the stack to co-designing it. We profiled the full RL cycle, identified the mechanism behind each new bottleneck, and then worked downward through MaxText, Tunix, vLLM/tpu-inference, Pathways/XLA, and Pallas—progressing from config tuning, to cross-stack decode co-design (XLA device loop, Pallas VMEM pipeline, and host-device scheduler), to Full-Cycle Optimization across KV-cache lifecycle and training attention geometry. Once configuration tuning plateaued at roughly 30K tokens/s, this cross-stack decode co-design pushed rollout throughput to approximately 130.5K tokens/s, and the final rollout configuration took it to ~183K tokens/s.
 
 The lesson was simple: peak small-model RL performance on TPU v7 comes from preserving the workload contract while exposing hardware-specific fast paths across the open-source stack—and upstreaming those optimizations so future workloads benefit by default.
 
 ## Benchmark methodology and dataset
 
-Because proprietary Ads ranking and generative recommendation (GR) models and user-interaction logs at Meta cannot be shared publicly, we designed **a fully open, reproducible benchmark proxy**—using Qwen3-0.6B on NuminaMath and OpenMath—that mirrors the systems geometry of production generative ranking: a compact sub-billion-parameter dense policy attending over long context histories (up to 16K prompt tokens) and generating multi-step reasoning traces (up to 8,192 tokens) across thousands of concurrent candidates.
+Because proprietary Ads ranking and generative recommendation (GR) models and user-interaction logs at Meta cannot be shared publicly, we designed **a fully open, reproducible benchmark proxy**—using Qwen3-0.6B on [OpenMathInstruct-2](https://huggingface.co/datasets/nvidia/OpenMathInstruct-2) (`train_1M` split)—that mirrors the systems geometry of production generative ranking: a compact sub-billion-parameter dense policy generating long multi-step reasoning traces (up to 8,192 tokens) across thousands of concurrent candidates.
 
-To make our workload contract, profiler methodology, and all **23** upstream vLLM, Tunix, and MaxText **PRs** **fully reproducible by the open-source community**, we evaluate both controlled ablations and our headline Qwen3-0.6B Group Relative Policy Optimization (GRPO) true-8K workload: 256 prompts × 8 generations (2,048 completions per rollout), up to 16K prompt tokens and 8,192 generated tokens (24K total context), BF16, and synchronous on-policy execution. We report steady-state complete-cycle wall-clock time, excluding compilation, warmup, and checkpoint writes. We tracked rollout throughput and full-cycle latency across the campaign, then used controlled ablations to isolate individual mechanisms.
+To make our workload contract, profiler methodology, and all **23** upstream vLLM, Tunix, and MaxText **PRs** **fully reproducible by the open-source community**, we evaluate both controlled ablations and our headline Qwen3-0.6B Group Relative Policy Optimization (GRPO) true-8K workload: 256 prompts × 8 generations (2,048 completions per rollout), prompts up to 4,096 tokens and up to 8,192 generated tokens (12,288-token context), BF16, and synchronous on-policy execution. We report steady-state complete-cycle wall-clock time, excluding compilation, warmup, and checkpoint writes. We tracked rollout throughput and full-cycle latency across the campaign, then used controlled ablations to isolate individual mechanisms.
+
+**Metric definitions.** *Step time* is the steady-state wall-clock time of one complete rollout-to-update cycle (TensorBoard `perf/train/global_step_time`, median over steps 3 and later of a 20-step run). *Rollout throughput (tokens/s)* counts generated (completion) tokens only, excludes prefill, is aggregated over the whole 64-chip slice, and is averaged over the full rollout phase (generation start to the last completion), not the decode kernel alone.
+
+**Milestones at a glance.** Intermediate phase splits for the earlier milestones come from controlled profiling runs that were not retained; only the final configuration has a full measured split.
+
+| Milestone | Step time | Rollout throughput | Rollout | Non-rollout |
+|---|---|---|---|---|
+| Un-tuned bring-up | ~6,000 s | ~4K tok/s | — | — |
+| Configuration and mesh tuning | 1,260 s | ~30K tok/s | — | — |
+| Controlled baseline (colocated, TP/DP rebalanced) | 616 s | ~30K tok/s | — | — |
+| + Continue Decode | 369 s | — | — | — |
+| + RPA block split + EOS-check interval | 299 s | ~130.5K tok/s | — | — |
+| Final configuration (TP1×DP128) | **56 s** best steady-state steps; 57.9 s 20-step median (p10 55.7 s) | **~183K tok/s** | 49.1 s | 8.4 s |
+
+In the final configuration a rollout generates about 9.0M tokens (2,048 completions × ~4.4K mean completion length; 27.8% of completions reach the 8,192-token cap), and the median phase times are 49.1 s of rollout and 8.4 s for training, weight sync, reward, and cache lifecycle combined.
 
 ## Optimization journey on Google Cloud TPU v7
 
-We ran the true-8K reference workload on a 64-chip Google Cloud TPU v7 (4×4×4) slice using **DP16×TP4** parallelism—employing 4-way tensor parallelism not for the 0.6B model weights (1.2 GB in BF16), but to pool HBM capacity and memory bandwidth across four chips for the large 24K-context KV caches across 2,048 concurrent sequences. The complete step included:
+We ran the true-8K reference workload on a 64-chip Google Cloud TPU v7 (4×4×4) slice using **TP1×DP128** rollout parallelism: 128 independent vLLM engines, one per TPU device (two per chip), each holding the full 0.6B model (1.2 GB in BF16) and all eight KV heads, with requests spread across engines by round-robin data-parallel routing. Earlier in the campaign we used 4-way tensor parallelism to pool HBM for the KV caches; the move to TP1×DP128 is quantified in Phase III. The complete step included:
 
 - rollout generation;
 - reward computation and advantage construction;
@@ -96,7 +111,7 @@ All milestones below reflect steady-state steps. To isolate sub-second kernel an
 
 ### Phase I: align basic workload configuration to establish a proper baseline
 
-Our initial un-tuned functional bring-up—running 2,048 synchronous 24K-context rollouts before mesh sizing or continuous device-side decode—generated roughly 4K rollout tokens/s (~100 minutes per full RL cycle). Before modifying any core runtime or kernel code, we tuned the configuration space of the existing stack.
+Our initial un-tuned functional bring-up—running 2,048 synchronous 12K-context rollouts before mesh sizing or continuous device-side decode—generated roughly 4K rollout tokens/s (~100 minutes per full RL cycle). Before modifying any core runtime or kernel code, we tuned the configuration space of the existing stack.
 
 The work included:
 
@@ -110,19 +125,19 @@ The work included:
 
 This first phase increased rollout throughput from roughly **4K to approximately 30K tokens/s** (**7.5x**), reducing the full cycle from **~100 minutes (6,000 s) to 21 minutes (1,260 s, 4.8x)**—and after colocation and TP/DP host-mesh rebalancing established our **616-second controlled baseline**, we moved into stack co-design.
 
-These initial steps simply aligned basic configuration parameters—mesh topology, batch concurrency, and HBM limits—with a 24K-context, 2,048-rollout workload shape (rather than reflecting an out-of-the-box limitation of the TPU v7 stack), establishing a properly configured baseline and revealing the true runtime bottlenecks.
+These initial steps simply aligned basic configuration parameters—mesh topology, batch concurrency, and HBM limits—with a 12K-context, 2,048-rollout workload shape (rather than reflecting an out-of-the-box limitation of the TPU v7 stack), establishing a properly configured baseline and revealing the true runtime bottlenecks.
 
 Rollout throughput improved much more than full-cycle latency because training, cache lifecycle, and control-plane overhead had become visible. The system had not stopped scaling; the critical path had moved.
 
 ### Phase II: Cross-stack decode co-design—from MaxText and vLLM down to XLA and Pallas
 
-At approximately 30K tokens/s, surface-level configuration sweeps hit a wall. Profiling revealed that while pure TPU v7 silicon execution took only milliseconds per decode step, end-to-end rollout time was dominated by host-device dispatch round trips, XLA compilation and runner overheads on the Flax NNX path, and Pallas kernel pipeline stalls over 24K-token contexts.
+At approximately 30K tokens/s, surface-level configuration sweeps hit a wall. Profiling revealed that while pure TPU v7 silicon execution took only milliseconds per decode step, end-to-end rollout time was dominated by host-device dispatch round trips, XLA compilation and runner overheads on the Flax NNX path, and Pallas kernel pipeline stalls over 12K-token contexts.
 
 Fixing this required co-designing across every layer of the open-source stack—plumbing workload-aware execution semantics from the top-level trainer down into compiled XLA loops and Pallas VMEM pipelines:
 
 **MaxText → Tunix → vLLM/tpu-inference (Runner & Scheduler) → Ragged Paged Attention (RPA v3)/Pallas → Pathways/XLA**
 
-This phase raised stable production-scale decode throughput (attending over up to 24K context tokens per sequence across 2,048 synchronous rollouts) to approximately **130.5K tokens/s** (**4.35x** the 30K operating point), cutting full-step latency in the controlled ladder from **616 seconds to 299 seconds**.
+This phase raised stable production-scale decode throughput (attending over up to 12,288 context tokens per sequence across 2,048 synchronous rollouts) to approximately **130.5K tokens/s** (**4.35x** the 30K operating point), cutting full-step latency in the controlled ladder from **616 seconds to 299 seconds**.
 
 #### Compiling multi-step device decode loops across Flax NNX, vLLM, and XLA
 
@@ -134,13 +149,15 @@ In the controlled MaxText production ladder, this cross-stack path reduced a **6
 
 This result changed how we thought about the workload. The TPU v7 MXUs were not waiting for more arithmetic intensity from a larger model; the small model was waiting for the runtime and compiler stack to deliver uninterrupted device work.
 
-#### Co-designing Pallas RPA v3 DMA-compute pipelining for 24K-context KV caches
+#### Co-designing Pallas RPA v3 DMA-compute pipelining for long-context KV caches
 
-Once host dispatch was amortized, on-device attention memory movement became the primary bottleneck. Ragged Paged Attention v3 (RPA v3), written in Pallas, overlaps HBM-to-VMEM DMA transfers with TensorCore compute using a double-buffered VMEM pipeline. However, its default heuristic coupled the KV fetch block size and the compute block size to a single monolithic value (~16K tokens). On our 24K-context RL workload, a 16K compute block starved the Pallas double-buffered pipeline: each compute stage had to wait for a large KV tile transfer to complete, reducing pipeline depth between DMA and MXU execution.
+Once host dispatch was amortized, on-device attention memory movement became the primary bottleneck. Ragged Paged Attention v3 (RPA v3), written in Pallas, overlaps HBM-to-VMEM DMA transfers with TensorCore compute using a double-buffered VMEM pipeline. However, its default heuristic coupled the KV fetch block size and the compute block size to a single monolithic value (~16K tokens). On our long-context RL workload, a 16K compute block starved the Pallas double-buffered pipeline: each compute stage had to wait for a large KV tile transfer to complete, reducing pipeline depth between DMA and MXU execution.
 
 We refactored the kernel interface to decouple HBM fetch geometry from VMEM compute tiling across decode, prefill, and mixed paths ([tpu-inference #3102](https://github.com/vllm-project/tpu-inference/pull/3102)) and plumbed those kernel controls up through the tpu-inference MaxText serving bridge ([tpu-inference #3395](https://github.com/vllm-project/tpu-inference/pull/3395)) and MaxText RL trainer configs ([MaxText #5100](https://github.com/AI-Hypercomputer/maxtext/pull/5100)). Keeping a **16,384-token HBM fetch block** to maximize burst DMA bandwidth while slicing execution into **4,096-token VMEM compute blocks** restored deep DMA/MXU overlap—lifting decode throughput from **64.9K → 96.3K tokens/s** (64,929 → 96,273 tokens/s, **+48% decode throughput**).
 
 This is a textbook co-design result: the hardware had the bandwidth, the kernel had the pipeline, and the workload exposed a block geometry the general heuristic did not capture.
+
+The split above was measured with 4-way tensor parallelism. In the final TP1×DP128 configuration every chip holds all eight KV heads, so the tiles were re-tuned to 2,048-token decode blocks (`RPA_V3_DECODE_BLOCK_SIZES=1,2048,1,2048`, with matching prefill and mixed overrides; see Appendix B): at TP1, a 4,096-token decode tile is slower and an 8,192-token tile exceeds VMEM.
 
 #### Co-designing on-device EOS reductions with host scheduler eviction
 
@@ -148,7 +165,9 @@ Even inside a fused device loop, Continue Decode still executed an on-device red
 
 We modified the compiled loop to skip the per-step on-device EOS reduction when the check is off ([tpu-inference #3509](https://github.com/vllm-project/tpu-inference/pull/3509)) and exposed cadence control to balance device execution against host scheduling ([tpu-inference #3174](https://github.com/vllm-project/tpu-inference/pull/3174)), while per-sequence masking preserved the true EOS boundary.
 
-The trade-off was genuinely cross-layer: checking every step incurred on-device sync overhead, whereas checking every 32 steps delayed returning to the vLLM host scheduler to evict finished sequences and free batch slots. An interval of **8 steps** hit the sweet spot between uninterrupted XLA loop execution and timely scheduler retirement. Stacked with Continue Decode and the RPA block split, this change delivered the **299-second** true-8K milestone.
+The trade-off was genuinely cross-layer: checking every step incurred on-device sync overhead, whereas checking every 32 steps delayed returning to the vLLM host scheduler to evict finished sequences and free batch slots. An interval of **8 steps** hit the sweet spot between uninterrupted XLA loop execution and timely scheduler retirement. Together with the RPA block split, this change took the step from 369 seconds to the **299-second** true-8K milestone; we did not retain a separate step-time measurement for each of the two.
+
+In the final configuration we turn the in-loop EOS check off entirely (`CONTINUE_DECODE_EOS_CHECK_INTERVAL=0`) and instead lengthen the fused loop to 512 decode steps per return to the host scheduler (`max_decode_steps=512`); per-sequence masking still preserves each EOS boundary.
 
 <p align="center">
 <img src="/assets/figures/2026-10-09-rl-small-dense-tpu-v7/decode-co-design.webp" alt="Figure 3: Cross-stack decode co-design across vLLM, XLA, and Pallas" width="100%">
@@ -168,30 +187,42 @@ Every RL step changes the policy weights. KV values computed under the old polic
 
 We observed that resetting prefix mappings already made every old block logically unreachable. When HBM headroom allowed it, the physical allocation could persist safely across the weight update even though its contents were invalid. The next rollout re-prefilled and overwrote the blocks before reading them.
 
-An opt-in KV-persistence path reduced the measured setup phase from **~37 seconds to 3 seconds** (saving 34 seconds). In parallel, we unrolled scanned layers during weight sync ([Tunix #2232](https://github.com/google/tunix/pull/2232)), overlapped detokenization and log-prob extraction with decode ([Tunix #2233](https://github.com/google/tunix/pull/2233)), offloaded reward evaluation to a process pool ([Tunix #1904](https://github.com/google/tunix/pull/1904), [MaxText #5255](https://github.com/AI-Hypercomputer/maxtext/pull/5255)), and made per-step garbage collection configurable ([Tunix #2086](https://github.com/google/tunix/pull/2086), [MaxText #5236](https://github.com/AI-Hypercomputer/maxtext/pull/5236)).
+An opt-in KV-persistence path reduced the measured setup phase from **~37 seconds to 3 seconds** (saving 34 seconds). On the final configuration, turning it on (`free_kv_cache_during_weight_sync=false`) still moves the 20-step median from 60.3 s to 57.9 s. In parallel, we unrolled scanned layers during weight sync ([Tunix #2232](https://github.com/google/tunix/pull/2232)), overlapped detokenization and log-prob extraction with decode ([Tunix #2233](https://github.com/google/tunix/pull/2233)), offloaded reward evaluation to a process pool ([Tunix #1904](https://github.com/google/tunix/pull/1904), [MaxText #5255](https://github.com/AI-Hypercomputer/maxtext/pull/5255)), and made per-step garbage collection configurable ([Tunix #2086](https://github.com/google/tunix/pull/2086), [MaxText #5236](https://github.com/AI-Hypercomputer/maxtext/pull/5236)).
 
 The [public implementation](https://github.com/google/tunix/pull/2231) is default-off and requires two safety conditions: prefix mappings must be reset on every policy update, and the weight reshard must not depend on freeing the cache allocation for HBM headroom.
 
 #### Retuning Splash Attention for the training shape
 
-With rollout, weight-sync, and host lifecycle costs reduced, training accounted for a material share of the step. Alongside enabling RL sequence packing ([MaxText #5100](https://github.com/AI-Hypercomputer/maxtext/pull/5100)), we retuned five train-side Splash Attention parameters for the production sequence geometry, MaxText config overrides on the RL trainer command line:
+With rollout, weight-sync, and host lifecycle costs reduced, training accounted for a material share of the step. Alongside enabling RL sequence packing ([MaxText #5100](https://github.com/AI-Hypercomputer/maxtext/pull/5100)), we switched training to flash attention and retuned the Splash Attention block sizes for the production sequence geometry, passed as MaxText config overrides on the RL trainer command line:
 
 ```bash
-sa_block_q=4096 \
-  sa_block_q_dkv=2048 \
-  sa_block_kv_dkv=2048 \
-  sa_q_layout=SEQ_MINOR \
-  sa_v_layout=SEQ_MINOR
+attention='flash' \
+  sa_block_q=1024 sa_block_q_dkv=1024 sa_block_q_dq=1024 \
+  sa_block_kv=2048 sa_block_kv_compute=2048 \
+  sa_block_kv_dkv=2048 sa_block_kv_dkv_compute=2048 sa_block_kv_dq=2048 \
+  sa_use_base2_exp=false
 ```
 
 This was an important transition in the program: combined with sequence packing and lifecycle optimizations, retuning the training attention kernel drove the full true-8K cycle down from **299 seconds to 56 seconds**.
+
+#### Final rollout configuration
+
+The last gains came from reshaping rollout around the small model. Each change below was measured against a control run at the same time on an earlier image; sizes are approximate and were not re-measured one by one on the final image.
+
+| Change | Effect |
+|---|---|
+| `max_decode_steps` 128 → 512 (fused decode steps per host return) | ~4 s less rollout (128 → 256: ~1.6 s; 256 → 512: ~2.6 s) |
+| TP4 → TP1×DP128, with round-robin DP routing | ~1 s per step (−1.3 s and −0.9 s in two controlled pairs); the default least-loaded routing costs ~35 s per step at DP128 |
+| Flash attention and Splash block sizes for training | ~2 s per step |
+| KV persistence across the weight update | 60.3 s → 57.9 s 20-step median |
+| Reward workers (`reward_num_workers=32`, `math_verify_num_procs=64`) | small |
 
 <p align="center">
 <img src="/assets/figures/2026-10-09-rl-small-dense-tpu-v7/bottleneck-migration.webp" alt="Figure 4: Bottleneck migration" width="100%">
 </p>
 
 <p align="center">
-<em>Figure 4: Bottleneck migration. The full-cycle milestone times (6,000 s → 56 s) are measured steady-state values excluding compilation and checkpointing; the per-phase shares within each bar are illustrative, not measured.</em>
+<em>Figure 4: Bottleneck migration. Measured steady-state step time per milestone (log scale), excluding compilation and checkpointing. The final step is split into its measured rollout and non-rollout medians.</em>
 </p>
 
 ## What did not work—and why those learnings mattered
@@ -202,7 +233,7 @@ The campaign produced several negative results. They are part of the story becau
 
 We verified a weight-only INT8 path and observed no meaningful decode improvement. For a 0.6B model with long contexts, model weights were a small fraction of the data movement and fixed execution cost.
 
-We also verified a lower-precision KV storage path by checking that cache capacity doubled. The latency result was far smaller than a bandwidth-proportional speedup. That experiment closed an important hypothesis: at this operating point, decode was not simply saturated on HBM bytes. Dispatch, fusion, per-iteration fixed cost, and other kernels set a floor that byte reduction alone could not remove.
+We also verified an FP8 KV-cache path by checking that cache capacity doubled. The latency result was far smaller than a bandwidth-proportional speedup. That experiment closed an important hypothesis: at this operating point, decode was not simply saturated on HBM bytes. Dispatch, fusion, per-iteration fixed cost, and other kernels set a floor that byte reduction alone could not remove.
 
 This distinction matters for TPU v7 optimization. Quantization can be transformative when weights or KV traffic dominate; it can be nearly irrelevant when the workload is controlled by a different roofline.
 
@@ -220,7 +251,7 @@ A larger training microbatch fit after memory tuning, but halving the number of 
 
 Reducing the response cap from **8,192 to 6,144** removed a large low-occupancy tail and reached approximately **56 seconds**, but it changed the RL recipe and therefore remained a separate candidate. Reducing the cap further to **5,120** produced no reliable additional gain. Once the train and setup floor dominated, cutting more response budget no longer bought meaningful systems performance.
 
-The later Splash result reached approximately the same latency while preserving the true **8,192-token cap**, allowing the headline to remain a same-workload system result.
+This was a separate experiment on the stack before the final Splash and rollout changes. The later Splash result reached approximately the same latency while preserving the true **8,192-token cap**; every headline number in this post uses the full 8,192-token cap.
 
 ## Our optimization loop
 
@@ -236,16 +267,16 @@ The performance curve was not produced by one heroic patch. It came from a repea
 - **Profile again.** The next bottleneck was rarely the one that had mattered one round earlier.
 
 <p align="center">
-<img src="/assets/figures/2026-10-09-rl-small-dense-tpu-v7/performance-evaluation-dashboard.webp" alt="Figure 5: Performance evaluation dashboard" width="100%">
+<img src="/assets/figures/2026-10-09-rl-small-dense-tpu-v7/performance-evaluation-dashboard.webp" alt="Figure 5: Adopted and neutral optimizations" width="100%">
 </p>
 
 <p align="center">
-<em>Figure 5: Performance evaluation dashboard</em>
+<em>Figure 5: Adopted and neutral optimizations from the campaign.</em>
 </p>
 
 ## When systems optimization exposes a learning bottleneck
 
-Notably, the optimized stack reached **56 seconds** per true-8K cycle under an intentional **worst-case systems stress test**: by evaluating the raw 0.6B checkpoint without an SFT warm-start, we forced a large fraction of rollouts to decode all the way to the 8,192-token ceiling. Because production SFT warm-started policies converge to more concise reasoning traces, real-world RL training cycles run even faster than this 56-second upper bound.
+Notably, the optimized stack reached **56 seconds** per true-8K cycle under an intentional **worst-case systems stress test**: by evaluating the raw 0.6B checkpoint without an SFT warm-start, we forced a large fraction of rollouts to decode all the way to the 8,192-token ceiling (27.8% of the 2,048 completions hit the cap, and the mean completion length was ~4.4K tokens). Because production SFT warm-started policies converge to more concise reasoning traces, real-world RL training cycles run even faster than this 56-second upper bound.
 
 Combining a lightweight format-and-task SFT warm-start and reward shaping with on-policy RL post-training (GRPO / Decoupled Clip and Dynamic Sampling Policy Optimization, DAPO) teaches the compact policy to solve reasoning and ranking tasks with shorter average completion lengths—compounding our systems speedups with algorithmic efficiency.
 
@@ -277,9 +308,9 @@ The project started with a small dense model that appeared easy to run and a ful
 
 The first **7.5x rollout gain** came from disciplined configuration and mesh tuning. Further gains came from moving down the Google open-source stack and co-designing the decode path. The final full-cycle gains came from recognizing that cache lifetime and training attention had become the new bottlenecks.
 
-Across the program on Google Cloud TPU v7, stable rollout throughput increased from approximately **4K to 130.5K tokens/s**, while end-to-end cycle time fell from roughly **100 minutes to approximately 56 seconds**. That is about **32.6x higher throughput** and **107x faster full-cycle execution**.
+Across the program on Google Cloud TPU v7, rollout throughput increased from approximately **4K to ~183K tokens/s**, while end-to-end cycle time fell from roughly **100 minutes to approximately 56 seconds**. That is about **46x higher throughput** and **107x faster full-cycle execution**.
 
-The most important result is both the cross-stack co-design methodology behind those gains and the fact that **all 23 runtime, trainer, and kernel PRs are now merged upstream** across vLLM, Tunix, and MaxText—so teams adopting Google Cloud TPU v7 for RL today can reach the optimized 56-second (130.5K tokens/s) operating point by enabling those upstream flags, without repeating this bring-up journey.
+The most important result is both the cross-stack co-design methodology behind those gains and the fact that **all 23 runtime, trainer, and kernel PRs are now merged upstream** across vLLM, Tunix, and MaxText—so teams adopting Google Cloud TPU v7 for RL today can reach the optimized 56-second (~183K tokens/s) operating point by enabling the upstream flags in Appendix B, without repeating this bring-up journey.
 
 ## Acknowledgments
 
@@ -287,7 +318,7 @@ We thank Tianyu Gu (@gutianyu-google), Alisa Chen, Pysith Vanuptikul, Summer Yan
 
 ## Appendix A — Merged upstream PRs
 
-Below are the 23 upstream PRs merged through October 23, 2026 across **vllm-project/tpu-inference**, **google/tunix**, and **AI-Hypercomputer/maxtext** during this optimization campaign:
+All 23 PRs below are merged upstream (the last on September 21, 2026), across **vllm-project/tpu-inference**, **google/tunix**, and **AI-Hypercomputer/maxtext** during this optimization campaign:
 
 **vLLM / tpu-inference — 10 merged PRs**
 
@@ -322,3 +353,47 @@ Below are the 23 upstream PRs merged through October 23, 2026 across **vllm-proj
 - [#5289](https://github.com/AI-Hypercomputer/maxtext/pull/5289) Add free_kv_cache_during_weight_sync to the RL config and forward it to tunix
 
 Several optimizations required both a runtime change and trainer configuration: reward workers (Tunix #1904 / MaxText #5255), GC control (#2086 / #5236), and KV-cache lifetime (#2231 / #5289).
+
+## Appendix B — How to reproduce
+
+**Software.** All 23 PRs are included in [MaxText v0.2.6](https://github.com/AI-Hypercomputer/maxtext/releases/tag/maxtext-v0.2.6) together with the post-training dependencies it pins: Tunix [`385551df`](https://github.com/google/tunix/commit/385551df4643ee3ac3205e813a93c2ff217dffa5), tpu-inference [`73d7342d`](https://github.com/vllm-project/tpu-inference/commit/73d7342da057ecc4d4f453df85cb036976701efd), vLLM [`5df63a72`](https://github.com/vllm-project/vllm/commit/5df63a7203cdb9328d824a27b682e77c7b9928be), JAX/jaxlib 0.11.0, and libtpu 0.0.44. The numbers in this post were measured on an earlier build with the same changes (MaxText `78aa1555`, Tunix `28ad56f7`, tpu-inference `1224e9fb`, vLLM `51da0ca6`, JAX 0.11.0, libtpu 0.0.44, Python 3.12).
+
+**Hardware.** One Google Cloud TPU v7 4×4×4 slice (64 chips, 16 hosts), with Pathways managing the multi-host mesh.
+
+**Workload.** Qwen3-0.6B, [OpenMathInstruct-2](https://huggingface.co/datasets/nvidia/OpenMathInstruct-2) `train_1M`, GRPO with 256 prompts × 8 generations per step, a 20-step run, and step time read as the median over steps 3 and later.
+
+**Environment variables** (tpu-inference):
+
+```bash
+export RPA_V3_DECODE_BLOCK_SIZES="1,2048,1,2048"
+export RPA_V3_MIXED_BLOCK_SIZES="512,1024,256,512"
+export RPA_V3_PREFILL_BLOCK_SIZES="512,1024,256,512"
+export CONTINUE_DECODE_EOS_CHECK_INTERVAL="0"
+export DP_SCHED_ROUTING=round_robin
+```
+
+**MaxText RL trainer overrides** (in addition to the model, tokenizer, dataset, and checkpoint paths):
+
+```bash
+python3 -m maxtext.trainers.post_train.rl.train_rl maxtext/configs/post_train/rl.yml \
+  model_name=qwen3-0.6b tokenizer_path=Qwen/Qwen3-0.6B \
+  batch_size=256 rl.num_generations=8 \
+  rl.grpo_beta=0.0 rl.grpo_epsilon=0.2 rl.epsilon_high=0.28 learning_rate=1e-6 \
+  max_prefill_predict_length=4096 max_target_length=12288 kv_cache_buffer=4352 \
+  decode_sampling_temperature=0.8 decode_sampling_top_k=50 decode_sampling_nucleus_p=0.95 \
+  rollout_data_parallelism=128 rollout_tensor_parallelism=1 \
+  max_num_seqs=256 max_num_batched_tokens=33280 hbm_utilization_vllm=0.3 \
+  vllm_block_size=128 enable_prefix_caching=false async_scheduling=False \
+  vllm_additional_config='{"enable_continue_decode": true, "max_decode_steps": 512}' \
+  max_seq_token_per_tpu=12288 train_micro_batch_size=32 \
+  free_kv_cache_during_weight_sync=false gc_collect_after_weight_sync=false \
+  reward_num_workers=32 math_verify_num_procs=64 \
+  attention=flash \
+  sa_block_q=1024 sa_block_q_dkv=1024 sa_block_q_dq=1024 \
+  sa_block_kv=2048 sa_block_kv_compute=2048 \
+  sa_block_kv_dkv=2048 sa_block_kv_dkv_compute=2048 sa_block_kv_dq=2048 \
+  sa_use_base2_exp=false
+```
+
+Keep `async_scheduling=False`: combining asynchronous scheduling with Continue Decode is a known open issue that corrupts generations.
+
