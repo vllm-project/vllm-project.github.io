@@ -202,7 +202,7 @@ Have questions about EPD or interested in getting involved? Join the [EPD / EC-c
 We thank the following contributors for their work and feedback:
 
 - **[Inferact](https://inferact.ai):** [Tianyu Guo](https://github.com/gty111), [Zifeng Mo](https://github.com/Isotr0py), [Siyu Liu](https://github.com/liusy58), [Roger Wang](https://github.com/ywang96)
-- **[InferMatrix team](https://infermatrix.si):** Ziheng Zhou, Chenzhou Jiang, Ruixin Li, Hang Wu, Chenguang Zheng, Haozhao Dai, Hongsheng Liu
+- **[InferMatrix team](https://infermatrix.si):** Ziheng Zhou, Chenzhou Jiang, Ruixin Li, Hang Wu, Chenguang Zheng, Tai Ho Chiu Hero, Hongsheng Liu
 - **[IBM](https://www.ibm.com):** [Omer Paz](https://github.com/omerpaz95), Or Ozeri, Danny Harnik
 
 ## Related Resources
