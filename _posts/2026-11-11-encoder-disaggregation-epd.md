@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Encoder Disaggregation in vLLM: Scaling Multimodal Serving with EPD"
-author: "Inferact, InferMatrix, and IBM"
+author: "Inferact, InferMatrix, IBM, and Mooncake"
 summary: "Recent advances in vLLM encoder disaggregation: metadata-only multimodal requests, dedicated encoder execution, remote embedding transfer, cross-encoder caching, and lower-overhead EPD routing."
 image: /assets/figures/2026-10-18-encoder-disaggregation-epd/01-epd-architecture.png
 social_image: /assets/figures/2026-10-18-encoder-disaggregation-epd/01-epd-architecture.png
@@ -204,7 +204,7 @@ We thank the following contributors for their work and feedback:
 - **[Inferact](https://inferact.ai):** [Tianyu Guo](https://github.com/gty111), [Zifeng Mo](https://github.com/Isotr0py), [Siyu Liu](https://github.com/liusy58), [Roger Wang](https://github.com/ywang96)
 - **[InferMatrix team](https://infermatrix.si):** Ziheng Zhou, Chenzhou Jiang, Ruixin Li, Hang Wu, Chenguang Zheng, Tai Ho Chiu Hero, Hongsheng Liu
 - **[IBM](https://www.ibm.com):** [Omer Paz](https://github.com/omerpaz95), Or Ozeri, Danny Harnik
-- **Mooncake:** [Teng Ma](https://github.com/stmatengss)
+- **[Mooncake](https://github.com/kvcache-ai/Mooncake):** [Teng Ma](https://github.com/stmatengss)
 
 ## Related Resources
 
