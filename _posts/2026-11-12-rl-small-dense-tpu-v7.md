@@ -64,7 +64,7 @@ This is the central thesis of the project: small dense-model RL is not simply a 
 </p>
 
 <p align="center">
-<em>Figure 2: Co-designing RL for a 0.6B dense model on Google Cloud TPU v7. Three stages of optimization: (1) Config &amp; Mesh Tuning, (2) Cross-Stack Decode Co-Design (XLA device loop, Pallas VMEM pipeline, and host-device scheduler), and (3) Full-Cycle Optimization (KV lifecycle &amp; train kernels).</em>
+<em>Figure 2: Co-designing RL for a 0.6B dense model on Google Cloud TPU v7. Three stages of optimization: (1) configuration and mesh tuning (~4K → ~30K tok/s; 6,000 s → 616 s), (2) cross-stack decode co-design across the XLA device loop, Pallas VMEM pipeline, and host-device scheduler (~30K → ~130.5K tok/s; 616 s → 299 s), and (3) full-cycle optimization of the KV lifecycle, training kernels, and TP1×DP128 rollout shape (~130.5K → ~183K tok/s; 299 s → 56 s).</em>
 </p>
 
 As with any distributed accelerator stack, the first step was aligning basic configuration parameters—parallelism, batch concurrency, mesh shape, and HBM limits—with our workload geometry to establish a clean baseline. The remaining bottlenecks were embedded deeper in the open-source stack and were specific to long-context, high-concurrency small-model RL with frequent on-policy weight synchronization.
@@ -79,20 +79,20 @@ Because proprietary Ads ranking and generative recommendation (GR) models and us
 
 To make our workload contract, profiler methodology, and all **23** upstream vLLM, Tunix, and MaxText **PRs** **fully reproducible by the open-source community**, we evaluate both controlled ablations and our headline Qwen3-0.6B Group Relative Policy Optimization (GRPO) true-8K workload: 256 prompts × 8 generations (2,048 completions per rollout), prompts up to 4,096 tokens and up to 8,192 generated tokens (12,288-token context), BF16, and synchronous on-policy execution. We report steady-state complete-cycle wall-clock time, excluding compilation, warmup, and checkpoint writes. We tracked rollout throughput and full-cycle latency across the campaign, then used controlled ablations to isolate individual mechanisms.
 
-**Metric definitions.** *Step time* is the steady-state wall-clock time of one complete rollout-to-update cycle (TensorBoard `perf/train/global_step_time`, median over steps 3 and later of a 20-step run). *Rollout throughput (tokens/s)* counts generated (completion) tokens only, excludes prefill, is aggregated over the whole 64-chip slice, and is averaged over the full rollout phase (generation start to the last completion), not the decode kernel alone.
+**Metric definitions.** *Step time* is the steady-state wall-clock time of one complete rollout-to-update cycle (TensorBoard `perf/train/global_step_time`, median over steps 3 and later of a 20-step run). *Decode throughput (tokens/s)* counts generated (completion) tokens only, excludes prefill, and is aggregated over the whole 64-chip slice. For the earlier milestones it is the full-batch decode rate measured in controlled runs. For the final configuration it is the generated tokens of one rollout divided by the whole rollout phase (~9.0M tokens in 49.1 s), which includes the low-occupancy tail and is therefore a conservative lower bound on its full-batch rate.
 
-**Milestones at a glance.** Intermediate phase splits for the earlier milestones come from controlled profiling runs that were not retained; only the final configuration has a full measured split.
+**Milestones at a glance.** Rollout took 80–90% of the step throughout the campaign. Per-phase timings for the earlier milestones were not retained, so their split is estimated at 85% rollout (marked ≈); the final split is measured.
 
-| Milestone | Step time | Rollout throughput | Rollout | Non-rollout |
+| Milestone | Step time | Decode throughput | Rollout | Non-rollout |
 |---|---|---|---|---|
-| Un-tuned bring-up | ~6,000 s | ~4K tok/s | — | — |
-| Configuration and mesh tuning | 1,260 s | ~30K tok/s | — | — |
-| Controlled baseline (colocated, TP/DP rebalanced) | 616 s | ~30K tok/s | — | — |
-| + Continue Decode | 369 s | — | — | — |
-| + RPA block split + EOS-check interval | 299 s | ~130.5K tok/s | — | — |
-| Final configuration (TP1×DP128) | **56 s** best steady-state steps; 57.9 s 20-step median (p10 55.7 s) | **~183K tok/s** | 49.1 s | 8.4 s |
+| Un-tuned bring-up | ~6,000 s | ~4K tok/s | ≈5,100 s | ≈900 s |
+| Configuration and mesh tuning | 1,260 s | ~30K tok/s | ≈1,070 s | ≈190 s |
+| Controlled baseline (colocated, TP/DP rebalanced) | 616 s | ~30K tok/s | ≈525 s | ≈90 s |
+| + Continue Decode | 369 s | ~64.9K tok/s | ≈315 s | ≈55 s |
+| + RPA block split + EOS-check interval | 299 s | ~130.5K tok/s | ≈255 s | ≈45 s |
+| Final configuration (TP1×DP128) | **56 s** fastest steady-state steps (p10 55.7 s); 57.9 s 20-step median | **~183K tok/s** | 49.1 s | 8.4 s |
 
-In the final configuration a rollout generates about 9.0M tokens (2,048 completions × ~4.4K mean completion length; 27.8% of completions reach the 8,192-token cap), and the median phase times are 49.1 s of rollout and 8.4 s for training, weight sync, reward, and cache lifecycle combined.
+In the final configuration a rollout generates about 9.0M tokens (2,048 completions × ~4.4K mean completion length; 27.8% of completions reach the 8,192-token cap), and the median phase times are 49.1 s of rollout and 8.4 s for training, weight sync, reward, and cache lifecycle combined (85% rollout).
 
 ## Optimization journey on Google Cloud TPU v7
 
@@ -127,7 +127,7 @@ This first phase increased rollout throughput from roughly **4K to approximately
 
 These initial steps simply aligned basic configuration parameters—mesh topology, batch concurrency, and HBM limits—with a 12K-context, 2,048-rollout workload shape (rather than reflecting an out-of-the-box limitation of the TPU v7 stack), establishing a properly configured baseline and revealing the true runtime bottlenecks.
 
-Rollout throughput improved much more than full-cycle latency because training, cache lifecycle, and control-plane overhead had become visible. The system had not stopped scaling; the critical path had moved.
+Decode throughput improved much more than full-cycle latency: the full-batch decode rate is only part of rollout time, and prefill, host returns, and the low-occupancy tail of long completions did not speed up with it. The system had not stopped scaling; the critical path had moved into how rollout used the hardware.
 
 ### Phase II: Cross-stack decode co-design—from MaxText and vLLM down to XLA and Pallas
 
@@ -174,12 +174,12 @@ In the final configuration we turn the in-loop EOS check off entirely (`CONTINUE
 </p>
 
 <p align="center">
-<em>Figure 3: Cross-stack decode co-design across vLLM, XLA, and Pallas. Three co-designed mechanisms across the runtime/compiler, attention kernel, and device-scheduler boundary that lifted rollout throughput from 30K to 130.5K tokens/s (616 s → 299 s full step).</em>
+<em>Figure 3: Cross-stack decode co-design across vLLM, XLA, and Pallas. Three co-designed mechanisms across the runtime/compiler, attention kernel, and device-scheduler boundary that lifted decode throughput from 30K to 130.5K tokens/s (616 s → 299 s full step). The RPA split and the EOS-check interval together took the step from 369 s to 299 s.</em>
 </p>
 
 ### Phase III: optimize the whole RL cycle, not only decode
 
-Once decode reached 130.5K tokens/s, non-decode phases dominated the 299-second step: KV-cache reallocation and weight synchronization, host-side reward/detokenization/GC overhead, and the training attention kernel.
+Once decode reached 130.5K tokens/s, the full-batch decode rate was no longer the limit: most of the 299-second step was still rollout, stretched by its low-occupancy tail, and the rest went to KV-cache reallocation and weight synchronization, host-side reward/detokenization/GC overhead, and the training attention kernel.
 
 #### Separating logical cache invalidation from physical allocation
 
@@ -203,11 +203,11 @@ attention='flash' \
   sa_use_base2_exp=false
 ```
 
-This was an important transition in the program: combined with sequence packing and lifecycle optimizations, retuning the training attention kernel drove the full true-8K cycle down from **299 seconds to 56 seconds**.
+This was an important transition in the program: together with sequence packing, the lifecycle changes above, and the final rollout configuration below, it took the full true-8K cycle from **299 seconds to 56 seconds**.
 
 #### Final rollout configuration
 
-The last gains came from reshaping rollout around the small model. Each change below was measured against a control run at the same time on an earlier image; sizes are approximate and were not re-measured one by one on the final image.
+The last gains came from reshaping rollout around the small model. Per-change contributions between the 299-second milestone and the final configuration were not isolated; the changes below were measured against a control run at the same time on an earlier image, so their sizes are approximate and were not re-measured one by one on the final image.
 
 | Change | Effect |
 |---|---|
@@ -222,7 +222,7 @@ The last gains came from reshaping rollout around the small model. Each change b
 </p>
 
 <p align="center">
-<em>Figure 4: Bottleneck migration. Measured steady-state step time per milestone (log scale), excluding compilation and checkpointing. The final step is split into its measured rollout and non-rollout medians.</em>
+<em>Figure 4: Bottleneck migration. Steady-state step time per milestone (log scale, excluding compilation and checkpointing), with the rollout share of each step shown under its bar. Earlier shares (hatched) are estimated at ~85%; the final split is measured (49.1 s + 8.4 s medians). 56 s is the fastest steady-state step time (p10 55.7 s); the 20-step median is 57.9 s.</em>
 </p>
 
 ## What did not work—and why those learnings mattered
@@ -267,11 +267,11 @@ The performance curve was not produced by one heroic patch. It came from a repea
 - **Profile again.** The next bottleneck was rarely the one that had mattered one round earlier.
 
 <p align="center">
-<img src="/assets/figures/2026-10-09-rl-small-dense-tpu-v7/performance-evaluation-dashboard.webp" alt="Figure 5: Adopted and neutral optimizations" width="100%">
+<img src="/assets/figures/2026-10-09-rl-small-dense-tpu-v7/performance-evaluation-dashboard.webp" alt="Figure 5: Performance evaluation dashboard" width="100%">
 </p>
 
 <p align="center">
-<em>Figure 5: Adopted and neutral optimizations from the campaign.</em>
+<em>Figure 5: Performance evaluation dashboard. (A) Full-step milestone ladder, log scale (56 s = fastest steady-state steps, p10 55.7 s; 20-step median 57.9 s). (B) Adopted and neutral optimizations from the campaign.</em>
 </p>
 
 ## When systems optimization exposes a learning bottleneck
