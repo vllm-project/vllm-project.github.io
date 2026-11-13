@@ -19,7 +19,7 @@ tags:
 **Takeaways**
 
 - Small dense-model RL exposes new challenges across hardware architectures: decode scheduling, synchronization, attention geometry, and KV-cache lifecycle become first-order bottlenecks.
-- By co-designing across the open-source TPU stack (**vLLM**, **Tunix**, **MaxText**, and **Pallas**) and upstreaming the work in **23 PRs**, developers spinning up Google Cloud TPU v7 today can reach the **56-second (~183K tokens/s)** path by enabling the upstreamed flags listed in [Appendix B](#appendix-b--how-to-reproduce)—without repeating this bring-up journey.
+- By co-designing across the open-source TPU stack (**vLLM**, **Tunix**, **MaxText**, and **Pallas**) and upstreaming the work in **23 PRs**, developers spinning up Google Cloud TPU v7 today can reach the **56-second (~183K tokens/s)** path with the merged [tpu-recipes recipe](https://github.com/AI-Hypercomputer/tpu-recipes/pull/387) and the upstreamed flags listed in [Appendix B](#appendix-b--how-to-reproduce)—without repeating this bring-up journey.
 - The complete rollout-to-update cycle achieved a **107x end-to-end speedup** on Google Cloud TPU v7—falling from roughly 100 minutes to approximately 56 seconds—while preserving the full 8,192-token response budget.
 
 ## Why a small model matters for research
@@ -359,6 +359,8 @@ All 23 PRs below are merged upstream (the last on September 21, 2026), across **
 Several optimizations required both a runtime change and trainer configuration: reward workers (Tunix #1904 / MaxText #5255), GC control (#2086 / #5236), and KV-cache lifetime (#2231 / #5289).
 
 ## Appendix B — How to reproduce
+
+**Recipe.** The 56-second configuration is published as a merged recipe in [AI-Hypercomputer/tpu-recipes#387](https://github.com/AI-Hypercomputer/tpu-recipes/pull/387) ([README](https://github.com/AI-Hypercomputer/tpu-recipes/blob/main/rl/ironwood/qwen3-0.6b-grpo/math-bf16-tpu7x-4x4x4/k8s/README.md)): a Pathways JobSet manifest for one tpu7x 4×4×4 slice, the image build with its dependency pins, checkpoint conversion, and a step-time reader. It uses no source patches, since everything behind the number is merged upstream, and its validation run measured a 56.94 s median step time (p10 55.2 s, n = 18). The settings below match it.
 
 **Software.** All 23 PRs are included in [MaxText v0.2.6](https://github.com/AI-Hypercomputer/maxtext/releases/tag/maxtext-v0.2.6) together with the post-training dependencies it pins: Tunix [`385551df`](https://github.com/google/tunix/commit/385551df4643ee3ac3205e813a93c2ff217dffa5), tpu-inference [`73d7342d`](https://github.com/vllm-project/tpu-inference/commit/73d7342da057ecc4d4f453df85cb036976701efd), vLLM [`5df63a72`](https://github.com/vllm-project/vllm/commit/5df63a7203cdb9328d824a27b682e77c7b9928be), JAX/jaxlib 0.11.0, and libtpu 0.0.44. The numbers in this post were measured on an earlier build with the same changes (MaxText `78aa1555`, Tunix `28ad56f7`, tpu-inference `1224e9fb`, vLLM `51da0ca6`, JAX 0.11.0, libtpu 0.0.44, Python 3.12).
 
