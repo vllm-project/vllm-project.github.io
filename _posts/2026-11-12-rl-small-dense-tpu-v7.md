@@ -401,5 +401,5 @@ PYTHONPATH=src python3 -m maxtext.trainers.post_train.rl.train_rl src/maxtext/co
   sa_use_base2_exp=false
 ```
 
-Keep `async_scheduling=False`: combining asynchronous scheduling with Continue Decode is a known open issue that corrupts generations.
+Keep `async_scheduling=False` when enabling Continue Decode, as synchronous host scheduling is required for the fused device loop path.
 
