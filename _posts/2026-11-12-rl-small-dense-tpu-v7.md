@@ -75,13 +75,13 @@ The lesson was simple: peak small-model RL performance on TPU v7 comes from pres
 
 ## Benchmark methodology and dataset
 
-Because proprietary Ads ranking and generative recommendation (GR) models and user-interaction logs at Meta cannot be shared publicly, we designed **a fully open, reproducible benchmark proxy**—using Qwen3-0.6B on [OpenMathInstruct-2](https://huggingface.co/datasets/nvidia/OpenMathInstruct-2) (`train_1M` split)—that mirrors the systems geometry of production generative ranking: a compact sub-billion-parameter dense policy generating long multi-step reasoning traces (up to 8,192 tokens) across thousands of concurrent candidates.
+Because proprietary Ads ranking and generative recommendation (GR) models and user-interaction logs at Meta cannot be shared publicly, we designed **a fully open, reproducible benchmark proxy**—using Qwen3-0.6B on public math reasoning prompts—that mirrors the systems geometry of production generative ranking: a compact sub-billion-parameter dense policy generating long multi-step reasoning traces (up to 8,192 tokens) across thousands of concurrent candidates.
 
-To make our workload contract, profiler methodology, and all **23** upstream vLLM, Tunix, and MaxText **PRs** **fully reproducible by the open-source community**, we evaluate both controlled ablations and our headline Qwen3-0.6B Group Relative Policy Optimization (GRPO) true-8K workload: 256 prompts × 8 generations (2,048 completions per rollout), prompts up to 4,096 tokens and up to 8,192 generated tokens (12,288-token context), BF16, and synchronous on-policy execution. We report steady-state complete-cycle wall-clock time, excluding compilation, warmup, and checkpoint writes. We tracked rollout throughput and full-cycle latency across the campaign, then used controlled ablations to isolate individual mechanisms.
+To make our workload contract, profiler methodology, and all **23** upstream vLLM, Tunix, and MaxText **PRs** **fully reproducible by the open-source community**, we evaluate both controlled ablations and our headline Qwen3-0.6B Group Relative Policy Optimization (GRPO) true-8K workload: 256 prompts × 8 generations (2,048 completions per rollout), up to 8,192 generated tokens, BF16, and synchronous on-policy execution. The bring-up and Phase I–II milestones (up to 299 s) ran with a 16,384-token prompt cap (24K maximum context) on NuminaMath and OpenMath prompts. From the 88-second milestone on, runs use [OpenMathInstruct-2](https://huggingface.co/datasets/nvidia/OpenMathInstruct-2) (`train_1M`) with a 4,096-token prompt cap (12,288-token context). Model, GRPO recipe, completions per step, and the 8,192-token response cap are identical, and real prompts are short in both (~170 tokens for NuminaMath, 149 tokens on average for OpenMathInstruct-2), so the generated work per step is comparable; the larger prompt cap mainly reserves more KV capacity per sequence. We report steady-state complete-cycle wall-clock time, excluding compilation, warmup, and checkpoint writes. We tracked rollout throughput and full-cycle latency across the campaign, then used controlled ablations to isolate individual mechanisms.
 
 **Metric definitions.** *Step time* is the steady-state wall-clock time of one complete rollout-to-update cycle (TensorBoard `perf/train/global_step_time`, median over steps 3 and later of a 20-step run); for the final configuration the headline 56 s is its fastest steady-state steps (p10 55.7 s), next to the 57.9 s median. *Decode throughput (tokens/s)* counts generated (completion) tokens only, excludes prefill, and is aggregated over the whole 64-chip slice. For the milestones up to 299 seconds it is the full-batch decode rate measured in controlled runs. For the 88-second milestone and the final configuration it is the generated tokens of one rollout divided by the whole rollout phase (~9.2M tokens in 68 s; ~9.0M tokens in 49.1 s), which includes the low-occupancy tail and is therefore a conservative lower bound on the full-batch rate.
 
-**Milestones at a glance.** Rollout dominated every step. Up to the 299-second milestone it took 80–90% of the step, so those rows give approximate (~) phase times; the 88-second and final splits are measured from per-phase step timers.
+**Milestones at a glance.** Rollout dominated every step. Up to the 299-second milestone it took 80–90% of the step, so those rows give approximate (~) phase times; the 88-second and final splits are measured from per-phase step timers. Rows up to 299 s used the 16K-prompt-cap contract; the 88-second and final rows use the 4K-prompt-cap contract (see Benchmark methodology).
 
 | Milestone | Step time | Decode throughput | Rollout | Everything else |
 |---|---|---|---|---|
@@ -90,7 +90,7 @@ To make our workload contract, profiler methodology, and all **23** upstream vLL
 | Controlled baseline (colocated, TP/DP rebalanced) | 616 s | ~30K tok/s | ~525 s | ~90 s |
 | + Continue Decode | 369 s | ~64.9K tok/s | ~315 s | ~55 s |
 | + RPA block split + EOS-check interval | 299 s | ~130.5K tok/s | ~255 s | ~45 s |
-| + Sequence packing, reward pool, GC, decode-path fixes | 88 s | ~135K tok/s | 68 s | 20 s (training 8 s, weight sync 7 s) |
+| + Continuous-batching decode, sharded sampling, reward pool, packing | 88 s | ~135K tok/s | 68 s | 20 s (training 8 s, weight sync 7 s) |
 | Final configuration (TP1×DP128) | **56 s** fastest steady-state steps (p10 55.7 s); 57.9 s 20-step median | **~183K tok/s** | 49.1 s | 8.4 s |
 
 In the final configuration a rollout generates about 9.0M tokens (2,048 completions × ~4.4K mean completion length; 27.8% of completions reach the 8,192-token cap), and the median phase times are 49.1 s of rollout and 8.4 s for training, weight sync, reward, and cache lifecycle combined (85% rollout).
@@ -112,7 +112,7 @@ All milestones below reflect steady-state steps. To isolate sub-second kernel an
 
 ### Phase I: align basic workload configuration to establish a proper baseline
 
-Our initial un-tuned functional bring-up—running 2,048 synchronous 12K-context rollouts before mesh sizing or continuous device-side decode—generated roughly 4K rollout tokens/s (~100 minutes per full RL cycle). Before modifying any core runtime or kernel code, we tuned the configuration space of the existing stack.
+Our initial un-tuned functional bring-up—running 2,048 synchronous 24K-context rollouts before mesh sizing or continuous device-side decode—generated roughly 4K rollout tokens/s (~100 minutes per full RL cycle). Before modifying any core runtime or kernel code, we tuned the configuration space of the existing stack.
 
 The work included:
 
@@ -126,19 +126,19 @@ The work included:
 
 This first phase increased decode throughput from roughly **4K to approximately 30K tokens/s** (**7.5x**), reducing the full cycle from **~100 minutes (6,000 s) to 21 minutes (1,260 s, 4.8x)**—and after colocation and TP/DP host-mesh rebalancing established our **616-second controlled baseline**, we moved into stack co-design.
 
-These initial steps simply aligned basic configuration parameters—mesh topology, batch concurrency, and HBM limits—with a 12K-context, 2,048-rollout workload shape (rather than reflecting an out-of-the-box limitation of the TPU v7 stack), establishing a properly configured baseline and revealing the true runtime bottlenecks.
+These initial steps simply aligned basic configuration parameters—mesh topology, batch concurrency, and HBM limits—with a 24K-context, 2,048-rollout workload shape (rather than reflecting an out-of-the-box limitation of the TPU v7 stack), establishing a properly configured baseline and revealing the true runtime bottlenecks.
 
 Decode throughput improved much more than full-cycle latency: the full-batch decode rate is only part of rollout time, and prefill, host returns, and the low-occupancy tail of long completions did not speed up with it. The system had not stopped scaling; the critical path had moved into how rollout used the hardware.
 
 ### Phase II: Cross-stack decode co-design—from MaxText and vLLM down to XLA and Pallas
 
-At approximately 30K tokens/s, surface-level configuration sweeps hit a wall. Profiling revealed that while pure TPU v7 silicon execution took only milliseconds per decode step, end-to-end rollout time was dominated by host-device dispatch round trips, XLA compilation and runner overheads on the Flax NNX path, and Pallas kernel pipeline stalls over 12K-token contexts.
+At approximately 30K tokens/s, surface-level configuration sweeps hit a wall. Profiling revealed that while pure TPU v7 silicon execution took only milliseconds per decode step, end-to-end rollout time was dominated by host-device dispatch round trips, XLA compilation and runner overheads on the Flax NNX path, and Pallas kernel pipeline stalls over 24K-token contexts.
 
 Fixing this required co-designing across every layer of the open-source stack—plumbing workload-aware execution semantics from the top-level trainer down into compiled XLA loops and Pallas VMEM pipelines:
 
 **MaxText → Tunix → vLLM/tpu-inference (Runner & Scheduler) → Ragged Paged Attention (RPA v3)/Pallas → Pathways/XLA**
 
-This phase raised stable production-scale decode throughput (attending over up to 12,288 context tokens per sequence across 2,048 synchronous rollouts) to approximately **130.5K tokens/s** (**4.35x** the 30K operating point), cutting full-step latency in the controlled ladder from **616 seconds to 299 seconds**.
+This phase raised stable production-scale decode throughput (attending over up to 24K context tokens per sequence across 2,048 synchronous rollouts) to approximately **130.5K tokens/s** (**4.35x** the 30K operating point), cutting full-step latency in the controlled ladder from **616 seconds to 299 seconds**.
 
 #### Compiling multi-step device decode loops across Flax NNX, vLLM, and XLA
 
@@ -150,9 +150,9 @@ In the controlled MaxText production ladder, this cross-stack path reduced a **6
 
 This result changed how we thought about the workload. The TPU v7 MXUs were not waiting for more arithmetic intensity from a larger model; the small model was waiting for the runtime and compiler stack to deliver uninterrupted device work.
 
-#### Co-designing Pallas RPA v3 DMA-compute pipelining for long-context KV caches
+#### Co-designing Pallas RPA v3 DMA-compute pipelining for 24K-context KV caches
 
-Once host dispatch was amortized, on-device attention memory movement became the primary bottleneck. Ragged Paged Attention v3 (RPA v3), written in Pallas, overlaps HBM-to-VMEM DMA transfers with TensorCore compute using a double-buffered VMEM pipeline. However, its default heuristic coupled the KV fetch block size and the compute block size to a single monolithic value (~16K tokens). On our long-context RL workload, a 16K compute block starved the Pallas double-buffered pipeline: each compute stage had to wait for a large KV tile transfer to complete, reducing pipeline depth between DMA and MXU execution.
+Once host dispatch was amortized, on-device attention memory movement became the primary bottleneck. Ragged Paged Attention v3 (RPA v3), written in Pallas, overlaps HBM-to-VMEM DMA transfers with TensorCore compute using a double-buffered VMEM pipeline. However, its default heuristic coupled the KV fetch block size and the compute block size to a single monolithic value (~16K tokens). On our 24K-context RL workload, a 16K compute block starved the Pallas double-buffered pipeline: each compute stage had to wait for a large KV tile transfer to complete, reducing pipeline depth between DMA and MXU execution.
 
 We refactored the kernel interface to decouple HBM fetch geometry from VMEM compute tiling across decode, prefill, and mixed paths ([tpu-inference #3102](https://github.com/vllm-project/tpu-inference/pull/3102)) and plumbed those kernel controls up through the tpu-inference MaxText serving bridge ([tpu-inference #3395](https://github.com/vllm-project/tpu-inference/pull/3395)) and MaxText RL trainer configs ([MaxText #5100](https://github.com/AI-Hypercomputer/maxtext/pull/5100)). Keeping a **16,384-token HBM fetch block** to maximize burst DMA bandwidth while slicing execution into **4,096-token VMEM compute blocks** restored deep DMA/MXU overlap—lifting decode throughput from **64.9K → 96.3K tokens/s** (64,929 → 96,273 tokens/s, **+48% decode throughput**).
 
@@ -175,14 +175,14 @@ In the final configuration we turn the in-loop EOS check off entirely (`CONTINUE
 </p>
 
 <p align="center">
-<em>Figure 3: Cross-stack decode co-design across vLLM, XLA, and Pallas. Three co-designed mechanisms across the runtime/compiler, attention kernel, and device-scheduler boundary that lifted decode throughput from 30K to 130.5K tokens/s (616 s → 299 s full step). The RPA split and the EOS-check interval together took the step from 369 s to 299 s.</em>
+<em>Figure 3: Cross-stack decode co-design across vLLM, XLA, and Pallas. Three co-designed mechanisms across the runtime/compiler, attention kernel, and device-scheduler boundary that lifted decode throughput from 30K to 130.5K tokens/s on the 24K-context bring-up workload (616 s → 299 s full step). The RPA split and the EOS-check interval together took the step from 369 s to 299 s.</em>
 </p>
 
 ### Phase III: optimize the whole RL cycle, not only decode
 
 Once decode reached 130.5K tokens/s, the full-batch decode rate was no longer the limit: most of the 299-second step was still rollout, stretched by its low-occupancy tail, and the rest went to KV-cache reallocation and weight synchronization, host-side reward/detokenization/GC overhead, and the training attention kernel.
 
-Phase III had two stages. Sequence packing, process-pool reward scoring, configurable garbage collection, and continue-decode masking and padding fixes took the step from 299 seconds to **88 seconds** by late August (rollout 68 s, training 8 s, weight sync 7 s). KV persistence, faster weight synchronization and detokenization, the Splash Attention retune, and the final rollout configuration then took it from 88 seconds to **56 seconds**.
+Phase III had two stages. The first took the step from 299 seconds to **88 seconds** by late August (rollout 68 s, training 8 s, weight sync 7 s). On the rollout side, a continuous-batching decode window kept the fused loop full by retiring finished sequences as inert masked slots instead of exiting on EOS, and vocab-sharded sampling removed a full-vocabulary logits all-gather (~78 MB per data-parallel rank) and the top-k/top-p sweeps from every decode iteration. Off the rollout path, serial reward scoring, measured at ~30 s per step, moved to a process pool, and sequence packing and configurable garbage collection shortened training and host time. Per-change contributions within this stage were not isolated. The move to the 4K prompt cap also happened here (see Benchmark methodology). KV persistence, faster weight synchronization and detokenization, the Splash Attention retune, and the final rollout configuration then took it from 88 seconds to **56 seconds**.
 
 #### Separating logical cache invalidation from physical allocation
 
@@ -226,7 +226,7 @@ The last gains, from 88 seconds to 56 seconds, came from fine-grained tuning, ag
 </p>
 
 <p align="center">
-<em>Figure 4: Bottleneck migration. Steady-state step time per milestone (log scale, excluding compilation and checkpointing), with the rollout share of each step shown under its bar. Up to 299 s, rollout took 80–90% of the step (~85% shown); the 88 s and final splits are measured (68 s of 88 s; 49.1 s + 8.4 s medians). 56 s is the fastest steady-state step time (p10 55.7 s); the 20-step median is 57.9 s.</em>
+<em>Figure 4: Bottleneck migration. Steady-state step time per milestone (log scale, excluding compilation and checkpointing), with the rollout share of each step shown under its bar; the dashed line marks the move from the 16K to the 4K prompt cap. Up to 299 s, rollout took 80–90% of the step (~85% shown); the 88 s and final splits are measured (68 s of 88 s; 49.1 s + 8.4 s medians). 56 s is the fastest steady-state step time (p10 55.7 s); the 20-step median is 57.9 s.</em>
 </p>
 
 ## What did not work—and why those learnings mattered
