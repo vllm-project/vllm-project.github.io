@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="790" viewBox="0 0 1180 790" role="img" aria-labelledby="title desc">
+<title id="title">Model stages and retained state</title><desc id="desc">PersonaPlex uses a two-stage native duplex path, MiniCPM-o 4.5 a three-stage native duplex path, AURA four turn-based stages, and Qwen3-Omni three turn-based stages. Inputs are PCM audio and, for the multimodal paths, images or video frames.</desc>
+<defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#607b96"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif} .title{font-weight:700}</style>
+<rect width="1180" height="790" fill="white"/>
+<text x="35" y="43" font-size="27" fill="#17324f" font-weight="700" text-anchor="start">Different model paths, one session framework</text>
+<text x="35" y="74" font-size="18" fill="#57708a" font-weight="400" text-anchor="start">PCM input → model stages → PCM output</text>
+<text x="35" y="149" font-size="18" fill="#2476db" font-weight="700" text-anchor="start">PersonaPlex</text>
+<text x="35" y="176" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Native duplex · 80 ms</text>
+<rect x="230" y="119" width="587" height="84" rx="8" fill="#f4f8fd" stroke="#a2bcd9" stroke-width="1.5"/>
+<text x="523.5" y="144" font-size="16" fill="#2476db" font-weight="700" text-anchor="middle">Stage 0 · Talker</text>
+<text x="523.5" y="170" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Mimi Encoder → Temporal AR → Depformer AR</text>
+<rect x="865" y="119" width="265" height="84" rx="8" fill="#f4f8fd" stroke="#a2bcd9" stroke-width="1.5"/>
+<text x="997.5" y="144" font-size="16" fill="#2476db" font-weight="700" text-anchor="middle">Stage 1 · Code2Wav</text>
+<text x="997.5" y="170" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Mimi Decoder → PCM</text>
+<path d="M817 161 L865 161" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="230" y="219" width="900" height="34" rx="0" fill="#edf4fd" stroke="none" stroke-width="1.5"/>
+<text x="242" y="242" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">Retained state: temporal context and Mimi streaming state; Depformer KV resets each frame.</text>
+<text x="35" y="307" font-size="18" fill="#2476db" font-weight="700" text-anchor="start">MiniCPM-o 4.5</text>
+<text x="35" y="334" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Native duplex · ~1 s</text>
+<rect x="230" y="277" width="280" height="84" rx="8" fill="#f4f8fd" stroke="#a2bcd9" stroke-width="1.5"/>
+<text x="370.0" y="302" font-size="16" fill="#2476db" font-weight="700" text-anchor="middle">Stage 0 · LLM</text>
+<text x="370.0" y="328" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Audio / vision encoders</text>
+<text x="370.0" y="348" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">AR Transformer · LISTEN / SPEAK</text>
+<rect x="558" y="277" width="236" height="84" rx="8" fill="#f4f8fd" stroke="#a2bcd9" stroke-width="1.5"/>
+<text x="676.0" y="302" font-size="16" fill="#2476db" font-weight="700" text-anchor="middle">Stage 1 · Talker</text>
+<text x="676.0" y="328" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">AR Transformer</text>
+<text x="676.0" y="348" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Speech codec tokens</text>
+<rect x="842" y="277" width="288" height="84" rx="8" fill="#f4f8fd" stroke="#a2bcd9" stroke-width="1.5"/>
+<text x="986.0" y="302" font-size="16" fill="#2476db" font-weight="700" text-anchor="middle">Stage 2 · Code2Wav</text>
+<text x="986.0" y="328" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Flow Matching (DiT)</text>
+<text x="986.0" y="348" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">HiFT vocoder → PCM</text>
+<path d="M510 319 L558 319" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M794 319 L842 319" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="230" y="377" width="900" height="34" rx="0" fill="#edf4fd" stroke="none" stroke-width="1.5"/>
+<text x="242" y="400" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">Retained state: LLM KV and audio state; SPEAK results continue to speech generation.</text>
+<text x="35" y="465" font-size="18" fill="#008d96" font-weight="700" text-anchor="start">AURA</text>
+<text x="35" y="492" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Turn-based execution</text>
+<text x="35" y="518" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Video required</text>
+<text x="35" y="540" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Audio optional</text>
+<rect x="230" y="435" width="179" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="319.5" y="460" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 0 · ASR</text>
+<text x="319.5" y="486" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Audio → text</text>
+<rect x="449" y="435" width="195" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="546.5" y="460" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 1 · Thinker</text>
+<text x="546.5" y="486" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Text + video → reply</text>
+<rect x="684" y="435" width="196" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="782.0" y="460" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 2 · Talker</text>
+<text x="782.0" y="486" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Reply → codec tokens</text>
+<rect x="920" y="435" width="210" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="1025.0" y="460" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 3 · Code2Wav</text>
+<text x="1025.0" y="486" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Codec tokens → PCM</text>
+<path d="M409 477 L449 477" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M644 477 L684 477" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M880 477 L920 477" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="230" y="535" width="900" height="34" rx="0" fill="#edf7f7" stroke="none" stroke-width="1.5"/>
+<text x="242" y="558" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">History: transcripts + video clips + assistant text; video enters the Thinker directly.</text>
+<text x="35" y="623" font-size="18" fill="#008d96" font-weight="700" text-anchor="start">Qwen3-Omni</text>
+<text x="35" y="650" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Turn-based execution</text>
+<rect x="230" y="593" width="280" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="370.0" y="618" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 0 · Thinker</text>
+<text x="370.0" y="644" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">AuT / vision encoders</text>
+<text x="370.0" y="664" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">AR MoE Transformer</text>
+<rect x="558" y="593" width="236" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="676.0" y="618" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 1 · Talker</text>
+<text x="676.0" y="644" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">AR MoE Transformer</text>
+<text x="676.0" y="664" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Speech codec tokens</text>
+<rect x="842" y="593" width="288" height="84" rx="8" fill="#f2f9f9" stroke="#9ec9cb" stroke-width="1.5"/>
+<text x="986.0" y="618" font-size="16" fill="#008d96" font-weight="700" text-anchor="middle">Stage 2 · Code2Wav</text>
+<text x="986.0" y="644" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Transformer + ConvNet</text>
+<text x="986.0" y="664" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Codec tokens → PCM</text>
+<path d="M510 635 L558 635" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M794 635 L842 635" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="230" y="693" width="900" height="34" rx="0" fill="#edf7f7" stroke="none" stroke-width="1.5"/>
+<text x="242" y="716" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">History: user audio / images + conversation text, assembled into each new request.</text>
+<text x="35" y="771" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Input frame / chunk sizes describe processing cadence, not end-to-end latency. Context and history are bounded.</text>
+</svg>
