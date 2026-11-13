@@ -210,7 +210,7 @@ This was an important transition in the program: together with KV persistence, t
 
 #### Final rollout configuration
 
-The last gains, from 88 seconds to 56 seconds, came from fine-grained tuning, aggressive host-side optimizations, and TP=1 rollout. Each change below was measured against a control run at the same time on an earlier image; sizes are approximate and were not re-measured one by one on the final image.
+The last gains, from 88 seconds to 56 seconds, came from fine-grained tuning, aggressive host-side optimizations, and TP=1 rollout. Part of this came with the software itself: running the 88-second launcher unchanged on an image built at upstream head (which includes Tunix #2232/#2233 and MaxText #5235/#2309) measured 74 s on a second cluster, and launcher tuning on that image took it the rest of the way; cluster-to-cluster differences were not separated. Each change below was measured against a control run at the same time on an earlier image; sizes are approximate and were not re-measured one by one on the final image.
 
 | Change | Effect |
 |---|---|
@@ -376,11 +376,13 @@ export CONTINUE_DECODE_EOS_CHECK_INTERVAL="0"
 export DP_SCHED_ROUTING=round_robin
 ```
 
-**MaxText RL trainer overrides** (in addition to the model, tokenizer, dataset, and checkpoint paths):
+**MaxText RL trainer command**, run from the MaxText repository root (add your checkpoint path with `load_parameters_path=...`):
 
 ```bash
-python3 -m maxtext.trainers.post_train.rl.train_rl maxtext/configs/post_train/rl.yml \
+PYTHONPATH=src python3 -m maxtext.trainers.post_train.rl.train_rl src/maxtext/configs/post_train/rl.yml \
   model_name=qwen3-0.6b tokenizer_path=Qwen/Qwen3-0.6B \
+  dataset_name=nvidia/OpenMathInstruct-2 train_split=train_1M \
+  hf_train_files='hf://datasets/nvidia/OpenMathInstruct-2/data/train_1M-*.parquet' \
   batch_size=256 rl.num_generations=8 \
   rl.grpo_beta=0.0 rl.grpo_epsilon=0.2 rl.epsilon_high=0.28 learning_rate=1e-6 \
   max_prefill_predict_length=4096 max_target_length=12288 kv_cache_buffer=4352 \
