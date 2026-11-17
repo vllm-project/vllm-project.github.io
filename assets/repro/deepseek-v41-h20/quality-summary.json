@@ -1,0 +1,28 @@
+{
+  "dataset": "openai/gsm8k main/test",
+  "dataset_revision": "7cf1290ed87c28a31f867e0f47a7cb62a61d502e",
+  "baseline_recipe": "original MXFP4 checkpoint, Humming W4A8 MoE",
+  "tuned_recipe": "converted FP8-128 checkpoint, FlashInfer CUTLASS MoE",
+  "sample_count": 500,
+  "sample_seed": 20260926,
+  "prompt": "Solve this grade-school math problem. Show your work and put the final numeric answer after ####.\n\n",
+  "decoding": {
+    "temperature": 0,
+    "top_p": 1,
+    "seed": 42,
+    "max_tokens": 2048
+  },
+  "baseline_completed": 494,
+  "tuned_completed": 498,
+  "paired_completed": 494,
+  "baseline_correct": 476,
+  "tuned_correct": 479,
+  "baseline_accuracy": 0.9635627530364372,
+  "tuned_accuracy": 0.9618473895582329,
+  "both_correct": 473,
+  "baseline_only": 3,
+  "tuned_only": 2,
+  "neither_correct": 16,
+  "baseline_truncated": 6,
+  "tuned_truncated": 2
+}

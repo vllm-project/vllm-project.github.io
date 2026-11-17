@@ -1,0 +1,11 @@
+workload,concurrency,humming_r1,humming_r2,humming_r3,humming_mean,humming_sample_sd,tuned_r1,tuned_r2,tuned_r3,tuned_mean,tuned_sample_sd,unit
+decode,1,261.3,258.8,255.5,258.5,2.9,224.1,241.4,239.2,234.9,9.4,output_tokens_per_second
+decode,8,914.8,933.6,952.2,933.5,18.7,1157.9,1179.7,1239.3,1192.3,42.1,output_tokens_per_second
+decode,32,1790.7,1753.4,1783.3,1775.8,19.7,2846.3,2774.1,2856.3,2825.6,44.9,output_tokens_per_second
+decode,64,2538.7,2450.4,2531.0,2506.7,48.9,4238.2,4208.7,4194.8,4213.9,22.2,output_tokens_per_second
+decode,128,3836.3,3832.3,3851.2,3839.9,10.0,5690.9,5787.0,5828.2,5768.7,70.5,output_tokens_per_second
+decode,256,4667.9,4710.5,4796.9,4725.1,65.7,6436.1,6297.8,6641.8,6458.6,173.1,output_tokens_per_second
+prefill_1k,1,7646.8,7691.3,7687.1,7675.1,24.6,7410.2,6839.8,7120.0,7123.3,285.2,input_tokens_per_second
+prefill_1k,8,9553.1,9535.8,9488.1,9525.7,33.7,12534.5,13640.8,13654.4,13276.6,642.7,input_tokens_per_second
+prefill_1k,32,9804.0,9803.0,9929.4,9845.5,72.7,13978.9,15584.1,15617.5,15060.2,936.6,input_tokens_per_second
+prefill_1k,64,9804.2,9897.6,9924.2,9875.3,63.0,14106.1,15584.3,15454.3,15048.2,818.5,input_tokens_per_second
