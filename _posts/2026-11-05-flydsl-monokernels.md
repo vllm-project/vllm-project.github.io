@@ -114,7 +114,7 @@ Muse Spark Open MXFP4 ([#63440](https://github.com/vllm-project/vllm/pull/63440)
 
 ### GLM-5.2: RFC measurements
 
-RFC [#60904](https://github.com/vllm-project/vllm/issues/60904) measured the GLM-5.2 MonoKernel, now in review ([#60889](https://github.com/vllm-project/vllm/pull/60889)), on GLM-5.2-MXFP4 at TP8 on 8× MI350X. A graph-mode decode step in vLLM drops from about **2,459 kernels** to about **210** (75 MonoKernel launches plus the dense layers, input preparation, and the head), and time per token with the default BF16 attention drops from 13.70 to 5.92 ms at batch 1 (**2.31×**; 2.85× with FP8 attention) and from 17.33 to 11.44 ms at batch 8 (1.51×). On AgentX with FP8 attention, the RFC reports time between tokens of 15.0 → 6.5 ms with 1 user and 20.4 → 12.7 ms with 8 users, corresponding to approximately 2.31× and 1.61× speedups calculated from the displayed times.
+RFC [#60904](https://github.com/vllm-project/vllm/issues/60904) measured the GLM-5.2 MonoKernel, now in review ([#60889](https://github.com/vllm-project/vllm/pull/60889)), on GLM-5.2-MXFP4 at TP8 on 8× MI350X. A graph-mode decode step in vLLM drops from about **2,459 kernels** to about **210** (75 MonoKernel launches plus the dense layers, input preparation, and the head), and time per token with the default BF16 attention drops from 13.70 to 5.92 ms at batch 1 (**2.31×**; 2.85× with FP8 attention) and from 17.33 to 11.44 ms at batch 8 (1.51×). On AgentX with FP8 attention, time between tokens drops from 15.0 to 6.5 ms with 1 user (2.31×) and from 20.4 to 12.7 ms with 8 users (1.61×).
 
 ### Accuracy
 
