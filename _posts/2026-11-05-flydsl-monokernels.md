@@ -118,7 +118,7 @@ RFC [#60904](https://github.com/vllm-project/vllm/issues/60904) measured the GLM
 
 ### Accuracy
 
-Fused kernels can change rounding, accumulation, and reduction order, so accuracy must be evaluated for each model and configuration. The following task-level results are reported by the linked PRs:
+A fused kernel quantizes, accumulates, and reduces in a different order from the stock path, so accuracy must be evaluated for each model and configuration, with mono on and off on the same server. For the configurations listed below, the differences are within noise:
 
 - **DeepSeek-V4.1-Flash, TP2** (RFC [#59665](https://github.com/vllm-project/vllm/issues/59665) protocol, paired by question)**:** GPQA-Diamond 85.3 → 85.1 (Δ −0.2 ± 0.6), AIME25 99.4 → 98.3 (Δ −1.0 ± 0.7), and RULER NIAH 40/40 in every cell.
 - **DeepSeek-V4.1-Flash, MI325X:** GSM8K 92.5 → 92.7 (p = 0.49).
