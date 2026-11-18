@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="454" viewBox="0 0 800 454" role="img" aria-labelledby="title desc">
+<title id="title">Reuse blocks; hand off ready tiles</title><desc id="desc">Qualitative mechanism schematic, not a timing trace or a speedup comparison. Stock GPU kernels A and B are separate nodes in one graph replay; no CPU launch gap is shown between nodes. In one persistent MonoKernel launch, resident blocks are reused. A selected block computes an A output tile, waits, then executes B only after the needed A input tile and B weights are both ready. Other A tiles can still be computing. The later B weight load only partially overlaps earlier A computation. Synchronization, data dependencies, waits, and HBM traffic remain. The diagram does not describe every block or load.</desc>
+<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 Z" fill="#617588"/></marker></defs>
+<style>text {font-family: 'Segoe UI', Arial, sans-serif; font-size:14px; fill:#25394B;} .title {font-size:17px;font-weight:600;} .subhead {font-size:14.5px;font-weight:600;} .small {font-size:13px;fill:#536577;} .tiny {font-size:12.5px;fill:#536577;}</style>
+<rect x="0.5" y="0.5" width="799" height="453" rx="9" fill="#FBFCFE" stroke="#D8E1E8"/>
+<text x="24" y="31" class="title" text-anchor="start">Reuse blocks; hand off ready tiles</text>
+<text x="776" y="31" class="small" text-anchor="end">Schematic time →</text>
+<rect x="24" y="53" width="752" height="126" rx="6" fill="#FFFFFF" stroke="#D8E1E8"/>
+<text x="40" y="79" class="subhead" text-anchor="start">Stock · dependent kernels in one graph replay</text>
+<text x="40" y="140" class="" text-anchor="start">GPU</text>
+<rect id="stock-kernel-a" x="174" y="113" width="242" height="43" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<rect id="stock-kernel-b" x="490" y="113" width="260" height="43" rx="6" fill="#DDEEE6" stroke="#D8E1E8"/>
+<text x="295" y="140" class="" text-anchor="middle">Kernel A</text>
+<text x="620" y="140" class="" text-anchor="middle">Kernel B</text>
+<path d="M416 134.5 H487" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="453" y="107" class="small" text-anchor="middle">A done</text>
+<rect x="24" y="195" width="752" height="235" rx="6" fill="#FFFFFF" stroke="#D8E1E8"/>
+<text x="40" y="222" class="subhead" text-anchor="start">MonoKernel · author-scheduled persistent launch</text>
+<text x="40" y="285" class="" text-anchor="start">Selected</text>
+<text x="40" y="304" class="" text-anchor="start">block</text>
+<text x="40" y="402" class="small" text-anchor="start">Other blocks</text>
+<rect id="mono-a-needed-tile" x="174" y="275" width="132" height="36" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<rect id="mono-readiness-wait" x="306" y="275" width="121" height="36" rx="0" fill="#F1F3F5" stroke="#D8E1E8"/>
+<rect id="mono-b-tile" x="465" y="275" width="132" height="36" rx="6" fill="#DDEEE6" stroke="#D8E1E8"/>
+<text x="240" y="298" class="" text-anchor="middle">A · needed tile</text>
+<text x="365" y="298" class="small" text-anchor="middle">wait</text>
+<text x="531" y="298" class="" text-anchor="middle">B · tile</text>
+<text x="616" y="298" class="small" text-anchor="start">block reused</text>
+<rect id="mono-other-a-tiles" x="174" y="384" width="400" height="36" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<text x="374" y="407" class="" text-anchor="middle">A · other tiles still computing</text>
+<text x="40" y="351" class="" text-anchor="start">HBM loads</text>
+<rect id="mono-b-weight-load" x="244" y="330" width="176" height="32" rx="6" fill="#FFF0DA" stroke="#D8E1E8"/>
+<text x="332" y="351" class="" text-anchor="middle">Load B tile weights</text>
+<path d="M306 275 V251 H445 V282" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="367" y="244" class="small" text-anchor="middle">input ready</text>
+<path d="M420 346 H445 V304" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="468" y="351" class="small" text-anchor="start">weights ready</text>
+<path id="readiness-and" d="M445 283 L455 293 L445 303 L435 293 Z" fill="#FFFFFF" stroke="#617588" stroke-width="1.5"/>
+<text x="445" y="298" class="tiny" text-anchor="middle">&amp;</text>
+<path d="M427 293 H434" fill="none" stroke="#617588" stroke-width="1.5"/>
+<path d="M455 293 H464" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="616" y="326" class="small" text-anchor="start">input + weights</text>
+<text x="616" y="344" class="small" text-anchor="start">must be ready</text>
+</svg>

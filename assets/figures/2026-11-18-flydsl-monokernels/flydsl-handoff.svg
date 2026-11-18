@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="440" viewBox="0 0 800 440" role="img">
+<title>Hand-off inside one launch: write the data, then raise a flag</title>
+<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 Z" fill="#617588"/></marker></defs>
+<style>text {font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', Arial, sans-serif; font-size:14px; fill:#25394B;} .title {font-size:17px;font-weight:600;} .subhead {font-size:14.5px;font-weight:600;} .small {font-size:13px;fill:#536577;} .code {font-family: Consolas, 'DejaVu Sans Mono', monospace; font-size:12.5px; fill:#7A4B12;} .on {fill:#FFFFFF;font-weight:600;font-size:13px;}</style>
+<rect x="0.5" y="0.5" width="799" height="439" rx="9" fill="#FBFCFE" stroke="#D8E1E8"/>
+<text x="24" y="31" class="title" text-anchor="start">Hand-off inside one launch: write the data, then raise a flag</text>
+<text x="776" y="31" class="small" text-anchor="end">Schematic time →</text>
+<rect x="24" y="50" width="752" height="104" rx="6" fill="#FFFFFF" stroke="#D8E1E8"/>
+<text x="40" y="76" class="subhead" text-anchor="start">Block i · stage A</text>
+<rect x="48" y="92" width="252" height="40" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<text x="174" y="117" text-anchor="middle">Compute A · token t</text>
+<rect x="300" y="92" width="90" height="40" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<text x="345" y="117" text-anchor="middle">Store q</text>
+<rect x="390" y="92" width="110" height="40" rx="6" fill="#DDEEE6" stroke="#D8E1E8"/>
+<text x="445" y="117" text-anchor="middle">Raise flag t</text>
+<text x="514" y="117" class="code" text-anchor="start">s_waitcnt · barrier · mailbox.put</text>
+<rect x="24" y="170" width="752" height="84" rx="6" fill="#FFFFFF" stroke="#D8E1E8"/>
+<text x="40" y="196" class="subhead" text-anchor="start">HBM</text>
+<rect x="300" y="198" width="90" height="34" rx="6" fill="#DFEAF5" stroke="#617588" stroke-dasharray="4 3"/>
+<text x="345" y="220" class="small" text-anchor="middle">q · token t</text>
+<rect x="412" y="203" width="24" height="24" rx="4" fill="#3E9B6E" stroke="#2F7D58"/>
+<text x="424.0" y="220" class="on" text-anchor="middle">✓</text>
+<rect x="441" y="203" width="24" height="24" rx="4" fill="#3E9B6E" stroke="#2F7D58"/>
+<text x="453.0" y="220" class="on" text-anchor="middle">✓</text>
+<rect x="470" y="203" width="24" height="24" rx="4" fill="#3E9B6E" stroke="#2F7D58"/>
+<text x="482.0" y="220" class="on" text-anchor="middle">✓</text>
+<rect x="499" y="203" width="24" height="24" rx="4" fill="#FFFFFF" stroke="#D8E1E8"/>
+<rect x="528" y="203" width="24" height="24" rx="4" fill="#FFFFFF" stroke="#D8E1E8"/>
+<rect x="557" y="203" width="24" height="24" rx="4" fill="#FFFFFF" stroke="#D8E1E8"/>
+<text x="482.0" y="243" class="small" text-anchor="middle">t</text>
+<text x="591" y="212" class="small" text-anchor="start">one flag</text>
+<text x="591" y="229" class="small" text-anchor="start">per token</text>
+<path d="M345 132 V196" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M482.0 132 V201" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="24" y="270" width="752" height="150" rx="6" fill="#FFFFFF" stroke="#D8E1E8"/>
+<text x="40" y="296" class="subhead" text-anchor="start">Block j · stage B</text>
+<rect x="48" y="312" width="210" height="34" rx="6" fill="#FFF0DA" stroke="#D8E1E8"/>
+<text x="153" y="334" text-anchor="middle">Load B weights early</text>
+<text x="270" y="334" class="code" text-anchor="start">buffer_load</text>
+<rect x="48" y="374" width="472" height="34" rx="0" fill="#F1F3F5" stroke="#D8E1E8"/>
+<text x="180" y="396" class="small" text-anchor="middle">Wait for flag t</text>
+<text x="400" y="396" class="code" text-anchor="middle">mailbox.poll</text>
+<rect x="530" y="374" width="180" height="34" rx="6" fill="#DDEEE6" stroke="#D8E1E8"/>
+<text x="620" y="396" text-anchor="middle">Compute B · token t</text>
+<path d="M482.0 249 V300 H620 V372" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="632" y="296" class="small" text-anchor="start">flag t up</text>
+</svg>

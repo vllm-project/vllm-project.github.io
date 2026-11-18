@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="238" viewBox="0 0 800 238" role="img" aria-labelledby="title desc">
+<title id="title">DeepSeek-V4.1-Flash: two launches per layer</title><desc id="desc">Model-specific fusion boundary schematic. K1 runs the attention front including projections, norms, and KV-cache insertion. K1 completes before the sequential K2 launch. K2 contains the attention back, a tensor-parallel all-reduce, MoE, and a second tensor-parallel all-reduce. Both communications are inside K2. Arrows indicate logical dependence, not measured durations or a prohibition on permitted overlap. No reason for the split or GPU topology is asserted.</desc>
+<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 Z" fill="#617588"/></marker></defs>
+<style>text {font-family: 'Segoe UI', Arial, sans-serif; font-size:14px; fill:#25394B;} .title {font-size:17px;font-weight:600;} .subhead {font-size:14.5px;font-weight:600;} .small {font-size:13px;fill:#536577;} .tiny {font-size:12.5px;fill:#536577;}</style>
+<rect x="0.5" y="0.5" width="799" height="237" rx="9" fill="#FBFCFE" stroke="#D8E1E8"/>
+<text x="24" y="31" class="title" text-anchor="start">DeepSeek-V4.1-Flash: two launches per layer</text>
+<rect id="launch-k1" x="24" y="58" width="222" height="157" rx="6" fill="#F5F8FC" stroke="#D8E1E8"/>
+<text x="40" y="84" class="subhead" text-anchor="start">K1 · Attention front</text>
+<rect x="40" y="101" width="190" height="95" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<text x="135" y="124" class="" text-anchor="middle">Projections</text>
+<text x="135" y="151" class="" text-anchor="middle">Norms</text>
+<text x="135" y="178" class="" text-anchor="middle">KV insert</text>
+<path d="M246 148 H299" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="274" y="134" class="small" text-anchor="middle">then</text>
+<rect id="launch-k2" x="302" y="58" width="474" height="157" rx="6" fill="#F7FAF8" stroke="#D8E1E8"/>
+<text x="318" y="84" class="subhead" text-anchor="start">K2 · Compute and communication</text>
+<rect id="k2-attention-back" x="317" y="109" width="106" height="79" rx="6" fill="#DFEAF5" stroke="#D8E1E8"/>
+<text x="370" y="141" class="" text-anchor="middle">Attention</text>
+<text x="370" y="160" class="" text-anchor="middle">back</text>
+<rect id="k2-tp-first" x="440" y="109" width="89" height="79" rx="6" fill="#EDE7F4" stroke="#D8E1E8"/>
+<text x="484.5" y="141" class="" text-anchor="middle">TP</text>
+<text x="484.5" y="160" class="" text-anchor="middle">all-reduce</text>
+<rect id="k2-moe" x="546" y="109" width="99" height="79" rx="6" fill="#DDEEE6" stroke="#D8E1E8"/>
+<text x="595.5" y="134" class="" text-anchor="middle">MoE</text>
+<text x="595.5" y="155" class="tiny" text-anchor="middle">Router</text>
+<text x="595.5" y="173" class="tiny" text-anchor="middle">+ experts</text>
+<rect id="k2-tp-second" x="662" y="109" width="99" height="79" rx="6" fill="#EDE7F4" stroke="#D8E1E8"/>
+<text x="711.5" y="141" class="" text-anchor="middle">TP</text>
+<text x="711.5" y="160" class="" text-anchor="middle">all-reduce</text>
+<path d="M423 148 H439" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M529 148 H545" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M645 148 H661" fill="none" stroke="#617588" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
