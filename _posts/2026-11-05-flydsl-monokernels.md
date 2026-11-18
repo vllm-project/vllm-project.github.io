@@ -111,7 +111,7 @@ The merged-PR evaluations summarized in Figure 5 were measured by their authors 
 
 The **MI300X/MI325X port** ([#60731](https://github.com/vllm-project/vllm/pull/60731)) cuts a standard decoder layer from 32 kernels in 320 µs to 2 kernels in 115 µs. At TP4 on MI325X with AgentX, concurrency-1 P90 interactivity goes from 182.25 to 411.26 tok/s/user and total throughput per GPU rises 1.63×; at concurrency 2 / 4 / 8, P90 interactivity is 2.41× / 2.22× / 1.99× InferenceX's published MI325X points.
 
-At **TP8 on MI355X** ([#64101](https://github.com/vllm-project/vllm/pull/64101)), each rank streams half as many weights as at TP4 while the K1/K2 chain stays the same length, so mono decode still pays off at concurrency 1. On one TP8 server with only `--monokernel` toggled, a decode step with DSpark speculative decoding drops from 8.59 to 5.36 ms (392 → 580 tok/s). The **DSpark draft model** runs on the same kernels ([#62131](https://github.com/vllm-project/vllm/pull/62131)): its three layers take about 227 µs per step instead of about 640 µs, with no change in acceptance length.
+At **TP8 on MI355X** ([#64101](https://github.com/vllm-project/vllm/pull/64101)), each rank streams half as many weights as at TP4 while the K1/K2 chain stays the same length, so mono decode still pays off at concurrency 1. On one TP8 server with only `--monokernel` toggled, a decode step with DSpark speculative decoding drops from 8.59 to 5.36 ms (392 → 580 tok/s). This PR also reports an unresolved GSM8K accuracy gap (see the [Accuracy section](#accuracy)). The **DSpark draft model** runs on the same kernels ([#62131](https://github.com/vllm-project/vllm/pull/62131)): its three layers take about 227 µs per step instead of about 640 µs, with no change in acceptance length.
 
 ### DeepSeek-V4-Pro
 
@@ -135,9 +135,10 @@ RFC [#60904](https://github.com/vllm-project/vllm/issues/60904) measured the GLM
 
 ### Accuracy
 
-A fused kernel quantizes, accumulates, and reduces in a different order from the stock path, so every mono PR reports accuracy with mono on and off on the same server. In the evaluations below, the differences are within noise:
+Fused kernels can change rounding, accumulation, and reduction order, so accuracy must be evaluated for each model and configuration. The following task-level results are reported by the linked PRs:
 
 - **DeepSeek-V4.1-Flash, TP2** (RFC [#59665](https://github.com/vllm-project/vllm/issues/59665) protocol, paired by question)**:** GPQA-Diamond 85.3 → 85.1 (Δ −0.2 ± 0.6), AIME25 99.4 → 98.3 (Δ −1.0 ± 0.7), and RULER NIAH 40/40 in every cell.
+- **DeepSeek-V4.1-Flash, MI355X:** Across configurations reported in [#64101](https://github.com/vllm-project/vllm/pull/64101), GSM8K scores range from **0.910 to 0.929 with mono** and **0.919 to 0.923 with stock vLLM**. These ranges do not establish accuracy parity; the PR still reports an unexplained gap.
 - **DeepSeek-V4.1-Flash, MI325X:** GSM8K 92.5 → 92.7 (p = 0.49).
 - **MiniMax-M3:** GSM8K 89.7 → 90.5 (p = 0.37).
 - **Kimi-K3:** GSM8K 96.0 → 96.3 and GPQA-Diamond 92.4 → 93.9; with mono on, RULER NIAH scores 1.0 at every length up to 256K.
