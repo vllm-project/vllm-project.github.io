@@ -4,7 +4,7 @@ date: 2026-11-18
 title: 'Keeping Agents Fast: High-Interactivity Decode with FlyDSL MonoKernels in vLLM'
 author: Felix Li, Lingpeng Jin, Hattie Wu, Carlus Huang, Fangzhou Ai, Zaidy Ali, Amanzhol Salykov, Hyukjoon Lee, Ziming Huang, Jun Chen, Yifeng Huang, Bin Ding, Xiaobing Zhang, Yi Gan, Vinayak Gokhale, Hongxia Yang, Doug Lehr, Richard Li, Andy Luo, Peng Sun, and Emad Barsoum
 summary: How FlyDSL MonoKernels keep agents responsive with high-interactivity decode in vLLM on AMD Instinct GPUs, using model-specific fusion, data-ready handoffs, and specialized-decode integration.
-image: /assets/figures/2026-11-05-flydsl-monokernels/mono-speedups.png
+image: /assets/figures/2026-11-18-flydsl-monokernels/mono-speedups.png
 tags:
 - performance
 - hardware
@@ -16,7 +16,7 @@ Interactive LLM applications depend on low decode latency. A coding agent must f
 
 A decode step executes a chain of GPU kernels for operations such as projections, attention, and expert computation. At small batch sizes, many of these kernels do only a little work, yet each still incurs GPU-side dispatch, startup, and completion costs. A dependent kernel cannot proceed until its inputs are ready, so whole-kernel boundaries also limit overlap. Repeated across a long chain, these costs can account for a substantial part of decode latency, while the small amount of parallel work leaves GPU capacity unused. HIP graphs reduce CPU launch overhead, but do not eliminate these GPU-side costs. Figure 1 illustrates the repeated stages; widths and gaps are schematic, not measured durations or an overhead breakdown.
 
-<figure><a href="/assets/figures/2026-11-05-flydsl-monokernels/kernel-overhead.svg" title="Open full-size figure"><img alt="A GPU-side chain of Kernel A, B and C, each with Start, Work and Drain stages." src="/assets/figures/2026-11-05-flydsl-monokernels/kernel-overhead.svg" style="display: block; width: 100%; height: auto;"></a><figcaption>Figure 1. Repeated startup and completion around short kernels.</figcaption></figure>
+<figure><a href="/assets/figures/2026-11-18-flydsl-monokernels/kernel-overhead.svg" title="Open full-size figure"><img alt="A GPU-side chain of Kernel A, B and C, each with Start, Work and Drain stages." src="/assets/figures/2026-11-18-flydsl-monokernels/kernel-overhead.svg" style="display: block; width: 100%; height: auto;"></a><figcaption>Figure 1. Repeated startup and completion around short kernels.</figcaption></figure>
 
 This post explores how **MonoKernels** written in [FlyDSL](https://github.com/ROCm/FlyDSL) reduce decode latency in vLLM for interactive LLM serving on AMD Instinct GPUs. We explain the approach and its integration with vLLM, then examine performance and accuracy.
 
@@ -29,7 +29,7 @@ The goal is not just to make individual operators faster, but to shorten the wai
 Both paths in Figure 2 can be replayed under HIP graphs. The difference is between multiple independent kernels and an author-designed persistent schedule within a launch. Some whole-kernel boundaries become finer-grained handoffs between portions of the computation.
 
 <figure>
-<a href="/assets/figures/2026-11-05-flydsl-monokernels/decode-schedule.svg" title="Open full-size figure"><img alt="Conceptual execution comparison: separate graph-replayed kernels versus a persistent schedule with weight prefetch and data-ready handoffs." src="/assets/figures/2026-11-05-flydsl-monokernels/decode-schedule.svg" style="display: block; width: 100%; height: auto;"></a>
+<a href="/assets/figures/2026-11-18-flydsl-monokernels/decode-schedule.svg" title="Open full-size figure"><img alt="Conceptual execution comparison: separate graph-replayed kernels versus a persistent schedule with weight prefetch and data-ready handoffs." src="/assets/figures/2026-11-18-flydsl-monokernels/decode-schedule.svg" style="display: block; width: 100%; height: auto;"></a>
 <figcaption>Figure 2. Reducing waits within a decode layer. Schematic only: block widths and spacing are not measured durations or a speedup estimate. Kernel boundaries do not represent a fresh CPU launch for every operator.</figcaption>
 </figure>
 
@@ -44,7 +44,7 @@ A key design challenge is deciding **where a MonoKernel begins and ends**: which
 For example, the initial DeepSeek-V4.1-Flash implementation ([#60397](https://github.com/vllm-project/vllm/pull/60397)) divides the standard decoder-layer path into K1 and K2. Figure 3 shows the operations within each boundary, not their execution timing.
 
 <figure>
-<a href="/assets/figures/2026-11-05-flydsl-monokernels/deepseek-boundaries.svg" title="Open full-size figure"><img alt="DeepSeek-V4.1-Flash example: K1 contains the attention front; K2 contains the attention back, a TP all-reduce, MoE, and a second TP all-reduce." src="/assets/figures/2026-11-05-flydsl-monokernels/deepseek-boundaries.svg" style="display: block; width: 100%; height: auto;"></a>
+<a href="/assets/figures/2026-11-18-flydsl-monokernels/deepseek-boundaries.svg" title="Open full-size figure"><img alt="DeepSeek-V4.1-Flash example: K1 contains the attention front; K2 contains the attention back, a TP all-reduce, MoE, and a second TP all-reduce." src="/assets/figures/2026-11-18-flydsl-monokernels/deepseek-boundaries.svg" style="display: block; width: 100%; height: auto;"></a>
 <figcaption>Figure 3. Two launch boundaries in the DeepSeek-V4.1-Flash example. Both tensor-parallel (TP) all-reduces are inside K2. This is a model-specific partition, not a universal two-kernel recipe; the arrows show logical order, not a measured schedule.</figcaption>
 </figure>
 
@@ -62,7 +62,7 @@ K1 prepares attention inputs and updates the KV cache. K2 completes attention an
 
 The boundary and schedule are designed by the kernel author, not automatically created by choosing a language. [FlyDSL](https://github.com/ROCm/FlyDSL), AMD’s Python DSL and MLIR compiler for high-performance ROCm kernels, provides the controls needed to express and compile that design. **The author designs, FlyDSL compiles, and vLLM selects and integrates the execution path.** Figure 4 shows the hand-off from Figure 2 between two thread blocks, with the FlyDSL primitive behind each step.
 
-<figure><a href="/assets/figures/2026-11-05-flydsl-monokernels/flydsl-handoff.svg" title="Open full-size figure"><img alt="Block i computes stage A for token t, stores q to HBM, then raises flag t. Block j loads its stage-B weights early, polls flag t, and computes stage B once the flag is up." src="/assets/figures/2026-11-05-flydsl-monokernels/flydsl-handoff.svg" style="display: block; width: 100%; height: auto;"></a><figcaption>Figure 4. A hand-off between two thread blocks inside one MonoKernel launch, with the FlyDSL primitive for each step.</figcaption></figure>
+<figure><a href="/assets/figures/2026-11-18-flydsl-monokernels/flydsl-handoff.svg" title="Open full-size figure"><img alt="Block i computes stage A for token t, stores q to HBM, then raises flag t. Block j loads its stage-B weights early, polls flag t, and computes stage B once the flag is up." src="/assets/figures/2026-11-18-flydsl-monokernels/flydsl-handoff.svg" style="display: block; width: 100%; height: auto;"></a><figcaption>Figure 4. A hand-off between two thread blocks inside one MonoKernel launch, with the FlyDSL primitive for each step.</figcaption></figure>
 
 Block i stores its result, waits until the stores have landed (`s_waitcnt` and a barrier), then raises one flag per token with a mailbox write. Block j issued its stage-B weight loads earlier, so the weights arrive while it polls the flags it needs; it starts stage B as soon as they are up, with no kernel boundary in between. FlyDSL compiles this order as written; it does not fuse or reorder stages on its own. The [DeepSeek-V4.1-Flash attention front](https://github.com/vllm-project/vllm/blob/7691ff6e5b70930b80d09ec14fed84d1a2ea612f/vllm/models/deepseek_v41/amd/mono/attention/front.py) in vLLM follows this pattern. The model, GPU architecture, and supported step widths still determine which variants can run. The following section explains how vLLM integrates them without replacing the rest of the serving engine.
 
@@ -86,7 +86,7 @@ To vLLM, a MonoKernel path is a *specialized decode*: a model- and hardware-spec
 
 The merged-PR evaluations summarized in Figure 5 were measured by their authors on MI355X or MI325X. The separate GLM-5.2 subsection reports the RFC measurements on MI350X; those results are not included in Figure 5. AgentX is InferenceX's benchmark built from multi-turn, long-context agent sessions. Each AgentX point is one 3,600-second run. **Interactivity** is 1 / inter-token latency (P90 unless noted), in tokens/s/user (higher is better). Figure 5a shows the concurrency-1 speedup from each merged PR with a same-node stock baseline; DeepSeek-V4-Pro is excluded because its comparison uses a historical InferenceX run. Figure 5b follows the three PRs that sweep concurrency against a same-node stock baseline; their bars in 5a have the same colours as their lines. Each value is a ratio of the metric its PR reports, oriented so that higher is better: interactivity as mono / stock, TPOT and decode step time as stock / mono. The per-model subsections below give the absolute numbers and link the PRs.
 
-<figure><a href="/assets/figures/2026-11-05-flydsl-monokernels/mono-speedups.png" title="Open full-size figure"><img alt="Two panels. (a) Concurrency-1 speedup of mono decode over stock vLLM for six merged PRs, from 1.20× to 2.26×. (b) Speedup versus concurrency: DeepSeek-V4.1-Flash TP2 narrows from 1.35× to 1.14× at concurrency 8, MiniMax-M3 TP4 from 1.20× to parity at 16, and Muse Spark TP8 stays between 1.35× and 1.57×." src="/assets/figures/2026-11-05-flydsl-monokernels/mono-speedups.png" style="display: block; width: 100%; height: auto;"></a><figcaption>Figure 5. Mono decode speedup over stock vLLM: (a) each merged PR with a same-node stock baseline at concurrency 1; (b) as concurrency grows.</figcaption></figure>
+<figure><a href="/assets/figures/2026-11-18-flydsl-monokernels/mono-speedups.png" title="Open full-size figure"><img alt="Two panels. (a) Concurrency-1 speedup of mono decode over stock vLLM for six merged PRs, from 1.20× to 2.26×. (b) Speedup versus concurrency: DeepSeek-V4.1-Flash TP2 narrows from 1.35× to 1.14× at concurrency 8, MiniMax-M3 TP4 from 1.20× to parity at 16, and Muse Spark TP8 stays between 1.35× and 1.57×." src="/assets/figures/2026-11-18-flydsl-monokernels/mono-speedups.png" style="display: block; width: 100%; height: auto;"></a><figcaption>Figure 5. Mono decode speedup over stock vLLM: (a) each merged PR with a same-node stock baseline at concurrency 1; (b) as concurrency grows.</figcaption></figure>
 
 ### DeepSeek-V4.1-Flash
 
