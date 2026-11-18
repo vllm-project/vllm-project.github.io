@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Keeping Agents Fast: High-Interactivity Decode with FlyDSL MonoKernels in vLLM'
-author: Felix Li, Lingpeng Jin, Hattie Wu, Carlus Huang, Fangzhou Ai, Amanzhol Salykov, Hyukjoon Lee, Ziming Huang, Jun Chen, Yifeng Huang, Bin Ding, Xiaobing Zhang, Yi Gan, Wei Sun, Li Li, Doug Lehr, Richard Li, Andy Luo, Peng Sun, and Emad Barsoum
+author: Felix Li, Lingpeng Jin, Hattie Wu, Carlus Huang, Fangzhou Ai, Amanzhol Salykov, Hyukjoon Lee, Ziming Huang, Jun Chen, Yifeng Huang, Bin Ding, Xiaobing Zhang, Yi Gan, Zaidy, Ali, Gokhale, Vinayak, Doug Lehr, Richard Li, Andy Luo, Peng Sun, and Emad Barsoum
 summary: How FlyDSL MonoKernels keep agents responsive with high-interactivity decode in vLLM on AMD Instinct GPUs, using model-specific fusion, data-ready handoffs, and specialized-decode integration.
 image: /assets/figures/2026-11-05-flydsl-monokernels/mono-speedups.png
 tags:
