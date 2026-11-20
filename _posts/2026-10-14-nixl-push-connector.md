@@ -113,7 +113,7 @@ We thank the vLLM community for their support in maintaining this feature.
 
 ## Appendix: Reproducing our results
 
-The topology is two p5en GPU nodes (prefill on `:8100`, decode on `:8200`) with EFA enabled, plus a third smaller node that runs the proxy and the benchmark client. Three scripts ship with this post: [`serve_pd.sh`](/assets/repro/2026-10-14-nixl-push-connector/serve_pd.sh) launches either leg in either mode, [`run_sweep.sh`](/assets/repro/2026-10-14-nixl-push-connector/run_sweep.sh) drives the sweep, and [`cleanup.sh`](/assets/repro/2026-10-14-nixl-push-connector/cleanup.sh) tears everything down. [`plot_push_vs_pull.py`](/assets/repro/2026-10-14-nixl-push-connector/plot_push_vs_pull.py) redraws the two figures above from the result JSONs.
+The topology is two p5en GPU nodes (prefill on `:8100`, decode on `:8200`) with EFA enabled, plus a third smaller node that runs the proxy and the benchmark client. Three scripts ship with this post: [`serve_pd.sh`](https://vllm.ai/blog-assets/repro/2026-10-14-nixl-push-connector/serve_pd.sh) launches either leg in either mode, [`run_sweep.sh`](https://vllm.ai/blog-assets/repro/2026-10-14-nixl-push-connector/run_sweep.sh) drives the sweep, and [`cleanup.sh`](https://vllm.ai/blog-assets/repro/2026-10-14-nixl-push-connector/cleanup.sh) tears everything down. [`plot_push_vs_pull.py`](https://vllm.ai/blog-assets/repro/2026-10-14-nixl-push-connector/plot_push_vs_pull.py) redraws the two figures above from the result JSONs.
 
 ### Test environment
 
