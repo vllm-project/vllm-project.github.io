@@ -3,16 +3,28 @@ layout: post
 date: 2026-11-21
 title: "How InferRSI Tests Agent-Proposed Optimizations for vLLM-Omni"
 author: "InferMatrix Team"
-summary: "How InferRSI evaluates coding-agent changes to vLLM-Omni, from pixel-exact Qwen-Image latency tests on four B300 GPUs to paired experiments on whether prior optimization knowledge helps."
-image: /assets/figures/2026-11-21-inferrsi-vllm-omni/qwen-denoise-search.png
+summary: "How InferRSI applies recursive self-improvement to vLLM-Omni tuning, tests engine patches on Qwen-Image, and measures whether reviewed lessons help a coding agent find a faster implementation."
+image: /assets/figures/2026-11-21-inferrsi-vllm-omni/inferrsi-loops.png
 tags:
 - performance
 - vllm-omni
 ---
 
-On four NVIDIA B300 GPUs, a patch cut Qwen-Image-2.1-Turbo's warm request latency from 382.92 ms to 268.77 ms. The experiment recorded a failure. The team had set a 30% latency-reduction target before the run, and this set of trials reached 29.81%. Keeping that result makes it possible to see what the next candidate had to beat. [Qwen-Image campaign record](https://github.com/InferMatrixLab/InferRSI/blob/6bdc86ee339c3007f15833434065adf893bff953/docs/qwen-image-2.1-turbo-b300.md)
+On four NVIDIA B300 GPUs, a patch cut Qwen-Image-2.1-Turbo's warm request latency from 382.92 ms to 268.77 ms. The experiment recorded a failure. The team had set a 30% latency-reduction target before the run, and this set of trials reached 29.81%. The next candidate still had to clear the original threshold. [Qwen-Image campaign record](https://github.com/InferMatrixLab/InferRSI/blob/6bdc86ee339c3007f15833434065adf893bff953/docs/qwen-image-2.1-turbo-b300.md)
 
-InferRSI is a developer-preview tool that works with a coding agent to bring up models and tune inference engines. The agent can propose a patch, build it and try again. InferRSI saves the baseline, runs the checks and keeps the evidence for each attempt. This post follows a Qwen-Image change through that process, then asks a second question. If we give the agent lessons from earlier runs, does it find a better patch? [InferRSI](https://github.com/InferMatrixLab/InferRSI)
+InferRSI is a developer-preview tool for bringing up models and tuning inference engines with a coding agent. The agent edits the engine. InferRSI runs the checks and records what happened, including the near misses. Those records let us ask a second question. Can what the agent learns on one workload help it find a better patch on the next? [InferRSI](https://github.com/InferMatrixLab/InferRSI)
+
+## What makes an optimization loop recursive?
+
+In **recursive self-improvement (RSI)**, a system can change the method it will use to make its next improvement. The original Gödel machine proposed rewriting its own code after proving a rewrite would help. The later Darwin Gödel Machine took an empirical approach. It modified the code of a coding agent and evaluated the resulting agents on programming tasks. [Gödel machines](https://arxiv.org/abs/cs/0309048) · [Darwin Gödel Machine](https://arxiv.org/abs/2505.22954)
+
+For inference engineering, consider what happens after an idea fails. On one Ascend 910B1, caching per-step masks and prompt tensors for a BF16 Qwen-Image run at 1280 × 704 exhausted device memory. Within that run, the agent could try a different patch. For future runs, the reusable lesson is to check how long the tensors stay live and how much memory is free before proposing the cache. A maintainer can review a lesson like this in a pull request. The library entry pairs the advice with the device, precision and resolution where the failure occurred. [Qwen-Image failure record](https://github.com/InferMatrixLab/InferRSI/blob/6bdc86ee339c3007f15833434065adf893bff953/src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
+
+![The experiment loop evaluates an engine patch and records a verdict. The knowledge loop lets a reviewer select a lesson from that evidence for an agent to retrieve in a later campaign.](/assets/figures/2026-11-21-inferrsi-vllm-omni/inferrsi-loops.png)
+
+*Figure 1. InferRSI’s two loops. Within a campaign, measurements guide the next engine edit. Between campaigns, a reviewed lesson can change how a later agent approaches a task.* [InferRSI project diagram](https://github.com/InferMatrixLab/InferRSI/blob/6bdc86ee339c3007f15833434065adf893bff953/docs/assets/inferrsi-loop.png) · [Apache 2.0 license](https://github.com/InferMatrixLab/InferRSI/blob/6bdc86ee339c3007f15833434065adf893bff953/LICENSE)
+
+These loops need different tests. For the engine, compare the patch against its baseline on the same requests. For the optimizer, give fresh agent sessions the same task and budget, vary access to the reviewed knowledge, and independently retest the best patch each session finds. That second experiment measures the effect of offering the library on those runs. [Paired benchmark design](https://github.com/InferMatrixLab/InferRSI/pull/338)
 
 ## How an optimization campaign works
 
@@ -20,7 +32,7 @@ Take an image-generation request whose outputs must remain pixel-identical. Befo
 
 A **campaign** is one search under those fixed conditions. InferRSI splits the work across three components.
 
-1. **Knowledge** gives the agent a place to look for an earlier measurement or failed idea. Each record carries its source and conditions. A report that caching per-step masks exhausted memory on one Ascend 910B1 in BF16 at 1280 × 704 suggests checking tensor lifetimes and memory headroom before trying that change on another device.
+1. **Knowledge** gives the agent a place to look for an earlier measurement or failed idea. Each record carries its source and conditions. An agent can inspect the original revision and compare its workload with the recorded one before spending device time on a candidate.
 2. **Harness** freezes the baseline, evaluation scripts, budget and acceptance criteria. Each round checks output quality before timing the candidate against the baseline. A completed check can accept or reject a patch. A crash or missing measurement leaves the result inconclusive. The harness retains failed rounds and runs a separate final evaluation of the best saved candidate in a fresh process. [Campaign workflow](https://github.com/InferMatrixLab/InferRSI/blob/6bdc86ee339c3007f15833434065adf893bff953/docs/optimization-workflow-unification.md)
 3. **Benchmark** packages a task with a baseline and an independent grader. To test a change to InferRSI itself, two fresh agent sessions can tackle the same task with the same budget. The change might be as small as giving one session access to the knowledge library. Each session gets to choose its own patches. [Benchmark design and first paired run](https://github.com/InferMatrixLab/InferRSI/pull/338)
 
@@ -56,15 +68,9 @@ The linked PRs report measurements on the revisions and configurations tested by
 
 ## Does giving the agent prior experience help?
 
-The engine patch is only one product of a campaign. The team can review a failed attempt and add the lesson to the library through a pull request. This is where recursive self-improvement (RSI) enters the picture. Changing what the next agent can learn from is a change to the optimizer itself.
+In one paired experiment, two fresh GPT-6.1 Sol sessions optimized the same Qwen denoising benchmark on a single Ascend 910B1, with eight rounds each and the same correctness checks. Both made similar early changes, including reusing RoPE sine and cosine tensors within a request. In round seven, the session without the library found a native interleaved RoPE operation. The two documents delivered to the other session lacked that API. [Round-by-round record](https://github.com/InferMatrixLab/InferRSI/pull/338)
 
-To isolate the effect of the library, we have to compare entire searches. In one experiment, two fresh GPT-6.1 Sol sessions optimized the same Qwen denoising benchmark on a single Ascend 910B1, with eight rounds each and the same correctness checks. Both made similar early changes, including reusing RoPE sine and cosine tensors within a request. In round seven, the session without the library found a native interleaved RoPE operation. The two documents delivered to the other session lacked that API. [Round-by-round record](https://github.com/InferMatrixLab/InferRSI/pull/338)
-
-![Best speedup by round on the Qwen denoising benchmark. The search with the library ended at 1.48× on independent retest. The search without it jumped in round seven and ended at 1.92×.](/assets/figures/2026-11-21-inferrsi-vllm-omni/qwen-denoise-search.png)
-
-*Figure 1. Best retained speedup after each search round. Both fifth-round candidates regressed, so both lines stay flat. The diamonds show fresh final measurements of the selected code. Each arm ran once.*
-
-With the library, the campaign finished in **11.9 minutes** and used **5.45 million session tokens**. Without it, the campaign took **19.5 minutes** and used **7.93 million tokens**, but produced the faster patch. Wall time includes queueing and process startup. Most tokens were cached input. A shorter campaign, fewer tokens and a faster engine are three different outcomes. [Timing and token counts](https://github.com/InferMatrixLab/InferRSI/pull/338)
+On independent retest, the patch found with the library reached **1.48×** the baseline speed. Its search took **11.9 minutes** and used **5.45 million session tokens**. The search without the library took **19.5 minutes** and used **7.93 million tokens**. Its patch reached **1.92×**. Each arm ran once. Wall time includes queueing and process startup. Most tokens were cached input. A shorter campaign, fewer tokens and a faster engine are three different outcomes. [Timing and token counts](https://github.com/InferMatrixLab/InferRSI/pull/338)
 
 Later paired searches on Qwen denoising and mixture-of-experts forward execution show how much the result can move. With GPT-6.2 Sol, knowledge on/off yielded final speedups of **2.31×/2.29×** on Qwen and **2.46×/2.39×** on MoE. Under the predeclared selection rule, the authors excluded an earlier Qwen pair after a local command failed and reran both arms. With DeepSeek Flash, the direction reversed on both tasks. The Qwen investigation found that default retrieval had omitted the task's own knowledge card. With one retained pair per task and agent, a general performance benefit remains an open question. [Paired results and exclusions](https://github.com/InferMatrixLab/InferRSI/pull/501#issuecomment-6985903643) · [DeepSeek Flash follow-up](https://github.com/InferMatrixLab/InferRSI/issues/509)
 
