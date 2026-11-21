@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Large segment files fragment the pool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column of six figures. Each figure: where it goes in the post, a claim, a one-line cue, the stage, a narration line, controls, the source line. Below 674px wide every stage is redrawn for a 360-wide viewBox (stacked boxes, labels above bars). */
+:root{
+  --bg:#FFFFFF; --surface:#F7F6F2; --ink:#1A1A1A; --sub:#5F5F5F; --muted:#8A8A84; --line:#DEDCD4;
+  --gpu:#F1F0EB; --gpu-line:#BDBDB5; --pool:#EEF1F5; --pool-line:#8D9AAD;
+  --dram:#C2453A; --nvme:#2E7CD6; --focus:#1F8A7A; --focus-soft:#D9EFEA;
+  --lost:#B9770E; --compute:#2E2E2A; --block:#D3D1C8; --block-line:#B5B3A9;
+  --on-accent:#FFFFFF; --on-block:#3A3A36; --queue:#ECEBE5; --stale:#F3F2EE;
+  --font:"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --step--1:.8125rem; --step-0:1rem; --step-1:1.1875rem; --step-2:1.625rem;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#151514; --surface:#1D1D1B; --ink:#ECEBE6; --sub:#B3B2AB; --muted:#8E8D86; --line:#383733;
+    --gpu:#232320; --gpu-line:#4C4B46; --pool:#1E242C; --pool-line:#6A7B93;
+    --dram:#E06B5F; --nvme:#5B9DEA; --focus:#3DB5A2; --focus-soft:#17332F;
+    --lost:#E2A33A; --compute:#DAD9D2; --block:#4A4944; --block-line:#5E5D57;
+    --on-accent:#0E1413; --on-block:#E6E5DF; --queue:#2A2A27; --stale:#1F1F1D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151514; --surface:#1D1D1B; --ink:#ECEBE6; --sub:#B3B2AB; --muted:#8E8D86; --line:#383733;
+  --gpu:#232320; --gpu-line:#4C4B46; --pool:#1E242C; --pool-line:#6A7B93;
+  --dram:#E06B5F; --nvme:#5B9DEA; --focus:#3DB5A2; --focus-soft:#17332F;
+  --lost:#E2A33A; --compute:#DAD9D2; --block:#4A4944; --block-line:#5E5D57;
+  --on-accent:#0E1413; --on-block:#E6E5DF; --queue:#2A2A27; --stale:#1F1F1D;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:var(--step-0);line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:32px 64px}
+.wrap{max-width:860px;margin:0 auto;display:grid;gap:40px}
+header{display:grid;gap:10px;max-width:68ch}
+h1{font-size:var(--step-2);line-height:1.2;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:var(--step-1);line-height:1.3;margin:0;font-weight:600;text-wrap:balance}
+p{margin:0}
+.lede{color:var(--sub)}
+.eyebrow{font-size:var(--step--1);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+figure{margin:0;border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:12px;background:var(--bg);min-width:0}
+.cue{color:var(--sub);max-width:70ch}
+.stage{border-radius:6px;background:var(--bg);min-width:0}
+.stage svg{display:block;width:100%;height:auto;margin:0 auto}
+.stage svg.narrow{max-width:440px}
+.say{font-weight:500;line-height:1.5;min-height:3em;max-width:70ch;font-variant-numeric:tabular-nums}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-width:72ch}
+.steps button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;width:100%;padding:7px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font:400 var(--step-0)/1.45 var(--font)}
+.steps button:hover{background:var(--surface)}
+.steps button.done{color:var(--sub)}
+.steps button[aria-current="step"]{background:var(--surface);color:var(--ink)}
+.steps .n{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);font:600 12px/1 var(--font);color:var(--sub)}
+.steps button[aria-current="step"] .n{background:var(--focus);border-color:var(--focus);color:var(--on-accent)}
+.steps button:focus-visible{outline:2px solid var(--nvme);outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+button{font:500 var(--step--1)/1 var(--font);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--nvme);outline-offset:2px}
+.seg{display:inline-flex;gap:0}
+.seg button{border-radius:0}
+.seg button:first-child{border-radius:6px 0 0 6px}
+.seg button:last-child{border-radius:0 6px 6px 0}
+.seg button+button{border-left:0}
+.seg button[aria-pressed="true"],.levels button[aria-current="step"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.scrub{flex:1 1 160px;min-width:120px;accent-color:var(--ink)}
+figcaption{font-size:var(--step--1);color:var(--sub);display:grid;gap:6px;max-width:80ch}
+figcaption b{color:var(--ink);font-weight:600}
+.static{border-top:1px solid var(--line);padding-top:24px;display:grid;gap:10px;max-width:72ch}
+.static ul{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--sub)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:2px;background:var(--surface)}
+.tile .k{font-size:var(--step--1);color:var(--sub)}
+.tile .v{font-size:var(--step-1);font-weight:600;font-variant-numeric:tabular-nums}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 20px}
+.sliders label{display:grid;gap:4px;font-size:var(--step--1);color:var(--sub)}
+.sliders output{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.sliders input{accent-color:var(--ink);width:100%}
+@media (max-width:520px){ figure{padding:14px} .say{min-height:4.5em} .tiles{grid-template-columns:1fr 1fr} }
+/* SVG text and shapes */
+.sv-h{font:600 13.5px var(--font);fill:var(--ink)}
+.sv-l{font:400 12.5px var(--font);fill:var(--sub)}
+.sv-s{font:400 11px var(--font);fill:var(--muted)}
+.sv-n{font:600 13px var(--font);fill:var(--ink);font-variant-numeric:tabular-nums}
+.sv-b{font:600 11.5px var(--font)}
+.sv-pop{font:600 12.5px var(--font);fill:var(--bg)}
+.sv-pop-s{font:600 11.5px var(--font);fill:var(--bg)}
+.sv-big{font:700 26px var(--font);fill:var(--ink);font-variant-numeric:tabular-nums}
+.sv-big-s{font:700 18px var(--font);fill:var(--ink);font-variant-numeric:tabular-nums}
+.sv-res{font:600 13.5px var(--font);fill:var(--ink)}
+.box-gpu{fill:var(--gpu);stroke:var(--gpu-line)}
+.box-pool{fill:var(--pool);stroke:var(--pool-line)}
+.slot{fill:none;stroke:var(--line);stroke-dasharray:3 3}
+.axis{stroke:var(--line)}
+.tick{stroke:var(--line)}
+
+/* Embedded in a vLLM blog post: no page gutters; the figure card is the whole page. */
+body{padding:0;margin:0}
+.wrap{max-width:none;gap:0;padding:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <figure id="seg" aria-labelledby="seg-h">
+    <h2 id="seg-h">Large segment files fragment the pool, so freeing space throws away live KV</h2>
+    <p class="cue">Both pools get the same writes and have the same space. Click or tap a step to jump to it.</p>
+    <ol class="steps" aria-label="Steps">
+      <li><button type="button"><span class="n">1</span><span class="tx">UMBP appends each new block of KV to the open segment file.</span></button></li>
+      <li><button type="button"><span class="n">2</span><span class="tx">When a session moves on, its blocks go stale and leave holes. UMBP can reuse that space only by deleting the whole file.</span></button></li>
+      <li><button type="button" aria-current="step"><span class="n">3</span><span class="tx">When the pool is full, UMBP deletes the file with the most holes. In a big file, live KV sits beside the holes and is thrown away with them.</span></button></li>
+    </ol>
+    <div class="stage"><svg role="img" aria-label="Animation: the same 64 block writes go into a pool of 32 slots, once as 2 large files and once as 8 small files. Freeing whole files, the large files throw away 7 live blocks; the small files throw away 1."></svg></div>
+    <div class="controls">
+      <button class="play" type="button" id="seg-play">Play</button>
+      <button class="replay" type="button" id="seg-replay">Replay</button>
+      <input class="scrub" type="range" min="0" max="1000" value="1000" id="seg-scrub" aria-label="Animation time">
+    </div>
+    <figcaption>
+      <span>Toy model: blocks from one request go stale together, and some sessions keep their blocks in use. When the pool is full, UMBP deletes the file with the fewest live blocks (the most holes), least recently written first; here a block counts as live while it is in use. Real files hold thousands of blocks, and the real ratio is 16:1 (4 GiB against 256 MiB), not 4:1.</span>
+      <span><b>Measured:</b> Kimi-K3 at 70 sessions on the AgentX traces. Moving from 4 GiB to 256 MiB files raised the KV cache hit rate from 94.45% to 95.65% and throughput 15.6%, from 12.8% below DRAM to 0.8% above.</span>
+    </figcaption>
+  </figure>
+</div>
+<script>
+(() => {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const narrowMQ = window.matchMedia("(max-width: 673px)");
+const S = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+const T = (parent, x, y, str, cls, anchor = "start") => { const e = S("text", { x, y, class: cls, "text-anchor": anchor }, parent); e.textContent = str; return e; };
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const ease = p => (p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+const lerp = (a, b, p) => a + (b - a) * p;
+const fmt = n => n.toLocaleString("en-US");
+const textW = el => { try { const w = el.getComputedTextLength(); if (w > 0) return w; } catch (e) { /* not rendered */ } return el.textContent.length * 6.2; };
+function setView(svg, L, wide, narrow) { const [w, h] = L.narrow ? narrow : wide; svg.setAttribute("viewBox", `0 0 ${w} ${h}`); svg.classList.toggle("narrow", L.narrow); }
+
+/* A block: rounded square with a label. */
+function block(parent, w = 40, label = "") {
+  const g = S("g", {}, parent);
+  const r = S("rect", { width: w, height: w, rx: w > 36 ? 6 : 5 }, g);
+  const t = T(g, w / 2, w / 2 + 4, label, "sv-b", "middle");
+  return { g, r, t, set(x, y, fill, stroke, textFill, op = 1, lab) {
+    g.setAttribute("transform", `translate(${x},${y})`); g.style.opacity = op;
+    r.style.fill = fill; r.style.stroke = stroke || "none"; r.style.strokeWidth = stroke ? 1.5 : 0;
+    t.style.fill = textFill; if (lab !== undefined) t.textContent = lab; } };
+}
+
+/* Player: time-based rendering, play/pause/replay, scrubber, modes. build(svg, layout) draws the scene and returns render(t, mode) -> narration. */
+const players = new Map();
+class Player {
+  constructor(fig, { mode, duration, speed = 1, build }) {
+    this.fig = fig; this.mode = mode; this.build = build; this.seen = false; this.playing = false; this.t = 0;
+    this.clock = 0; this.raf = 0; this.last = null; this.holdAt = null; this.visible = true; this.resume = false;
+    this.durationFn = typeof duration === "function" ? duration : () => duration;
+    this.speedFn = typeof speed === "function" ? speed : () => speed;
+    this.svg = fig.querySelector(".stage svg"); this.say = fig.querySelector(".say");
+    this.playBtn = fig.querySelector(".play"); this.replayBtn = fig.querySelector(".replay"); this.scrub = fig.querySelector(".scrub");
+    this.playBtn.addEventListener("click", () => { this.seen = true; if (this.playing && !this.held()) this.pause(); else { this.holdAt = null; this.play(); } });
+    this.replayBtn.addEventListener("click", () => { this.seen = true; this.holdAt = null; this.setT(0); this.play(); });
+    if (this.scrub) this.scrub.addEventListener("input", () => { this.seen = true; this.holdAt = null; this.pause(); this.setT(this.scrub.value / 1000 * this.dur()); });
+    fig.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { this.seen = true; this.setMode(b.dataset.mode); }));
+    // A held, live figure stops drawing while it is off screen and picks up again when it comes back.
+    if ("IntersectionObserver" in window) new IntersectionObserver(es => es.forEach(e => {
+      this.visible = e.isIntersecting; if (this.visible && this.resume) { this.resume = false; this.play(); } })).observe(this.svg.parentElement);
+    this.layout(); this.syncModes(); this.setT(this.dur()); players.set(fig, this);
+  }
+  held() { return this.holdAt != null && this.t >= this.holdAt - 1e-6; }
+  layout() { this.svg.replaceChildren(); this.render = this.build(this.svg, { narrow: narrowMQ.matches, fig: this.fig }); }
+  relayout() { this.layout(); this.setT(this.t); }
+  dur() { return this.durationFn(this.mode); }
+  label() { this.playBtn.textContent = this.playing && !this.held() ? "Pause" : "Play"; }
+  setT(t) { this.t = clamp(t, 0, this.dur()); const say = this.render(this.t, this.mode, this.clock); if (this.say) this.say.textContent = say || "";
+    if (this.scrub) this.scrub.value = Math.round(this.t / this.dur() * 1000); this.label(); }
+  // One requestAnimationFrame loop at a time; the first frame only sets the time base.
+  play() { if (this.holdAt == null && this.t >= this.dur() - 1e-6) this.setT(0); cancelAnimationFrame(this.raf);
+    this.playing = true; this.last = null; this.label(); this.raf = requestAnimationFrame(n => this.tick(n)); }
+  pause() { this.playing = false; cancelAnimationFrame(this.raf); this.label(); }
+  tick(now) {
+    if (!this.playing) return;
+    if (this.last == null) this.last = now;
+    const dt = clamp((now - this.last) / 1000, 0, .1); this.last = now; this.clock += dt;
+    let nt = this.t + dt * this.speedFn(this.mode);
+    if (this.holdAt != null) nt = Math.min(nt, this.holdAt);
+    this.setT(nt);
+    if (this.holdAt == null && this.t >= this.dur()) { this.pause(); return; }
+    if (this.held() && !this.visible) { this.resume = true; this.pause(); return; }
+    this.raf = requestAnimationFrame(n => this.tick(n));
+  }
+  setMode(m) { if (m === this.mode) return; this.mode = m; this.syncModes(); this.pause();
+    if (reduced) this.setT(this.dur()); else { this.setT(0); this.play(); } }
+  syncModes() { this.fig.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === this.mode))); }
+}
+
+/* Steps list above a stage: highlight the step for time t; clicking a step jumps there (or shows its end frame under reduced motion). */
+function stepper(fig, starts) {
+  const btns = fig ? [...fig.querySelectorAll(".steps button")] : []; let last = -1;
+  return t => { let si = 0; starts.forEach((s0, i) => { if (t >= s0) si = i; });
+    if (si !== last) { last = si; btns.forEach((b, i) => { b.classList.toggle("done", i < si); if (i === si) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); }); } };
+}
+function wireSteps(player, starts, shows) {
+  player.fig.querySelectorAll(".steps button").forEach((b, i) => b.addEventListener("click", () => {
+    player.seen = true; player.pause();
+    if (reduced) player.setT(shows[i]); else { player.setT(starts[i]); player.play(); } }));
+}
+
+/* Shared: popup fade window and popup bubble. */
+const win = (t, a, b, f = .2) => Math.min(prog(t, a, a + f), b >= 1e8 ? 1 : 1 - prog(t, b - f, b));
+/* A popup: dark bubble with a leader line to a dot on its target. */
+function popup(parent, small) {
+  const H = small ? 24 : 28, PADX = small ? 8 : 11, BASE = small ? 16 : 18.5;
+  const g = S("g", {}, parent);
+  const line = S("line", { "stroke-width": 1.5 }, g); line.style.stroke = "var(--ink)";
+  const dot = S("circle", { r: small ? 3 : 3.5 }, g); dot.style.fill = "var(--ink)";
+  const box = S("rect", { height: H, rx: 7 }, g); box.style.fill = "var(--ink)";
+  const txt = T(g, 0, 0, "", small ? "sv-pop-s" : "sv-pop");
+  return { set(text, tg, op) {
+    g.style.opacity = op; if (op <= 0) return;
+    txt.textContent = text;
+    const w = textW(txt) + 2 * PADX, x0 = clamp(tg.bx - w / 2, tg.minX, tg.maxX - w);
+    box.setAttribute("x", x0); box.setAttribute("y", tg.by); box.setAttribute("width", w);
+    txt.setAttribute("x", x0 + PADX); txt.setAttribute("y", tg.by + BASE);
+    const lead = tg.tx != null; line.style.opacity = lead ? 1 : 0; dot.style.opacity = lead ? 1 : 0;
+    if (lead) { const side = tg.tx < x0 || tg.tx > x0 + w;
+      const lx = side ? (tg.tx < x0 ? x0 : x0 + w) : clamp(tg.tx, x0 + 12, x0 + w - 12), ly = side ? clamp(tg.ty, tg.by + 4, tg.by + H - 4) : tg.ty < tg.by ? tg.by : tg.by + H;
+      line.setAttribute("x1", tg.tx); line.setAttribute("y1", tg.ty); line.setAttribute("x2", lx); line.setAttribute("y2", ly);
+      dot.setAttribute("cx", tg.tx); dot.setAttribute("cy", tg.ty); }
+    g.setAttribute("transform", `translate(0,${((1 - op) * 4).toFixed(2)})`); } };
+}
+
+/* ---------- 1. How heavy agentic serving is: three servers as agents pile on ---------- */
+const SC_LEVELS = [8, 16, 32, 70], SC_STARTS = [0, 2.6, 5.2, 7.8], SC_END = 11.8, SC_HOLD = [1.6, 4.3, 6.8, 11.8];
+/* kvlab corpus, Kimi-K3, 1P1D on 16 MI355X. Per load: [tok/s per GPU, % of prompt tokens from GPU memory, % loaded from the pool, % recomputed, median TTFT in s] */
+const SC_DATA = [
+  { name: ["GPU memory only", "GPU only"], pool: 0, pc: null, cap: ["0.5 TB of KV space", "0.5 TB"],
+    d: [[6261, 94.7, 0, 5.3, 1.8], [8255, 93.0, 0, 7.0, 5.5], [7210, 90.1, 0, 9.9, 47.2], [1062, 6, 0, 94, null]] },
+  { name: ["+ 1.0 TB DRAM pool", "+1 TB DRAM"], pool: 1.0, pc: "var(--dram)", cap: ["1.5 TB of KV space", "1.5 TB"],
+    d: [[6681, 94.8, 1.2, 4.0, 1.5], [9274, 92.9, 2.0, 5.1, 2.8], [9077, 89.1, 3.5, 7.4, 34.4], [1725, 29.8, 22.4, 47.8, 742.8]] },
+  { name: ["+ 4.6 TB NVMe pool", "+4.6 TB NVMe"], pool: 4.6, pc: "var(--nvme)", cap: ["5.1 TB of KV space", "5.1 TB"],
+    d: [[6608, 94.8, 1.0, 4.2, 1.5], [9466, 92.7, 2.3, 5.0, 2.9], [10928, 88.7, 5.4, 5.9, 25.0], [8813, 75.2, 17.5, 7.3, 90.7]] } ];
+const SC_POP = [
+  { a: .15, b: 2.5, col: 0, at: "grid", text: ["8 agents: one square each", "8 agents"] },
+  { a: 3.3, b: 5.1, col: 0, at: "grid", text: ["16 agents on each server", "16 agents"] },
+  { a: 5.9, b: 7.75, col: 0, at: "grid", text: ["32 agents: GPU memory still keeps up", "32 agents"] },
+  { a: 8.5, b: 9.25, col: 0, at: "full", text: ["70 agents on each server", "70 agents"] },
+  { a: 9.25, b: 1e9, col: 0, at: "below", text: ["About 94% recomputed", "94% recomputed"] },
+  { a: 8.8, b: 1e9, col: 1, at: "below", text: ["First token after 12 minutes", "12 min wait"] },
+  { a: 9.1, b: 1e9, col: 2, at: "below", text: ["5.1× the DRAM pool", "5.1× DRAM"] } ];
+const hash2 = (a, b) => { let h = (Math.imul(a + 1, 374761393) + Math.imul(b + 7, 668265263)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+function buildScale(svg, L) {
+  const n = L.narrow, fig = L.fig;
+  setView(svg, L, [720, 572], [360, 556]);
+  // one MI355X: where its 288 GB goes
+  const HX = n ? 12 : 20, HW = n ? 336 : 680, HY = n ? 26 : 30, HH = n ? 24 : 28;
+  T(svg, HX, n ? 18 : 20, "One MI355X: 288 GB of HBM3E", "sv-h");
+  let hx = HX;
+  [[187.4, "var(--block)", n ? "weights 187 GiB" : "Kimi-K3 weights 187 GiB", "var(--on-block)"], [61.5, "var(--focus)", "KV 61 GiB", "var(--on-accent)"], [39.1, "var(--queue)", "other", "var(--sub)"]]
+    .forEach(([gib, fill, lab, tf]) => { const w = gib / 288 * HW; const r = S("rect", { x: hx, y: HY, width: w - 2, height: HH, rx: 4 }, svg); r.style.fill = fill;
+      if (fill === "var(--queue)") r.style.stroke = "var(--line)"; const tt = T(svg, hx + (n ? 6 : 8), HY + HH / 2 + 4.5, lab, "sv-b"); tt.style.fill = tf; hx += w; });
+  if (n) { T(svg, HX, 68, "8 GPUs share 0.53 TB of KV (27M tokens).", "sv-l"); T(svg, HX, 86, "70 agents write 3.9 TB of KV an hour, so", "sv-l"); T(svg, HX, 102, "GPU memory holds roughly the last 8 minutes.", "sv-l"); }
+  else { T(svg, HX, 80, "The 8 prefill GPUs share 0.53 TB of KV, about 27 million tokens.", "sv-l"); T(svg, HX, 99, "At 70 agents, Kimi-K3 writes about 3.9 TB of new KV an hour, so GPU memory holds roughly the last 8 minutes.", "sv-l"); }
+  // three servers side by side
+  const CW = n ? 104 : 214, CX = n ? [12, 128, 244] : [20, 253, 486], Y0 = n ? 120 : 128, capPx = CW / 5.13;
+  const GC = n ? 7 : 10, TS = n ? 11 : 18, TP = n ? 14 : 21;
+  const y = n ? { title: 8, cap: 16, capH: 8, capLab: 38, grid: 48, hit: 204, big: 230, unit: 244, bar: 252, barH: 6, ttft: 274, river: 288, pop: 304, legend: 356 }
+              : { title: 6, cap: 16, capH: 12, capLab: 44, grid: 56, hit: 226, big: 264, unit: 264, bar: 274, barH: 8, ttft: 304, river: 322, pop: 344, legend: 404 };
+  const TMAXV = 11000;
+  const levelAt = t => { let k = 0; SC_STARTS.forEach((s0, i) => { if (t >= s0) k = i; }); return [k, k === 0 ? 1 : ease(prog(t, SC_STARTS[k], SC_STARTS[k] + .7))]; };
+  const cols = SC_DATA.map((D, c) => {
+    const x0 = CX[c], top = Y0;
+    T(svg, x0, top + y.title, D.name[n ? 1 : 0], "sv-h");
+    const g = S("rect", { x: x0, y: top + y.cap, width: Math.max(2, 0.528 * capPx - 1), height: y.capH, rx: 2 }, svg); g.style.fill = "var(--focus)";
+    if (D.pool) { const pr = S("rect", { x: x0 + 0.528 * capPx + 1, y: top + y.cap, width: D.pool * capPx - 1, height: y.capH, rx: 2 }, svg); pr.style.fill = D.pc; }
+    T(svg, x0, top + y.capLab, D.cap[n ? 1 : 0], "sv-s");
+    const cnt = T(svg, x0 + (n ? 98 : 207), top + y.capLab, "", "sv-s", "end"); cnt.style.fill = "var(--ink)"; cnt.style.fontWeight = 600;
+    const tiles = [];
+    for (let i = 0; i < 70; i++) { const tx = x0 + (i % GC) * TP, ty = top + y.grid + Math.floor(i / GC) * TP;
+      S("rect", { x: tx, y: ty, width: TS, height: TS, rx: n ? 2 : 3, class: "slot" }, svg);
+      tiles.push(S("rect", { x: tx, y: ty, width: TS, height: TS, rx: n ? 2 : 3 }, svg)); }
+    const hitT = T(svg, x0, top + y.hit, "", n ? "sv-s" : "sv-l");
+    const big = T(svg, x0, top + y.big, "", n ? "sv-big-s" : "sv-big");
+    const unit = T(svg, x0, top + y.unit, n ? "tok/s per GPU" : " tok/s per GPU", "sv-s");
+    const barBg = S("rect", { x: x0, y: top + y.bar, width: CW, height: y.barH, rx: 3 }, svg); barBg.style.fill = "var(--queue)";
+    const bar = S("rect", { x: x0, y: top + y.bar, height: y.barH, rx: 3 }, svg); bar.style.fill = "var(--ink)";
+    const ttft = T(svg, x0, top + y.ttft, "", n ? "sv-s" : "sv-l");
+    const river = S("line", { x1: x0 + 2, x2: x0 + CW - 2, y1: top + y.river, y2: top + y.river, "stroke-width": n ? 3 : 4, "stroke-linecap": "round", "stroke-dasharray": n ? "0.01 8" : "0.01 10" }, svg);
+    river.style.stroke = "var(--ink)"; river.style.opacity = .7;
+
+    const pop = popup(svg, n);
+    return { D, x0, top, tiles, hitT, big, unit, bar, ttft, river, off: 0, pop, cnt };
+  });
+  // legend
+  const LY = Y0 + y.legend;
+  const legend = [["var(--focus)", "KV in GPU memory"], ["var(--nvme)", n ? "loaded from the pool" : "KV loaded from the pool (red: DRAM, blue: NVMe)"], ["var(--compute)", "recomputed"]];
+  if (n) legend.forEach(([f, lab], i) => { const r = S("rect", { x: 12, y: LY + i * 18 - 10, width: 12, height: 12, rx: 2 }, svg); r.style.fill = f; T(svg, 30, LY + i * 18, lab, "sv-s"); });
+  else { let lx = 20; legend.forEach(([f, lab]) => { const r = S("rect", { x: lx, y: LY - 10, width: 12, height: 12, rx: 2 }, svg); r.style.fill = f; const tt = T(svg, lx + 18, LY, lab, "sv-s"); lx += 18 + textW(tt) + 22; }); }
+  T(svg, n ? 12 : 20, LY + (n ? 66 : 24), n ? "dotted line: moves at the throughput" : "The dotted line under each server moves at its throughput.", "sv-s");
+  const levelBtns = fig ? [...fig.querySelectorAll(".levels button")] : [];
+  let lastLv = -1;
+  const ttfTxt = s0 => (s0 == null ? (n ? "did not finish" : "Run did not finish") : `${n ? "1st token" : "Median first token:"} ${s0 < 120 ? Math.round(s0) + " s" : Math.round(s0 / 60) + " min"}`);
+  let lastClock = null;
+  return (t, m, clock = 0) => {
+    const dc = lastClock == null ? 0 : clamp(clock - lastClock, 0, .25); lastClock = clock;
+    const [k, f] = levelAt(t);
+    const N = lerp(SC_LEVELS[Math.max(k - 1, 0)], SC_LEVELS[k], f);
+    cols.forEach((C, c) => {
+      const a = C.D.d[Math.max(k - 1, 0)], b = C.D.d[k], v = i => lerp(a[i], b[i], f);
+      const tput = v(0), gh = v(1) / 100, ph = v(2) / 100;
+      C.tiles.forEach((r, i) => {
+        const op = clamp(N - i, 0, 1); r.style.opacity = op; if (op <= 0) return;
+        const per = .55 + hash2(i, 7 + c) * .9, ph0 = hash2(i, 11 + c) * per, ep = Math.floor((clock + ph0) / per), u = hash2(i * 3 + c, 1000 + ep);
+        r.style.fill = u < gh ? "var(--focus)" : u < gh + ph ? (C.D.pc || "var(--focus)") : "var(--compute)"; });
+      const at70 = k === 3 && f > .5;
+      C.hitT.textContent = c === 0 && at70 ? (n ? "hit about 6%" : "KV cache hit rate about 6%") : `${n ? "hit" : "KV cache hit rate"} ${(v(1) + v(2)).toFixed(1)}%`;
+      C.big.textContent = (c === 0 && at70 ? "≤ " : "") + fmt(Math.round(tput));
+      if (!n) C.unit.setAttribute("x", C.x0 + textW(C.big) + 4);
+      C.bar.setAttribute("width", Math.max(1, CW * tput / TMAXV));
+      C.ttft.textContent = ttfTxt(f > .5 ? b[4] : a[4]);
+      C.off += (n ? 70 : 130) * tput / TMAXV * dc;
+      C.river.setAttribute("stroke-dashoffset", (-C.off).toFixed(2));
+      C.cnt.textContent = `${Math.round(N)} agents`;
+      let shown = null, sop = 0;
+      for (const sp of SC_POP) if (sp.col === c) { const o = win(t, sp.a, sp.b); if (o > 0) { shown = sp; sop = o; } }
+      if (shown) {
+        const lim = { minX: C.x0 - 2, maxX: C.x0 + (n ? 104 : 214) + (n ? 120 : 2) };
+        let tg;
+        if (shown.at === "grid") { // point at the lit squares from the empty rows below them
+          const lv = SC_LEVELS[k], rowsLit = Math.ceil(lv / GC), lastRow = Math.min(lv, GC);
+          const ty = C.top + y.grid + rowsLit * TP - (TP - TS) + 2;
+          tg = { tx: C.x0 + (lastRow * TP - (TP - TS)) / 2, ty, bx: C.x0 + (n ? 52 : 107), by: ty + (n ? 10 : 14), ...lim }; }
+        else if (shown.at === "full") tg = { tx: null, bx: C.x0 + (n ? 52 : 107), by: C.top + y.grid + (n ? 56 : 60), ...lim };
+        else tg = { tx: null, bx: C.x0 + CW / 2, by: C.top + y.pop, minX: C.x0 - 2, maxX: C.x0 + CW + 2 };
+        C.pop.set(shown.text[n ? 1 : 0], tg, sop);
+      } else C.pop.set("", { tx: null, bx: 0, by: 0, minX: 0, maxX: 1 }, 0);
+    });
+    if (k !== lastLv) { lastLv = k; levelBtns.forEach((bt, i) => { if (i === k) bt.setAttribute("aria-current", "step"); else bt.removeAttribute("aria-current"); }); }
+    return "";
+  };
+}
+
+/* ---------- 2. Async loading hides NVMe's slower read ---------- */
+const LOAD_STEPS = [0, 1.0, 2.85], LOAD_END = 3.8, LOAD_SHOW = [0.88, 2.0, 3.8];
+const LOAD_POP = [
+  { a: 0.05, b: 1.0, text: ["vLLM copies our KV from the pool into HBM", "Copying KV into HBM"], at: "loads" },
+  { a: 1.05, b: 2.15, text: ["Meanwhile the GPU prefills the request ahead", "GPU busy with request ahead"], at: "gpu" },
+  { a: 2.15, b: 2.85, text: ["Our KV is already in HBM. It waits for the GPU", "KV in HBM, waiting"], at: "ready" },
+  { a: 2.9, b: 1e9, text: ["Prefill computes only the new tokens; the rest is in HBM", "Prefill: new tokens only"], at: "ours" } ];
+function buildLoad(svg, L) {
+  const n = L.narrow, W = n ? 360 : 720;
+  setView(svg, L, [720, 314], [360, 298]);
+  // where the load goes: pool -> GPU memory (HBM)
+  const PB = n ? { x: 12, y: 8, w: 146, h: 52 } : { x: 20, y: 10, w: 240, h: 56 }, HB = n ? { x: 202, y: 8, w: 146, h: 52 } : { x: 460, y: 10, w: 240, h: 56 };
+  const bk = n ? 18 : 22, bstep = n ? 24 : 28, by0 = PB.y + (n ? 24 : 26);
+  S("rect", { x: PB.x, y: PB.y, width: PB.w, height: PB.h, rx: 8, class: "box-pool" }, svg); T(svg, PB.x + 8, PB.y + (n ? 15 : 17), n ? "KV pool (DRAM or NVMe)" : "KV pool · host DRAM or NVMe", "sv-s");
+  S("rect", { x: HB.x, y: HB.y, width: HB.w, height: HB.h, rx: 8, class: "box-gpu" }, svg); T(svg, HB.x + 8, HB.y + (n ? 15 : 17), "GPU memory (HBM)", "sv-s");
+  const pX = i => PB.x + 8 + i * bstep, hX = i => HB.x + 8 + i * bstep;
+  for (let i = 0; i < 4; i++) { const r = S("rect", { x: pX(i), y: by0, width: bk, height: bk, rx: 4 }, svg); r.style.fill = "var(--focus)";
+    S("rect", { x: hX(i), y: by0, width: bk, height: bk, rx: 4, class: "slot" }, svg); }
+  const ax1 = PB.x + PB.w + 8, ax2 = HB.x - 8, ay = by0 + bk / 2;
+  S("line", { x1: ax1, x2: ax2 - 6, y1: ay, y2: ay, stroke: "var(--sub)", "stroke-width": 1.5 }, svg);
+  const ah = S("path", { d: `M${ax2},${ay} l-7,-4.5 v9 z` }, svg); ah.style.fill = "var(--sub)";
+  T(svg, (ax1 + ax2) / 2, ay + (n ? 14 : 16), n ? "copy" : "KV load = a copy into GPU memory", "sv-s", "middle");
+  const fly = [0, 1, 2, 3].map(() => { const r = S("rect", { width: bk, height: bk, rx: 4 }, svg); r.style.fill = "var(--focus)"; return r; });
+  const landed = [0, 1, 2, 3].map(i => { const r = S("rect", { x: hX(i), y: by0, width: bk, height: bk, rx: 4 }, svg); r.style.fill = "var(--focus)"; return r; });
+  const hbmRing = S("rect", { x: hX(0) - 4, y: by0 - 4, width: 3 * bstep + bk + 8, height: bk + 8, rx: 7, fill: "none", "stroke-width": 2.5 }, svg); hbmRing.style.stroke = "var(--focus)";
+  const newSlot = S("rect", { x: hX(4) + 4, y: by0, width: bk, height: bk, rx: 4, class: "slot" }, svg);
+  const newBlk = S("rect", { x: hX(4) + 4, width: bk, rx: 4 }, svg); newBlk.style.fill = "var(--focus-soft)"; newBlk.style.stroke = "var(--focus)"; newBlk.style.strokeWidth = 1.5;
+  const newLab = T(svg, hX(4) + 4 + bk + 6, by0 + bk / 2 + 4, n ? "" : "new tokens", "sv-s");
+  // timeline
+  const X0 = n ? 20 : 196, XW = n ? 316 : 486, x = v => X0 + v / LOAD_END * XW;
+  const G = n ? { y: 106, h: 26 } : { y: 112, h: 30 }, D = n ? { y: 162, h: 20 } : { y: 166, h: 24 }, N = n ? { y: 204, h: 20 } : { y: 200, h: 24 };
+  const top = G.y - (n ? 3 : 12), bot = N.y + N.h + 10, BRY = n ? 240 : 244, AY = n ? 268 : 282;
+  [[G, "GPU · prefill"], [D, "KV load · DRAM pool → HBM"], [N, "KV load · NVMe pool → HBM"]].forEach(([r, lab]) => (n ? T(svg, X0, r.y - 6, lab, "sv-l") : T(svg, X0 - 12, r.y + r.h / 2 + 4.5, lab, "sv-l", "end")));
+  const JOBS = [{ a: 0, b: 2.85, lab: n ? "the request ahead" : "prefill of the request ahead" }, { a: 2.85, b: 3.6, lab: n ? "new" : "new tokens", ours: true }];
+  const jobs = JOBS.map(jb => {
+    const w = x(jb.b) - x(jb.a) - 2;
+    const outline = S("rect", { x: x(jb.a) + 1, y: G.y, width: w, height: G.h, rx: 4, fill: "none", "stroke-dasharray": "4 3" }, svg);
+    outline.style.stroke = jb.ours ? "var(--focus)" : "var(--block-line)";
+    const fill = S("rect", { x: x(jb.a) + 1, y: G.y, height: G.h, rx: 4 }, svg); fill.style.fill = jb.ours ? "var(--focus)" : "var(--block)";
+    const lab = T(svg, (x(jb.a) + x(jb.b)) / 2, G.y + G.h / 2 + 4, jb.lab, "sv-b", "middle");
+    return { jb, w, fill, lab };
+  });
+  const dBar = S("rect", { x: X0, y: D.y, height: D.h, rx: 4 }, svg); dBar.style.fill = "var(--dram)";
+  const nBar = S("rect", { x: X0, y: N.y, height: N.h, rx: 4 }, svg); nBar.style.fill = "var(--nvme)";
+  const dLab = T(svg, x(.80) + 8, D.y + D.h / 2 + 4.5, "0.80 s", "sv-n"), nLab = T(svg, x(.85) + 8, N.y + N.h / 2 + 4.5, "0.85 s", "sv-n");
+  const freeLine = S("line", { x1: x(2.85), x2: x(2.85), y1: top, y2: bot, stroke: "var(--muted)", "stroke-dasharray": "4 4" }, svg);
+  const freeLab = T(svg, x(2.85) + 5, bot - 2, "GPU free", "sv-s");
+  const brk = S("path", { fill: "none", stroke: "var(--sub)", d: `M${x(.85)},${BRY - 6} V${BRY} H${x(2.85)} V${BRY - 6}` }, svg);
+  const brkLab = T(svg, (x(.85) + x(2.85)) / 2, BRY + 16, "about 2 s to spare", "sv-l", "middle");
+  S("line", { x1: X0, x2: X0 + XW, y1: AY, y2: AY, class: "axis" }, svg);
+  for (let v = 0; v <= LOAD_END + 1e-9; v += .5) { const xx = x(v); S("line", { x1: xx, x2: xx, y1: AY, y2: AY + 5, class: "tick" }, svg);
+    if (Math.abs(v - Math.round(v)) < 1e-9) T(svg, xx, AY + 19, `${v} s`, "sv-s", "middle"); }
+  const head = S("line", { y1: top, y2: bot, "stroke-width": 1.5 }, svg); head.style.stroke = "var(--ink)";
+  const pop = popup(svg, n), steps = stepper(L.fig, LOAD_STEPS);
+  const lim = { minX: 8, maxX: W - 8 }, upY = n ? 62 : 74, downY = BRY - 6;
+  const TG = {
+    loads: { tx: x(.42), ty: N.y + N.h, bx: x(.42), by: downY, ...lim },
+    gpu: { tx: x(1.425), ty: G.y, bx: x(1.425), by: upY, ...lim },
+    ready: { tx: x(.85), ty: N.y + N.h, bx: x(1.7), by: downY, ...lim },
+    ours: { tx: x(3.22), ty: G.y, bx: x(3.22), by: upY, ...lim } };
+  return t => {
+    // the copy into HBM, timed to the slower (NVMe) load
+    fly.forEach((r, i) => { const a = i * .15, b = a + .4, p = ease(prog(t, a, b)), moving = t > a && t < b;
+      r.setAttribute("x", lerp(pX(i), hX(i), p)); r.setAttribute("y", by0 - Math.sin(p * Math.PI) * (n ? 10 : 14)); r.style.opacity = moving ? 1 : 0;
+      landed[i].style.opacity = t >= b ? 1 : 0; });
+    hbmRing.style.opacity = t >= 2.85 ? 1 : 0;
+    const np = prog(t, 2.85, 3.6); newSlot.style.opacity = t >= 2.85 ? 1 : 0; newLab.style.opacity = t >= 2.85 ? 1 : 0;
+    newBlk.setAttribute("y", by0 + bk * (1 - np)); newBlk.setAttribute("height", bk * np); newBlk.style.opacity = np > 0 ? 1 : 0;
+    jobs.forEach(({ jb, w, fill, lab }) => { const p = clamp((t - jb.a) / (jb.b - jb.a), 0, 1);
+      fill.setAttribute("width", Math.max(0, w * p));
+      lab.style.fill = p >= .5 ? (jb.ours ? "var(--on-accent)" : "var(--on-block)") : (jb.ours ? "var(--focus)" : "var(--sub)"); });
+    dBar.setAttribute("width", x(Math.min(t, .80)) - X0); nBar.setAttribute("width", x(Math.min(t, .85)) - X0);
+    dLab.style.opacity = t >= .80 ? 1 : 0; nLab.style.opacity = t >= .85 ? 1 : 0;
+    const free = t >= 2.85; freeLine.style.opacity = free ? 1 : .35; freeLab.style.opacity = free ? 1 : 0;
+    brk.style.opacity = free ? 1 : 0; brkLab.style.opacity = free ? 1 : 0;
+    head.setAttribute("x1", x(t)); head.setAttribute("x2", x(t)); head.style.opacity = n || t >= LOAD_END - 1e-6 ? 0 : 1;
+    let shown = null, sop = 0; for (const sp of LOAD_POP) { const o = win(t, sp.a, sp.b, .1); if (o > 0) { shown = sp; sop = o; } }
+    if (shown) pop.set(shown.text[n ? 1 : 0], TG[shown.at], sop); else pop.set("", TG.gpu, 0);
+    steps(t);
+    return "";
+  };
+}
+
+/* ---------- 3. Segment files ---------- */
+const SEG = (() => {
+  const REQS = [[4,"S"],[3,"L"],[4,"S"],[5,"S"],[3,"S"],[4,"L"],[4,"S"],[3,"S"],[5,"S"],[4,"S"],[3,"L"],[4,"S"],[4,"S"],[5,"S"],[3,"S"],[4,"L"],[4,"S"],[3,"S"],[4,"S"],[4,"S"]];
+  const STALE = 10, NW = 64, CAP = 32;
+  const blocks = []; { let s = 0; for (const [len, kind] of REQS) { const end = s + len - 1; for (let k = 0; k < len; k++) blocks.push({ long: kind === "L", die: kind === "L" ? Infinity : end + STALE }); s += len; } }
+  const liveAt = (id, s) => blocks[id].long || s < blocks[id].die;
+  function sim(fileSize) {
+    const nFiles = CAP / fileSize, files = Array.from({ length: nFiles }, () => ({ ids: [], last: -1 }));
+    let cur = 0, lost = 0, deleted = 0; const snaps = [], rec = [];
+    for (let s = 0; s < NW; s++) {
+      let r = null;
+      if (files[cur].ids.length === fileSize) {
+        let next = files.findIndex(f => f.ids.length === 0);
+        if (next < 0) { let best = -1, bl = 1e9, bt = 1e9;
+          files.forEach((f, i) => { const l = f.ids.filter(id => liveAt(id, s)).length; if (l < bl || (l === bl && f.last < bt)) { best = i; bl = l; bt = f.last; } });
+          r = { file: best, lostIds: files[best].ids.filter(id => liveAt(id, s)) }; lost += bl; deleted++; files[best].ids = []; next = best; }
+        cur = next; }
+      files[cur].ids.push(s); files[cur].last = s;
+      snaps.push({ files: files.map(f => f.ids.slice()), cur, lost, deleted }); rec.push(r);
+    }
+    return { fileSize, nFiles, snaps, rec };
+  }
+  const big = sim(16), small = sim(4);
+  const STEP = .1, PAUSE = .5;
+  const starts = []; { let t = .3; for (let s = 0; s < NW; s++) { const p = big.rec[s] || small.rec[s] ? PAUSE : 0; starts.push({ t, p }); t += p + STEP; } }
+  const DUR = starts[NW - 1].t + starts[NW - 1].p + STEP + 1.2;
+  return { NW, CAP, liveAt, big, small, starts, DUR, blocks };
+})();
+const SEG_FIRST_STALE = Math.min(...SEG.blocks.filter(b => !b.long).map(b => b.die));
+const SEG_FIRST_DEL = SEG.big.rec.findIndex((r, i) => r || SEG.small.rec[i]);
+const SEG_STEPS = [0, SEG.starts[SEG_FIRST_STALE].t, SEG.starts[SEG_FIRST_DEL].t];
+const SEG_SHOW = [SEG.starts[SEG_FIRST_STALE - 1].t + .05, SEG.starts[SEG_FIRST_DEL].t - .05, SEG.DUR];
+function buildSeg(svg, L) {
+  const n = L.narrow, W = n ? 360 : 720;
+  setView(svg, L, [720, 324], [360, 372]);
+  const { NW, CAP, liveAt, big, small, starts } = SEG;
+  const steps = stepper(L.fig, SEG_STEPS);
+  const X0 = n ? 22 : 176, SZ = n ? 16 : 26, GAP = n ? 4 : 6, RS = SZ + 28, CY = n ? 82 : 0;
+  const panels = [{ sim: big, y: n ? 56 : 72, title: "4 GiB segment files", sub: "2 files of 16 blocks" }, { sim: small, y: n ? 216 : 230, title: "256 MiB segment files", sub: "8 files of 4 blocks" }];
+  const legItems = [["var(--nvme)", "live KV", null], ["var(--stale)", "stale KV: a hole", "var(--block-line)"], ["var(--lost)", "live KV thrown away", null]];
+  let lx = n ? 20 : X0, ly = n ? 10 : 18;
+  legItems.forEach(([f, lab, st], i) => {
+    if (n && i === 2) { lx = 20; ly = 32; }
+    const r = S("rect", { x: lx, y: ly, width: 14, height: 14, rx: 3 }, svg); r.style.fill = f; if (st) r.style.stroke = st;
+    const tt = T(svg, lx + 20, ly + 12, lab, "sv-s"); lx += 20 + textW(tt) + 22; });
+  const cellXY = (P, slot) => ({ x: X0 + (slot % 16) * (SZ + GAP), y: P.y + CY + Math.floor(slot / 16) * RS });
+  const views = panels.map(P => {
+    T(svg, 20, P.y + (n ? 14 : 16), P.title, "sv-h"); T(svg, 20, P.y + (n ? 31 : 34), P.sub, "sv-s");
+    const counter = T(svg, 20, P.y + (n ? 54 : 62), "", "sv-n");
+    const counter2 = n ? T(svg, W - 20, P.y + 54, "", "sv-s", "end") : T(svg, 20, P.y + 80, "", "sv-s");
+    const fs = P.sim.fileSize, frames = [];
+    for (let f = 0; f < P.sim.nFiles; f++) { const c = cellXY(P, f * fs);
+      frames.push(S("rect", { x: c.x - 3, y: c.y - 3, width: fs * (SZ + GAP) - GAP + 6, height: SZ + 6, rx: n ? 4 : 6, fill: "none" }, svg)); }
+    const cells = []; for (let i = 0; i < CAP; i++) { const c = cellXY(P, i); const g = S("g", { transform: `translate(${c.x},${c.y})` }, svg);
+      const r = S("rect", { width: SZ, height: SZ, rx: n ? 3 : 4 }, g); const xx = T(g, SZ / 2, SZ / 2 + 4, "", "sv-b", "middle"); cells.push({ r, x: xx }); }
+    const cursor = S("path", { d: "M0,0 l5,-7 h-10 z" }, svg); cursor.style.fill = "var(--ink)";
+    const flashLab = T(svg, 0, 0, "", "sv-s", "middle"); flashLab.style.fill = "var(--ink)";
+    return { P, counter, counter2, frames, cells, cursor, flashLab };
+  });
+  return t => {
+    let s = -1; for (let i = 0; i < NW; i++) if (t >= starts[i].t) s = i;
+    let anyFlash = false;
+    views.forEach(V => {
+      const sim = V.P.sim, fs = sim.fileSize;
+      let flash = null, snap = s >= 0 ? sim.snaps[s] : { files: Array.from({ length: sim.nFiles }, () => []), cur: 0, lost: 0, deleted: 0 };
+      const stepNow = Math.max(s, 0);
+      if (s >= 0 && sim.rec[s] && t < starts[s].t + starts[s].p) { flash = sim.rec[s]; snap = s > 0 ? sim.snaps[s - 1] : snap; anyFlash = true; }
+      V.cells.forEach(c => { c.r.style.fill = "var(--bg)"; c.r.style.stroke = "var(--line)"; c.r.style.strokeDasharray = "3 3"; c.x.textContent = ""; });
+      snap.files.forEach((ids, f) => ids.forEach((id, k) => { const c = V.cells[f * fs + k]; c.r.style.strokeDasharray = "none";
+        if (flash && flash.file === f && flash.lostIds.includes(id)) { c.r.style.fill = "var(--lost)"; c.r.style.stroke = "none"; c.x.textContent = "×"; c.x.style.fill = "var(--on-accent)"; }
+        else if (liveAt(id, stepNow)) { c.r.style.fill = "var(--nvme)"; c.r.style.stroke = "none"; }
+        else { c.r.style.fill = "var(--stale)"; c.r.style.stroke = "var(--block-line)"; } }));
+      V.frames.forEach((fr, f) => { const victim = flash && flash.file === f; fr.style.stroke = victim ? "var(--lost)" : "var(--gpu-line)"; fr.style.strokeWidth = victim ? 2.5 : 1.2; });
+      if (flash) {
+        const fr = V.frames[flash.file];
+        V.flashLab.textContent = flash.lostIds.length ? `file deleted · ${flash.lostIds.length} live blocks lost` : "file deleted · no live KV lost";
+        const w = textW(V.flashLab), fx = +fr.getAttribute("x") + +fr.getAttribute("width") / 2;
+        V.flashLab.setAttribute("x", clamp(fx, 10 + w / 2, W - 10 - w / 2)); V.flashLab.setAttribute("y", +fr.getAttribute("y") - 7);
+      } else V.flashLab.textContent = "";
+      V.counter.textContent = `Live KV thrown away: ${flash ? snap.lost + flash.lostIds.length : snap.lost}`;
+      V.counter2.textContent = `Files deleted: ${flash ? snap.deleted + 1 : snap.deleted}`;
+      const writing = s >= 0 && !flash && s < NW - 1;
+      if (writing) { const sl = snap.cur * fs + Math.min(snap.files[snap.cur].length, fs) - 1, c = cellXY(V.P, Math.max(sl, 0));
+        V.cursor.setAttribute("transform", `translate(${c.x + SZ / 2},${c.y - 4})`); V.cursor.style.opacity = 1; } else V.cursor.style.opacity = 0;
+    });
+    steps(t);
+    return "";
+  };
+}
+
+/* ---------- 4. Touch ---------- */
+const TOUCH_EV = [["start"], ["save", "N1"], ["hit"], ["save", "N2"], ["save", "N3"], ["hit"], ["save", "N4"], ["save", "N5"], ["hit"], ["save", "N6"], ["save", "N7"], ["save", "N8"], ["drop"], ["req"], ["end"]];
+const TOUCH_D = .9, TOUCH_END = TOUCH_EV.length * TOUCH_D;
+const TOUCH_STEPS = [0, TOUCH_D, 12 * TOUCH_D], TOUCH_SHOW = [TOUCH_D - .1, 12 * TOUCH_D - .15, TOUCH_END];
+const TOUCH_POP = [
+  [ { a: 1.9, b: 2.7, text: ["A hit in GPU memory. The pool never sees it", "Pool never sees this hit"], at: "gpuH" },
+    { a: 7.4, b: 8.1, text: ["H drifts toward eviction", "H drifts to the end"], at: "poolH" },
+    { a: 9.95, b: 10.8, text: ["H is evicted from the pool", "H is evicted"], at: "evict" } ],
+  [ { a: 2.1, b: 2.7, text: ["Touch: H was just used", "Touch: H was just used"], at: "poolH" },
+    { a: 7.4, b: 8.1, text: ["Touch moves H to the front", "Touch moves H to the front"], at: "poolH" },
+    { a: 9.95, b: 10.8, text: ["Another block goes instead", "Another block evicted"], at: "evict" } ] ];
+function touchStates(touch) {
+  let order = ["H", "P1", "P2", "P3"]; const out = [], evicted = [];
+  for (const e of TOUCH_EV) { let ev = null;
+    if (e[0] === "save") { order = [e[1], ...order]; if (order.length > 8) { ev = order.pop(); evicted.push(ev); } }
+    if (e[0] === "hit" && touch && order.includes("H")) order = ["H", ...order.filter(x => x !== "H")];
+    out.push({ order: order.slice(), ev, evicted: evicted.slice() }); }
+  return out;
+}
+function buildTouch(svg, L) {
+  const n = L.narrow;
+  setView(svg, L, [720, 336], [360, 596]);
+  const B = n ? 28 : 32;
+  const cols = [0, 1].map(c => {
+    const touch = c === 1, sts = touchStates(touch);
+    const x0 = n ? 12 : 20 + c * 350, y0 = n ? 8 + c * 292 : 0;
+    const Gb = n ? { x: x0, y: y0 + 36, w: 154, h: 62 } : { x: x0, y: 48, w: 178, h: 74 };
+    const Pb = n ? { x: x0, y: y0 + 130, w: 336, h: 76 } : { x: x0, y: 152, w: 330, h: 86 };
+    const Eb = n ? { x: x0 + 224, y: y0 + 214, w: 112, h: 40 } : { x: x0 + 214, y: 248, w: 116, h: 44 };
+    const gx = i => Gb.x + (n ? 10 : 12) + i * (n ? 34 : 40), gy = Gb.y + (n ? 24 : 32);
+    const px = r => Pb.x + (n ? 10 : 12) + r * (n ? 40 : 38), py = Pb.y + (n ? 24 : 30);
+    const EVX = Eb.x + 8, EVY = Eb.y + (Eb.h - B) / 2;
+    T(svg, x0, y0 + (n ? 14 : 20), touch ? "With touch" : "Without touch", "sv-h");
+    T(svg, x0, y0 + (n ? 28 : 36), touch ? "vLLM reports each GPU hit to the pool" : "the pool sees only its own reads", "sv-s");
+    S("rect", { x: Gb.x, y: Gb.y, width: Gb.w, height: Gb.h, rx: 8, class: "box-gpu" }, svg); T(svg, Gb.x + (n ? 10 : 12), Gb.y + (n ? 16 : 18), "GPU memory", "sv-h");
+    for (let i = 0; i < 4; i++) S("rect", { x: gx(i), y: gy, width: B, height: B, rx: 5, class: "slot" }, svg);
+    S("rect", { x: Pb.x, y: Pb.y, width: Pb.w, height: Pb.h, rx: 8, class: "box-pool" }, svg); T(svg, Pb.x + (n ? 10 : 12), Pb.y + (n ? 16 : 18), "KV pool · ordered by last use", "sv-h");
+    for (let r = 0; r < 8; r++) S("rect", { x: px(r), y: py, width: B, height: B, rx: 5, class: "slot" }, svg);
+    T(svg, px(0), py + B + (n ? 14 : 16), "most recent", "sv-s"); T(svg, px(7) + B, py + B + (n ? 14 : 16), "next out", "sv-s", "end");
+    S("rect", { x: Eb.x, y: Eb.y, width: Eb.w, height: Eb.h, rx: 8, fill: "none", stroke: "var(--line)", "stroke-dasharray": "4 3" }, svg);
+    T(svg, Eb.x + Eb.w - 8, Eb.y + Eb.h / 2 + 4, "evicted", "sv-s", "end");
+    const RY = n ? y0 + 276 : 318, RX = x0 + (n ? 160 : 165), RECW = n ? 150 : 150, LOADW = n ? 20 : 24;
+    const resLab = T(svg, x0, RY, "", "sv-l"); const resBar = S("rect", { x: RX, y: RY - (n ? 11 : 12), height: n ? 14 : 16, rx: 4 }, svg);
+    const layer = S("g", {}, svg);
+    const ids = ["H", "P1", "P2", "P3", "N1", "N2", "N3", "N4", "N5", "N6", "N7", "N8"];
+    const els = {}; ids.forEach(id => (els[id] = block(layer, B, id === "H" ? "H" : "")));
+    const gH = block(layer, B, "H"), gO = [1, 2, 3].map(() => block(layer, B, ""));
+    const dot = S("circle", { r: 5 }, svg); dot.style.fill = "var(--focus)";
+    const ghost = block(layer, B, "H");
+    const pop = popup(svg, true);
+    const lim = { minX: x0 - 2, maxX: x0 + (n ? 336 : 330) + 2 }, below = { minX: x0 - 2, maxX: Eb.x - 6 };
+    const idx = (st, id) => st.order.indexOf(id);
+    return { render(t) {
+      const k = clamp(Math.floor(t / TOUCH_D), 0, TOUCH_EV.length - 1), f = clamp((t - k * TOUCH_D) / TOUCH_D, 0, 1), e = TOUCH_EV[k];
+      const prev = k > 0 ? sts[k - 1] : sts[0], cur = sts[k];
+      const moveP = e[0] === "hit" ? ease(prog(f, .5, .9)) : ease(prog(f, 0, .55));
+      ids.forEach(id => {
+        const el = els[id], isH = id === "H", fill = isH ? "var(--focus)" : "var(--block)", tf = isH ? "var(--on-accent)" : "var(--on-block)";
+        const a = idx(prev, id), b = idx(cur, id), wasOut = prev.evicted.includes(id), isOut = cur.evicted.includes(id);
+        if (wasOut && isOut) { el.set(EVX, EVY, fill, null, tf, isH ? .95 : 0); return; }
+        if (a >= 0 && isOut) { el.set(lerp(px(a), EVX, moveP), lerp(py, EVY, moveP), fill, null, tf, isH ? lerp(1, .95, moveP) : 1 - moveP * .6); return; }
+        if (a < 0 && b >= 0) { el.set(lerp(px(0) - 34, px(b), moveP), py, fill, null, tf, moveP); return; }
+        if (a >= 0 && b >= 0) { el.set(lerp(px(a), px(b), moveP), py, fill, null, tf, 1); return; }
+        el.set(0, 0, fill, null, tf, 0); });
+      // evicted non-H blocks stay faintly visible for one event, then go
+      // GPU memory: H plus three other prefixes
+      const hitPulse = e[0] === "hit" && f < .45;
+      let hOp = k < 12 ? 1 : k === 12 ? 1 - ease(prog(f, .2, .7)) : 0, hP = 1;
+      const hp = idx(cur, "H");
+      if (k >= 13) { const rp = k === 14 ? 1 : ease(prog(f, .3, .9));
+        if (hp >= 0) { hOp = rp >= 1 ? 1 : 0; ghost.set(lerp(px(hp), gx(0), rp), lerp(py, gy, rp), "var(--focus)", null, "var(--on-accent)", rp < 1 ? 1 : 0); resLab.textContent = "Request for H: load"; resBar.style.fill = "var(--pool-line)"; resBar.setAttribute("width", LOADW * rp); }
+        else { hOp = 1; hP = rp; ghost.set(0, 0, "var(--focus)", null, "var(--on-accent)", 0); resLab.textContent = "Request for H: recompute"; resBar.style.fill = "var(--compute)"; resBar.setAttribute("width", RECW * rp); } }
+      else { ghost.set(0, 0, "var(--focus)", null, "var(--on-accent)", 0); resLab.textContent = ""; resBar.setAttribute("width", 0); }
+      gH.set(gx(0), gy, "var(--focus)", hitPulse ? "var(--ink)" : null, "var(--on-accent)", hOp);
+      if (hP < 1) { gH.r.setAttribute("y", B * (1 - hP)); gH.r.setAttribute("height", B * hP); gH.t.style.opacity = 0; } else { gH.r.setAttribute("y", 0); gH.r.setAttribute("height", B); gH.t.style.opacity = 1; }
+      gO.forEach((g, i) => g.set(gx(i + 1), gy, "var(--block)", null, "var(--on-block)", 1));
+      // the touch message: a dot from GPU memory to H's place in the pool
+      if (touch && e[0] === "hit") { const hpp = idx(prev, "H"), dp = ease(prog(f, .2, .5));
+        dot.setAttribute("cx", lerp(gx(0) + B / 2, px(Math.max(hpp, 0)) + B / 2, dp)); dot.setAttribute("cy", lerp(gy + B, py, dp)); dot.style.opacity = f > .2 && f < .52 ? 1 : 0; }
+      else dot.style.opacity = 0;
+      // popup for this column
+      const hNow = idx(cur, "H"), hPrev = idx(prev, "H"), hx = px(Math.max(hNow >= 0 ? hNow : hPrev, 0)) + B / 2;
+      const TG = {
+        gpuH: { tx: gx(0) + B / 2, ty: gy + B, bx: gx(0) + 60, by: Gb.y + Gb.h + 4, ...lim },
+        poolH: { tx: hx, ty: py + B, bx: hx, by: Pb.y + Pb.h + (n ? 10 : 12), ...below },
+        evict: { tx: EVX, ty: EVY + B / 2, bx: x0 + 100, by: Pb.y + Pb.h + (n ? 10 : 12), ...below } };
+      let shown = null, sop = 0; for (const sp of TOUCH_POP[c]) { const o = win(t, sp.a, sp.b, .12); if (o > 0) { shown = sp; sop = o; } }
+      if (shown) pop.set(shown.text[n ? 1 : 0], TG[shown.at], sop); else pop.set("", TG.gpuH, 0);
+    } };
+  });
+  const steps = stepper(L.fig, TOUCH_STEPS);
+  return t => { cols.forEach(C => C.render(t)); steps(t); return ""; };
+}
+
+/* ---------- 5. Checkpoints, side by side ---------- */
+const CK_ROWS = [
+  { name: "At each prompt's end", sub: ["vLLM's default", "default"], cks: [12000, 40000] },
+  { name: "Every 7,168 tokens", sub: ["--prefix-cache-retention-interval 7168", "interval 7168"], cks: [7168, 12000, 14336, 21504, 28672, 35840, 40000] } ];
+const CK_DIV = 30000, CK_NEWEND = 34000, CK_RATE = 8000, CK_T1 = 1.2, CK_T2 = 2.8;
+const ckRes = cks => Math.max(...cks.filter(c => c <= CK_DIV));
+const CK_END = CK_T2 + (CK_NEWEND - ckRes(CK_ROWS[0].cks)) / CK_RATE + 1.6;
+const CK_STEPS = [0, CK_T1, CK_T2], CK_SHOW = [CK_T1 - .1, CK_T2 - .1, CK_END];
+function buildCkpt(svg, L) {
+  const n = L.narrow, W = n ? 360 : 720;
+  setView(svg, L, [720, 348], [360, 368]);
+  const X0 = n ? 20 : 150, XW = n ? 316 : 540, x = v => X0 + v / 44000 * XW;
+  const BH = n ? 16 : 20, rowsY = n ? [34, 186] : [40, 186];
+  const pop = [0, 1].map(() => popup(svg, true));
+  // shared: where the prompts diverge, and the token axis
+  T(svg, x(CK_DIV), n ? 16 : 20, n ? "diverge at 30,000" : "prompts diverge at 30,000", "sv-s", "middle");
+  const AY = n ? 330 : 318;
+  S("line", { x1: x(0), x2: x(44000), y1: AY, y2: AY, class: "axis" }, svg);
+  for (let v = 0; v <= 40000; v += 8000) { S("line", { x1: x(v), x2: x(v), y1: AY, y2: AY + 5, class: "tick" }, svg); T(svg, x(v), AY + 18, v ? `${v / 1000}K` : "0", "sv-s", "middle"); }
+  T(svg, x(44000), AY + (n ? 32 : 18), "tokens", "sv-s", "end");
+  const rows = CK_ROWS.map((R, c) => {
+    const yb = rowsY[c], res = ckRes(R.cks), redo = CK_DIV - res, total = CK_NEWEND - res;
+    const ey = yb + (n ? 22 : 14), ny = yb + (n ? 86 : 66);
+    const tt = T(svg, n ? 12 : 20, yb, R.name, "sv-h"); T(svg, (n ? 12 : 20) + textW(tt) + 8, yb, R.sub[n ? 1 : 0], "sv-s");
+    if (n) { T(svg, X0, ey - 4, "earlier prompt", "sv-s"); T(svg, X0, ny - 4, "new turn", "sv-s"); }
+    else { T(svg, X0 - 12, ey + BH / 2 + 4.5, "Earlier prompt", "sv-l", "end"); T(svg, X0 - 12, ny + BH / 2 + 4.5, "New turn", "sv-l", "end"); }
+    const e1 = S("rect", { x: x(0), y: ey, width: x(40000) - x(0), height: BH, rx: 4 }, svg); e1.style.fill = "var(--block)";
+    S("line", { x1: x(12000), x2: x(12000), y1: ey, y2: ey + BH, stroke: "var(--bg)", "stroke-width": 2 }, svg);
+    const t1 = T(svg, x(c === 0 ? 6000 : 3300), ey + BH / 2 + 4, "turn 1", "sv-s", "middle"); t1.style.fill = "var(--on-block)";
+    const sh = S("rect", { x: x(0), y: ny, width: x(CK_DIV) - x(0), height: BH, rx: 4 }, svg); sh.style.fill = "var(--block)";
+    const nw = S("rect", { x: x(CK_DIV), y: ny, width: x(CK_NEWEND) - x(CK_DIV), height: BH, rx: 4 }, svg); nw.style.fill = "var(--focus-soft)"; nw.style.stroke = "var(--focus)"; nw.style.strokeWidth = 1.2;
+    if (!n) { const nl = T(svg, x(32000), ny + BH / 2 + 4, "new", "sv-s", "middle"); nl.style.fill = "var(--ink)"; }
+    S("line", { x1: x(CK_DIV), x2: x(CK_DIV), y1: ey - 4, y2: ny + BH + 4, stroke: "var(--muted)", "stroke-dasharray": "4 4" }, svg);
+    const ds = R.cks.map(ck => { const d = S("path", { d: `M${x(ck)},${ey + BH / 2 - 7} l7,7 l-7,7 l-7,-7 z` }, svg);
+      d.style.fill = ck === res ? "var(--ink)" : "var(--sub)"; d.style.stroke = "var(--bg)"; d.style.strokeWidth = 1.5; return { ck, d }; });
+    const arrow = S("path", { fill: "none", "stroke-width": 1.5 }, svg); arrow.style.stroke = "var(--ink)";
+    const head = S("path", {}, svg); head.style.fill = "var(--ink)";
+    const s1 = S("rect", { y: ny, height: BH, rx: 3 }, svg); s1.style.fill = "var(--compute)";
+    const s2 = S("rect", { x: x(CK_DIV), y: ny, height: BH, rx: 3 }, svg); s2.style.fill = "var(--focus)";
+    const a0 = ey + BH + 2, a1 = ny - 4, rx = x(res);
+    const P = [
+      { a: CK_T1 + .3, b: CK_T2, text: [`Resumes from the last checkpoint, at ${fmt(res)}`, `Resume at ${fmt(res)}`], at: "resume" },
+      { a: CK_T2 + total / CK_RATE, b: 1e9, text: [`Recomputes ${fmt(total)} tokens: ${fmt(redo)} again, 4,000 new`, `${fmt(total)} recomputed`], at: "result" } ];
+    const right = c === 0;
+    const TG = {
+      resume: right ? { tx: rx, ty: ey + BH / 2, bx: rx, by: ey + BH + (n ? 4 : 6), minX: rx + 10, maxX: W - 8 }
+                    : { tx: rx, ty: ey + BH / 2, bx: rx, by: ey + BH + (n ? 4 : 6), minX: 8, maxX: rx - 10 },
+      result: { tx: (rx + x(CK_NEWEND)) / 2, ty: ny + BH, bx: (rx + x(CK_NEWEND)) / 2, by: ny + BH + 6, minX: 8, maxX: W - 8 } };
+    return { render(t) {
+      ds.forEach(({ ck, d }, i) => { const ap = ease(prog(t, CK_T1 + i * .05, CK_T1 + .35 + i * .05)); d.style.opacity = ap * (ck > CK_DIV ? .35 : 1); });
+      const ap = ease(prog(t, CK_T1 + .4, CK_T1 + 1.0)), ay = lerp(a0, a1, ap);
+      arrow.setAttribute("d", `M${rx},${a0} V${ay}`); arrow.style.opacity = ap > 0 ? 1 : 0;
+      head.setAttribute("d", `M${rx - 5},${ay - 6} l5,6 l5,-6 z`); head.style.opacity = ap > .95 ? 1 : 0;
+      const sp = prog(t, CK_T2, CK_T2 + total / CK_RATE), sx = lerp(rx, x(CK_NEWEND), sp);
+      s1.setAttribute("x", rx); s1.setAttribute("width", Math.max(0, Math.min(sx, x(CK_DIV)) - rx));
+      s2.setAttribute("width", Math.max(0, sx - x(CK_DIV)));
+      let shown = null, sop = 0; for (const sp0 of P) { const o = win(t, sp0.a, sp0.b, .15); if (o > 0) { shown = sp0; sop = o; } }
+      if (shown) pop[c].set(shown.text[n ? 1 : 0], TG[shown.at], sop); else pop[c].set("", TG.result, 0);
+    } };
+  });
+  const steps = stepper(L.fig, CK_STEPS);
+  return t => { rows.forEach(R => R.render(t)); steps(t); return ""; };
+}
+
+/* ---------- 6. Retention and cost ---------- */
+const RET = {
+  TS: [1.0,1.2267948036424448,1.5050254902441045,1.8463574507808902,2.2651017262845072,2.7788150275273646,3.4090358360541075,4.182187449102057,5.130685830417054,6.294298715877563,7.721812957211908,9.473080010606466,11.621525331501127,14.257226887084625,17.490691859426768,21.457489885255963,26.323937090442335,32.29406923396528,39.618196324697934,48.60339738082564,59.62639534616571,73.14935197060612,89.73924488735182,110.0916393106,135.0598510307224,165.69072342521295,203.26851850980876,249.3687622519315,305.92430172141786,375.3063436597785,460.42387217586196,564.8456138582807,692.9496639415657,850.1070469092914,1042.9069076881428,1279.4327750346247,1569.601480022309,1925.5789394808596,2362.2902369584485,2898.0453873959045,3555.3070219772517,4361.632179915188,5350.827693719617,6564.367609841313,8053.1320729521,9879.540580143946,12120.169046095247,14868.960405017659,18241.163360440925,22378.16442298189,27453.41582917041,33679.7078814615,41318.09061717247,50688.818865574845,62184.77958706035,76287.96446305641,93589.67838373712,114815.33111573635,140854.85159127178,172799.99999999997],
+  kept: [0.05238683902249533,0.0659592188893487,0.08588128034343288,0.11494748729335204,0.15272485317775472,0.19718912360914825,0.25157913455369774,0.3170260061136255,0.3981469429508485,0.4965699745360483,0.6023656938403404,0.6911814893444781,0.7284005799655985,0.7489921182455181,0.7656460116076099,0.7804008427968838,0.7952793706483644,0.809677295477652,0.8278912912821931,0.8455660680565141,0.8568693571237458,0.8686093957553134,0.8825390679311772,0.896804949950613,0.912191241986854,0.9182221296802229,0.9458235635966319,0.9527904741605681,0.9593886586756565,0.9631740949471265,0.9668621755772808,0.9703624437636089,0.9743122943193224,0.9771530238671842,0.9802477561164961,0.9833448523035802,0.9859953572262152,0.988802412721729,0.9901370244468796,0.9915964424376811,0.9929105988645572,0.9939327366111148,0.9949064377551545,0.9956484729975107,0.9964103363709773,0.9968206484271661,0.9973704328119194,0.9976380402164672,0.9978918016997774,0.9980009287863264,0.9981616765548414,0.9984445771894671,0.9986614322973529,0.9989841821687112,0.9993725916177855,0.9995361375167249,0.9997289672978638,0.9998022976124324,0.9998105472728215,0.9999045258601766],
+  R: 0.9810597121040553 };
+function extraMiss(ts) { // share of prompt tokens, compared with a pool that never evicts
+  const { TS, kept, R } = RET;
+  if (ts <= TS[0]) return R * (1 - kept[0]); if (ts >= TS[TS.length - 1]) return R * (1 - kept[kept.length - 1]);
+  for (let i = 0; i < TS.length - 1; i++) if (ts <= TS[i + 1]) { const f = (Math.log(ts) - Math.log(TS[i])) / (Math.log(TS[i + 1]) - Math.log(TS[i])); return R * (1 - (kept[i] + f * (kept[i + 1] - kept[i]))); }
+}
+const durTxt = h => (h < 1 ? `${Math.round(h * 60)} min` : h < 48 ? `${h < 10 ? h.toFixed(1) : Math.round(h)} h` : `${(h / 24).toFixed(h < 240 ? 1 : 0)} days`);
+const pct = p => `${p < .1 ? p.toFixed(2) : p.toFixed(1)}%`;
+function buildRet(svg, L, fig) {
+  const n = L.narrow;
+  setView(svg, L, [720, 300], [360, 276]);
+  // chart: x = retention minutes (1 to 2880), y = extra miss % (0.01 to 20), both log
+  const X0 = n ? 46 : 70, XW = n ? 294 : 610, Y0 = 26, YH = n ? 200 : 220, flipX = X0 + XW - (n ? 120 : 160);
+  const lx = mm => X0 + Math.log10(mm) / Math.log10(2880) * XW;
+  const ly = p => Y0 + (Math.log10(20) - Math.log10(p)) / (Math.log10(20) - Math.log10(.01)) * YH;
+  [[.01, "0.01%"], [.1, "0.1%"], [1, "1%"], [10, "10%"]].forEach(([p, lab]) => { S("line", { x1: X0, x2: X0 + XW, y1: ly(p), y2: ly(p), class: "axis", "stroke-dasharray": "2 4" }, svg); T(svg, X0 - 6, ly(p) + 4, lab, "sv-s", "end"); });
+  [[1, "1 min"], [10, "10 min"], [60, "1 h"], [360, "6 h"], [1440, "24 h"]].forEach(([mm, lab]) => { S("line", { x1: lx(mm), x2: lx(mm), y1: Y0 + YH, y2: Y0 + YH + 5, class: "tick" }, svg); T(svg, lx(mm), Y0 + YH + 20, lab, "sv-s", "middle"); });
+  S("line", { x1: X0, x2: X0 + XW, y1: Y0 + YH, y2: Y0 + YH, class: "axis" }, svg);
+  T(svg, X0 + XW, Y0 + YH + 40, "how long the pool keeps KV", "sv-s", "end");
+  T(svg, X0, 14, "extra prompt tokens that miss", "sv-s");
+  let d = ""; RET.TS.forEach(ts => { const mm = ts / 60; if (mm < 1 || mm > 2880) return; d += `${d ? "L" : "M"}${lx(mm).toFixed(1)},${ly(extraMiss(ts) * 100).toFixed(1)}`; });
+  const curve = S("path", { d, fill: "none", "stroke-width": 2 }, svg); curve.style.stroke = "var(--ink)";
+  const vline = S("line", { y1: Y0, y2: Y0 + YH, "stroke-width": 1.5 }, svg); vline.style.stroke = "var(--nvme)";
+  const dotM = S("circle", { r: 6 }, svg); dotM.style.fill = "var(--nvme)"; dotM.style.stroke = "var(--bg)"; dotM.style.strokeWidth = 2;
+  const mLab = T(svg, 0, 0, "", "sv-n");
+  const hover = S("g", {}, svg); const hl = S("line", { y1: Y0, y2: Y0 + YH, stroke: "var(--muted)", "stroke-dasharray": "3 3" }, hover); const ht = T(hover, 0, Y0 + 12, "", "sv-s"); hover.style.opacity = 0;
+  const w = fig.querySelector("#ret-w"), c = fig.querySelector("#ret-c");
+  const capOf = v => .5 * Math.pow(400, v / 1000);
+  const money = v => "$" + (v >= 1e6 ? `${(v / 1e6).toFixed(v >= 1e7 ? 0 : 1)} million` : fmt(Math.round(v / 1000) * 1000));
+  return {
+    update() {
+      const W = w.value / 100, C = capOf(+c.value), hours = C / W, mins = hours * 60, miss = extraMiss(hours * 3600) * 100;
+      fig.querySelector("#ret-w-out").textContent = `${W < 1 ? W.toFixed(2) : W.toFixed(1)} TB`; fig.querySelector("#ret-c-out").textContent = `${C < 10 ? C.toFixed(1) : Math.round(C)} TB`;
+      const dram = C * 1000 * 42.15, nvme = Math.max(C * 666.04, W * 43800 * 666.04 / 1825) + 3422;
+      fig.querySelector("#ret-t").textContent = durTxt(hours); fig.querySelector("#ret-m").textContent = pct(miss);
+      fig.querySelector("#ret-dram").textContent = money(dram); fig.querySelector("#ret-nvme").textContent = money(nvme);
+      const xx = lx(clamp(mins, 1, 2880)), yy = ly(clamp(miss, .01, 20));
+      vline.setAttribute("x1", xx); vline.setAttribute("x2", xx); dotM.setAttribute("cx", xx); dotM.setAttribute("cy", yy);
+      mLab.textContent = `${durTxt(hours)} · ${pct(miss)} miss`;
+      const fits = xx + 10 + textW(mLab) <= X0 + XW;
+      mLab.setAttribute("x", fits ? xx + 10 : xx - 8); mLab.setAttribute("text-anchor", fits ? "start" : "end"); mLab.setAttribute("y", fits ? clamp(yy - 12, Y0 + 10, Y0 + YH - 8) : Y0 + 12);
+    },
+    hover(ev) { const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      if (p.x < X0 || p.x > X0 + XW) { hover.style.opacity = 0; return; } const mm = Math.pow(10, (p.x - X0) / XW * Math.log10(2880));
+      hl.setAttribute("x1", p.x); hl.setAttribute("x2", p.x); ht.setAttribute("x", p.x > flipX ? p.x - 6 : p.x + 6); ht.setAttribute("text-anchor", p.x > flipX ? "end" : "start");
+      ht.textContent = `${durTxt(mm / 60)}: ${pct(extraMiss(mm * 60) * 100)} miss`; hover.style.opacity = 1; },
+    leave() { hover.style.opacity = 0; } };
+}
+function mountRet(fig) {
+  const svg = fig.querySelector(".stage svg"), w = fig.querySelector("#ret-w"), c = fig.querySelector("#ret-c");
+  const vOfCap = cap => Math.round(1000 * Math.log(cap / .5) / Math.log(400));
+  let scene;
+  const build = () => { svg.replaceChildren(); scene = buildRet(svg, { narrow: narrowMQ.matches }, fig); scene.update(); };
+  w.addEventListener("input", () => scene.update()); c.addEventListener("input", () => scene.update());
+  fig.querySelector("#ret-p1").addEventListener("click", () => { w.value = 347; c.value = vOfCap(1.8); scene.update(); });
+  fig.querySelector("#ret-p2").addEventListener("click", () => { w.value = 347; c.value = vOfCap(3.47 * 24); scene.update(); });
+  svg.addEventListener("pointermove", ev => scene.hover(ev)); svg.addEventListener("pointerleave", () => scene.leave());
+  c.value = vOfCap(1.8); build();
+  return { relayout: build };
+}
+
+/* ---------- Mount: each figure only if the page has it (the blog embeds one figure per page) ---------- */
+const $id = id => document.getElementById(id);
+if ($id("scale")) {
+  const scalePlayer = new Player($id("scale"), { mode: null, duration: SC_END, build: buildScale });
+  scalePlayer.fig.querySelectorAll(".levels button").forEach((b, i) => b.addEventListener("click", () => {
+    scalePlayer.seen = true;
+    if (reduced) { scalePlayer.holdAt = null; scalePlayer.pause(); scalePlayer.setT(SC_HOLD[i]); }
+    else { scalePlayer.holdAt = SC_HOLD[i]; scalePlayer.setT(SC_STARTS[i]); scalePlayer.play(); } }));
+}
+if ($id("load")) wireSteps(new Player($id("load"), { mode: null, duration: LOAD_END, speed: .45, build: buildLoad }), LOAD_STEPS, LOAD_SHOW);
+if ($id("seg")) wireSteps(new Player($id("seg"), { mode: null, duration: SEG.DUR, build: buildSeg }), SEG_STEPS, SEG_SHOW);
+if ($id("touch")) wireSteps(new Player($id("touch"), { mode: null, duration: TOUCH_END, build: buildTouch }), TOUCH_STEPS, TOUCH_SHOW);
+if ($id("ckpt")) wireSteps(new Player($id("ckpt"), { mode: null, duration: CK_END, build: buildCkpt }), CK_STEPS, CK_SHOW);
+const ret = $id("ret") ? mountRet($id("ret")) : null;
+window.__players = players;
+const relayoutAll = () => { players.forEach(p => p.relayout()); if (ret) ret.relayout(); };
+if (narrowMQ.addEventListener) narrowMQ.addEventListener("change", relayoutAll); else narrowMQ.addListener(relayoutAll);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayoutAll);
+if (!reduced && "IntersectionObserver" in window) {
+  const byStage = new Map(); players.forEach(p => byStage.set(p.svg.parentElement, p));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const p = byStage.get(e.target); io.unobserve(e.target);
+    if (p && !p.seen) { p.seen = true; p.setT(0); p.play(); } }), { threshold: .6 });
+  byStage.forEach((p, st) => io.observe(st));
+}
+})();
+
+
+(function reportHeight() {
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = "hidden";
+  var last = 0;
+  var report = function () {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  };
+  if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+  window.addEventListener("load", report);
+  report();
+})();
+</script>
+</body>
+</html>
