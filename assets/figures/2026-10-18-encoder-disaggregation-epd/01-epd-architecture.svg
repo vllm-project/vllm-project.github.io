@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="820" viewBox="0 0 1600 820"><rect width="1600" height="820" fill="#F5F5F1"/>
+<text x="48" y="40.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">vLLM  /  EPD ENGINEERING NOTES</text>
+<text x="1490" y="43.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#117E70">01</text>
+<text x="48" y="104.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="40" fill="#172735">Separate the encoder. Scale each stage independently.</text>
+<text x="48" y="146.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">Colocated → E + PD → E / P / D. Arrows show state transferred between instances.</text>
+<polyline points="48,175 1552,175" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<text x="48" y="234.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#117E70">01</text>
+<text x="92" y="238.4" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="26" fill="#172735">Colocated</text>
+<text x="92" y="276.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">One instance, three stages</text>
+<text x="48" y="408.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#117E70">02</text>
+<text x="92" y="412.4" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="26" fill="#172735">E + PD</text>
+<text x="92" y="450.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Separate encoder tier</text>
+<text x="48" y="582.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#117E70">03</text>
+<text x="92" y="586.4" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="26" fill="#172735">E / P / D</text>
+<text x="92" y="624.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#65717B">Three separate tiers</text>
+<rect x="352" y="205" width="1200" height="144" rx="14" fill="#192C3B"/>
+<text x="378" y="252.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#FFFFFF">Encoder</text>
+<text x="378" y="299.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#B7C7D0">Media → embeddings</text>
+<text x="820" y="252.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#FFFFFF">Prefill</text>
+<text x="820" y="299.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#B7C7D0">Process prompt, build KV</text>
+<text x="1260" y="252.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#FFFFFF">Decode</text>
+<text x="1260" y="299.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#B7C7D0">Generate output tokens</text>
+<polyline points="702,275 775,275" fill="none" stroke="#9EB4C4" stroke-width="3"/>
+<polygon points="775,275 764.1946347717678,280.21958640933474 764.1946347717678,269.78041359066526" fill="#9EB4C4"/>
+<polyline points="1152,275 1220,275" fill="none" stroke="#9EB4C4" stroke-width="3"/>
+<polygon points="1220,275 1209.1946347717678,280.21958640933474 1209.1946347717678,269.78041359066526" fill="#9EB4C4"/>
+<rect x="352" y="377" width="372" height="146" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="370" y="397" width="4" height="26" rx="2" fill="#117E70"/>
+<text x="387" y="409.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">E</text>
+<text x="374" y="459.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Encoder</text>
+<text x="374" y="499.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Schedule and scale independently</text>
+<rect x="1008" y="377" width="544" height="146" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="1026" y="397" width="4" height="26" rx="2" fill="#4165D5"/>
+<text x="1043" y="409.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">PD</text>
+<text x="1030" y="459.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Prefill + Decode</text>
+<text x="1030" y="499.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Language model stays in one instance</text>
+<polyline points="745,446 987,446" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="987,446 976.1946347717678,451.21958640933474 976.1946347717678,440.78041359066526" fill="#117E70"/>
+<rect x="777" y="469" width="183" height="32" rx="7" fill="#E5EFEA"/>
+<text x="789" y="489.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">EC / embeddings</text>
+<rect x="352" y="551" width="332" height="146" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="370" y="571" width="4" height="26" rx="2" fill="#117E70"/>
+<text x="387" y="583.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#117E70">E</text>
+<text x="374" y="633.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Encoder</text>
+<text x="374" y="673.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Produce embeddings</text>
+<rect x="853" y="551" width="332" height="146" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="871" y="571" width="4" height="26" rx="2" fill="#4165D5"/>
+<text x="888" y="583.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#4165D5">P</text>
+<text x="875" y="633.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Prefill</text>
+<text x="875" y="673.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Embeddings → KV cache</text>
+<rect x="1354" y="551" width="198" height="146" rx="12" fill="#FFFFFF" stroke="#DBDFDB"/>
+<rect x="1372" y="571" width="4" height="26" rx="2" fill="#B36A46"/>
+<text x="1389" y="583.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#B36A46">D</text>
+<text x="1376" y="633.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="27" fill="#172735">Decode</text>
+<text x="1376" y="673.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="19" fill="#65717B">Use KV cache</text>
+<polyline points="704,620 833,620" fill="none" stroke="#117E70" stroke-width="3"/>
+<polygon points="833,620 822.1946347717678,625.2195864093347 822.1946347717678,614.7804135906653" fill="#117E70"/>
+<text x="739" y="666.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#117E70">EC</text>
+<polyline points="1205,620 1334,620" fill="none" stroke="#B36A46" stroke-width="3"/>
+<polygon points="1334,620 1323.1946347717678,625.2195864093347 1323.1946347717678,614.7804135906653" fill="#B36A46"/>
+<text x="1246" y="666.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="18" fill="#B36A46">KV</text>
+<text x="352" y="749.8" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="22" fill="#172735">EC and KV caches belong to different stages, with separate connectors.</text>
+<polyline points="48,771 1552,771" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<text x="48" y="800.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="15" fill="#65717B">Source: vLLM Disaggregated Encoder guide. Architecture schematic; not a performance comparison.</text>
+<text x="1410" y="799.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="14" fill="#117E70">INFERENCE / EPD</text>
+</svg>

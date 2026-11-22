@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="530" viewBox="0 0 1200 530" role="img" aria-labelledby="title desc">
+<title id="title">After: one HIP kernel carries KDA decode through to its output</title><desc id="desc">One fused kernel performs convolution and SiLU, normalized and gated recurrent attention, and gated RMSNorm. Intermediate values pass on chip. The output is stored directly in its destination; convolution history and recurrent state are still saved.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/></marker></defs>
+<rect width="1200" height="530" fill="white"/>
+<style>text { font-family: Arial, Helvetica, sans-serif; fill: #19354b; } .small {font-size:20px;fill:#536a7d;} .label {font-size:23px;font-weight:600;} .muted {fill:#536a7d;} .title {font-size:31px;font-weight:700;}</style>
+<text x="24" y="43" class="title" text-anchor="start">After · one HIP kernel</text>
+<text x="24" y="80" class="small" text-anchor="start">Kimi K3 · single-token KDA decode</text>
+<rect x="24" y="115" width="1152" height="192" rx="10" fill="#e8f4ff" stroke="#30a2ff" stroke-width="2"/>
+<text x="42" y="146" class="small" text-anchor="start" style="fill:#16324b">FUSED KERNEL</text>
+<text x="154" y="208" class="label" text-anchor="middle">Convolution</text>
+<text x="154" y="237" class="label" text-anchor="middle">+ SiLU</text>
+<text x="558" y="187" class="label" text-anchor="middle">Q/K normalization</text>
+<text x="558" y="216" class="label" text-anchor="middle">+ decay / beta gates</text>
+<text x="558" y="245" class="label" text-anchor="middle">+ recurrent update</text>
+<text x="1005" y="208" class="label" text-anchor="middle">RMSNorm</text>
+<text x="1005" y="237" class="label" text-anchor="middle">× output gate</text>
+<path d="M272,207 L359,207" stroke="#30a2ff" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M760,207 L838,207" stroke="#30a2ff" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<text x="317" y="261" class="small" text-anchor="middle" style="fill:#16324b">on chip</text>
+<text x="800" y="261" class="small" text-anchor="middle" style="fill:#16324b">on chip</text>
+<path d="M154,313 L154,363" stroke="#19354b" stroke-width="2.5" fill="none" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+<path d="M500,313 L500,363" stroke="#19354b" stroke-width="2.5" fill="none" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+<rect x="24" y="370" width="260" height="58" rx="10" fill="#fff8e8" stroke="#e3ac2d" stroke-width="2"/>
+<text x="154" y="405" class="small" text-anchor="middle">Convolution history</text>
+<rect x="363" y="370" width="274" height="58" rx="10" fill="#fff8e8" stroke="#e3ac2d" stroke-width="2"/>
+<text x="500.0" y="405" class="small" text-anchor="middle">Recurrent state</text>
+<path d="M1006,313 L1006,363" stroke="#30a2ff" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+<rect x="795" y="370" width="381" height="58" rx="10" fill="#e8f4ff" stroke="#30a2ff" stroke-width="2"/>
+<text x="985" y="405" class="small" text-anchor="middle" style="fill:#16324b">Store directly in the output buffer</text>
+<text x="24" y="487" class="small" text-anchor="start">Temporary handoffs disappear. Saved-state reads and writes remain.</text>
+</svg>

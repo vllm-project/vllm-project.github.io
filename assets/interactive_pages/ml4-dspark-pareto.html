@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML4 DSpark: throughput vs interactivity</title>
+<!-- Template for dspark_pareto.py; data is injected at the DATA placeholder below.
+     Same look and controls as pd_pareto_interactive.tmpl.html (figkit tokens, Mistral palette). -->
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f5f4ef;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e4e3de; --line: #8f8a84;
+  --blue-line: #0262bf; --stone-line: #9a958f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #55b3fb; --stone-line: #7f7a74;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #55b3fb; --stone-line: #7f7a74;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; padding: 4px 0 8px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+.fig-head-row { display: flex; gap: 12px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-clab { font-family: var(--mono) !important; font-size: 10.5px; fill: var(--muted); pointer-events: none; }
+.m-rule { stroke: var(--rule); stroke-width: var(--hair); fill: none; }
+.m-line { stroke: var(--line); stroke-width: var(--hair); fill: none; }
+.s-line { fill: none; stroke-width: 2.2px; stroke-linejoin: round; stroke-linecap: round; }
+.s-base { stroke-width: 1.6px; stroke-dasharray: 6 4; stroke-linecap: butt; }
+.s-dot { stroke: var(--bg); stroke-width: 2px; }
+.s-hollow { fill: var(--bg); stroke-width: 1.6px; }
+.hit { fill: transparent; pointer-events: all; cursor: crosshair; }
+.hit:focus-visible { outline: none; stroke: var(--blue-line); stroke-width: 2px; }
+.ring { fill: none; stroke: var(--ink); stroke-width: 1.6px; pointer-events: none; }
+g.series.off { display: none; }
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span, .fig-legend button { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.fig-legend button[aria-pressed="false"] { opacity: .4; text-decoration: line-through; }
+.fig-legend button:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-legend svg { width: 26px; height: 12px; overflow: visible; }
+.fig-seg { display: inline-flex; border: var(--hair) solid var(--rule); }
+.fig-seg button {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 28px; padding: 0 12px; cursor: pointer;
+}
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.fig-tip {
+  position: fixed; pointer-events: none; z-index: 10; background: var(--bg); color: var(--ink);
+  border: var(--hair) solid var(--line); padding: 8px 10px; font-size: 12.5px; line-height: 1.45;
+  opacity: 0; transition: opacity 120ms;
+}
+.fig-tip.show { opacity: 1; }
+.fig-tip .tip-k { font-weight: 600; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+.fig-tip .tip-row { display: flex; align-items: center; gap: 8px; color: var(--muted); white-space: nowrap; }
+.fig-tip .tip-row b { color: var(--ink); font-weight: 600; margin-left: auto; padding-left: 14px; font-variant-numeric: tabular-nums; }
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none;
+}
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-note { font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div class="fig" id="fig">
+  <div class="fig-head">
+    <p class="fig-kicker">DSpark · depth 3 · ML4 · GB300</p>
+    <div class="fig-head-row">
+      <div>
+        <h1 class="fig-title">DSpark moves the whole curve up and right</h1>
+        <p class="fig-sub" id="sub"></p>
+      </div>
+      <div class="fig-seg" role="tablist" aria-label="Input length" id="tabs"></div>
+    </div>
+  </div>
+  <div class="fig-frame" role="tabpanel" id="panel"><span class="fig-corners"></span>
+    <svg class="fig-stage" id="stage" viewBox="0 0 736 380" role="img"></svg>
+    <p class="fig-note"><span id="note"></span>Solid: DSpark; dashed, hollow: no spec. Labels = concurrency; hover a point for its metrics.</p>
+  </div>
+  <div class="fig-legend" id="legend"></div>
+</div>
+<div class="fig-tip" id="tip" aria-hidden="true"></div>
+<script>window.DS = {"configs":[{"id":"tp8","name":"TP8","color":"#fa500f","dark":"#fa500f","marker":"o"},{"id":"dcp8","name":"TP8 DCP8","color":"#242433","dark":"#e4e2d6","marker":"s"},{"id":"fp8","name":"TP8 FP8","color":"#0262bf","dark":"#55b3fb","marker":"D"}],"tabs":[{"key":"short","label":"Short","sub":"TP8 c1 TPOT 8.21 → 2.95 ms (2.78x); TP8 FP8 c1 TPOT 8.84 → 3.50 ms (2.53x)","note":"The results table above: TP8 NVFP4 and FP8, 200 real prompts, greedy, up to 512 output tokens, c1 / c8 / c32 (earlier stack bbe5926511, own client). ","series":[{"cfg":"tp8","spec":false,"pts":[{"c":1,"n":40,"user":121.78,"gpu":14.52,"tpot":8.21,"ttft":0.07,"al":null},{"c":8,"n":200,"user":77.81,"gpu":73.69,"tpot":12.85,"ttft":0.083,"al":null},{"c":32,"n":200,"user":39.4,"gpu":147.85,"tpot":25.38,"ttft":0.279,"al":null}]},{"cfg":"tp8","spec":true,"pts":[{"c":1,"n":40,"user":339.17,"gpu":32.28,"tpot":2.95,"ttft":0.073,"al":2.93},{"c":8,"n":200,"user":172.33,"gpu":141.35,"tpot":5.8,"ttft":0.091,"al":2.86},{"c":32,"n":200,"user":102.05,"gpu":324.99,"tpot":9.8,"ttft":0.123,"al":2.86}]},{"cfg":"fp8","spec":false,"pts":[{"c":1,"n":40,"user":113.16,"gpu":13.6,"tpot":8.84,"ttft":0.07,"al":null},{"c":8,"n":200,"user":65.45,"gpu":62.02,"tpot":15.28,"ttft":0.086,"al":null},{"c":32,"n":200,"user":33.42,"gpu":126.9,"tpot":29.92,"ttft":0.289,"al":null}]},{"cfg":"fp8","spec":true,"pts":[{"c":1,"n":40,"user":286.07,"gpu":27.53,"tpot":3.5,"ttft":0.076,"al":2.9},{"c":8,"n":200,"user":141.29,"gpu":118.23,"tpot":7.08,"ttft":0.094,"al":2.85},{"c":32,"n":200,"user":86.4,"gpu":271.07,"tpot":11.57,"ttft":0.123,"al":2.85}]}]},{"key":"8k","label":"8k in","sub":"TP8 c1 TPOT 8.83 → 3.45 ms (2.56x); TP8 DCP8 c1 TPOT 12.82 → 4.93 ms (2.60x)","note":"ML4 NVFP4 (4359ec6), 8× GB300 colocated; vllm bench serve, real-text prompts, output 1k, greedy, ignore_eos. ","series":[{"cfg":"tp8","spec":false,"pts":[{"c":1,"n":8,"user":113.31,"gpu":13.51,"tpot":8.83,"ttft":0.446,"al":null},{"c":2,"n":12,"user":100.97,"gpu":24.14,"tpot":9.9,"ttft":0.462,"al":null},{"c":4,"n":24,"user":94.57,"gpu":42.18,"tpot":10.57,"ttft":1.323,"al":null},{"c":8,"n":48,"user":77.96,"gpu":69.09,"tpot":12.83,"ttft":1.744,"al":null},{"c":16,"n":96,"user":55.78,"gpu":101.91,"tpot":17.93,"ttft":1.745,"al":null},{"c":32,"n":192,"user":36.32,"gpu":135.62,"tpot":27.54,"ttft":1.747,"al":null}]},{"cfg":"tp8","spec":true,"pts":[{"c":1,"n":8,"user":290.0,"gpu":31.5,"tpot":3.45,"ttft":0.452,"al":3.08},{"c":2,"n":12,"user":242.76,"gpu":52.72,"tpot":4.12,"ttft":0.475,"al":3.04},{"c":4,"n":24,"user":177.64,"gpu":78.68,"tpot":5.63,"ttft":0.486,"al":2.98},{"c":8,"n":48,"user":119.89,"gpu":110.17,"tpot":8.34,"ttft":0.497,"al":2.99},{"c":16,"n":96,"user":81.09,"gpu":144.98,"tpot":12.33,"ttft":0.51,"al":2.97},{"c":32,"n":192,"user":48.69,"gpu":178.3,"tpot":20.54,"ttft":0.958,"al":2.99},{"c":64,"n":320,"user":27.26,"gpu":202.81,"tpot":36.68,"ttft":1.524,"al":3.0}]},{"cfg":"dcp8","spec":false,"pts":[{"c":1,"n":8,"user":78.0,"gpu":9.34,"tpot":12.82,"ttft":0.592,"al":null},{"c":2,"n":12,"user":69.8,"gpu":16.75,"tpot":14.33,"ttft":0.622,"al":null},{"c":4,"n":24,"user":66.24,"gpu":29.59,"tpot":15.1,"ttft":1.869,"al":null},{"c":8,"n":48,"user":55.98,"gpu":49.77,"tpot":17.86,"ttft":2.335,"al":null},{"c":16,"n":96,"user":41.6,"gpu":75.92,"tpot":24.04,"ttft":2.336,"al":null},{"c":32,"n":192,"user":28.15,"gpu":104.65,"tpot":35.53,"ttft":2.338,"al":null}]},{"cfg":"dcp8","spec":true,"pts":[{"c":1,"n":8,"user":202.69,"gpu":22.69,"tpot":4.93,"ttft":0.595,"al":3.09},{"c":2,"n":12,"user":166.54,"gpu":37.64,"tpot":6.0,"ttft":0.637,"al":2.97},{"c":4,"n":24,"user":130.22,"gpu":57.89,"tpot":7.68,"ttft":0.724,"al":3.01},{"c":8,"n":48,"user":90.87,"gpu":81.17,"tpot":11.0,"ttft":0.74,"al":2.96},{"c":16,"n":96,"user":60.38,"gpu":111.28,"tpot":16.56,"ttft":0.746,"al":3.0},{"c":32,"n":192,"user":38.03,"gpu":137.05,"tpot":26.29,"ttft":1.399,"al":3.01}]}]},{"key":"32k","label":"32k in","sub":"TP8 c1 TPOT 9.14 → 4.02 ms (2.27x); TP8 DCP8 c1 TPOT 12.96 → 5.44 ms (2.38x)","note":"ML4 NVFP4 (4359ec6), 8× GB300 colocated; vllm bench serve, real-text prompts, output 1k, greedy, ignore_eos. ","series":[{"cfg":"tp8","spec":false,"pts":[{"c":1,"n":8,"user":109.4,"gpu":11.41,"tpot":9.14,"ttft":1.862,"al":null},{"c":2,"n":12,"user":91.52,"gpu":18.6,"tpot":10.93,"ttft":2.567,"al":null},{"c":4,"n":24,"user":66.78,"gpu":28.2,"tpot":14.98,"ttft":2.832,"al":null},{"c":8,"n":48,"user":44.54,"gpu":38.94,"tpot":22.45,"ttft":3.252,"al":null},{"c":16,"n":96,"user":25.8,"gpu":47.64,"tpot":38.76,"ttft":3.254,"al":null}]},{"cfg":"tp8","spec":true,"pts":[{"c":1,"n":8,"user":248.9,"gpu":21.49,"tpot":4.02,"ttft":1.872,"al":2.81},{"c":2,"n":12,"user":167.82,"gpu":30.5,"tpot":5.96,"ttft":1.906,"al":2.8},{"c":4,"n":24,"user":99.11,"gpu":41.12,"tpot":10.09,"ttft":1.93,"al":2.87},{"c":8,"n":48,"user":56.22,"gpu":49.11,"tpot":17.79,"ttft":2.339,"al":2.85},{"c":16,"n":96,"user":31.31,"gpu":55.44,"tpot":31.94,"ttft":3.738,"al":2.87}]},{"cfg":"dcp8","spec":false,"pts":[{"c":1,"n":8,"user":77.14,"gpu":8.18,"tpot":12.96,"ttft":2.376,"al":null},{"c":2,"n":12,"user":62.64,"gpu":13.36,"tpot":15.96,"ttft":2.814,"al":null},{"c":4,"n":24,"user":48.94,"gpu":20.82,"tpot":20.43,"ttft":3.684,"al":null},{"c":8,"n":48,"user":33.43,"gpu":29.42,"tpot":29.91,"ttft":4.173,"al":null}]},{"cfg":"dcp8","spec":true,"pts":[{"c":1,"n":8,"user":183.72,"gpu":16.01,"tpot":5.44,"ttft":2.368,"al":2.81},{"c":2,"n":12,"user":121.46,"gpu":23.48,"tpot":8.23,"ttft":2.504,"al":2.79},{"c":4,"n":24,"user":76.2,"gpu":31.51,"tpot":13.12,"ttft":2.516,"al":2.9},{"c":8,"n":48,"user":45.84,"gpu":38.65,"tpot":21.81,"ttft":3.003,"al":2.87},{"c":16,"n":96,"user":24.6,"gpu":44.12,"tpot":40.66,"ttft":3.263,"al":2.88}]}]},{"key":"60k","label":"60k in","sub":"DSpark only at this input length","note":"ML4 NVFP4 (4359ec6), 8× GB300 colocated; vllm bench serve, real-text prompts, output 1k, greedy, ignore_eos. No-spec runs at 60k were not run (cancelled); DSpark only. ","series":[{"cfg":"tp8","spec":true,"pts":[{"c":1,"n":8,"user":262.12,"gpu":16.96,"tpot":3.82,"ttft":3.651,"al":2.95},{"c":2,"n":12,"user":130.3,"gpu":21.36,"tpot":7.67,"ttft":3.676,"al":2.8},{"c":4,"n":24,"user":65.49,"gpu":26.05,"tpot":15.27,"ttft":3.679,"al":2.8},{"c":8,"n":48,"user":35.32,"gpu":29.38,"tpot":28.31,"ttft":5.456,"al":2.81}]},{"cfg":"dcp8","spec":true,"pts":[{"c":1,"n":8,"user":181.5,"gpu":12.39,"tpot":5.51,"ttft":4.529,"al":2.75},{"c":2,"n":12,"user":98.51,"gpu":16.36,"tpot":10.15,"ttft":4.599,"al":2.74},{"c":4,"n":24,"user":49.97,"gpu":19.38,"tpot":20.01,"ttft":5.218,"al":2.77},{"c":8,"n":48,"user":27.64,"gpu":23.82,"tpot":36.18,"ttft":4.882,"al":2.78}]}]}],"default":"8k","label_c":[1,8,32]};</script>
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const D = window.DS, S = document.getElementById("stage"), tip = document.getElementById("tip");
+  const $ = (id) => document.getElementById(id);
+  const TABS = D.tabs;
+  // dark mode swaps each config to its own dark step (validated separately), as figkit does
+  const root = document.documentElement.dataset.theme;
+  if (root === "dark" || (root !== "light" && matchMedia("(prefers-color-scheme: dark)").matches))
+    D.configs.forEach((c) => { c.color = c.dark; });
+  const CFG = Object.fromEntries(D.configs.map((c) => [c.id, c]));
+  const hidden = new Set();
+  let cur = 0, narrow = null;
+
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, s, cls, attrs) {
+    const t = el("text", Object.assign({ x, y, class: cls }, attrs || {}), parent);
+    t.textContent = s;
+    return t;
+  }
+  function marker(parent, m, x, y, r, attrs) {
+    if (m === "o") return el("circle", Object.assign({ cx: x, cy: y, r }, attrs), parent);
+    const k = r * 1.1;
+    const d = {
+      s: `M${x - k * .85} ${y - k * .85}h${k * 1.7}v${k * 1.7}h${-k * 1.7}z`,
+      D: `M${x} ${y - k * 1.15}L${x + k} ${y}L${x} ${y + k * 1.15}L${x - k} ${y}z`,
+    }[m];
+    return el("path", Object.assign({ d }, attrs), parent);
+  }
+  function nice(max) {
+    const step0 = max / 5, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+    const step = [1, 2, 2.5, 5, 10].map((f) => f * mag).find((s) => s >= step0);
+    const top = Math.ceil(max / step) * step, ticks = [];
+    for (let v = 0; v <= top + 1e-9; v += step) ticks.push(+v.toFixed(6));
+    return { max: top, ticks };
+  }
+  const f1 = (v) => v.toFixed(1), f2 = (v) => v.toFixed(2);
+  const intf = (v) => Math.round(v).toLocaleString("en-US");
+  const sname = (s) => CFG[s.cfg].name + " · " + (s.spec ? "DSpark" : "no spec");
+
+  function swatchSvg(color, m, spec) {
+    const s = document.createElementNS(NS, "svg");
+    s.setAttribute("viewBox", "0 0 26 12");
+    el("line", { x1: 1, x2: 25, y1: 6, y2: 6, class: "s-line" + (spec ? "" : " s-base"), style: "stroke:" + color }, s);
+    marker(s, m, 13, 6, spec ? 4 : 3.4, spec ? { class: "s-dot", style: "fill:" + color }
+      : { class: "s-hollow", style: "stroke:" + color });
+    s.setAttribute("width", 26); s.setAttribute("height", 12);
+    return s.outerHTML;
+  }
+
+  function show(s, r, cx, cy) {
+    const c = CFG[s.cfg];
+    const rows = [
+      ["Concurrency", String(r.c)],
+      ["Interactivity", f1(r.user) + " tok/s/user"],
+      ["Throughput", f1(r.gpu) + " tok/s/GPU"],
+      ["TPOT p50", f2(r.tpot) + " ms"],
+      ["TTFT p50", f2(r.ttft) + " s"],
+      ["AL", r.al == null ? "–" : f2(r.al)],
+      ["Requests", intf(r.n)],
+    ];
+    tip.innerHTML = '<div class="tip-k">' + swatchSvg(c.color, c.marker, s.spec) + sname(s) + "</div>" +
+      rows.map((k) => '<div class="tip-row">' + k[0] + "<b>" + k[1] + "</b></div>").join("");
+    tip.classList.add("show");
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let left = cx + 14, top = cy - h - 12;
+    if (left + w > innerWidth - 8) left = cx - w - 14;
+    if (top < 8) top = cy + 14;
+    tip.style.left = Math.max(8, left) + "px";
+    tip.style.top = top + "px";
+  }
+  function hide() { tip.classList.remove("show"); S.querySelectorAll(".ring").forEach((n) => n.remove()); }
+
+  function draw() {
+    S.replaceChildren();
+    narrow = S.getBoundingClientRect().width < 520;
+    const W = narrow ? 420 : 736, H = narrow ? 360 : 380;
+    S.setAttribute("viewBox", "0 0 " + W + " " + H);
+    const T0 = TABS[cur], all = T0.series.flatMap((s) => s.pts);
+    const xs = nice(Math.max(...all.map((r) => r.user)) * 1.06);
+    const ys = nice(Math.max(...all.map((r) => r.gpu)) * 1.06);
+    const X0 = narrow ? 44 : 52, X1 = W - 12, T = 22, B = H - 46;
+    const X = (v) => X0 + v / xs.max * (X1 - X0), Y = (v) => B - v / ys.max * (B - T);
+    S.setAttribute("aria-label", "Output tok/s per GPU vs tok/s per user, " + T0.label +
+      ", with and without DSpark for " + [...new Set(T0.series.map((s) => CFG[s.cfg].name))].join(" and ") + ".");
+
+    for (const v of ys.ticks) {
+      el("line", { x1: X0, x2: X1, y1: Y(v), y2: Y(v), class: "m-rule" }, S);
+      text(S, X0 - 8, Y(v) + 4.5, String(v), "t-faint", { "text-anchor": "end" });
+    }
+    text(S, X0 - 8, T - 10, "out tok/s/GPU", "t-mut", { "text-anchor": "start", x: 0 });
+    for (const v of narrow ? xs.ticks.filter((_, i) => i % 2 === 0) : xs.ticks) {
+      el("line", { x1: X(v), x2: X(v), y1: B, y2: B + 5, class: "m-line" }, S);
+      text(S, X(v), B + 20, String(v), "t-faint", { "text-anchor": "middle" });
+    }
+    text(S, X1, B + 38, "tok/s per user (1000 / TPOT p50)", "t-mut", { "text-anchor": "end" });
+
+    const hits = [];
+    // no-spec first, so the DSpark curves sit on top
+    for (const s of [...T0.series].sort((a, b) => a.spec - b.spec)) {
+      const c = CFG[s.cfg], off = hidden.has(s.cfg);
+      const g = el("g", { class: "series" + (off ? " off" : ""), "data-cfg": s.cfg, "data-spec": s.spec }, S);
+      const d = s.pts.map((r, i) => (i ? "L" : "M") + X(r.user).toFixed(1) + " " + Y(r.gpu).toFixed(1)).join("");
+      el("path", { d, class: "s-line" + (s.spec ? "" : " s-base"), stroke: c.color }, g);
+      for (const r of s.pts) {
+        marker(g, c.marker, X(r.user), Y(r.gpu), s.spec ? 4.2 : 3.6,
+          s.spec ? { class: "s-dot", fill: c.color } : { class: "s-hollow", stroke: c.color });
+        if (D.label_c.includes(r.c) && !narrow)
+          text(g, X(r.user) + (s.spec ? 7 : -7), Y(r.gpu) + (s.spec ? -7 : 14), "c" + r.c, "t-clab",
+            { "text-anchor": s.spec ? "start" : "end" });
+        if (!off) hits.push([s, r]);
+      }
+    }
+    for (const [s, r] of hits) {
+      const hit = el("circle", { cx: X(r.user), cy: Y(r.gpu), r: 9, class: "hit", tabindex: "0", role: "img",
+        "aria-label": sname(s) + ", concurrency " + r.c + ": " + f1(r.gpu) + " tok/s/GPU at " + f1(r.user) +
+          " tok/s/user, TPOT " + f2(r.tpot) + " ms" }, S);
+      const on = (cx, cy) => { hide(); el("circle", { cx: X(r.user), cy: Y(r.gpu), r: 8, class: "ring" }, S); show(s, r, cx, cy); };
+      hit.addEventListener("mouseenter", (e) => on(e.clientX, e.clientY));
+      hit.addEventListener("mousemove", (e) => show(s, r, e.clientX, e.clientY));
+      hit.addEventListener("focus", () => { const b = hit.getBoundingClientRect(); on(b.left + b.width / 2, b.top); });
+      hit.addEventListener("mouseleave", hide);
+      hit.addEventListener("blur", hide);
+    }
+    if (!hits.length) text(S, (X0 + X1) / 2, (T + B) / 2, "All configurations hidden", "t-mut", { "text-anchor": "middle" });
+  }
+
+  function legend() {
+    const L = $("legend");
+    L.innerHTML = "";
+    const ids = [...new Set(TABS[cur].series.map((s) => s.cfg))];
+    for (const id of ids) {
+      const c = CFG[id], b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(!hidden.has(id)));
+      b.innerHTML = swatchSvg(c.color, c.marker, true) + c.name;
+      b.onclick = () => {
+        hidden.has(id) ? hidden.delete(id) : hidden.add(id);
+        b.setAttribute("aria-pressed", String(!hidden.has(id)));
+        hide(); draw();
+      };
+      L.appendChild(b);
+    }
+    for (const spec of [true, false]) {
+      if (!TABS[cur].series.some((s) => s.spec === spec)) continue;
+      const q = document.createElement("span");
+      q.innerHTML = swatchSvg("var(--muted)", "o", spec) + (spec ? "DSpark" : "no spec");
+      L.appendChild(q);
+    }
+  }
+
+  const tabs = TABS.map((t, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "tab-" + t.key; b.textContent = t.label;
+    b.setAttribute("role", "tab"); b.setAttribute("aria-controls", "panel");
+    b.onclick = () => select(i);
+    $("tabs").appendChild(b);
+    return b;
+  });
+  $("tabs").addEventListener("keydown", (e) => {
+    const n = TABS.length, k = { ArrowRight: cur + 1, ArrowLeft: cur - 1, Home: 0, End: n - 1 }[e.key];
+    if (k == null) return;
+    e.preventDefault();
+    select((k + n) % n, true);
+  });
+  function select(k, focus) {
+    cur = k;
+    tabs.forEach((b, j) => { b.setAttribute("aria-selected", j === k); b.tabIndex = j === k ? 0 : -1; });
+    if (focus) tabs[k].focus();
+    $("sub").textContent = TABS[k].sub + ". Up and right is better.";
+    $("note").textContent = TABS[k].note;
+    $("panel").setAttribute("aria-labelledby", tabs[k].id);
+    hide(); legend(); draw();
+  }
+
+  // ?tab=32k opens a given tab, for screenshots and deep links
+  const m = /[?&]tab=(\w+)/.exec(location.search);
+  const keys = TABS.map((t) => t.key);
+  select(Math.max(0, keys.indexOf(m ? m[1] : D.default)));
+  addEventListener("resize", () => { if ((S.getBoundingClientRect().width < 520) !== narrow) draw(); });
+  addEventListener("scroll", hide, { passive: true });
+
+  // embedding: report the content height to the parent post ('vllm-embed-resize'), as figkit.js does
+  (function reportHeight() {
+    if (window.self === window.top) return;
+    document.documentElement.style.overflow = "hidden";
+    let last = 0;
+    const report = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+    };
+    if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+    addEventListener("load", report);
+    addEventListener("resize", report);
+    setTimeout(report, 300); setTimeout(report, 1500);
+    report();
+  })();
+})();
+</script>
+</body>
+</html>

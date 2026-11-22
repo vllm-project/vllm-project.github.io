@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1164" viewBox="0 0 1400 1164" role="img" aria-labelledby="title desc">
+<title id="title">Humming: Quantization Support</title>
+<desc id="desc">Columns show activation types; rows show weight types. Green checks indicate support; unsupported cells are blank. E0M symmetric integer formats are excluded. INT1: FP16, BF16, INT4, INT8, FP8, FP4; INT2: FP16, BF16, INT4, INT8, FP8, FP4; INT3: FP16, BF16, INT4, INT8, FP8, FP4; INT4: FP16, BF16, INT4, INT8, FP8; INT5: FP16, BF16, INT8, FP8; INT6: FP16, BF16, INT8, FP8; INT7: FP16, BF16, INT8; INT8: FP16, BF16, INT8; FP8: FP16, BF16, FP8; FP7: FP16, BF16, FP8; FP6: FP16, BF16, FP8; FP5: FP16, BF16, FP8; FP4: FP16, BF16, INT8, FP8, FP4</desc>
+<!-- Sources: humming/schema/humming.py:is_humming_schema_compatible;
+     humming/config/mma.py:get_mma_b_dtype;
+     tests/kernels/humming/test_datatype.py; humming/transform.py:prepare_layer_config.
+     Aggregate by numeric family across compatible devices and scale configurations.
+     E0M symmetric integer formats and conversions to/from them are excluded.
+     INT6/FP8 includes E3M4-capable hardware. FP4/INT8 includes MXFP4 (E8M0, group 32).
+     Witnesses below are schema-compatible examples, not a claim of runtime testing.
+     INT1/FP16: W=uint1, A=float16, scale=bfloat16, group=0.
+     INT1/BF16: W=uint1, A=bfloat16, scale=bfloat16, group=0.
+     INT1/INT4: W=uint1, A=int4, scale=bfloat16, group=0.
+     INT1/INT8: W=uint1, A=int8, scale=bfloat16, group=0.
+     INT1/FP8: W=uint1, A=float8e4m3, scale=bfloat16, group=0.
+     INT1/FP4: W=uint1, A=float4e2m1, scale=bfloat16, group=0.
+     INT2/FP16: W=uint2, A=float16, scale=bfloat16, group=0.
+     INT2/BF16: W=uint2, A=bfloat16, scale=bfloat16, group=0.
+     INT2/INT4: W=uint2, A=int4, scale=bfloat16, group=0.
+     INT2/INT8: W=uint2, A=int8, scale=bfloat16, group=0.
+     INT2/FP8: W=uint2, A=float8e4m3, scale=bfloat16, group=0.
+     INT2/FP4: W=uint2, A=float4e2m1, scale=bfloat16, group=0.
+     INT3/FP16: W=uint3, A=float16, scale=bfloat16, group=0.
+     INT3/BF16: W=uint3, A=bfloat16, scale=bfloat16, group=0.
+     INT3/INT4: W=uint3, A=int4, scale=bfloat16, group=0.
+     INT3/INT8: W=uint3, A=int8, scale=bfloat16, group=0.
+     INT3/FP8: W=uint3, A=float8e4m3, scale=bfloat16, group=0.
+     INT3/FP4: W=uint3, A=float4e2m1, scale=bfloat16, group=0.
+     INT4/FP16: W=uint4, A=float16, scale=bfloat16, group=0.
+     INT4/BF16: W=uint4, A=bfloat16, scale=bfloat16, group=0.
+     INT4/INT4: W=uint4, A=int4, scale=bfloat16, group=0.
+     INT4/INT8: W=uint4, A=int8, scale=bfloat16, group=0.
+     INT4/FP8: W=uint4, A=float8e4m3, scale=bfloat16, group=0.
+     INT5/FP16: W=uint5, A=float16, scale=bfloat16, group=0.
+     INT5/BF16: W=uint5, A=bfloat16, scale=bfloat16, group=0.
+     INT5/INT8: W=uint5, A=int8, scale=bfloat16, group=0.
+     INT5/FP8: W=uint5, A=float8e4m3, scale=bfloat16, group=0.
+     INT6/FP16: W=uint6, A=float16, scale=bfloat16, group=0.
+     INT6/BF16: W=uint6, A=bfloat16, scale=bfloat16, group=0.
+     INT6/INT8: W=uint6, A=int8, scale=bfloat16, group=0.
+     INT6/FP8: W=uint6, A=float8e4m3, scale=bfloat16, group=0.
+     INT7/FP16: W=uint7, A=float16, scale=bfloat16, group=0.
+     INT7/BF16: W=uint7, A=bfloat16, scale=bfloat16, group=0.
+     INT7/INT8: W=uint7, A=int8, scale=bfloat16, group=0.
+     INT8/FP16: W=uint8, A=float16, scale=bfloat16, group=0.
+     INT8/BF16: W=uint8, A=bfloat16, scale=bfloat16, group=0.
+     INT8/INT8: W=uint8, A=int8, scale=bfloat16, group=0.
+     FP8/FP16: W=float8e1m6, A=float16, scale=bfloat16, group=0.
+     FP8/BF16: W=float8e1m6, A=bfloat16, scale=bfloat16, group=0.
+     FP8/FP8: W=float8e4m3, A=float8e4m3, scale=bfloat16, group=0.
+     FP7/FP16: W=float7e2m4, A=float16, scale=bfloat16, group=0.
+     FP7/BF16: W=float7e2m4, A=bfloat16, scale=bfloat16, group=0.
+     FP7/FP8: W=float7e2m4, A=float8e4m3, scale=bfloat16, group=0.
+     FP6/FP16: W=float6e2m3, A=float16, scale=bfloat16, group=0.
+     FP6/BF16: W=float6e2m3, A=bfloat16, scale=bfloat16, group=0.
+     FP6/FP8: W=float6e2m3, A=float8e4m3, scale=bfloat16, group=0.
+     FP5/FP16: W=float5e2m2, A=float16, scale=bfloat16, group=0.
+     FP5/BF16: W=float5e2m2, A=bfloat16, scale=bfloat16, group=0.
+     FP5/FP8: W=float5e2m2, A=float8e4m3, scale=bfloat16, group=0.
+     FP4/FP16: W=float4e2m1, A=float16, scale=bfloat16, group=0.
+     FP4/BF16: W=float4e2m1, A=bfloat16, scale=bfloat16, group=0.
+     FP4/INT8: W=float4e2m1, A=int8, scale=float8e8m0, group=32.
+     FP4/FP8: W=float4e2m1, A=float8e4m3, scale=bfloat16, group=0.
+     FP4/FP4: W=float4e2m1, A=float4e2m1, scale=bfloat16, group=0.
+-->
+<defs>
+  <g id="supported"><rect x="-16" y="-16" width="32" height="32" rx="7" fill="#168477"/><path d="M-8 0 L-2 6 L9 -7" fill="none" stroke="white" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+</defs>
+<rect width="1400" height="1164" fill="white"/>
+<g font-family="Noto Sans CJK SC, Microsoft YaHei, PingFang SC, sans-serif">
+<text x="58" y="60" font-size="32" fill="#203747" font-weight="700" text-anchor="start">Humming</text>
+<path d="M242 32 V66" stroke="#C7D4DA" stroke-width="1.4"/>
+<text x="268" y="60" font-size="32" fill="#203747" font-weight="700" text-anchor="start">Quantization Support</text>
+<text x="58" y="101" font-size="20" fill="#6B7C87" font-weight="400" text-anchor="start">Weight × activation, across a broad range of precisions</text>
+<text x="832" y="169" font-size="23" fill="#77639E" font-weight="600" text-anchor="middle">Activation type</text>
+<path d="M338 178 H1326" stroke="#DCD4E9" stroke-width="1.5"/>
+<rect x="58" y="200" width="1284" height="912" rx="12" fill="white"/>
+<path d="M70 200 H1330 Q1342 200 1342 212 V280 H58 V212 Q58 200 70 200Z" fill="#F5F2F9"/>
+<path d="M70 200 H322 V1112 H70 Q58 1112 58 1100 V212 Q58 200 70 200Z" fill="#EFF7F5"/>
+<text x="190" y="250" font-size="23" fill="#147D79" font-weight="650" text-anchor="middle">Weight type</text>
+<text x="407" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">FP16</text>
+<text x="577" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">BF16</text>
+<text x="747" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">INT4</text>
+<text x="917" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">INT8</text>
+<text x="1087" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">FP8</text>
+<text x="1257" y="250" font-size="28" fill="#77639E" font-weight="650" text-anchor="middle">FP4</text>
+<g id="weight-int1">
+<text x="190" y="322" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT1</text>
+<use href="#supported" x="407" y="312" data-activation="FP16"/>
+<use href="#supported" x="577" y="312" data-activation="BF16"/>
+<use href="#supported" x="747" y="312" data-activation="INT4"/>
+<use href="#supported" x="917" y="312" data-activation="INT8"/>
+<use href="#supported" x="1087" y="312" data-activation="FP8"/>
+<use href="#supported" x="1257" y="312" data-activation="FP4"/>
+</g>
+<g id="weight-int2">
+<rect x="322" y="344" width="1020" height="64" fill="#F8FAFB"/>
+<text x="190" y="386" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT2</text>
+<use href="#supported" x="407" y="376" data-activation="FP16"/>
+<use href="#supported" x="577" y="376" data-activation="BF16"/>
+<use href="#supported" x="747" y="376" data-activation="INT4"/>
+<use href="#supported" x="917" y="376" data-activation="INT8"/>
+<use href="#supported" x="1087" y="376" data-activation="FP8"/>
+<use href="#supported" x="1257" y="376" data-activation="FP4"/>
+</g>
+<g id="weight-int3">
+<text x="190" y="450" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT3</text>
+<use href="#supported" x="407" y="440" data-activation="FP16"/>
+<use href="#supported" x="577" y="440" data-activation="BF16"/>
+<use href="#supported" x="747" y="440" data-activation="INT4"/>
+<use href="#supported" x="917" y="440" data-activation="INT8"/>
+<use href="#supported" x="1087" y="440" data-activation="FP8"/>
+<use href="#supported" x="1257" y="440" data-activation="FP4"/>
+</g>
+<g id="weight-int4">
+<rect x="322" y="472" width="1020" height="64" fill="#F8FAFB"/>
+<text x="190" y="514" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT4</text>
+<use href="#supported" x="407" y="504" data-activation="FP16"/>
+<use href="#supported" x="577" y="504" data-activation="BF16"/>
+<use href="#supported" x="747" y="504" data-activation="INT4"/>
+<use href="#supported" x="917" y="504" data-activation="INT8"/>
+<use href="#supported" x="1087" y="504" data-activation="FP8"/>
+</g>
+<g id="weight-int5">
+<text x="190" y="578" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT5</text>
+<use href="#supported" x="407" y="568" data-activation="FP16"/>
+<use href="#supported" x="577" y="568" data-activation="BF16"/>
+<use href="#supported" x="917" y="568" data-activation="INT8"/>
+<use href="#supported" x="1087" y="568" data-activation="FP8"/>
+</g>
+<g id="weight-int6">
+<rect x="322" y="600" width="1020" height="64" fill="#F8FAFB"/>
+<text x="190" y="642" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT6</text>
+<use href="#supported" x="407" y="632" data-activation="FP16"/>
+<use href="#supported" x="577" y="632" data-activation="BF16"/>
+<use href="#supported" x="917" y="632" data-activation="INT8"/>
+<use href="#supported" x="1087" y="632" data-activation="FP8"/>
+</g>
+<g id="weight-int7">
+<text x="190" y="706" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT7</text>
+<use href="#supported" x="407" y="696" data-activation="FP16"/>
+<use href="#supported" x="577" y="696" data-activation="BF16"/>
+<use href="#supported" x="917" y="696" data-activation="INT8"/>
+</g>
+<g id="weight-int8">
+<rect x="322" y="728" width="1020" height="64" fill="#F8FAFB"/>
+<text x="190" y="770" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">INT8</text>
+<use href="#supported" x="407" y="760" data-activation="FP16"/>
+<use href="#supported" x="577" y="760" data-activation="BF16"/>
+<use href="#supported" x="917" y="760" data-activation="INT8"/>
+</g>
+<g id="weight-fp8">
+<text x="190" y="834" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">FP8</text>
+<use href="#supported" x="407" y="824" data-activation="FP16"/>
+<use href="#supported" x="577" y="824" data-activation="BF16"/>
+<use href="#supported" x="1087" y="824" data-activation="FP8"/>
+</g>
+<g id="weight-fp7">
+<rect x="322" y="856" width="1020" height="64" fill="#F8FAFB"/>
+<text x="190" y="898" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">FP7</text>
+<use href="#supported" x="407" y="888" data-activation="FP16"/>
+<use href="#supported" x="577" y="888" data-activation="BF16"/>
+<use href="#supported" x="1087" y="888" data-activation="FP8"/>
+</g>
+<g id="weight-fp6">
+<text x="190" y="962" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">FP6</text>
+<use href="#supported" x="407" y="952" data-activation="FP16"/>
+<use href="#supported" x="577" y="952" data-activation="BF16"/>
+<use href="#supported" x="1087" y="952" data-activation="FP8"/>
+</g>
+<g id="weight-fp5">
+<rect x="322" y="984" width="1020" height="64" fill="#F8FAFB"/>
+<text x="190" y="1026" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">FP5</text>
+<use href="#supported" x="407" y="1016" data-activation="FP16"/>
+<use href="#supported" x="577" y="1016" data-activation="BF16"/>
+<use href="#supported" x="1087" y="1016" data-activation="FP8"/>
+</g>
+<g id="weight-fp4">
+<text x="190" y="1090" font-size="27" fill="#203747" font-weight="550" text-anchor="middle">FP4</text>
+<use href="#supported" x="407" y="1080" data-activation="FP16"/>
+<use href="#supported" x="577" y="1080" data-activation="BF16"/>
+<use href="#supported" x="917" y="1080" data-activation="INT8"/>
+<use href="#supported" x="1087" y="1080" data-activation="FP8"/>
+<use href="#supported" x="1257" y="1080" data-activation="FP4"/>
+</g>
+<path d="M58 280 H1342" stroke="#A5C5C2" stroke-width="1.6"/>
+<path d="M58 344 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 408 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 472 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 536 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 600 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 664 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 728 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 792 H1342" stroke="#A5C5C2" stroke-width="1.6"/>
+<path d="M58 856 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 920 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 984 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M58 1048 H1342" stroke="#E1E8EB" stroke-width="1"/>
+<path d="M322 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M492 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M662 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M832 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M1002 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<path d="M1172 200 V1112" stroke="#DCE5E8" stroke-width="1"/>
+<rect x="58" y="200" width="1284" height="912" rx="12" fill="none" stroke="#C7D4DA" stroke-width="1.5"/>
+</g>
+</svg>

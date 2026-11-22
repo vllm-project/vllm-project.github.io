@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="780" viewBox="0 0 1600 780"><rect width="1600" height="780" fill="#F5F5F1"/>
+<text x="48" y="40.3" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="17" fill="#65717B">vLLM  /  EPD ENGINEERING NOTES</text>
+<text x="1490" y="43.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#117E70">03</text>
+<text x="48" y="104.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="40" fill="#172735">Audio metadata-only: less preprocessing, higher throughput</text>
+<text x="48" y="146.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">Qwen3-Omni-30B-A3B-Instruct · MMAU test-mini · 1E + 1PD · Concurrency 64</text>
+<polyline points="48,175 1552,175" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<rect x="48" y="209" width="1020" height="374" rx="14" fill="#FFFFFF" stroke="#DBDFDB"/>
+<text x="76" y="249.4" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="16" fill="#65717B">REQUEST THROUGHPUT</text>
+<text x="76" y="290.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="25" fill="#172735">Requests per second ↑</text>
+<text x="76" y="373.9" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="21" fill="#65717B">Raw audio</text>
+<rect x="292" y="346" width="482" height="52" rx="5" fill="#A5B2BB"/>
+<text x="926" y="377.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="29" fill="#A5B2BB">62.21</text>
+<text x="76" y="476.9" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="21" fill="#65717B">Metadata-only</text>
+<rect x="292" y="449" width="566" height="52" rx="5" fill="#117E70"/>
+<text x="926" y="480.1" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="29" fill="#117E70">73.13</text>
+<rect x="1090" y="209" width="462" height="374" rx="14" fill="#192C3B"/>
+<text x="1120" y="251.4" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="16" fill="#B7C7D0">OBSERVED CHANGE</text>
+<text x="1118" y="334.2" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="58" fill="#BDE8D7">+17.55%</text>
+<text x="1120" y="389.7" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="23" fill="#FFFFFF">Request throughput</text>
+<polyline points="1120,413 1520,413" fill="none" stroke="#3F5260" stroke-width="1"/>
+<text x="1120" y="458.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#B7C7D0">Mean request latency</text>
+<text x="1120" y="515.8" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="32" fill="#FFFFFF">980 → 853 ms</text>
+<rect x="48" y="604" width="1504" height="102" rx="14" fill="#E9ECE6"/>
+<text x="72" y="642.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="25" fill="#172735">Accuracy: 75.90% → 75.65%</text>
+<text x="72" y="679.0" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="20" fill="#65717B">No failed requests. The accuracy difference remains under investigation; exact output equivalence is not claimed.</text>
+<polyline points="48,731 1552,731" fill="none" stroke="#DBDFDB" stroke-width="1"/>
+<text x="48" y="760.5" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="15" fill="#65717B">Source: vLLM #57887 · 1,000 samples × 2 passes / BF16 / TP1 / V2 / Mooncake TCP / CUDA Graphs</text>
+<text x="1410" y="759.6" font-family="Hiragino Sans GB, PingFang SC, sans-serif" font-size="14" fill="#117E70">INFERENCE / EPD</text>
+</svg>

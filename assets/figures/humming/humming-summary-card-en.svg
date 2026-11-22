@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">Humming — Fast, flexible kernels for quantized inference</title>
+<desc id="desc">An open-source library from Ant Group and the vLLM community. Broad GPU and quantization support for dense and MoE workloads. Up to 43% higher end-to-end throughput on H20 with TP8 for DeepSeek-V4.1-Flash, comparing Humming W4A8 with Marlin W4A16 at concurrency 64. Supports NVIDIA architectures from Turing (SM75) onward and Zhenwu 810E. Approximately 500 KB wheel.</desc>
+<defs>
+  <linearGradient id="background" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0" stop-color="#f7fbfa"/><stop offset="1" stop-color="#edf2f8"/>
+  </linearGradient>
+</defs>
+<rect width="1200" height="630" fill="url(#background)"/>
+<rect width="1200" height="7" fill="#168477"/>
+<path d="M816 71H1105V280H816Z" fill="none" stroke="#dee8ec" stroke-width="1"/>
+<path d="M847 87H1136V296H847Z" fill="none" stroke="#e0e8f0" stroke-width="1"/>
+<rect x="888" y="102" width="36" height="30" rx="6" fill="#dcefeb"/>
+<rect x="936" y="102" width="36" height="30" rx="6" fill="#dcefeb"/>
+<rect x="984" y="102" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="1032" y="102" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="888" y="144" width="36" height="30" rx="6" fill="#dcefeb"/>
+<rect x="936" y="144" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="984" y="144" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="1032" y="144" width="36" height="30" rx="6" fill="#55af9c"/>
+<rect x="888" y="186" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="936" y="186" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="984" y="186" width="36" height="30" rx="6" fill="#55af9c"/>
+<rect x="1032" y="186" width="36" height="30" rx="6" fill="#55af9c"/>
+<rect x="888" y="228" width="36" height="30" rx="6" fill="#aad8cd"/>
+<rect x="936" y="228" width="36" height="30" rx="6" fill="#55af9c"/>
+<rect x="984" y="228" width="36" height="30" rx="6" fill="#55af9c"/>
+<rect x="1032" y="228" width="36" height="30" rx="6" fill="#198578"/>
+<g font-family="DejaVu Sans, sans-serif">
+  <text x="60" y="61" font-size="16" font-weight="700" letter-spacing="2" fill="#536c7b">ANT GROUP × vLLM COMMUNITY</text>
+  <text x="54" y="181" font-size="104" font-weight="700" letter-spacing="-4" fill="#163246">Humming</text>
+  <text x="60" y="237" font-size="33" fill="#29485b">Fast, flexible kernels</text>
+  <text x="60" y="281" font-size="33" fill="#29485b">for quantized inference.</text>
+  <text x="962" y="288" font-size="14" font-weight="700" letter-spacing="2" fill="#718996">CUDA / JIT</text>
+  <text x="60" y="334" font-size="18" fill="#147d79">SM75+ GPUs</text>
+  <circle cx="207" cy="328" r="3" fill="#9ab4ba"/>
+  <text x="229" y="334" font-size="18" fill="#147d79">CUDA-compatible devices</text>
+  <circle cx="489" cy="328" r="3" fill="#9ab4ba"/>
+  <text x="511" y="334" font-size="18" fill="#147d79">Dense + MoE</text>
+  <circle cx="661" cy="328" r="3" fill="#9ab4ba"/>
+  <text x="683" y="334" font-size="18" fill="#147d79">Integer + floating-point formats</text>
+  <path d="M60 363H1140" stroke="#cfdee3" stroke-width="1"/>
+  <path d="M421 391V533M809 391V533" stroke="#cfdee3" stroke-width="1"/>
+  <text x="62" y="397" font-size="14" font-weight="700" letter-spacing="2" fill="#5d7880">UP TO</text>
+  <text x="58" y="465" font-size="76" font-weight="700" letter-spacing="-3" fill="#138677">+43%</text>
+  <text x="60" y="499" font-size="20" font-weight="700" fill="#29485b">Higher E2E throughput</text>
+  <text x="60" y="528" font-size="16" fill="#627c88">H20 DeepSeek V4.1 Flash</text>
+  <text x="458" y="465" font-size="64" font-weight="700" letter-spacing="-3" fill="#163246">SM75+</text>
+  <text x="460" y="499" font-size="20" font-weight="700" fill="#29485b">Broad GPU support</text>
+  <text x="460" y="528" font-size="15" fill="#627c88">Turing onward · Zhenwu 810E</text>
+  <text x="849" y="462" font-size="56" font-weight="700" letter-spacing="-2" fill="#76639d">~500 KB</text>
+  <text x="850" y="499" font-size="20" font-weight="700" fill="#29485b">Lightweight wheel</text>
+  <text x="850" y="528" font-size="16" fill="#627c88">Minimal dependencies</text>
+  <path d="M60 554H1140" stroke="#cfdee3" stroke-width="1"/>
+  <text x="60" y="598" font-size="16" font-weight="700" fill="#29485b">github.com/vllm-project/humming</text>
+  <text x="1140" y="598" text-anchor="end" font-size="14" letter-spacing="1" fill="#627c88">OPEN SOURCE</text>
+</g>
+</svg>

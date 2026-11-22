@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split-N on two locality domains</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Standalone export of the step-by-step animation: autoplays and loops; Pause, Prev/Next and the step chips sit below. */
+:root{
+  --surface:#ffffff; --surface-2:#f5f7fa; --ink:#111418; --muted:#535a65; --line:#d5dae1; --line-2:#e2e6eb;
+  --ld0:#30a2ff; --ld0-soft:#e6f4ff; --ld0-mid:#9fd2ff; --ld0-ink:#1676d1;
+  --ld1:#fdb515; --ld1-soft:#fff4dc; --ld1-mid:#fedb8e; --ld1-ink:#9a6700;
+  --shared:#5b6674; --shared-soft:#eceff3; --shared-ink:#535a65;
+  --display:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --surface:#141416; --surface-2:#1c1d21; --ink:#f3f4f6; --muted:#a9afb8; --line:#3a3e46; --line-2:#2e3138;
+    --ld0:#30a2ff; --ld0-soft:#0f2334; --ld0-mid:#1f5f96; --ld0-ink:#6dbdff;
+    --ld1:#fdb515; --ld1-soft:#2a2210; --ld1-mid:#7a5c14; --ld1-ink:#ffc94d;
+    --shared:#a9afb8; --shared-soft:#24272d; --shared-ink:#a9afb8;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --surface:#141416; --surface-2:#1c1d21; --ink:#f3f4f6; --muted:#a9afb8; --line:#3a3e46; --line-2:#2e3138;
+  --ld0:#30a2ff; --ld0-soft:#0f2334; --ld0-mid:#1f5f96; --ld0-ink:#6dbdff;
+  --ld1:#fdb515; --ld1-soft:#2a2210; --ld1-mid:#7a5c14; --ld1-ink:#ffc94d;
+  --shared:#a9afb8; --shared-soft:#24272d; --shared-ink:#a9afb8;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--surface);color:var(--ink)}
+body{padding:12px 16px}
+.wrap{max-width:1000px;margin:0 auto;display:grid;gap:10px}
+.viz{display:block;width:100%;height:auto;font-family:var(--display)}
+.viz rect{rx:0;ry:0}
+.controls{display:flex;align-items:center;gap:8px}
+.btn{font:500 14px/1 var(--body);padding:8px 12px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:0;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink);min-width:92px;justify-content:center}
+.btn svg{width:12px;height:12px;fill:currentColor}
+.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--shared);outline-offset:2px}
+.phases{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.phases li{flex:1 1 120px;min-width:0}
+.chip{width:100%;text-align:left;padding:8px 10px 10px;border:1px solid var(--line-2);border-radius:0;background:transparent;color:var(--muted);font:500 13px/1.2 var(--body);cursor:pointer;display:grid;gap:6px}
+.chip:hover{border-color:var(--line);color:var(--ink)}
+.chip[aria-current="step"]{border-color:var(--ink);color:var(--ink);background:var(--surface-2)}
+.chip-n{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:6px}
+.chip-bar{height:3px;border-radius:2px;background:var(--line-2);overflow:hidden;display:block}
+.chip-bar i{display:block;height:100%;width:0;background:var(--ink)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.gpu{fill:var(--surface-2);stroke:var(--line);stroke-width:1.5}
+.dom{stroke-width:1.5;stroke-dasharray:7 6}
+.dom0{fill:var(--ld0-soft);stroke:var(--ld0)} .dom1{fill:var(--ld1-soft);stroke:var(--ld1)}
+.wghost{fill:none;stroke:var(--muted);stroke-dasharray:5 4;stroke-width:1.3}
+.wbase{fill:var(--line-2);stroke:var(--muted);stroke-width:1}
+.cell0{fill:var(--ld0-mid);stroke:var(--ld0-soft);stroke-width:1} .cell1{fill:var(--ld1-mid);stroke:var(--ld1-soft);stroke-width:1}
+.read0{fill:var(--ld0)} .read1{fill:var(--ld1)}
+.wout0{fill:none;stroke:var(--ld0);stroke-width:1.5} .wout1{fill:none;stroke:var(--ld1);stroke-width:1.5}
+.cut{stroke:var(--ink);stroke-width:2;stroke-dasharray:6 4}
+.sm-base{fill:var(--surface);stroke:var(--line)}
+.sm-ov0{fill:var(--surface);stroke:var(--ld0);stroke-width:1.5} .sm-ov1{fill:var(--surface);stroke:var(--ld1);stroke-width:1.5}
+.acc-track{fill:var(--line-2)}
+.acc0{fill:var(--ld0)} .acc1{fill:var(--ld1)}
+.xchunk{fill:var(--shared-soft);stroke:var(--shared);stroke-width:1}
+.xread{fill:var(--shared)}
+.ctile{fill:var(--surface);stroke:var(--line);stroke-width:1}
+.cfill0{fill:var(--ld0-mid);stroke:var(--ld0);stroke-width:1} .cfill1{fill:var(--ld1-mid);stroke:var(--ld1);stroke-width:1}
+.cout{fill:none;stroke:var(--muted);stroke-width:1.3}
+.chi{fill:none;stroke:var(--ink);stroke-width:2.5}
+.split{stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
+.dimline{fill:none;stroke:var(--muted);stroke-width:1.2}
+.pw0{fill:var(--ld0);stroke:var(--surface);stroke-width:1.2} .pw1{fill:var(--ld1);stroke:var(--surface);stroke-width:1.2}
+.px{fill:var(--shared);stroke:var(--surface);stroke-width:1.2}
+.seg-bg{fill:var(--line)} .seg-fg{fill:var(--ink)}
+.s-kick{font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.1em;fill:var(--muted)}
+.s-ctitle{font-size:22px;font-weight:700;fill:var(--ink);letter-spacing:-.005em}
+.s-ctext{font-family:var(--body);font-size:14.5px;fill:var(--muted)}
+.s-gpu{font-size:16px;font-weight:700;fill:var(--ink);letter-spacing:.02em}
+.s-status{font-size:15px;font-weight:600;fill:var(--ink)}
+.s-dom{font-size:13px;font-weight:600;letter-spacing:.12em}
+.s-cap{font-size:11.5px;font-weight:600;letter-spacing:.1em;fill:var(--muted)}
+.s-spec{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+.s-lbl{font-size:15px;font-weight:600;fill:var(--ink)}
+.s-dim{font-family:var(--body);font-size:14px;font-weight:600;fill:var(--ink)}
+.s-mono{font-family:var(--mono);font-size:11.5px;fill:var(--muted)}
+.s-tiny{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
+.s-idle{font-family:var(--mono);font-size:12px;fill:var(--muted)}
+.s-cta{font-family:var(--mono);font-size:12.5px;font-weight:500;fill:var(--ink)}
+.c0{fill:var(--ld0-ink)} .c1{fill:var(--ld1-ink)} .cs{fill:var(--shared-ink)}
+.halo0,.halo1{paint-order:stroke;stroke-width:5px;stroke-linejoin:round} .halo0{stroke:var(--ld0-soft)} .halo1{stroke:var(--ld1-soft)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <svg id="stage" class="viz" viewBox="0 0 1000 600" role="img" aria-label="Matmul layout C = X · W on one GPU. W is split by columns at N/2: the left half lives in locality domain 0's HBM, the right half in domain 1's. Each domain's SMs read X and their own half of W, then write their half of C. X and C are across both locality domains."></svg>
+  <p class="sr-only" id="srCap" aria-live="polite"></p>
+  <div class="controls">
+    <button id="play" class="btn primary" type="button"></button>
+    <button id="prev" class="btn" type="button" aria-label="Previous step">‹ Prev</button>
+    <button id="next" class="btn" type="button" aria-label="Next step">Next ›</button>
+  </div>
+  <ol class="phases" id="phases" aria-label="Steps"></ol>
+</main>
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const prog = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+  const ease = s => s < 0.5 ? 4 * s * s * s : 1 - Math.pow(-2 * s + 2, 3) / 2;
+  const fade = s => s < 0.12 ? s / 0.12 : s > 0.88 ? (1 - s) / 0.12 : 1;
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function tx(str, attrs, parent) { const e = el('text', attrs, parent); e.textContent = str; return e; }
+  const op = (e, v) => e.setAttribute('opacity', (+v).toFixed(3));
+  const lerpPt = (a, b, s) => ({ x: a.x + (b.x - a.x) * s, y: a.y + (b.y - a.y) * s });
+  const qb = (a, c, b, s) => {
+    const u = 1 - s;
+    return { x: u * u * a.x + 2 * u * s * c.x + s * s * b.x, y: u * u * a.y + 2 * u * s * c.y + s * s * b.y };
+  };
+
+  // ---------- timeline ----------
+  const P = { dom: [0, 2.6], split: [2.6, 5.8], sms: [5.8, 8.0], compute: [8.0, 16.0], write: [16.0, 18.6], done: [18.6, 22.0] };
+  const T = P.done[1], NT = 4, KT = 4;
+  const KS = 8.4, KD = 1.9, KE = KS + KD * KT;   // K loop 8.4 -> 16.0
+  const FLY = 0.55, WT = 0.9;
+  const dW = (n, d) => 0.04 * n + 0.02 * d;
+  const dX = (n, d) => 0.1 + 0.03 * n + 0.015 * d;
+  const depart = (d, n) => P.write[0] + 0.2 + 0.18 * n + 0.06 * d;
+  const kstate = t => {
+    if (t < KS || t >= KE) return null;
+    const x = (t - KS) / KD, k = Math.floor(x);
+    return { k, u: x - k };
+  };
+
+  const PH = [
+    { key: 'dom', chip: 'Domains', poster: 1.3, title: 'One GPU, two locality domains',
+      text: 'The GPU reports two locality domains. Each pairs a group of SMs with its own partition of HBM, and every SM should read its weights from the partition in its own domain.' },
+    { key: 'split', chip: 'Split W', poster: 5.4, title: 'Split W by columns, one half per domain',
+      text: 'W is cut at N/2. W[:, 0 : N/2] is allocated from a pool localized to domain 0 and W[:, N/2 : N] from a pool localized to domain 1, so each half sits in its own domain’s HBM.' },
+    { key: 'sms', chip: 'SM groups', poster: 7.7, title: 'One SM group and one stream per domain',
+      text: 'A green context built from domain d’s SMs owns stream s[d]. A kernel launched on s[d] runs only on those SMs, right next to that domain’s half of W.' },
+    { key: 'compute', chip: 'Compute', poster: KS + 1.45 * KD, title: 'Each domain computes its columns of C',
+      text: 'Both domains launch the same GEMM on their own stream. Every SM reads X and walks K, pulling its column tile of W from local HBM directly above it. Weight bytes never cross the domain boundary.' },
+    { key: 'write', chip: 'Write C', poster: 17.2, title: 'Write straight into the one output tensor',
+      text: 'Each SM stores its tile into its own columns of C. The row stride stays N, so domain 0 fills columns 0 to N/2 and domain 1 fills N/2 to N of the same tensor.' },
+    { key: 'done', chip: 'Done', poster: 21.0, title: 'C is complete',
+      text: 'Only W is split between the domains. The input X and the output C are across both locality domains, so the next layer reads C as one tensor.' },
+  ];
+  PH.forEach(p => { p.start = P[p.key][0]; p.end = P[p.key][1]; });
+  const phaseAt = t => { for (let i = 0; i < PH.length; i++) if (t < PH[i].end) return i; return PH.length - 1; };
+
+  // ---------- geometry ----------
+  const CAP_H = 104;                                  // caption band above the GPU
+  const WX = 380, WY = 106, WW = 560, WH = 180, HALF = WW / 2, TW = HALF / NT, TH = WH / KT;
+  const SMY = 314, SMH = 44, SMW = 62;
+  const smX = (d, n) => WX + d * HALF + n * TW + (TW - SMW) / 2;
+  const CY = 388, CHT = 60;
+  const XX = 150, XW = 200, XC = XW / KT;
+
+  const svg = $('stage');
+  const CAP = el('g', {}, svg);
+  const D = el('g', { transform: `translate(0 ${CAP_H})` }, svg);
+  const L0 = el('g', {}, D), L1 = el('g', {}, D), L2 = el('g', {}, D), L3 = el('g', {}, D);   // L3: labels above tiles in flight
+
+  // ---------- caption band: step, title, two lines of text ----------
+  const CX0 = 12, CAP_W = 976;
+  const kick = tx('', { x: CX0, y: 18, class: 's-kick' }, CAP);
+  const segs = PH.map((_, i) => {
+    el('rect', { x: 128 + i * 30, y: 12, width: 26, height: 3, rx: 1.5, class: 'seg-bg' }, CAP);
+    return el('rect', { x: 128 + i * 30, y: 12, width: 0, height: 3, rx: 1.5, class: 'seg-fg' }, CAP);
+  });
+  const capBody = el('g', {}, CAP);
+  const capTitle = tx('', { x: CX0, y: 48, class: 's-ctitle' }, capBody);
+  const capText = el('text', { x: CX0, y: 74, class: 's-ctext' }, capBody);
+  function setWrapped(textEl, str, maxW) {
+    while (textEl.firstChild) textEl.firstChild.remove();
+    let line = [], span = el('tspan', { x: CX0, dy: 0 }, textEl);
+    for (const w of str.split(' ')) {
+      line.push(w);
+      span.textContent = line.join(' ');
+      if (line.length > 1 && span.getComputedTextLength() > maxW) {
+        line.pop();
+        span.textContent = line.join(' ');
+        line = [w];
+        span = el('tspan', { x: CX0, dy: 20 }, textEl);
+        span.textContent = w;
+      }
+    }
+  }
+  let capShown = -1;
+  function renderCaption(ph, t) {
+    if (ph !== capShown) {
+      capShown = ph;
+      kick.textContent = `STEP ${ph + 1} OF ${PH.length}`;
+      capTitle.textContent = PH[ph].title;
+      setWrapped(capText, PH[ph].text, CAP_W - 8);
+      $('srCap').textContent = `Step ${ph + 1}: ${PH[ph].title}. ${PH[ph].text}`;
+    }
+    segs.forEach((s, i) => s.setAttribute('width', (26 * (i < ph ? 1 : i > ph ? 0 : prog(t, PH[i].start, PH[i].end))).toFixed(1)));
+    op(capBody, 0.15 + 0.85 * prog(t, PH[ph].start, PH[ph].start + 0.3));
+  }
+
+  // ---------- GPU frame ----------
+  el('rect', { x: 12, y: 0, width: 976, height: 492, rx: 18, class: 'gpu' }, L0);
+  tx('GPU 0', { x: 32, y: 28, class: 's-gpu' }, L0);
+  const statusT = tx('', { x: 560, y: 28, 'text-anchor': 'middle', class: 's-status' }, L0);
+  tx('cudaDevAttrLocalityDomainCount = 2', { x: 968, y: 28, 'text-anchor': 'end', class: 's-mono' }, L0);
+
+  // compact spec next to W
+  tx('SPLIT-N · 2 LOCALITY DOMAINS', { x: 32, y: 172, class: 's-cap' }, L0);
+  const spec = (y, a, b) => { const t = tx('', { x: 32, y, class: 's-spec' }, L0); el('tspan', { 'font-weight': 500 }, t).textContent = a; el('tspan', { x: 80 }, t).textContent = b; };
+  spec(194, 'W', 'K × N/2 per domain, local HBM');
+  spec(214, 'X, C', 'across both locality domains');
+
+  // domain regions: SMs + the HBM partition holding that half of W
+  const domRect = [0, 1].map(d => el('rect', { x: d ? WX + HALF : WX - 8, y: 76, width: HALF + 8, height: 292, rx: 12, class: `dom dom${d}` }, L0));
+  tx('LOCALITY DOMAIN 0', { x: WX, y: 96, class: 's-dom c0' }, L0);
+  tx('LOCALITY DOMAIN 1', { x: WX + HALF + 10, y: 96, class: 's-dom c1' }, L0);
+  const tags = [0, 1].map(d => tx(`→ stream s${d}`, { x: WX + (d + 1) * HALF - (d ? 0 : 10), y: 96, 'text-anchor': 'end', class: `s-mono c${d}`, opacity: 0 }, L0));
+
+  // dimension labels
+  el('path', { d: `M${WX} 64 V58 H${WX + WW} V64`, class: 'dimline' }, L0);
+  tx('N', { x: WX + HALF, y: 52, 'text-anchor': 'middle', class: 's-dim' }, L0);
+  tx('K', { x: WX - 16, y: WY + WH / 2 + 5, 'text-anchor': 'end', class: 's-dim' }, L0);
+  tx('K', { x: XX + XW / 2, y: CY - 8, 'text-anchor': 'middle', class: 's-dim' }, L0);
+  tx('M', { x: XX - 10, y: CY + CHT / 2 + 5, 'text-anchor': 'end', class: 's-dim' }, L0);
+
+  // W [K × N]
+  const wGhost = el('rect', { x: WX, y: WY, width: WW, height: WH, class: 'wghost' }, L1);
+  const wGhostT = tx('W  [K × N]  not placed yet', { x: WX + HALF, y: WY + WH / 2 + 5, 'text-anchor': 'middle', class: 's-mono' }, L1);
+  const wBase = el('rect', { x: WX, y: WY, width: WW, height: WH, class: 'wbase', opacity: 0 }, L1);
+  const halves = [0, 1].map(d => {
+    const g = el('g', { opacity: 0 }, L1);
+    const reads = [];
+    for (let k = 0; k < KT; k++) for (let n = 0; n < NT; n++) {
+      el('rect', { x: WX + d * HALF + n * TW, y: WY + k * TH, width: TW, height: TH, class: `cell${d}` }, g);
+      reads.push({ k, n, r: el('rect', { x: WX + d * HALF + n * TW + 1, y: WY + k * TH + 1, width: TW - 2, height: TH - 2, class: `read${d}`, opacity: 0 }, g) });
+    }
+    el('rect', { x: WX + d * HALF, y: WY, width: HALF, height: WH, class: `wout${d}` }, g);
+    return { g, reads };
+  });
+  const cut = el('line', { x1: WX + HALF, y1: WY - 6, x2: WX + HALF, y2: WY - 6, class: 'cut', opacity: 0 }, L1);
+  const wLbl = [0, 1].map(d => tx(d ? 'W[:, N/2 : N]  in LD 1 HBM' : 'W[:, 0 : N/2]  in LD 0 HBM',
+    { x: WX + d * HALF + HALF / 2, y: WY + WH + 18, 'text-anchor': 'middle', class: `s-mono c${d} halo${d}`, opacity: 0 }, L3));
+
+  // SMs, one per column tile
+  const sms = [[], []];
+  [0, 1].forEach(d => {
+    for (let n = 0; n < NT; n++) {
+      const x = smX(d, n);
+      const g = el('g', {}, L1);
+      el('rect', { x, y: SMY, width: SMW, height: SMH, rx: 6, class: 'sm-base' }, g);
+      const ov = el('rect', { x, y: SMY, width: SMW, height: SMH, rx: 6, class: `sm-ov${d}`, opacity: 0 }, g);
+      tx('SM', { x: x + 6, y: SMY + 12, class: 's-tiny' }, g);
+      const idle = tx('idle', { x: x + SMW / 2, y: SMY + 29, 'text-anchor': 'middle', class: 's-idle' }, g);
+      const cta = tx(`n${n}`, { x: x + SMW / 2, y: SMY + 29, 'text-anchor': 'middle', class: `s-cta c${d}`, opacity: 0 }, g);
+      el('rect', { x: x + 7, y: SMY + SMH - 9, width: SMW - 14, height: 4, rx: 2, class: 'acc-track' }, g);
+      const acc = el('rect', { x: x + 7, y: SMY + SMH - 9, width: 0, height: 4, rx: 2, class: `acc${d}` }, g);
+      sms[d][n] = { ov, idle, cta, acc, x };
+    }
+  });
+
+  // X [M × K], across both domains
+  const xReads = [];
+  for (let k = 0; k < KT; k++) {
+    el('rect', { x: XX + k * XC, y: CY, width: XC, height: CHT, class: 'xchunk' }, L1);
+    xReads[k] = el('rect', { x: XX + k * XC + 1, y: CY + 1, width: XC - 2, height: CHT - 2, class: 'xread', opacity: 0 }, L1);
+  }
+  tx('X', { x: XX + XW / 2, y: CY + CHT / 2 + 6, 'text-anchor': 'middle', class: 's-lbl' }, L1);
+  tx('X  [M × K]  across both locality domains', { x: XX + XW / 2, y: CY + CHT + 22, 'text-anchor': 'middle', class: 's-mono cs' }, L1);
+
+  // C [M × N], across both domains
+  const cFill = [[], []];
+  [0, 1].forEach(d => {
+    for (let n = 0; n < NT; n++) {
+      const x = WX + d * HALF + n * TW;
+      el('rect', { x, y: CY, width: TW, height: CHT, class: 'ctile' }, L1);
+      cFill[d][n] = el('rect', { x, y: CY, width: TW, height: CHT, class: `cfill${d}`, opacity: 0 }, L1);
+    }
+  });
+  el('line', { x1: WX + HALF, y1: CY - 4, x2: WX + HALF, y2: CY + CHT + 4, class: 'split' }, L1);
+  el('rect', { x: WX, y: CY, width: WW, height: CHT, class: 'cout' }, L1);
+  const cLbl = [0, 1].map(d => tx(`C${d}`, { x: WX + d * HALF + HALF / 2, y: CY + CHT / 2 + 6, 'text-anchor': 'middle', class: 's-lbl', opacity: 0 }, L1));
+  const cHi = el('rect', { x: WX - 4, y: CY - 4, width: WW + 8, height: CHT + 8, rx: 4, class: 'chi', opacity: 0 }, L1);
+  tx('C  [M × N]  across both locality domains', { x: WX + HALF, y: CY + CHT + 22, 'text-anchor': 'middle', class: 's-mono' }, L1);
+  const cWho = [0, 1].map(d => tx(d ? 'written by LD 1' : 'written by LD 0',
+    { x: WX + d * HALF + HALF / 2, y: CY - 8, 'text-anchor': 'middle', class: `s-mono c${d}`, opacity: 0 }, L1));
+
+  // tiles in flight
+  const pW = [[], []], pX = [[], []], pC = [[], []];
+  [0, 1].forEach(d => {
+    for (let n = 0; n < NT; n++) {
+      pX[d][n] = el('circle', { r: 4.5, cx: 0, cy: 0, class: 'px', opacity: 0 }, L2);
+      pW[d][n] = el('rect', { width: 16, height: 11, rx: 2, class: `pw${d}`, opacity: 0 }, L2);
+      pC[d][n] = el('rect', { width: 16, height: 11, rx: 2, class: `pw${d}`, opacity: 0 }, L2);
+    }
+  });
+  const placeRect = (p, pt, o) => { p.setAttribute('x', (pt.x - 8).toFixed(1)); p.setAttribute('y', (pt.y - 5.5).toFixed(1)); op(p, o); };
+
+  function wRead(d, k, n, t) {
+    if (t < KS) return 0;
+    if (t >= KE) return 0.35;
+    const ks = kstate(t);
+    if (k < ks.k) return 0.35;
+    if (k > ks.k) return 0;
+    const s = (ks.u - dW(n, d)) / FLY;
+    if (s < 0) return 0;
+    if (s < 0.15) return 0.9 * s / 0.15;
+    if (s < 0.75) return 0.9;
+    return Math.max(0.35, 0.9 - (s - 0.75) / 0.25 * 0.55);
+  }
+  function accLevel(d, n, t) {
+    if (t < KS) return 0;
+    let a = 1;
+    const ks = kstate(t);
+    if (ks) a = (ks.k + clamp((ks.u - 0.62) / 0.3, 0, 1)) / KT;
+    const dep = depart(d, n);
+    return a * (1 - prog(t, dep, dep + 0.25));
+  }
+
+  function render(t) {
+    const ph = phaseAt(t);
+    renderCaption(ph, t);
+    const ks = kstate(t);
+    const st = ks ? `K chunk ${ks.k + 1} of ${KT}` : '';
+    if (statusT.textContent !== st) statusT.textContent = st;
+
+    const inDom = t < P.dom[1];
+    domRect.forEach(r => {
+      r.style.strokeDashoffset = inDom ? String(-t * 24) : '0';
+      r.setAttribute('stroke-opacity', inDom ? '1' : '0.5');
+    });
+
+    // split W at N/2 and give each half to its domain
+    const s0 = P.split[0];
+    const appear = prog(t, s0 + 0.1, s0 + 0.5);
+    op(wGhost, 1 - appear);
+    op(wGhostT, 1 - appear);
+    const color = prog(t, s0 + 1.5, s0 + 2.1);
+    op(wBase, appear * (1 - color));
+    const cutP = prog(t, s0 + 0.6, s0 + 1.4);
+    cut.setAttribute('y2', (WY - 6 + (WH + 12) * cutP).toFixed(1));
+    op(cut, cutP > 0 ? 1 - prog(t, s0 + 2.3, s0 + 2.8) : 0);
+    halves.forEach((h, d) => {
+      op(h.g, color);
+      const nudge = 8 * Math.sin(Math.PI * prog(t, s0 + 1.5, s0 + 2.5)) * (d ? 1 : -1);
+      h.g.setAttribute('transform', `translate(${nudge.toFixed(2)} 0)`);
+      h.reads.forEach(({ k, n, r }) => op(r, wRead(d, k, n, t)));
+      op(wLbl[d], prog(t, s0 + 2.0, s0 + 2.6));
+    });
+
+    // SM groups and tiles in flight
+    tags.forEach(g => op(g, prog(t, P.sms[0] + 1.2, P.sms[0] + 1.8)));
+    [0, 1].forEach(d => {
+      for (let n = 0; n < NT; n++) {
+        const s = sms[d][n];
+        const a0 = P.sms[0] + 0.2 + n * 0.12 + d * 0.06;
+        op(s.ov, ease(prog(t, a0, a0 + 0.6)));
+        const pulse = ks ? Math.max(0, 1 - Math.abs(ks.u - (dW(n, d) + FLY)) / 0.1) : 0;
+        s.ov.setAttribute('stroke-width', (1.5 + 2 * pulse).toFixed(2));
+        const c = prog(t, P.compute[0] + 0.1 + n * 0.05 + d * 0.03, P.compute[0] + 0.5 + n * 0.05 + d * 0.03);
+        op(s.idle, 1 - c);
+        op(s.cta, c);
+        s.acc.setAttribute('width', ((SMW - 14) * accLevel(d, n, t)).toFixed(1));
+
+        // W tile: straight down from local HBM into the SM below it
+        let shown = false;
+        if (ks) {
+          const f = (ks.u - dW(n, d)) / FLY;
+          if (f >= 0 && f <= 1) {
+            const a = { x: WX + d * HALF + n * TW + TW / 2, y: WY + ks.k * TH + TH / 2 }, b = { x: s.x + SMW / 2, y: SMY + 6 };
+            placeRect(pW[d][n], lerpPt(a, b, ease(f)), fade(f));
+            shown = true;
+          }
+        }
+        if (!shown) op(pW[d][n], 0);
+
+        // X chunk: from X up into every SM
+        shown = false;
+        if (ks) {
+          const f = (ks.u - dX(n, d)) / FLY;
+          if (f >= 0 && f <= 1) {
+            const a = { x: XX + ks.k * XC + XC / 2, y: CY + 8 }, b = { x: s.x + SMW / 2, y: SMY + SMH - 4 };
+            const pt = qb(a, { x: a.x + (b.x - a.x) * 0.35, y: b.y + 6 }, b, ease(f));
+            pX[d][n].setAttribute('cx', pt.x.toFixed(1));
+            pX[d][n].setAttribute('cy', pt.y.toFixed(1));
+            op(pX[d][n], fade(f));
+            shown = true;
+          }
+        }
+        if (!shown) op(pX[d][n], 0);
+
+        // C tile: straight down from the SM into its columns of C
+        const dep = depart(d, n), f = (t - dep) / WT;
+        if (f >= 0 && f <= 1) {
+          const a = { x: s.x + SMW / 2, y: SMY + SMH }, b = { x: WX + d * HALF + n * TW + TW / 2, y: CY + CHT / 2 };
+          placeRect(pC[d][n], lerpPt(a, b, ease(f)), fade(f));
+        } else op(pC[d][n], 0);
+        op(cFill[d][n], prog(t, dep + WT - 0.1, dep + WT + 0.1));
+      }
+      const lastArr = depart(d, NT - 1) + WT;
+      op(cLbl[d], prog(t, lastArr, lastArr + 0.3));
+      op(cWho[d], prog(t, P.write[0], P.write[0] + 0.4));
+    });
+
+    for (let k = 0; k < KT; k++) {
+      let o = 0;
+      if (t >= KE) o = 0.2;
+      else if (ks) o = k < ks.k ? 0.2 : k === ks.k ? (ks.u > 0.05 && ks.u < 0.75 ? 0.75 : ks.u >= 0.75 ? 0.2 : 0) : 0;
+      op(xReads[k], o);
+    }
+    op(cHi, prog(t, P.done[0] + 0.1, P.done[0] + 0.6));
+  }
+
+  // ---------- step chips ----------
+  const chipEls = PH.map((p, n) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.innerHTML = `<span><span class="chip-n">${n + 1}</span>${p.chip}</span><span class="chip-bar"><i></i></span>`;
+    b.addEventListener('click', () => jump(n));
+    li.appendChild(b);
+    $('phases').appendChild(li);
+    return { b, bar: b.querySelector('i') };
+  });
+  let shownPhase = -1;
+  function renderChips(ph, t) {
+    chipEls.forEach((c, n) => { c.bar.style.width = (n < ph ? 100 : n > ph ? 0 : 100 * prog(t, PH[n].start, PH[n].end)) + '%'; });
+    if (ph === shownPhase) return;
+    shownPhase = ph;
+    chipEls.forEach((c, n) => n === ph ? c.b.setAttribute('aria-current', 'step') : c.b.removeAttribute('aria-current'));
+  }
+
+  // ---------- playback: autoplay and loop; Pause, Prev/Next, chips, Space and arrow keys ----------
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let t = reduce ? PH[PH.length - 1].poster : 0, playing = false, last = null, raf = null;
+  const playBtn = $('play');
+  function draw() { render(t); renderChips(phaseAt(t), t); }
+  function tick(now) {
+    if (!playing) { raf = null; return; }
+    if (last !== null) {
+      t += (now - last) / 1000;
+      if (t >= T) t %= T;
+    }
+    last = now;
+    draw();
+    raf = requestAnimationFrame(tick);
+  }
+  function setPlaying(v) {
+    playing = v;
+    last = null;
+    playBtn.innerHTML = v
+      ? '<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="1" width="3" height="10"/><rect x="7" y="1" width="3" height="10"/></svg>Pause'
+      : '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z"/></svg>Play';
+    if (v && !raf) raf = requestAnimationFrame(tick);
+  }
+  function jump(n) {
+    n = clamp(n, 0, PH.length - 1);
+    t = playing ? PH[n].start : PH[n].poster;
+    last = null;
+    draw();
+  }
+  playBtn.addEventListener('click', () => setPlaying(!playing));
+  $('next').addEventListener('click', () => jump(phaseAt(t) + 1));
+  $('prev').addEventListener('click', () => {
+    const ph = phaseAt(t);
+    jump(playing && t - PH[ph].start > 0.6 ? ph : ph - 1);
+  });
+  document.addEventListener('keydown', e => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (['input', 'select', 'textarea', 'button'].includes(tag)) return;
+    if (e.key === ' ') { e.preventDefault(); setPlaying(!playing); }
+    else if (e.key === 'ArrowRight') jump(phaseAt(t) + 1);
+    else if (e.key === 'ArrowLeft') jump(phaseAt(t) - 1);
+  });
+
+  draw();
+  setPlaying(!reduce);
+  // caption lines are measured, so re-wrap once the web fonts have loaded
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { capShown = -1; draw(); });
+})();
+</script>
+<script>
+// Embedding: post the content height to the parent page, which resizes the iframe ("vllm-embed-resize").
+(function () {
+  let last = 0;
+  const send = () => {
+    const h = Math.ceil(document.body.getBoundingClientRect().height);  // not scrollHeight: it never drops below the iframe height
+    if (h !== last) { last = h; parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  };
+  addEventListener("load", send);
+  new ResizeObserver(send).observe(document.body);
+})();
+</script>
+</body>
+</html>

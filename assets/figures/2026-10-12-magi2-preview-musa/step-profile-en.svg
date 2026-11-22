@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" viewBox="0 0 1240 512" width="1240" height="512" role="img" aria-label="Per-step time breakdown for SP8×CFG1+EP4: the MoE W13 GEMM takes 259.6 ms, about one third of a 778 ms step">
+<title>Per-step time breakdown, the MoE W13 GEMM is about a third of the step</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/></marker></defs>
+<rect width="1240" height="512" fill="#ffffff"/>
+<text x="24" y="28" font-size="18" fill="#1f2937" text-anchor="start" font-weight="600">One kernel, the MoE W13 GEMM, takes about a third of each step</text>
+<text x="24" y="47" font-size="11.5" fill="#4b5563" text-anchor="start">SP8×CFG1+EP4 profile, ms per step, on a slightly earlier tree (≈778 ms per step in total)</text>
+<line x1="250" y1="74" x2="250" y2="430" stroke="#9ca3af" stroke-width="1.2"/>
+<line x1="450.0" y1="74" x2="450.0" y2="430" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="3 4"/>
+<text x="450.0" y="450" font-size="11" fill="#4b5563" text-anchor="middle">100 ms</text>
+<line x1="650.0" y1="74" x2="650.0" y2="430" stroke="#e5e7eb" stroke-width="1.0" stroke-dasharray="3 4"/>
+<text x="650.0" y="450" font-size="11" fill="#4b5563" text-anchor="middle">200 ms</text>
+<text x="250" y="450" font-size="11" fill="#4b5563" text-anchor="middle">0</text>
+<text x="238" y="110" font-size="12.5" fill="#1f2937" text-anchor="end">MoE W13 GEMM</text>
+<rect x="250" y="96" width="519.2" height="22" rx="3" fill="#2563eb"/>
+<text x="777.2" y="110" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">259.6 ms · 33%</text>
+<text x="888.0625" y="110" font-size="11" fill="#4b5563" text-anchor="start">≈10% of BF16 peak</text>
+<text x="238" y="148" font-size="12.5" fill="#1f2937" text-anchor="end">Collectives</text>
+<rect x="250" y="134" width="132.2" height="22" rx="3" fill="#d1d5db"/>
+<text x="390.2" y="148" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">66.1 ms</text>
+<text x="449.41249999999997" y="148" font-size="11" fill="#4b5563" text-anchor="start">no overlap with compute</text>
+<text x="238" y="186" font-size="12.5" fill="#1f2937" text-anchor="end">FA3 attention</text>
+<rect x="250" y="172" width="129.2" height="22" rx="3" fill="#d1d5db"/>
+<text x="387.2" y="186" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">64.6 ms</text>
+<text x="446.41249999999997" y="186" font-size="11" fill="#4b5563" text-anchor="start">near peak</text>
+<text x="238" y="224" font-size="12.5" fill="#1f2937" text-anchor="end">Dense GEMM</text>
+<rect x="250" y="210" width="123.8" height="22" rx="3" fill="#d1d5db"/>
+<text x="381.8" y="224" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">61.9 ms</text>
+<text x="238" y="262" font-size="12.5" fill="#1f2937" text-anchor="end">MoE W2 GEMM</text>
+<rect x="250" y="248" width="112.2" height="22" rx="3" fill="#d1d5db"/>
+<text x="370.2" y="262" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">56.1 ms</text>
+<text x="429.41249999999997" y="262" font-size="11" fill="#4b5563" text-anchor="start">53–56% of HBM bandwidth</text>
+<text x="238" y="300" font-size="12.5" fill="#1f2937" text-anchor="end">GPU idle</text>
+<rect x="250" y="286" width="68.6" height="22" rx="3" fill="#b45309"/>
+<text x="326.6" y="300" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">34.3 ms</text>
+<text x="385.8125" y="300" font-size="11" fill="#4b5563" text-anchor="start">host work between steps, launch gaps</text>
+<text x="238" y="338" font-size="12.5" fill="#1f2937" text-anchor="end">mHC sgemm</text>
+<rect x="250" y="324" width="52.8" height="22" rx="3" fill="#d1d5db"/>
+<text x="310.8" y="338" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">26.4 ms</text>
+<text x="238" y="376" font-size="12.5" fill="#1f2937" text-anchor="end">bmm input copies</text>
+<rect x="250" y="362" width="47.6" height="22" rx="3" fill="#d1d5db"/>
+<text x="305.6" y="376" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">23.8 ms</text>
+<text x="364.8125" y="376" font-size="11" fill="#4b5563" text-anchor="start">removed later by #8510</text>
+<text x="238" y="414" font-size="12.5" fill="#1f2937" text-anchor="end">Sinkhorn</text>
+<rect x="250" y="400" width="22.0" height="22" rx="3" fill="#d1d5db"/>
+<text x="280.0" y="414" font-size="12.5" fill="#1f2937" text-anchor="start" font-weight="600">11 ms</text>
+<text x="325.875" y="414" font-size="11" fill="#4b5563" text-anchor="start">42 kernels per call; one kernel after #8594</text>
+<text x="24" y="486" font-size="11.5" fill="#4b5563" text-anchor="start">Tree: the September v0.28 branch at the Pre-laid-out W13 point of Figure 3. Rows are the nine largest contributors.</text>
+</svg>

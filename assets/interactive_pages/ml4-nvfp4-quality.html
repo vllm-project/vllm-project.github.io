@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mistral Large 4: NVFP4 vs FP8 checkpoint scores and token consumption</title>
+<!-- Template for nvfp4_quality.py (--html); data is injected at the DATA placeholder below.
+     Layout and series colors follow the official Mistral FP8 vs NVFP4 chart; surfaces, type and
+     embedding follow the figkit tokens of the vLLM blog interactive pages. -->
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f5f4ef;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e4e3de; --line: #8f8a84;
+  --blue-line: #0262bf;
+  --s-fp8: #ffaf01; --s-nvfp4: #fa500f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #55b3fb;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #55b3fb;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; padding: 4px 0 8px; }
+.fig { max-width: 760px; margin: 0 auto; position: relative; }
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-head { margin-bottom: 14px; }
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-tick { font-size: 12px; fill: var(--faint) !important; font-variant-numeric: tabular-nums; }
+.t-axis { font-size: 13px; fill: var(--muted) !important; }
+.t-cat { font-size: 13px; }
+.t-val { font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.m-rule { stroke: var(--rule); stroke-width: var(--hair); fill: none; }
+.m-base { stroke: var(--line); stroke-width: var(--hair); fill: none; }
+.m-ci { stroke: var(--ink); stroke-width: 1.1px; fill: none; }
+.s-FP8 .bar { fill: var(--s-fp8); }
+.s-NVFP4 .bar { fill: var(--s-nvfp4); }
+.hide-FP8 .s-FP8, .hide-NVFP4 .s-NVFP4 { display: none; }
+.row { cursor: default; outline: none; }
+.row text { pointer-events: none; }
+.row .hit { fill: transparent; }
+.row:hover .hit, .row:focus-visible .hit, .row.on .hit { fill: var(--card); }
+.row:focus-visible .hit { stroke: var(--blue-line); stroke-width: 1.5px; }
+.fig-frame { position: relative; padding: 14px 12px 12px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none;
+}
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.fig-legend button { display: inline-flex; align-items: center; gap: 8px; font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.fig-legend button[aria-pressed="false"] { opacity: .4; text-decoration: line-through; }
+.fig-legend button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-legend i { width: 14px; height: 10px; display: inline-block; border-radius: 2px 2px 0 0; }
+.tip { position: absolute; z-index: 2; width: 330px; max-width: 100%; padding: 10px 12px; background: var(--bg); border: var(--hair) solid var(--line);
+  font-size: 13px; line-height: 1.45; pointer-events: none; display: none; }
+.tip b { font-weight: 600; }
+.tip .k { font: 500 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.tip table { border-collapse: collapse; margin: 6px 0 0; font-variant-numeric: tabular-nums; width: 100%; }
+.tip th { font: 500 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 6px 0 2px; }
+.tip td { padding: 1px 10px 1px 0; color: var(--muted); white-space: nowrap; }
+.tip td + td { color: var(--ink); text-align: right; padding-right: 0; }
+.tip td i { display: inline-block; width: 10px; height: 8px; margin-right: 6px; }
+.tip code { display: block; font: 400 11px/1.45 var(--mono); color: var(--muted); word-break: break-all; }
+.fig-note { font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<div class="fig" id="fig">
+  <div class="fig-head">
+    <p class="fig-kicker" id="kicker"></p>
+    <h1 class="fig-title" id="title"></h1>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <div class="fig-legend" id="legend"></div>
+    <svg class="fig-stage" id="stage" viewBox="0 0 736 600" role="img"></svg>
+  </div>
+  <p class="fig-note" id="note"></p>
+  <div class="tip" id="tip" role="tooltip"></div>
+</div>
+<script>window.Q = {"evals": [{"label": "GDP.pdf", "task": "gdp_pdf_aa_v2[input_mode=multimodal|judge_model=gpt-5.6-luna|max_gen_toks=65536|max_image_size=1540|target_dpi=150|temperature=1.0]", "metric": "gdp_pdf_all_pass", "score": {"FP8": [19.2, 13.4, 25.6], "NVFP4": [17.4, 11.6, 23.8]}, "tokens": {"FP8": [7154.296, 6253.4581, 8129.423549999994], "NVFP4": [7231.622, 6395.646449999999, 8118.85845]}}, {"label": "MathVision", "task": "mathvision_instruct_cot[judge_model=kimi-k2.5-eval-judge-only|max_gen_toks=131072|prompt_type=long_boxed|reasoning_effort=high|temperature=0.7]", "metric": "cot_llm_judge_correctness_kimi-k2.5-eval-judge-only", "score": {"FP8": [90.29605263157895, 89.24342105263158, 91.3157894736842], "NVFP4": [89.9671052631579, 88.88157894736842, 91.01973684210526]}, "tokens": {"FP8": [6718.5371710526315, 6397.944629934211, 7039.232837171053], "NVFP4": [6692.874013157894, 6366.58650493421, 7019.164671052632]}}, {"label": "Graphwalks 512k", "task": "graphwalks_instruct_v2[seq_len=512k]", "metric": "graphwalk_accuracy_global", "score": {"FP8": [74.79470485203032, 68.93283026754045, 80.42795559817542], "NVFP4": [76.01520357514107, 70.38403672265643, 81.37871699635595]}, "tokens": {"FP8": [4129.2, 3274.219875, 5026.235624999999], "NVFP4": [4084.35, 3224.8624999999997, 4978.587624999997]}}, {"label": "DeepSWE", "task": "harbor_deepswe_v1_1_orchestral_v2[max_instance_trials=4|self_compaction_max_retries=4|self_compaction_threshold_tokens=131072]", "metric": "harbor_pass_1", "score": {"FP8": [62.684365781710916, 55.604719764011804, 69.6165191740413], "NVFP4": [64.60176991150443, 56.93215339233038, 72.27138643067845]}, "tokens": {"FP8": [100240.89380530974, 93105.43724188792, 107872.25648967552], "NVFP4": [97955.75221238939, 90340.02846607669, 105958.46025073747]}}, {"label": "SWE-bench Pro", "task": "swebench_pro_orchestral_v2", "metric": "swebench_pass@1", "score": {"FP8": [57.865937072503414, 54.309165526675784, 61.42270861833106], "NVFP4": [58.41313269493844, 54.85636114911081, 61.96990424076607]}, "tokens": {"FP8": [33539.40902872777, 31946.277325581395, 35205.420827633374], "NVFP4": [32927.87277701779, 31386.589295485635, 34480.360465116275]}}, {"label": "Terminal-Bench 4", "task": "terminalbench4_harbor_v2_orchestral_v2[max_steps=500|self_compaction_threshold_tokens=182144]", "metric": "harbor_v2_pass@1", "score": {"FP8": [34.895833333333336, 25.520833333333332, 44.791666666666664], "NVFP4": [32.80423280423281, 23.28042328042328, 43.386243386243386]}, "tokens": {"FP8": [218165.58080808082, 171328.7806818182, 271685.27310606063], "NVFP4": [215787.4898989899, 171887.86565656567, 263803.4700757576]}}, {"label": "AutomationBench", "task": "automationbench[max_gen_toks=65536|reasoning_effort=high|temperature=1.0]", "metric": "automationbench_score", "score": {"FP8": [70.21784598252954, 66.96558729518956, 73.42348344803116], "NVFP4": [70.05372239740166, 66.82450537160344, 73.23559702514456]}, "tokens": {"FP8": [12972.185, 12383.548208333334, 13580.182125], "NVFP4": [13001.06, 12387.17175, 13653.62625]}}, {"label": "CyberGym", "task": "cybergym_orchestral_v4", "metric": "cybergym_pass@1", "score": {"FP8": [82.5503355704698, 78.18791946308725, 86.57718120805369], "NVFP4": [80.93645484949833, 76.2541806020067, 85.28428093645485]}, "tokens": {"FP8": [43348.74333333333, 36385.90266666667, 50742.00541666667], "NVFP4": [45102.44, 37737.54625, 53310.25141666666]}}], "colors": {"FP8": "#FFAF01", "NVFP4": "#FA500F"}, "kicker": "Checkpoint quality · ML4 FP8 vs NVFP4", "title": "NVFP4 matches FP8 on scores and token consumption", "note": "95% CIs from 20,000 task-level percentile-bootstrap resamples (repeated trials grouped). Token means include empty/error episodes.", "tok_range": [1000.0, 400000.0], "tok_ticks": [1000.0, 3000.0, 10000.0, 30000.0, 100000.0, 300000.0]};</script>
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const D = window.Q, $ = (id) => document.getElementById(id);
+  const S = $("stage"), TIP = $("tip");
+  const SER = ["FP8", "NVFP4"];
+  const hidden = new Set();
+  let narrow = null;
+
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, s, cls, attrs) {
+    const t = el("text", Object.assign({ x, y, class: cls }, attrs || {}), parent);
+    t.textContent = s;
+    return t;
+  }
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const minus = (s) => s.replace(/-/g, "−");
+  const sgn = (d, dp) => (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d).toFixed(dp);
+  const kt = (v) => (v / 1000).toFixed(1) + "k";
+  const f1 = (v) => v.toFixed(1);
+  const ci = (t, f) => f(t[0]) + " [" + f(t[1]) + ", " + f(t[2]) + "]";
+
+  function tipHTML(e) {
+    const vis = SER.filter((s) => !hidden.has(s));
+    const sw = (s) => '<i style="background:var(--s-' + s.toLowerCase() + ')"></i>';
+    const block = (name, key, f) => {
+      let h = '<tr><th colspan="2">' + name + " · mean [95% CI]</th></tr>";
+      vis.forEach((s) => { h += "<tr><td>" + sw(s) + s + "</td><td>" + ci(e[key][s], f) + "</td></tr>"; });
+      if (vis.length === 2) {
+        const a = e[key].FP8[0], b = e[key].NVFP4[0];
+        const d = key === "score" ? sgn(b - a, 1) + " pts"
+          : (Math.abs(b - a) >= 1000 ? sgn((b - a) / 1000, 1) + "k" : sgn(b - a, 0)) + " (" + sgn((b / a - 1) * 100, 1) + "%)";
+        h += "<tr><td>NVFP4 − FP8</td><td>" + d + "</td></tr>";
+      }
+      return h;
+    };
+    return "<b>" + esc(e.label) + "</b>" +
+      '<div class="k">Metric</div><code>' + esc(e.metric) + "</code>" +
+      '<div class="k">Task</div><code>' + esc(e.task) + "</code>" +
+      "<table>" + block("Score", "score", f1) + block("Completion tokens", "tokens", kt) + "</table>";
+  }
+
+  function show(e, g) {
+    S.querySelectorAll(".row.on").forEach((r) => r.classList.remove("on"));
+    g.classList.add("on");
+    TIP.innerHTML = tipHTML(e);
+    TIP.style.display = "block";
+    const f = $("fig").getBoundingClientRect(), r = g.querySelector(".hit").getBoundingClientRect();
+    const s = S.getBoundingClientRect();
+    const tw = TIP.offsetWidth;
+    let left = r.right - f.left + 6;
+    if (left + tw > f.width) left = r.left - f.left - tw - 6;
+    if (left < 0) left = Math.max(0, Math.min(f.width - tw, r.left - f.left + r.width / 2 - tw / 2));
+    TIP.style.left = left + "px";
+    TIP.style.top = (s.top - f.top + 8) + "px";
+  }
+  function hide(g) { g.classList.remove("on"); TIP.style.display = "none"; }
+
+  function draw() {
+    S.replaceChildren();
+    narrow = S.getBoundingClientRect().width < 520;
+    const W = narrow ? 420 : 736, ML = narrow ? 50 : 60, MR = 4;
+    const PH = narrow ? 210 : 230, GAP = 30, T = narrow ? 22 : 10, XL = narrow ? 76 : 44;
+    const n = D.evals.length, X0 = ML, X1 = W - MR, cw = (X1 - X0) / n, bw = cw * 0.33;
+    const H = T + PH * 2 + GAP + XL;
+    S.setAttribute("viewBox", "0 0 " + W + " " + H);
+    const [L0, L1] = D.tok_range.map(Math.log10);
+    const panels = [
+      { key: "score", top: T, y: (v) => T + PH * (1 - v / 100), ticks: [0, 20, 40, 60, 80, 100],
+        tl: String, lab: f1, title: "Score" },
+      { key: "tokens", top: T + PH + GAP, y: (v) => T + PH + GAP + PH * (1 - (Math.log10(v) - L0) / (L1 - L0)),
+        ticks: D.tok_ticks, tl: (v) => (v / 1000).toFixed(0) + "k", lab: kt,
+        title: narrow ? "Tokens (log)" : "Mean completion tokens (log)" },
+    ];
+    panels.forEach((p) => {
+      p.ticks.forEach((v) => {
+        el("line", { x1: X0, x2: X1, y1: p.y(v), y2: p.y(v), class: "m-rule" }, S);
+        text(S, X0 - 8, p.y(v) + 4, p.tl(v), "t-tick", { "text-anchor": "end" });
+      });
+      const cy = p.top + PH / 2;
+      text(S, 14, cy, p.title, "t-axis", { "text-anchor": "middle", transform: "rotate(-90 14 " + cy + ")" });
+    });
+    const gRows = el("g", {}, S);
+    D.evals.forEach((e, j) => {
+      const cx = X0 + cw * (j + 0.5);
+      const g = el("g", { class: "row", tabindex: 0, role: "img",
+        "aria-label": e.label + ": score FP8 " + f1(e.score.FP8[0]) + ", NVFP4 " + f1(e.score.NVFP4[0]) +
+          "; mean completion tokens FP8 " + kt(e.tokens.FP8[0]) + ", NVFP4 " + kt(e.tokens.NVFP4[0]) }, gRows);
+      el("rect", { x: cx - cw / 2 + 2, y: 0, width: cw - 4, height: T + 2 * PH + GAP + 4, class: "hit" }, g);
+      panels.forEach((p) => {
+        const base = p.top + PH;
+        SER.forEach((s, k) => {
+          const [m, lo, hi] = e[p.key][s];
+          const sg = el("g", { class: "s-" + s }, g);
+          const x = cx + (k - 0.5) * bw, xa = x - bw / 2 + 0.6, xb = x + bw / 2 - 0.6, yt = p.y(m), r = Math.min(3, (base - yt) / 2);
+          el("path", { class: "bar", d: "M" + xa + "," + base + "V" + (yt + r) + "Q" + xa + "," + yt + " " + (xa + r) + "," + yt +
+            "H" + (xb - r) + "Q" + xb + "," + yt + " " + xb + "," + (yt + r) + "V" + base + "Z" }, sg);
+          const yl = p.y(lo), yh = p.y(hi), c = Math.min(4, bw / 4);
+          el("path", { class: "m-ci", d: "M" + x + "," + yl + "V" + yh + "M" + (x - c) + "," + yh + "H" + (x + c) +
+            "M" + (x - c) + "," + yl + "H" + (x + c) }, sg);
+          if (narrow) text(sg, x + 3.5, yh - 4, p.lab(m), "t-val", { transform: "rotate(-90 " + (x + 3.5) + " " + (yh - 4) + ")", style: "font-size:10px" });
+          else {
+            const t = text(sg, x, yh - 5, p.lab(m), "t-val", { "text-anchor": "middle" });
+            const over = t.getComputedTextLength() - (bw - 4);
+            if (over > 0) t.setAttribute("x", x + (k ? 1 : -1) * over / 2);
+          }
+        });
+      });
+      const ly = T + 2 * PH + GAP + 18;
+      if (narrow) text(g, cx + 4, ly - 4, e.label, "t-cat", { "text-anchor": "end", transform: "rotate(-40 " + (cx + 4) + " " + (ly - 4) + ")", style: "font-size:11.5px" });
+      else {
+        const t = text(g, cx, ly, e.label, "t-cat", { "text-anchor": "middle" });
+        if (t.getComputedTextLength() > cw - 6) {
+          const lines = wrap(e.label);
+          if (lines.length === 1) t.style.fontSize = "11px";
+          else {
+            t.textContent = "";
+            lines.forEach((s, i) => { const ts = el("tspan", { x: cx, dy: i ? 15 : 0 }, t); ts.textContent = s; });
+          }
+        }
+      }
+      g.addEventListener("mouseenter", () => show(e, g));
+      g.addEventListener("mouseleave", () => hide(g));
+      g.addEventListener("focus", () => show(e, g));
+      g.addEventListener("blur", () => hide(g));
+    });
+    panels.forEach((p) => el("line", { x1: X0, x2: X1, y1: p.top + PH, y2: p.top + PH, class: "m-base" }, S));
+    S.setAttribute("aria-label", D.title);
+    applyHidden();
+  }
+
+  // two balanced lines, breaking at a space or after a hyphen
+  function wrap(s) {
+    let best = [s], bm = s.length;
+    const cut = (a, b, strict) => {
+      const m = Math.max(a.length, b.length);
+      if (m < bm || (!strict && m === bm)) { bm = m; best = [a, b]; }
+    };
+    for (let i = 1; i < s.length - 1; i++) if (s[i] === " ") cut(s.slice(0, i), s.slice(i + 1), false);
+    for (let i = 1; i < s.length - 1; i++) if (s[i - 1] === "-") cut(s.slice(0, i), s.slice(i), true);
+    return best;
+  }
+
+  function applyHidden() { SER.forEach((s) => S.classList.toggle("hide-" + s, hidden.has(s))); }
+
+  function legend() {
+    const L = $("legend");
+    SER.forEach((s) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", "true");
+      b.innerHTML = '<i style="background:var(--s-' + s.toLowerCase() + ')"></i>' + s;
+      b.addEventListener("click", () => {
+        hidden.has(s) ? hidden.delete(s) : hidden.add(s);
+        b.setAttribute("aria-pressed", String(!hidden.has(s)));
+        applyHidden();
+      });
+      L.appendChild(b);
+    });
+  }
+
+  $("kicker").textContent = D.kicker;
+  $("title").textContent = D.title;
+  $("note").textContent = D.note;
+  legend();
+  draw();
+  if (document.fonts) document.fonts.ready.then(draw);
+  addEventListener("resize", () => { if ((S.getBoundingClientRect().width < 520) !== narrow) draw(); });
+
+  // embedding: report the content height to the parent post ('vllm-embed-resize'), as figkit.js does
+  (function reportHeight() {
+    if (window.self === window.top) return;
+    document.documentElement.style.overflow = "hidden";
+    let last = 0;
+    const report = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+    };
+    if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+    addEventListener("load", report);
+    addEventListener("resize", report);
+    setTimeout(report, 300); setTimeout(report, 1500);
+    report();
+  })();
+})();
+</script>
+</body>
+</html>

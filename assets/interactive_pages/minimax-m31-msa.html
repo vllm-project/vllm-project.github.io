@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MiniMax sparse attention</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── figkit tokens (Inferact blog-figures kit) ───────────────────────── */
+:root {
+  color-scheme: light;
+  --font: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hair: 1.2px;
+  --bg: #ffffff; --card: #f7f5f2;
+  --ink: #23201e; --muted: #605b56; --faint: #8e8881; --rule: #e6e1da; --line: #8f8a84;
+  --blue-line: #4d7ba6; --gold-line: #b5873a; --green-line: #6a8a5e; --stone-line: #9a958f;
+  --blue-text: #3e6890; --gold-text: #8a6420; --green-text: #4f6b45;
+  --ease: cubic-bezier(.4, 0, .2, 1); --dur: 520ms;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #18181a; --card: #201f1e;
+    --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+    --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+    --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #18181a; --card: #201f1e;
+  --ink: #f1eeea; --muted: #b3ada6; --faint: #8a847d; --rule: #34312e; --line: #7d7872;
+  --blue-line: #8fb2d3; --gold-line: #d6b06a; --green-line: #9cb48f; --stone-line: #7f7a74;
+  --blue-text: #a3c1dd; --gold-text: #e0c084; --green-text: #a9c09d;
+}
+:root {
+  --blue-t: color-mix(in srgb, var(--blue-line) 13%, var(--bg));
+  --blue-ts: color-mix(in srgb, var(--blue-line) 50%, var(--bg));
+  --blue-m: color-mix(in srgb, var(--blue-line) 30%, var(--bg));
+  --blue-ms: var(--blue-line);
+  --gold-t: color-mix(in srgb, var(--gold-line) 14%, var(--bg));
+  --gold-ts: color-mix(in srgb, var(--gold-line) 50%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 34%, var(--bg));
+  --gold-ms: var(--gold-line);
+  --green-t: color-mix(in srgb, var(--green-line) 15%, var(--bg));
+  --green-ts: color-mix(in srgb, var(--green-line) 55%, var(--bg));
+  --green-m: color-mix(in srgb, var(--green-line) 32%, var(--bg));
+  --green-ms: var(--green-line);
+  --slate-t: color-mix(in srgb, var(--stone-line) 11%, var(--bg));
+  --slate: color-mix(in srgb, var(--stone-line) 60%, var(--bg));
+  --hatch-bg: var(--bg);
+  --hatch-line: color-mix(in srgb, var(--stone-line) 30%, var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+    --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+    --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+    --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+  }
+}
+:root[data-theme="dark"] {
+  --blue-t: color-mix(in srgb, var(--blue-line) 16%, var(--bg));
+  --gold-t: color-mix(in srgb, var(--gold-line) 16%, var(--bg));
+  --gold-m: color-mix(in srgb, var(--gold-line) 36%, var(--bg));
+  --hatch-line: color-mix(in srgb, var(--stone-line) 40%, var(--bg));
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { background: var(--bg); scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+.page { padding: 28px 16px 56px; }
+.fig { max-width: 760px; margin: 0 auto; }
+.fig + .fig { margin-top: 64px; }
+
+.fig-kicker { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.fig-title { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; margin: 0; }
+.fig-sub { font-size: 14px; color: var(--muted); margin: 4px 0 0; }
+.fig-head { margin-bottom: 16px; }
+
+.fig-stage { width: 100%; display: block; overflow: visible; }
+.fig-stage text { font-family: var(--font); fill: var(--ink); }
+.t-lab { font-size: 13px; fill: var(--ink); }
+.t-lab-b { font-size: 13px; font-weight: 600; fill: var(--ink); }
+.t-head { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted) !important; }
+.t-mut { font-size: 13px; fill: var(--muted); }
+.t-faint { font-size: 13px; fill: var(--faint); }
+.t-blue { font-size: 13px; fill: var(--blue-text); font-weight: 500; }
+.t-gold { font-size: 13px; fill: var(--gold-text); font-weight: 600; }
+.t-green { font-size: 13px; fill: var(--green-text); font-weight: 600; }
+.t-mono { font-family: var(--mono) !important; font-size: 12px; font-weight: 500; }
+
+.fig-stage rect { rx: 0; ry: 0; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage polyline { stroke-width: var(--hair); }
+.m-global { fill: var(--blue-t); stroke: var(--blue-ts); }
+.m-global-new { fill: var(--blue-m); stroke: var(--blue-ms); }
+.m-accent { fill: var(--gold-m); stroke: var(--gold-ms); }
+.m-green { fill: var(--green-t); stroke: var(--green-ts); }
+.m-green-strong { fill: var(--green-m); stroke: var(--green-ms); }
+.m-computed { fill: var(--slate-t); stroke: var(--slate); }
+.m-skipped { fill: url(#fk-hatch); stroke: var(--rule); }
+.m-empty { fill: var(--bg); stroke: var(--slate); stroke-dasharray: 3 2; }
+.m-focus { fill: none; stroke: var(--gold-ms); stroke-width: 2 !important; }
+.m-rule { stroke: var(--rule); fill: none; }
+.m-line { stroke: var(--line); fill: none; }
+.m-path { stroke: var(--gold-ms); fill: none; }
+.fig-stage rect, .fig-stage path, .fig-stage line, .fig-stage text, .fig-stage g {
+  transition: opacity var(--dur) var(--ease), fill var(--dur) var(--ease), stroke var(--dur) var(--ease);
+}
+
+.fig-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; font-size: 13px; color: var(--muted); }
+.fig-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.fig-legend i { width: 14px; height: 10px; border: var(--hair) solid; display: inline-block; }
+.fig-legend i.m-global { background: var(--blue-t); border-color: var(--blue-ts); }
+.fig-legend i.m-accent { background: var(--gold-m); border-color: var(--gold-ms); }
+.fig-legend i.m-green { background: var(--green-t); border-color: var(--green-ts); }
+.fig-legend i.m-computed { background: var(--slate-t); border-color: var(--slate); }
+.fig-legend i.m-skipped { border-color: var(--rule); background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--hatch-line) 3px 4.5px); }
+.fig-legend i.ref-line { width: 18px; height: 0; border: 0; border-top: var(--hair) dashed var(--ink); }
+
+.fig-player { background: var(--card); border: var(--hair) solid var(--rule); padding: 14px 16px 16px; margin-top: 14px; }
+.fig-controls { display: flex; align-items: center; gap: 6px; }
+.fig-btn {
+  font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0;
+  height: 28px; min-width: 28px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+}
+.fig-btn:hover { border-color: var(--line); }
+.fig-btn:focus-visible, .fig-pill:focus-visible, .fig-pglabel:focus-visible, .fig-seg button:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 2px; }
+.fig-btn svg { width: 10px; height: 10px; fill: currentColor; }
+.fig-btn.play { min-width: 84px; }
+.fig-pills { display: flex; gap: 4px; flex: 1; min-width: 0; margin-left: 8px; }
+.fig-pills.grouped { gap: 12px; }
+.fig-pgroup { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.fig-pglabel { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint);
+  background: none; border: 0; padding: 0; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pgroup.on .fig-pglabel { color: var(--ink); }
+.fig-pgpills { display: flex; gap: 4px; }
+.fig-pill { flex: 1; min-width: 0; position: relative; height: 28px; border: 0; padding: 0; background: none; cursor: pointer;
+  font: 500 12.5px/1 var(--font); color: var(--muted); text-align: left; }
+.fig-pills.grouped .fig-pill { height: 10px; }
+.fig-pills.grouped .fig-pill .lbl { display: none; }
+.fig-pill::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--rule); }
+.fig-pill .fill { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--gold-line); }
+.fig-pill.done .fill { width: 100%; }
+.fig-pill .lbl { position: absolute; left: 0; right: 2px; top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fig-pill.on .lbl { color: var(--ink); font-weight: 600; }
+.fig-count { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; color: var(--muted); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.fig-explain { margin-top: 14px; min-height: 66px; }
+.fig-explain h3 { font-size: 15px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.005em; }
+.fig-explain p { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+.fig-explain b { color: var(--ink); font-weight: 600; }
+.fig-explain .gold { color: var(--gold-text); font-weight: 600; }
+.fig-explain code { font-family: var(--mono); font-size: 12.5px; }
+
+.fig-seg { display: flex; border: var(--hair) solid var(--rule); }
+.fig-seg button { flex: 1; font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  background: var(--bg); border: 0; border-radius: 0; height: 30px; padding: 0 8px; cursor: pointer; white-space: nowrap; }
+.fig-seg button + button { border-left: var(--hair) solid var(--rule); }
+.fig-seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.fig-frame { position: relative; padding: 14px 12px 10px; }
+.fig-frame::before, .fig-frame::after, .fig-frame > .fig-corners::before, .fig-frame > .fig-corners::after {
+  content: ""; position: absolute; width: 9px; height: 9px; border: 0 solid var(--line); pointer-events: none; }
+.fig-frame::before { left: 0; top: 0; border-left-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame::after { right: 0; top: 0; border-right-width: var(--hair); border-top-width: var(--hair); }
+.fig-frame > .fig-corners::before { left: 0; bottom: 0; border-left-width: var(--hair); border-bottom-width: var(--hair); }
+.fig-frame > .fig-corners::after { right: 0; bottom: 0; border-right-width: var(--hair); border-bottom-width: var(--hair); }
+.stage-scroll { overflow-x: auto; }
+@media (max-width: 660px) { .stage-scroll .fig-stage { min-width: 620px; } }
+.fig-note { font: 400 12px/1.45 var(--mono); color: var(--muted); margin: 8px 0 0; }
+
+@media (max-width: 560px) {
+  .fig-pill .lbl { display: none; }
+  .fig-pill { height: 12px; }
+  .fig-explain { min-height: 88px; }
+  .fig-btn.play { min-width: 28px; }
+  .fig-btn.play .t { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { :root { --dur: 0ms; } }
+
+/* ── figure 2: GPU memory ──────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: var(--hair) solid var(--rule); border-bottom: var(--hair) solid var(--rule); margin: 0 0 16px; }
+.stats div { padding: 9px 8px 9px 0; min-width: 0; }
+.stats b { display: block; font-size: 20px; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stats span { display: block; font: 500 11px/1.3 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.ctl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 18px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ctl-lab { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.ctl input[type="text"], .ctl input[type="number"] { font: 500 16px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--bg); border: var(--hair) solid var(--rule); border-radius: 0; height: 32px; padding: 0 10px; width: 100%; }
+.ctl input:focus-visible { outline: 2px solid var(--blue-line); outline-offset: 1px; }
+.ctl input[aria-invalid="true"] { border-color: var(--gold-line); }
+.ctl small { font: 400 12px/1.3 var(--mono); color: var(--muted); min-height: 1.3em; }
+.ctl small.err { color: var(--gold-text); }
+.chk { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.chk input { accent-color: var(--green-line); width: 14px; height: 14px; margin: 0; }
+.mem-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.mem-head .t { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mem-head b { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hbar { position: relative; height: 28px; border: var(--hair) solid var(--rule); background: var(--bg); overflow: hidden; }
+.hbar i { position: absolute; top: 0; bottom: 0; transition: width var(--dur) var(--ease), left var(--dur) var(--ease); }
+.hbar .w { left: 0; background: var(--slate-t); box-shadow: inset 0 0 0 var(--hair) var(--slate); }
+.hbar .kv { background: var(--blue-t); box-shadow: inset 0 0 0 var(--hair) var(--blue-ts); }
+.hbar .ix { background: var(--green-t); box-shadow: inset 0 0 0 var(--hair) var(--green-ts); }
+.hbar .ov { left: 95%; width: 0; background: repeating-linear-gradient(-45deg, var(--hatch-bg) 0 3px, var(--line) 3px 4.5px); }
+.hbar .lim { left: 95%; width: 0; border-left: var(--hair) dashed var(--ink); }
+.mem-leg { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); margin: 8px 0 0; font-variant-numeric: tabular-nums; }
+.mem-leg b { color: var(--ink); font-weight: 600; }
+.verdict { font-size: 14px; margin: 12px 0 18px; color: var(--muted); }
+.verdict b { color: var(--ink); font-weight: 600; }
+.cmp-head { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.cmp { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; font-size: 13px; }
+.cmp .nm { font: 500 11.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.cmp .nm.cur { color: var(--gold-text); }
+.cmp .tr { height: 12px; position: relative; }
+.cmp .tr i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue-t); box-shadow: inset 0 0 0 var(--hair) var(--blue-ts); transition: width var(--dur) var(--ease); }
+.cmp .tr i.cur { background: var(--gold-m); box-shadow: inset 0 0 0 var(--hair) var(--gold-ms); }
+.cmp .v { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cmp .v b { color: var(--ink); font-weight: 600; }
+details.fig-note summary { cursor: pointer; }
+details.fig-note p { margin: 6px 0 0; }
+@media (max-width: 560px) {
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ctl-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<!-- ── Figure 1 ─────────────────────────────────────────────────────── -->
+<div class="fig" id="fig1">
+  <div class="fig-head">
+    <p class="fig-kicker">Figure 1 · MiniMax sparse attention</p>
+    <h1 class="fig-title">Each GQA group reads only the KV blocks its indexer picks</h1>
+    <p class="fig-sub">Toy example: 2 GQA groups of 3 query heads, 8 KV blocks, top-4. M3.1-Flash: 4 groups of 16 heads, 128-token blocks, top-16. Not to scale.</p>
+  </div>
+  <div class="fig-frame"><span class="fig-corners"></span>
+    <div class="stage-scroll"><svg class="fig-stage" id="stage" viewBox="0 0 736 500" role="img" aria-label="An index query per GQA group scores the keys, max-pools them per block and keeps the top-k blocks; every query head in that group then attends exactly over only those blocks."></svg></div>
+    <p class="fig-note">Method: MiniMax Sparse Attention (arXiv 2606.13392). Sizes: MiniMax-M3.1-Flash config.json (sparse_local_block = 1, sparse_init_block = 0).</p>
+  </div>
+  <div class="fig-legend">
+    <span><i class="m-green"></i>index branch</span>
+    <span><i class="m-accent"></i>selected blocks (top-k)</span>
+    <span><i class="m-global"></i>KV cache</span>
+    <span><i class="m-skipped"></i>not read</span>
+    <span><i class="m-computed"></i>query heads, outputs</span>
+  </div>
+  <div id="player"></div>
+</div>
+
+</main>
+
+<script>
+/* ── FK: figkit helpers (inlined from the kit; embed resize removed) ───── */
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function svg(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) { if (attrs[k] == null) continue; n.setAttribute(k, attrs[k]); }
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function text(parent, x, y, str, cls, attrs) {
+    const t = svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+    t.textContent = str; return t;
+  }
+  function defs(root) {
+    const d = svg("defs", {}, root);
+    const p = svg("pattern", { id: "fk-hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, d);
+    svg("rect", { width: 6, height: 6, style: "fill: var(--hatch-bg)" }, p);
+    svg("line", { x1: 0, y1: 0, x2: 0, y2: 6, style: "stroke: var(--hatch-line); stroke-width: 2" }, p);
+    const m = svg("marker", { id: "fk-arrow", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--line)" }, m);
+    const g = svg("marker", { id: "fk-arrow-gold", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, d);
+    svg("path", { d: "M0,1 L9,5 L0,9 z", style: "fill: var(--gold-ms)" }, g);
+    return d;
+  }
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  function tween(el, to, ms) {
+    ms = reduced() ? 0 : ms == null ? 520 : ms;
+    if (el._fkRaf) cancelAnimationFrame(el._fkRaf);
+    const from = {};
+    for (const k in to) from[k] = parseFloat(el.getAttribute(k)) || 0;
+    return new Promise((res) => {
+      if (!ms) { for (const k in to) el.setAttribute(k, to[k]); return res(); }
+      const t0 = performance.now();
+      const tick = (now) => {
+        const t = Math.max(0, Math.min(1, (now - t0) / ms)), e = ease(t);
+        for (const k in to) el.setAttribute(k, from[k] + (to[k] - from[k]) * e);
+        if (t < 1) el._fkRaf = requestAnimationFrame(tick); else { el._fkRaf = 0; res(); }
+      };
+      el._fkRaf = requestAnimationFrame(tick);
+    });
+  }
+  const ICON_PLAY = '<svg viewBox="0 0 12 12"><path d="M2 1.2v9.6L10.4 6z"/></svg>';
+  const ICON_PAUSE = '<svg viewBox="0 0 12 12"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>';
+  const ICON_PREV = '<svg viewBox="0 0 12 12"><path d="M8.5 1.5 3.5 6l5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const ICON_NEXT = '<svg viewBox="0 0 12 12"><path d="M3.5 1.5 8.5 6l-5 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  function player(host, opts) {
+    const steps = opts.steps, n = steps.length;
+    const dwell = (i) => steps[i].ms || opts.ms || 4200;
+    host.classList.add("fig-player");
+    host.innerHTML =
+      '<div class="fig-controls">' +
+      '<button class="fig-btn play" type="button"></button>' +
+      '<button class="fig-btn prev" type="button" aria-label="Previous step">' + ICON_PREV + "</button>" +
+      '<button class="fig-btn next" type="button" aria-label="Next step">' + ICON_NEXT + "</button>" +
+      '<div class="fig-pills" role="tablist"></div><span class="fig-count"></span></div>' +
+      '<div class="fig-explain" aria-live="polite"><h3></h3><p></p></div>';
+    const $ = (s) => host.querySelector(s);
+    const grouped = steps.some((s) => s.group);
+    const groups = {};
+    if (grouped) $(".fig-pills").classList.add("grouped");
+    const pills = steps.map((s, i) => {
+      const b = document.createElement("button");
+      b.className = "fig-pill"; b.type = "button"; b.setAttribute("role", "tab");
+      b.setAttribute("aria-label", (s.group ? s.group + ", " : "") + "step " + (i + 1) + ": " + s.label);
+      b.innerHTML = '<span class="fill"></span><span class="lbl">' + s.label + "</span>";
+      b.onclick = () => { stop(); go(i); };
+      let parent = $(".fig-pills");
+      if (grouped) {
+        const key = s.group || "";
+        if (!groups[key]) {
+          const g = document.createElement("div");
+          g.className = "fig-pgroup";
+          g.innerHTML = '<button type="button" class="fig-pglabel"></button><div class="fig-pgpills"></div>';
+          g.querySelector(".fig-pglabel").textContent = key;
+          g.querySelector(".fig-pglabel").onclick = () => { stop(); go(i); };
+          $(".fig-pills").appendChild(g);
+          groups[key] = { el: g, n: 0 };
+        }
+        groups[key].n++;
+        groups[key].el.style.flex = String(groups[key].n);
+        parent = groups[key].el.querySelector(".fig-pgpills");
+      }
+      parent.appendChild(b);
+      return b;
+    });
+    let cur = -1, playing = false, timer = 0, started = false;
+    function setPlayBtn() {
+      $(".play").innerHTML = playing ? ICON_PAUSE + '<span class="t">Pause</span>'
+        : ICON_PLAY + '<span class="t">' + (cur === n - 1 ? "Replay" : "Play") + "</span>";
+      $(".play").setAttribute("aria-label", playing ? "Pause" : "Play");
+    }
+    function go(i) {
+      const prev = cur;
+      cur = (i + n) % n;
+      pills.forEach((p, k) => {
+        p.classList.toggle("on", k === cur); p.classList.toggle("done", k < cur);
+        p.setAttribute("aria-selected", k === cur);
+        const f = p.querySelector(".fill"); f.style.transition = "none"; f.style.width = k < cur ? "100%" : "0";
+      });
+      if (grouped) for (const k in groups) groups[k].el.classList.toggle("on", k === (steps[cur].group || ""));
+      $(".fig-explain h3").innerHTML = steps[cur].title;
+      $(".fig-explain p").innerHTML = steps[cur].text;
+      const pad = (k) => String(k).padStart(2, "0");
+      $(".fig-count").textContent = pad(cur + 1) + " / " + pad(n);
+      opts.render(cur, prev);
+      if (playing) schedule();
+      setPlayBtn();
+    }
+    function schedule() {
+      clearTimeout(timer);
+      const f = pills[cur].querySelector(".fill");
+      requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = "width " + dwell(cur) + "ms linear"; f.style.width = "100%"; }));
+      timer = setTimeout(() => {
+        if (cur === n - 1) { playing = false; setPlayBtn(); return; }
+        go(cur + 1);
+      }, dwell(cur));
+    }
+    function play() { playing = true; started = true; if (cur === n - 1) go(0); else { schedule(); setPlayBtn(); } }
+    function stop() {
+      playing = false; clearTimeout(timer);
+      const f = pills[cur] && pills[cur].querySelector(".fill");
+      if (f) { f.style.transition = "none"; f.style.width = "0"; }
+      setPlayBtn();
+    }
+    $(".play").onclick = () => (playing ? stop() : play());
+    $(".prev").onclick = () => { stop(); go(Math.max(0, cur - 1)); };
+    $(".next").onclick = () => { stop(); go(Math.min(n - 1, cur + 1)); };
+    host.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") { stop(); go(Math.min(n - 1, cur + 1)); }
+      if (e.key === "ArrowLeft") { stop(); go(Math.max(0, cur - 1)); }
+    });
+    go(0);
+    const auto = opts.autoplay !== false && !reduced();
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((es) => {
+        const visible = es[0].isIntersecting;
+        if (visible && auto && !started) play();
+        if (!visible && playing) { stop(); started = false; }
+      }, { threshold: 0.5 }).observe(host.parentElement || host);
+    } else if (auto) play();
+    return { go, play, stop, get step() { return cur; } };
+  }
+  window.FK = { svg, text, defs, tween, player, reduced };
+})();
+
+/* text with _{sub} and ^{sup} */
+function TX(parent, x, y, s, cls, attrs) {
+  const t = FK.svg("text", Object.assign({ x, y, class: cls || "t-lab" }, attrs || {}), parent);
+  const re = /([_^])\{([^}]*)\}/g; let last = 0, m, shift = 0;
+  const add = (txt, dy, small) => { const ts = FK.svg("tspan", {}, t); ts.textContent = txt; if (dy) ts.setAttribute("dy", dy); if (small) ts.setAttribute("font-size", "0.75em"); };
+  while ((m = re.exec(s))) {
+    if (m.index > last) { add(s.slice(last, m.index), -shift, false); shift = 0; }
+    const d = m[1] === "_" ? 3.5 : -5; add(m[2], d - shift, true); shift = d; last = re.lastIndex;
+  }
+  if (last < s.length) add(s.slice(last), -shift, false);
+  return t;
+}
+
+/* ── Figure 1: indexer → top-k → sparse attention ─────────────────── */
+(function () {
+  const S = document.getElementById("stage");
+  FK.defs(S);
+  const op = (el, v) => { el.style.opacity = v; };
+  const BX = 120, BW = 50, NB = 8, TW = BW / 4;         // score track 120 → 520, 4 keys per block
+  const BASE = [92, 164], H = 52;                         // score rows (group 1, group 2)
+  const SEL = [[0, 3, 5, 7], [0, 2, 6, 7]];               // toy top-4; block 7 holds the query
+  const MX = [[.95, .40, .50, .85, .45, .75, .35, .30], [.90, .45, .80, .40, .50, .38, .78, .72]];
+  const PK = [[1, 2, 0, 3, 1, 2, 3, 1], [2, 0, 3, 1, 2, 0, 1, 3]];
+  let seed = 17; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+  // ── section 1
+  FK.text(S, 0, 14, "1 · Indexer + top-k", "t-head");
+  const opLab = FK.text(S, BX + NB * BW, 14, "", "t-head", { "text-anchor": "end" });
+  for (let b = 1; b < NB; b++) FK.svg("line", { x1: BX + b * BW, y1: 32, x2: BX + b * BW, y2: 192, class: "m-rule", "stroke-dasharray": "2 3" }, S);
+  const tokens = [], blocks = [];
+  BASE.forEach((base, r) => {
+    FK.text(S, 0, base - 22, "index query", "t-lab-b");
+    FK.text(S, 0, base - 6, "group " + (r + 1), "t-mut");
+    FK.svg("line", { x1: BX, y1: base, x2: BX + NB * BW, y2: base, class: "m-line" }, S);
+    for (let b = 0; b < NB; b++) {
+      const bh = H * MX[r][b];
+      const el = FK.svg("rect", { x: BX + b * BW + 4, y: base, width: BW - 8, height: 0, class: "m-green" }, S);
+      blocks.push({ el, base, h: bh, sel: SEL[r].includes(b) });
+      for (let t = 0; t < 4; t++) {
+        const v = t === PK[r][b] ? MX[r][b] : 0.12 + rnd() * (MX[r][b] - 0.2);
+        const te = FK.svg("rect", { x: BX + b * BW + t * TW + 2.5, y: base, width: TW - 5, height: 0, class: "m-green-strong" }, S);
+        tokens.push({ el: te, base, h: H * v });
+      }
+    }
+  });
+  FK.text(S, 0, 189, "index K", "t-lab-b");
+  FK.text(S, 0, 205, "1 head, shared", "t-mut");
+  for (let j = 0; j < NB * 4; j++) FK.svg("rect", { x: BX + j * TW + 2, y: 180, width: TW - 4, height: 10, class: "m-green" }, S);
+  for (let b = 0; b < NB; b++) FK.text(S, BX + b * BW + BW / 2, 210, "b" + b, "t-faint", { "text-anchor": "middle" });
+
+  const CX = 556;
+  const chips = [70, 142].map((cy, r) => {
+    TX(S, CX, cy + 5, "I_{" + (r + 1) + "}", "t-gold");
+    const cells = [];
+    for (let b = 0; b < NB; b++) cells.push(FK.svg("rect", { x: CX + 24 + b * 19, y: cy - 8, width: 15, height: 16, class: "m-empty" }, S));
+    return cells;
+  });
+  const form = FK.svg("g", {}, S);
+  const keep = FK.svg("g", {}, S);
+  FK.text(keep, BX + NB * BW, 30, "most recent block: always kept", "t-gold", { "text-anchor": "end" });
+  FK.text(form, CX, 184, "S = blockmax(q · k)", "t-mut");
+  FK.text(form, CX, 202, "I = top-k(S)", "t-mut");
+
+  const paths = [
+    FK.svg("path", { d: "M550 70 H534 V256 H76 V284", class: "m-path" }, S),
+    FK.svg("path", { d: "M550 142 H541 V378 H76 V414", class: "m-path" }, S),
+  ];
+
+  // ── section 2
+  FK.text(S, 0, 240, "2 · Sparse attention", "t-head");
+  const GX = 548, GW = 32, GP = 36;
+  const rows = [298, 428].map((cy, r) => {
+    const o = { q: [], ql: [], kv: [], foc: [], cl: [], ol: [], out: [] };
+    for (let k = 0; k < 3; k++) {
+      const y = cy - 29 + k * 20, g = FK.svg("g", {}, S);
+      FK.svg("rect", { x: 0, y, width: 40, height: 18, class: "m-computed" }, g);
+      TX(g, 20, y + 13, "Q_{" + (r * 3 + k + 1) + "}", "t-lab", { "text-anchor": "middle" });
+      o.q.push(g);
+      o.ql.push(FK.svg("line", { x1: 40, y1: y + 9, x2: 62, y2: cy, class: "m-line" }, S));
+    }
+    o.chip = FK.svg("rect", { x: 62, y: cy - 12, width: 28, height: 24, class: "m-empty" }, S);
+    TX(S, 76, cy + 4.5, "I_{" + (r + 1) + "}", "t-lab-b", { "text-anchor": "middle" });
+    o.arr = FK.svg("line", { x1: 90, y1: cy, x2: 114, y2: cy, class: "m-line", "marker-end": "url(#fk-arrow)" }, S);
+    FK.text(S, BX, cy - 26, "KV cache, KV head " + (r + 1), "t-mut");
+    for (let b = 0; b < NB; b++) {
+      const x = BX + b * BW + 2;
+      o.kv.push([FK.svg("rect", { x, y: cy - 18, width: BW - 4, height: 16, class: "m-global" }, S),
+                 FK.svg("rect", { x, y: cy + 2, width: BW - 4, height: 16, class: "m-global-new" }, S)]);
+      o.foc.push(FK.svg("rect", { x: x - 2, y: cy - 20, width: BW, height: 40, class: "m-focus", opacity: 0 }, S));
+    }
+    SEL[r].forEach((b, s) => {
+      const x = BX + b * BW + 2, g = FK.svg("g", { opacity: 0 }, S);
+      const k = FK.svg("rect", { x, y: cy - 18, width: BW - 4, height: 16, class: "m-global" }, g);
+      const v = FK.svg("rect", { x, y: cy + 2, width: BW - 4, height: 16, class: "m-global-new" }, g);
+      o.cl.push({ g, k, v, x0: x, x1: GX + s * GP });
+    });
+    o.gl = TX(S, GX, cy - 26, "gathered k·B_{k}", "t-mut");
+    for (let k = 0; k < 3; k++) {
+      const y = cy - 29 + k * 20;
+      o.ol.push(FK.svg("line", { x1: GX + 3 * GP + GW, y1: cy, x2: 700, y2: y + 9, class: "m-line" }, S));
+      const g = FK.svg("g", {}, S);
+      FK.svg("rect", { x: 700, y, width: 36, height: 18, class: "m-computed" }, g);
+      TX(g, 718, y + 13, "O_{" + (r * 3 + k + 1) + "}", "t-lab", { "text-anchor": "middle" });
+      o.out.push(g);
+    }
+    o.sm = FK.text(S, GX + (3 * GP + GW) / 2, cy + 38, "exact softmax", "t-mut", { "text-anchor": "middle" });
+    return o;
+  });
+  const note = TX(S, 0, 494, "Q_{1}–Q_{3} read only the blocks in I_{1}; Q_{4}–Q_{6} only those in I_{2}.", "t-mut");
+
+  const plen = paths.map((p) => p.getTotalLength());
+  paths.forEach((p, i) => { p.style.strokeDasharray = plen[i]; p.style.strokeDashoffset = plen[i]; });
+  let markerTimer = 0;
+
+  const steps = [
+    { group: "Indexer", label: "Score",
+      title: "The indexer scores every past key",
+      text: "Each GQA group has one index query; all groups share a single index-key head. A score is a plain dot product <b>q<sub>idx</sub> · k<sub>idx</sub></b>, with no softmax." },
+    { group: "Indexer", label: "Max pool",
+      title: "Scores are max-pooled inside each KV block",
+      text: "Each block of <b>B<sub>k</sub></b> keys keeps its highest key score. In M3.1-Flash a block is <b>128 tokens</b>." },
+    { group: "Indexer", label: "Top-k",
+      title: "Each group keeps its top-k blocks",
+      text: "Here <span class=\"gold\">4 of 8 blocks</span> per group; M3.1-Flash keeps <b>16</b>. Per the MiniMax config (<code>sparse_local_block = 1</code>), <b>the most recent block is always kept</b>, even with a low score, as b7 is for group 1." },
+    { group: "Sparse attention", label: "Indices",
+      title: "The block indices go to the attention",
+      text: "Each group’s list <span class=\"gold\">I<sub>r</sub></span> tells the attention kernel which KV blocks of that group’s KV head to read." },
+    { group: "Sparse attention", label: "Share",
+      title: "All query heads in a group share its indices",
+      text: "Q<sub>1</sub>–Q<sub>3</sub> use I<sub>1</sub>, Q<sub>4</sub>–Q<sub>6</sub> use I<sub>2</sub>. In M3.1-Flash, <b>16 query heads</b> share each of the <b>4 KV heads</b>." },
+    { group: "Sparse attention", label: "Gather", ms: 5000,
+      title: "Only the selected KV blocks are read",
+      text: "The other blocks stay in the cache but are skipped. Each query reads <b>16 × 128 = 2,048 keys</b> per layer, however long the context." },
+    { group: "Sparse attention", label: "Attend", ms: 5000,
+      title: "Attention is exact over the gathered blocks",
+      text: "Softmax over the selected blocks is exact; the sparsity comes only from which blocks are read." },
+  ];
+
+  FK.player(document.getElementById("player"), {
+    steps, ms: 4200,
+    render(i) {
+      opLab.textContent = ["q · k scores", "block max pool", "top-k", "top-k", "top-k", "top-k", "top-k"][i];
+      tokens.forEach((t) => { FK.tween(t.el, { y: t.base - t.h, height: t.h }); op(t.el, i === 0 ? 1 : i === 1 ? 0.22 : 0); });
+      blocks.forEach((b) => {
+        FK.tween(b.el, i >= 1 ? { y: b.base - b.h, height: b.h } : { y: b.base, height: 0 });
+        b.el.setAttribute("class", i >= 2 ? (b.sel ? "m-accent" : "m-computed") : "m-green");
+      });
+      chips.forEach((cells, r) => cells.forEach((c, b) => c.setAttribute("class", i < 2 ? "m-empty" : SEL[r].includes(b) ? "m-accent" : "m-computed")));
+      op(form, i >= 2 ? 1 : 0);
+      op(keep, i >= 2 ? 1 : 0);
+      clearTimeout(markerTimer);
+      paths.forEach((p, k) => {
+        p.style.transition = FK.reduced() ? "none" : "stroke-dashoffset 900ms var(--ease)";
+        p.style.strokeDashoffset = i >= 3 ? 0 : plen[k];
+        if (i < 3) p.removeAttribute("marker-end");
+      });
+      if (i >= 3) markerTimer = setTimeout(() => paths.forEach((p) => p.setAttribute("marker-end", "url(#fk-arrow-gold)")), FK.reduced() ? 0 : 850);
+      rows.forEach((o, r) => {
+        o.chip.setAttribute("class", i >= 3 ? "m-accent" : "m-empty");
+        o.q.forEach((g) => op(g, i >= 4 ? 1 : 0.3));
+        o.ql.forEach((l) => op(l, i >= 4 ? 1 : 0));
+        op(o.arr, i >= 4 ? 1 : 0);
+        o.kv.forEach((pair, b) => {
+          const skip = i >= 5 && !SEL[r].includes(b);
+          pair[0].setAttribute("class", skip ? "m-skipped" : "m-global");
+          pair[1].setAttribute("class", skip ? "m-skipped" : "m-global-new");
+          op(o.foc[b], i >= 5 && SEL[r].includes(b) ? 1 : 0);
+        });
+        o.cl.forEach((c) => {
+          op(c.g, i >= 5 ? 1 : 0);
+          const to = i >= 5 ? { x: c.x1, width: GW } : { x: c.x0, width: BW - 4 };
+          FK.tween(c.k, to, 700); FK.tween(c.v, to, 700);
+        });
+        op(o.gl, i >= 5 ? 1 : 0);
+        o.ol.forEach((l) => op(l, i >= 6 ? 1 : 0));
+        o.out.forEach((g) => op(g, i >= 6 ? 1 : 0.3));
+        op(o.sm, i >= 6 ? 1 : 0);
+      });
+      op(note, i >= 4 ? 1 : 0);
+    },
+  });
+})();
+
+</script>
+<script>
+/* Embedding: posts the content height to the parent ('vllm-embed-resize'). */
+(function () {
+  if (window.self === window.top) return;
+  document.documentElement.style.overflow = "hidden";
+  var last = 0;
+  function report() {
+    var h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && h !== last) { last = h; window.parent.postMessage({ type: "vllm-embed-resize", height: h }, "*"); }
+  }
+  if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+  window.addEventListener("load", report);
+  window.addEventListener("resize", report);
+  setTimeout(report, 300); setTimeout(report, 1500);
+  report();
+})();
+</script>
+</body>
+</html>

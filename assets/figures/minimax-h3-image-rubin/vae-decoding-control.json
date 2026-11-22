@@ -1,0 +1,190 @@
+{
+  "scope": "Historical BF16 control, fixed 4096x4096 text-to-image, no references, six steps. Four GB300 GPUs; DiT TP1, Ulysses SP4, ring1, encoder TP4. Separate from the MXFP8 API and 160-request serving datasets.",
+  "execution": "Both paths distribute tiles across four GPUs. Native eager executes per-rank tiles sequentially; optimized decoder uses CUDA Graph replay and six streams per GPU. The difference measures the combined execution path.",
+  "aggregation": "HTTP values are medians of the selected lifecycle medians (five measured requests each after warmup). VAE timings are median rank-0 stage measurements over the available control cycles; they are not summed with separately computed HTTP medians.",
+  "source_sha256": "7335e6b49cfdeaa1b10bf1c1d740e4655635d2466ff26644031b4ba19dfdba93",
+  "results": [
+    {
+      "variant": "native_eager",
+      "http_cycles": [
+        {
+          "hardware": "gb300",
+          "variant": "native_eager",
+          "cycle": 0,
+          "case": "t2i-4k-square",
+          "n": 5,
+          "complete_cell": true,
+          "http_median_s": 3.957522639000672,
+          "saved_validated_median_s": 4.200515598990023,
+          "stage_gen_median_s": 3.8405871391296387
+        },
+        {
+          "hardware": "gb300",
+          "variant": "native_eager",
+          "cycle": 1,
+          "case": "t2i-4k-square",
+          "n": 5,
+          "complete_cell": true,
+          "http_median_s": 4.016840204989421,
+          "saved_validated_median_s": 4.2590627600002335,
+          "stage_gen_median_s": 3.8980138301849365
+        }
+      ],
+      "http_median_of_lifecycle_medians_s": 3.9871814219950465,
+      "vae_median_s": 2.63463,
+      "vae_stage_records": [
+        {
+          "cycle": 0,
+          "vae_s": 2.588958
+        },
+        {
+          "cycle": 0,
+          "vae_s": 2.629794
+        },
+        {
+          "cycle": 0,
+          "vae_s": 2.594214
+        },
+        {
+          "cycle": 0,
+          "vae_s": 2.596791
+        },
+        {
+          "cycle": 0,
+          "vae_s": 2.597097
+        },
+        {
+          "cycle": 1,
+          "vae_s": 2.647291
+        },
+        {
+          "cycle": 1,
+          "vae_s": 2.663374
+        },
+        {
+          "cycle": 1,
+          "vae_s": 2.65759
+        },
+        {
+          "cycle": 1,
+          "vae_s": 2.653664
+        },
+        {
+          "cycle": 1,
+          "vae_s": 2.639466
+        }
+      ]
+    },
+    {
+      "variant": "native_graph",
+      "http_cycles": [
+        {
+          "hardware": "gb300",
+          "variant": "native_graph",
+          "cycle": 2,
+          "case": "t2i-4k-square",
+          "n": 5,
+          "complete_cell": true,
+          "http_median_s": 1.5747796520008706,
+          "saved_validated_median_s": 1.8136674890120048,
+          "stage_gen_median_s": 1.4615256786346436
+        },
+        {
+          "hardware": "gb300",
+          "variant": "native_graph",
+          "cycle": 3,
+          "case": "t2i-4k-square",
+          "n": 5,
+          "complete_cell": true,
+          "http_median_s": 1.5749724440102,
+          "saved_validated_median_s": 1.8154734450072283,
+          "stage_gen_median_s": 1.4612236022949219
+        }
+      ],
+      "http_median_of_lifecycle_medians_s": 1.5748760480055353,
+      "vae_median_s": 0.2129345,
+      "vae_stage_records": [
+        {
+          "cycle": 0,
+          "vae_s": 0.211307
+        },
+        {
+          "cycle": 0,
+          "vae_s": 0.213128
+        },
+        {
+          "cycle": 0,
+          "vae_s": 0.211391
+        },
+        {
+          "cycle": 0,
+          "vae_s": 0.207995
+        },
+        {
+          "cycle": 0,
+          "vae_s": 0.210934
+        },
+        {
+          "cycle": 1,
+          "vae_s": 0.21449
+        },
+        {
+          "cycle": 1,
+          "vae_s": 0.213698
+        },
+        {
+          "cycle": 1,
+          "vae_s": 0.21262
+        },
+        {
+          "cycle": 1,
+          "vae_s": 0.213888
+        },
+        {
+          "cycle": 1,
+          "vae_s": 0.213721
+        },
+        {
+          "cycle": 2,
+          "vae_s": 0.21325
+        },
+        {
+          "cycle": 2,
+          "vae_s": 0.213029
+        },
+        {
+          "cycle": 2,
+          "vae_s": 0.212757
+        },
+        {
+          "cycle": 2,
+          "vae_s": 0.212622
+        },
+        {
+          "cycle": 2,
+          "vae_s": 0.212844
+        },
+        {
+          "cycle": 3,
+          "vae_s": 0.213208
+        },
+        {
+          "cycle": 3,
+          "vae_s": 0.212473
+        },
+        {
+          "cycle": 3,
+          "vae_s": 0.212797
+        },
+        {
+          "cycle": 3,
+          "vae_s": 0.21506
+        },
+        {
+          "cycle": 3,
+          "vae_s": 0.213025
+        }
+      ]
+    }
+  ]
+}

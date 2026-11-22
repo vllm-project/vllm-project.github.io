@@ -1,0 +1,19 @@
+
+.fig{padding:8px 0} .fig-toolbar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin:12px 0 14px}
+.fig-toolbar label{display:flex;gap:6px;align-items:center;font:500 11.5px/1.4 var(--mono);color:var(--muted)}
+.fig-toolbar input,.fig-toolbar select{font:inherit;color:var(--ink);background:var(--bg);border:var(--hair) solid var(--rule);border-radius:0;padding:5px 6px;max-width:100%}
+.fig-toolbar input[type=number]{width:90px}.fig-toolbar input[type=checkbox]{accent-color:var(--gold-line)}
+
+.fig-legend i.sw{width:18px;height:0;border:0;border-top:2px solid;background:none}
+.ln{fill:none;stroke-width:2!important;stroke-linejoin:round;stroke-linecap:round}
+.pt{stroke:var(--bg);stroke-width:2!important}.hit{fill:transparent;cursor:crosshair}.hit:focus-visible{stroke:var(--blue-line);outline:none}
+.fig-calculator{margin-top:32px;border-top:var(--hair) solid var(--rule);padding-top:20px}.fig-calculator h2{font-size:20px;font-weight:600;margin:0}
+.revenue{border-bottom:var(--hair) solid var(--rule);padding:14px 0}.revenue-top,.revenue-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.revenue-name{font-size:13px;font-weight:600}.revenue-value{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}.track{height:10px;background:var(--rule);margin:10px 0}.fill{height:10px}
+.revenue-meta{font-size:12px;color:var(--muted)}.revenue-meta input{width:72px;border:var(--hair) solid var(--rule);background:var(--bg);color:var(--ink);padding:3px}
+body[data-embed] .fig-calculator,body[data-embed] .download-note{display:none}
+@media(max-width:560px){.fig{padding:8px 4px}.fig-toolbar{gap:8px}.fig-toolbar label{font-size:10.5px}.fig-head{margin-bottom:12px}}
+
+.fig-legend:empty{display:none}
+
+.measurement-details{margin:12px 0 0}.measurement-details summary{font:13px/1.5 var(--font);color:var(--muted);cursor:pointer}

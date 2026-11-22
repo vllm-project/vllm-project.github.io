@@ -31,9 +31,7 @@ Measured on [AgentX](https://newsletter.semianalysis.com/p/agentx-inferencexv3-d
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/vllm-agentx-pareto.html" title="vLLM on AgentX: cost efficiency vs. interactivity (interactive)" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 640px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Interactive version of Figure 1. Hover over a point to see its configuration, or <a href="/assets/interactive_pages/vllm-agentx-pareto.html">open it full-screen</a>.</em>
-</p>
+*Interactive version of Figure 1. Hover over a point to see its configuration, or [open it full-screen](/assets/interactive_pages/vllm-agentx-pareto.html).*
 
 ## Characterizing agentic workloads: a second look
 
@@ -52,9 +50,7 @@ These statistics follow from how an agentic session is built. Each turn appends 
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/agentic-workload-explorer.html" title="Agentic workload explorer: sessions grow through reuse and branching" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 1000px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Figure 2: Agentic sessions accumulate context across turns and branch into subagents. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or <a href="/assets/interactive_pages/agentic-workload-explorer.html">open the explorer full-screen</a>.</em>
-</p>
+*Figure 2: Agentic sessions accumulate context across turns and branch into subagents. Each request carries earlier context forward, while subagents may inherit the parent context or start fresh. Step through the trace with the slider, or [open the explorer full-screen](/assets/interactive_pages/agentic-workload-explorer.html).*
 
 ## Challenges in serving agentic workloads
 
@@ -96,9 +92,7 @@ The new [packed KV cache layout](https://github.com/vllm-project/vllm/pull/44577
 
 <iframe class="vllm-embed" src="/assets/interactive_pages/dsv4-kv-cache-layout.html" title="DeepSeek V4 Pro hybrid KV cache: size-bucketed tensors vs. packed layout" loading="lazy" scrolling="no" style="display: block; width: 100%; height: 700px; border: 0; border-radius: 12px; overflow: hidden;"></iframe>
 
-<p align="center">
-<em>Figure 5: Hybrid KV cache groups and the packed KV cache layout for DeepSeek V4 Pro. Toggle between the MXFP4 and FP8 indexer configurations, or <a href="/assets/interactive_pages/dsv4-kv-cache-layout.html">open the layout full-screen</a>.</em>
-</p>
+*Figure 5: Hybrid KV cache groups and the packed KV cache layout for DeepSeek V4 Pro. Toggle between the MXFP4 and FP8 indexer configurations, or [open the layout full-screen](/assets/interactive_pages/dsv4-kv-cache-layout.html).*
 
 #### Hierarchical KV cache offloading: distributed KV cache pool with smart retention policies
 

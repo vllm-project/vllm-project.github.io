@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="445" viewBox="0 0 900 445" role="img" aria-labelledby="title desc">
+<title id="title">Keep state inside the group, save it where needed</title>
+<desc id="desc">A group kernel loads its incoming recurrent state from GPU global memory and keeps the state in matrix accumulators between chunks. Group boundary summaries, requested checkpoints and the final persistent state still require global-memory writes where applicable. The diagram shows these required writes crossing the kernel boundary. The separate prologue uses LDS scratch for input preparation, a different allocation from the recurrent state accumulators. Arrow lengths do not encode time.</desc>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L7 4L1 7" fill="none" stroke="#526677" stroke-width="1.7"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#16324b;font-size:18px}.title{font-size:27px;font-weight:700}.mt{font-size:24px;font-weight:700}.h{font-size:21px;font-weight:700}.b{font-weight:700}.s{font-size:16px}.m{fill:#526677}</style>
+<rect width="900" height="445" fill="white"/>
+<text x="24" y="38" class="title" text-anchor="start">Keep the state inside the group</text>
+<rect x="24" y="75" width="210" height="185" rx="7" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="129" y="109" class="h" text-anchor="middle">Separate prologue</text>
+<rect x="43" y="136" width="172" height="69" rx="7" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="129.0" y="165.0" class="s" text-anchor="middle" style="fill:#16324b">LDS scratch</text>
+<text x="129.0" y="188.0" class="s" text-anchor="middle" style="fill:#16324b">for input preparation</text>
+<text x="129" y="238" class="s" text-anchor="middle" style="fill:#526677">A different allocation</text>
+<rect x="264" y="75" width="612" height="210" rx="7" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="284" y="109" class="h" text-anchor="start">Group kernel · recurrent walk</text>
+<text x="285" y="140" class="s" text-anchor="start">State stays in matrix accumulators between chunks</text>
+<rect x="310" y="165" width="130" height="59" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="375.0" y="200.5" class="b" text-anchor="middle" style="fill:#16324b">Chunk 1</text>
+<path d="M443 194H482" fill="none" stroke="#71849a" stroke-width="1.7" marker-end="url(#a)"/>
+<rect x="487" y="165" width="130" height="59" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="552.0" y="200.5" class="b" text-anchor="middle" style="fill:#16324b">Chunk 2</text>
+<path d="M620 194H659" fill="none" stroke="#71849a" stroke-width="1.7" marker-end="url(#a)"/>
+<rect x="664" y="165" width="130" height="59" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="729.0" y="200.5" class="b" text-anchor="middle" style="fill:#16324b">Chunk 3</text>
+<rect x="264" y="345" width="612" height="77" rx="7" fill="#f7f9fb" stroke="#16324b" stroke-width="1.5"/>
+<text x="570.0" y="389.5" class="h" text-anchor="middle" style="fill:#16324b">GPU global memory</text>
+<path d="M287 343V194H307" fill="none" stroke="#71849a" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="304" y="315" class="s" text-anchor="start">Read incoming state</text>
+<path d="M797 194H850V342" fill="none" stroke="#71849a" stroke-width="1.7" marker-end="url(#a)"/>
+<text x="837" y="315" class="s" text-anchor="end">Write boundary / final state</text>
+<path d="M552 226V342" fill="none" stroke="#71849a" stroke-width="1.7" marker-end="url(#a)" stroke-dasharray="5 4"/>
+<text x="572" y="251" class="s" text-anchor="start">Save requested</text>
+<text x="572" y="273" class="s" text-anchor="start">checkpoints</text>
+</svg>

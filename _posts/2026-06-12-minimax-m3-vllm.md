@@ -3,6 +3,7 @@ layout: post
 title: "MiniMax M3 in vLLM: Day-0 Serving for 1M-Token Multimodal Reasoning"
 author: "vLLM Team"
 summary: "How vLLM serves MiniMax M3 with MiniMax Sparse Attention, multimodal and reasoning parsers, MXFP8 weights, and long-context deployment recipes."
+image: /assets/figures/minimax-m3/hero-minimax-m3-vllm.svg
 tags:
   - minimax
   - day-0-support

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="670" viewBox="0 0 900 670" role="img" aria-labelledby="title desc">
+<title id="title">Resume the history; compute the new positions</title>
+<desc id="desc">A resumed turn recovers compatible saved state and prefills the new suffix. Attention layers are alternatives: an MLA layer reads old KV history and extends it with new entries; a KDA layer updates a fixed-dimension state. Attention is followed by experts using model weights. Subsequent decode or verification steps repeat the model using updated state.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1L7 4L1 7" fill="none" stroke="#526677" stroke-width="1.7"/></marker></defs>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#16324b;font-size:18px}.title{font-size:27px;font-weight:700}.heading{font-size:21px;font-weight:700}.label{font-size:18px;font-weight:700}.small{font-size:16px}.muted{fill:#526677}.mobile-title{font-size:24px;font-weight:700}</style>
+<rect width="900" height="670" fill="white"/>
+<text x="24" y="39" class="title" text-anchor="start">Resume the history; compute the new positions</text>
+<rect x="24" y="65" width="558" height="61" rx="7" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<text x="303" y="91" class="label" text-anchor="middle" style="fill:#16324b">Already processed conversation</text>
+<text x="303" y="114" class="small" text-anchor="middle" style="fill:#16324b">Recover compatible saved state</text>
+<rect x="600" y="65" width="276" height="61" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="738" y="91" class="label" text-anchor="middle" style="fill:#16324b">New suffix → prefill</text>
+<text x="738" y="114" class="small" text-anchor="middle" style="fill:#16324b">Only the remaining input positions</text>
+<path d="M303 127V157H155V192" fill="none" stroke="#71849a" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M738 127V158H738V192" fill="none" stroke="#30a2ff" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="24" y="194" width="852" height="246" rx="10" fill="#f7f9fb" stroke="#bdcbd6" stroke-width="1.5"/>
+<text x="43" y="224" class="heading" text-anchor="start">Attention: one of these two layer types</text>
+<rect x="44" y="245" width="390" height="174" rx="7" fill="white" stroke="#71849a" stroke-width="1.5"/>
+<text x="62" y="274" class="label" text-anchor="start" style="fill:#16324b">MLA · retained history grows</text>
+<rect x="65" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="94" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="123" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="152" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="181" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<path d="M214 306H245" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="255" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="284" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="313" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="342" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="371" y="294" width="24" height="24" rx="3" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="400" y="294" width="22" height="24" rx="3" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="130" y="346" class="small" text-anchor="middle">Read old entries</text>
+<text x="332" y="346" class="small" text-anchor="middle">Append new entries</text>
+<text x="239" y="389" class="small" text-anchor="middle">A longer conversation retains more KV data.</text>
+<rect x="454" y="245" width="402" height="174" rx="7" fill="white" stroke="#71849a" stroke-width="1.5"/>
+<text x="473" y="274" class="label" text-anchor="start" style="fill:#16324b">KDA · state dimensions stay fixed</text>
+<rect x="478" y="293" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="496" y="293" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="514" y="293" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="478" y="311" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="496" y="311" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="514" y="311" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="478" y="329" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="496" y="329" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<rect x="514" y="329" width="15" height="15" rx="2" fill="#eef1f5" stroke="#71849a" stroke-width="1.5"/>
+<path d="M531 320H563" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="568" y="292" width="131" height="57" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="633.5" y="326" class="label" text-anchor="middle" style="fill:#16324b">Update state</text>
+<path d="M700 320H749" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="759" y="293" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="777" y="293" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="795" y="293" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="759" y="311" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="777" y="311" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="795" y="311" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="759" y="329" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="777" y="329" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<rect x="795" y="329" width="15" height="15" rx="2" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="656" y="389" class="small" text-anchor="middle">The values change; the matrix shape does not.</text>
+<path d="M450 441V473" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<rect x="278" y="475" width="344" height="61" rx="7" fill="#e8f4ff" stroke="#30a2ff" stroke-width="1.5"/>
+<text x="450" y="511" class="label" text-anchor="middle" style="fill:#16324b">Experts transform each token</text>
+<rect x="24" y="475" width="218" height="61" rx="7" fill="#fff3ce" stroke="#fdb515" stroke-width="1.5"/>
+<text x="133" y="500" class="small" text-anchor="middle" style="fill:#16324b">This layer’s expert weights</text>
+<text x="133" y="522" class="small" text-anchor="middle" style="fill:#16324b">Shared model data</text>
+<path d="M243 506H277" fill="none" stroke="#fdb515" stroke-width="1.7" marker-end="url(#arrow)"/>
+<path d="M623 506H751" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="772" y="500" class="small" text-anchor="middle">Next</text>
+<text x="772" y="522" class="small" text-anchor="middle">layer</text>
+<path d="M450 537V575" fill="none" stroke="#526677" stroke-width="1.7" marker-end="url(#arrow)"/>
+<text x="467" y="564" class="small muted" text-anchor="start">After all layers</text>
+<rect x="160" y="577" width="580" height="64" rx="7" fill="#f7f9fb" stroke="#16324b" stroke-width="1.5"/>
+<text x="450" y="603" class="label" text-anchor="middle">Decode one position, or verify several together</text>
+<text x="450" y="626" class="small" text-anchor="middle">Repeat the model with the updated conversation state.</text>
+</svg>
