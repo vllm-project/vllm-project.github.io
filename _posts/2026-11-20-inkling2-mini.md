@@ -114,7 +114,7 @@ End to end, we tested accuracy on needle-in-a-haystack up to 1M tokens, MMMU-Pro
 
 ## Acknowledgements
 
-We thank the Thinking Machines and NVIDIA teams for their close collaboration in integrating and optimizing Inkling 2 Mini in vLLM.
+We thank the Thinking Machines and NVIDIA teams for their close collaboration on bringing Inkling 2 Mini to vLLM. Special thanks to Aurick Qiao (Thinking Machines Lab), Eric Tang (Anyscale), Drew Botwinick (NVIDIA) and Woosuk Kwon (Inferact).
 
 <script>
 (function () {
