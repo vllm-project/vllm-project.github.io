@@ -126,9 +126,9 @@ Gaps in the curves indicate runs that exhausted device memory.
 
 We’re working toward a framework that can serve both candidate generation and ranking, from long user histories to wide beam searches.
 
-- **Broader model support.** Extend candidate scoring to HSTU, MTGR, and RankMixer, add native serving for OneTrans, and adapt Qwen3-30B-A3B for recommendation workloads.
-- **More flexible beam search.** Explore value-aware candidate selection, additional output heads for semantic IDs, and a conditional GID branch. Support deeper SID hierarchies on NPU and variable-length generation that can stop individual beams at EOS, release their slots and KV, and admit new requests.
-- **Online batching and scheduling.** Explore a machine-wide batcher that groups requests with different history lengths and keeps queues bounded under overload. Group similar batch shapes for graph replay to reduce padding.
+- **Broader model support.** Extend candidate scoring to HSTU, MTGR, and RankMixer, add native serving for OneTrans, and explore serving optimizations for recommendation models with larger total parameter counts, including mixture-of-experts (MoE) models.
+- **More flexible beam search.** Explore value-aware candidate selection, additional output heads for semantic IDs, and a conditional GID branch. Support deeper SID hierarchies across device types and variable-length generation that can stop individual beams at EOS, release their slots and KV, and admit new requests.
+- **Online batching and scheduling.** Explore an online scheduler that decides when to form a batch and which queued requests to include, allowing requests with different user history lengths to run together while keeping queues bounded under overload. Group batches with similar shapes so they can reuse the same captured computation graph for replay with less padding.
 - **Long histories and KV reuse.** Optimize prefill for histories of 10,000 tokens or more and explore beam search with linear or sparse attention. As a user’s history grows, reuse KV blocks for the unchanged prefix across requests to avoid repeating prefill for those tokens.
 - **Distributed inference and KV caching.** Explore a distributed KV cache that lets a serving instance reuse KV blocks from another device on the same node or on a different node. Evaluate model sharding and KV transfer costs in both settings.
 - **Closer integration with upstream vLLM.** Build on vLLM’s engine and platform interfaces to bring upstream improvements in scheduling and KV cache management to recommendation workloads. Regularly update vLLM-GR to newer stable vLLM releases and validate engine correctness, recommendation quality, and serving performance across supported devices.
@@ -147,7 +147,7 @@ Run OneRec-1.7B [offline](https://github.com/JiusiServe/vllm-gr/blob/main/exampl
 
 ## Join the Community
 
-If you’re bringing another recommendation model to vLLM-GR, tell us how it represents interaction history and what it predicts. If you’re reporting a serving bottleneck, include the model, history length, beam width, and hardware so others can reproduce it. [GitHub repository](https://github.com/JiusiServe/vllm-gr) · [Open an issue](https://github.com/JiusiServe/vllm-gr/issues) · [Contributing guide](https://github.com/JiusiServe/vllm-gr/blob/main/CONTRIBUTING.md)
+If you’re bringing another recommendation model to vLLM-GR, tell us how it represents interaction history and what it predicts. If you’re reporting a serving bottleneck, include the model, history length, beam width, and hardware so others can reproduce it. [GitHub repository](https://github.com/vllm-project/vllm-gr) · [Open an issue](https://github.com/vllm-project/vllm-gr/issues) · [Contributing guide](https://github.com/vllm-project/vllm-gr/blob/main/CONTRIBUTING.md)
 
 <a id="acknowledgments"></a>
 
@@ -159,7 +159,7 @@ We also thank the following teams and community members for contributing to vLLM
 
 - [Inferact](https://inferact.ai/): [Zhipeng Wang](https://github.com/princepride), [Roger Wang](https://github.com/ywang96)
 - [InferMatrix Team](https://infermatrix.si/): [Han Zhang](https://github.com/zhanghanleo10), [Shucheng Zhang](https://github.com/candanzg), [Xiaodong Tian](https://github.com/parallel-star8), [Yunpeng Zhi](https://github.com/ZhiYunpenghuawei), [Yi Ding](https://github.com/DINGEde), [Jierui Yu](https://github.com/JerryTcl), [Hongsheng Liu](https://github.com/hsliuustc0106)
-- openPangu: [Xinming Han](https://github.com/Lechmere-1), [Zhiwei Yi](https://github.com/zhiweiyi11), [Mengyuan Ma](https://github.com/mengyuanuom)
+- openPangu: [Xinming Han](https://github.com/Lechmere-1), [Zhiwei Yi](https://github.com/zhiweiyi11), [Mengyuan Ma](https://github.com/mengyuanuom), [Yongxiang Feng](https://github.com/fxy18)
 - TikTok-Global E-commerce: [Bin Wang](https://github.com/wangbin-cs), [Junye Long](https://github.com/LJHG)
-- Data-Arch-China Commerce and Advertising-ML Infra: [Haoran Ma](https://github.com/MaTwickenham), [Wenqiang Zhou](https://github.com/SENGEL-code)
+- Data-Arch-China Commerce and Advertising-ML Infra: [Haoran Ma](https://github.com/MaTwickenham), [Wenqiang Zhou](https://github.com/SENGEL-code), [Junwen Guo](https://github.com/CrazyKing5023)
 - LingQuAI: [Chunxu Jin](https://github.com/Trenx-J), [Wuping Liu](https://github.com/wupingL)
