@@ -101,8 +101,6 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 <details markdown="1">
 <summary markdown="0">A2 · B=1, B=4 and B=8</summary>
 
-Gaps in the curves indicate runs that exhausted device memory.
-
 ![A2 batch-1 P99 latency across beam widths and input lengths for vLLM-GR, SGLang and xLLM. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a2-b1.png)
 
 ![A2 P99 latency at batch sizes 4 (top) and 8 (bottom) for the same beam-width and input-length sweeps. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a2.png)
