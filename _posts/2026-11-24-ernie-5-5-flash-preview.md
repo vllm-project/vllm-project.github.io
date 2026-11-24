@@ -2,10 +2,10 @@
 layout: post
 title: "vLLM Day-0 Support for ERNIE 5.5 Flash Preview: Plugin Deployment and E2E Inference Acceleration"
 author: "Baidu ERNIE Team and vLLM Team"
-date: 2026-11-18 09:00:00 +0000
+date: 2026-11-24 09:00:00 +0000
 summary: "vLLM supports Baidu's ERNIE 5.5 Flash Preview on day 0 through the vLLM-ERNIE plugin on the released vllm==0.32.0 wheel, with structure-aware kernel fusion, FlashIndexer, W4A8 QAT and DSpark speculative decoding."
-image: /assets/figures/2026-11-18-ernie-5-5-flash-preview/hero.png
-social_image: /assets/figures/2026-11-18-ernie-5-5-flash-preview/hero.png
+image: /assets/figures/2026-11-24-ernie-5-5-flash-preview/hero.png
+social_image: /assets/figures/2026-11-24-ernie-5-5-flash-preview/hero.png
 tags:
   - model-support
   - moe
@@ -15,7 +15,7 @@ tags:
 ---
 
 <p align="center">
-<img src="/assets/figures/2026-11-18-ernie-5-5-flash-preview/hero.png" alt="vLLM × ERNIE 5.5 Flash Preview, Day-0 Support" width="100%">
+<img src="/assets/figures/2026-11-24-ernie-5-5-flash-preview/hero.png" alt="vLLM × ERNIE 5.5 Flash Preview, Day-0 Support" width="100%">
 </p>
 
 The Baidu ERNIE team has worked with vLLM to bring day-0 support for ERNIE 5.5 Flash Preview to vLLM. ERNIE 5.5 Flash Preview is a sparse mixture-of-experts (MoE) model with 280B total parameters and 14B activated per token. It supports a 1M-token context, thinks before it answers, and uses tool calling to carry out long-horizon Agent tasks. vLLM supports the model on release day through the [vLLM-ERNIE](https://github.com/baidu/vLLM-ERNIE) plugin, a standalone package that you install into the same environment as the official `vllm==0.32.0` wheel.
@@ -103,7 +103,7 @@ The Baidu ERNIE inference team developed FlashIndexer, a lightweight indexer acc
 FlashIndexer needs a short fine-tuning run on a small amount of data. Training freezes the backbone and the DSA indexer and updates only the lightweight router. The token sets selected by the original DSA serve as teacher-forced distillation targets, so the routed indexer learns to reproduce the selections made with all heads. The router is small and trains stably: about 1B tokens are enough to adapt it, and deployment only needs to load the router weights.
 
 <p align="center">
-<img src="/assets/figures/2026-11-18-ernie-5-5-flash-preview/flashindexer.png" alt="FlashIndexer" width="100%">
+<img src="/assets/figures/2026-11-24-ernie-5-5-flash-preview/flashindexer.png" alt="FlashIndexer" width="100%">
 </p>
 
 FlashIndexer also adds threshold pre-filtering, which skips low-scoring candidate tokens early and shrinks the top-k candidate set. DSA in ERNIE 5.5 Flash uses a large token-level top-k of 2048, so this further cuts the cost of top-k selection. At 1M context, **we measured a 1.4× speedup**, which substantially relieves the indexing bottleneck in long-context prefill. FlashIndexer needs no changes to the downstream sparse attention kernels and can be integrated quickly as a pluggable module.
@@ -123,7 +123,7 @@ We built a **multi-stage DSpark training pipeline that spans mid-training, post-
 ERNIE 5.5 Flash Preview runs in vLLM through a standalone Python plugin package, which vLLM loads through its `vllm.general_plugins` entrypoint. The plugin mainly contains the ERNIE model code and a set of kernel optimizations. Attention kernels, the KV cache manager, speculative decoding, parallelism and the server mostly come from vLLM itself.
 
 <p align="center">
-<img src="/assets/figures/2026-11-18-ernie-5-5-flash-preview/vllm-ernie-plugin.png" alt="vLLM-ERNIE Plugin" width="100%">
+<img src="/assets/figures/2026-11-24-ernie-5-5-flash-preview/vllm-ernie-plugin.png" alt="vLLM-ERNIE Plugin" width="100%">
 </p>
 
 ### How to Integrate Plugins
