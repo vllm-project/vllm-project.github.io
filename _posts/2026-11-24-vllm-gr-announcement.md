@@ -16,7 +16,7 @@ tags:
 
 ## About
 
-Today we’re introducing **vLLM-GR**, an open-source inference and serving framework built on vLLM for generative recommendation models.
+Today we’re introducing [**vLLM-GR**](https://github.com/vllm-project/vllm-gr), an open-source inference and serving framework built on vLLM for generative recommendation models.
 
 Consider a video feed. Given a viewer’s history, a model such as OneRec can generate a semantic ID (SID) for a video the viewer might watch next. To assemble a feed, the application needs a set of candidates. vLLM-GR extends vLLM’s model execution and paged key-value (KV) cache with beam search that explores multiple candidate IDs in one request.
 
@@ -76,11 +76,7 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 <details markdown="1">
 <summary markdown="0">RTX PRO 6000 · B=1, B=4 and B=8</summary>
 
-On November 21–22, 2026, we measured OneRec-1.7B (BF16) on one RTX PRO 6000 Blackwell Server Edition. Each backend generated three tokens from the same synthetic inputs with no catalog constraint. Each point shows whole-batch P99 over 48 timed batches after three warmups, including candidate IDs and scores returned to the host. The timer excludes HTTP.
-
 ![RTX PRO 6000 P99 latency in milliseconds for batch sizes 1, 4 and 8, from top to bottom. Each panel compares vLLM-GR, SGLang Beam and NVIDIA SID-GR across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/rtx-pro-6000.png)
-
-vLLM-GR and NVIDIA SID-GR used K equal to the beam width. The SGLang Beam branch used its native 2W candidate pool. Its request-slot limit excluded 16 of the 66 configurations, shown as gaps in the curves.
 
 </details>
 
@@ -104,8 +100,6 @@ vLLM-GR and NVIDIA SID-GR used K equal to the beam width. The SGLang Beam branch
 
 <details markdown="1">
 <summary markdown="0">A2 · B=1, B=4 and B=8</summary>
-
-Gaps in the curves indicate runs that exhausted device memory.
 
 ![A2 batch-1 P99 latency across beam widths and input lengths for vLLM-GR, SGLang and xLLM. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a2-b1.png)
 
