@@ -56,12 +56,18 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 
 ## Performance Evaluation
 
+The benchmarks measure P99 latency to show how beam width and batch size affect tail latency for generative recommendation. The two overview charts hold the input length at 1,024 tokens and compare beam widths of 256 and 128 at batch sizes 1, 4, and 8 across four NVIDIA GPUs and two Ascend NPUs. On the Ascend A2 and A5, vLLM-GR and xLLM both used a catalog constraint table. Timing definitions and sample counts vary across the benchmark runs.
+
 ![P99 latency at beam width 256 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview.svg)
 
 ![P99 latency at beam width 128 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview-bw128.svg)
 
+At beam width 256, vLLM-GR recorded the lowest P99 among the backends shown at batch sizes 4 and 8 on all six accelerators. At beam width 128, the lowest-latency backend varies by accelerator and batch size. Expand the hardware sections below to see how latency changes across a wider range of beam widths and input lengths. The tested ranges vary by accelerator and batch size.
+
 <details markdown="1">
 <summary markdown="0">H20 · B=1, B=4 and B=8</summary>
+
+At beam width 256 and batch size 4, vLLM-GR and NVIDIA SID-GR both measured about 191 ms P99. At batch size 8, their P99 latencies were 369.4 ms and 428.1 ms, respectively.
 
 ![H20 batch-1 P99 latency in milliseconds across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/h20-b1.png)
 
@@ -72,12 +78,16 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 <details markdown="1">
 <summary markdown="0">RTX PRO 6000 · B=1, B=4 and B=8</summary>
 
+NVIDIA SID-GR had the lowest P99 at batch size 1 for both overview beam widths. vLLM-GR had the lowest P99 at batch sizes 4 and 8 for both widths.
+
 ![RTX PRO 6000 P99 latency in milliseconds for batch sizes 1, 4 and 8, from top to bottom. Each panel compares vLLM-GR, SGLang Beam and NVIDIA SID-GR across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/rtx-pro-6000.png)
 
 </details>
 
 <details markdown="1">
 <summary markdown="0">A100 · B=1, B=4 and B=8</summary>
+
+At batch size 8, NVIDIA SID-GR measured 199.0 ms and vLLM-GR measured 209.7 ms at beam width 128. At beam width 256, vLLM-GR measured 274.5 ms and NVIDIA SID-GR measured 451.5 ms.
 
 ![A100 batch-1 P99 latency in milliseconds across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a100-b1.png)
 
@@ -88,6 +98,8 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 <details markdown="1">
 <summary markdown="0">L20 · B=1, B=4 and B=8</summary>
 
+At batch size 8 and beam width 256, vLLM-GR measured 474.3 ms P99, followed by NVIDIA SID-GR at 790.7 ms.
+
 ![L20 batch-1 P99 latency in milliseconds across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/l20-b1.png)
 
 ![L20 P99 latency for batch 4 (top) and batch 8 (bottom). The beam-width sweeps use 1,024 input tokens for both batches, plus 8,192 for batch 4 and 4,096 for batch 8. The batch-8 input-length sweeps at beam widths 64 and 1,024 cover 256 to 4,096 tokens.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/l20.png)
@@ -97,6 +109,8 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 <details markdown="1">
 <summary markdown="0">A2 · B=1, B=4 and B=8</summary>
 
+At batch size 8 and beam width 256, vLLM-GR and xLLM measured 312.7 ms and 324.6 ms P99, respectively, with catalog constraints enabled on both.
+
 ![A2 batch-1 P99 latency across beam widths and input lengths for vLLM-GR, SGLang and xLLM. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a2-b1.png)
 
 ![A2 P99 latency at batch sizes 4 (top) and 8 (bottom) for the same beam-width and input-length sweeps. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a2.png)
@@ -105,6 +119,8 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 
 <details markdown="1">
 <summary markdown="0">A5 · B=1, B=4 and B=8</summary>
+
+At batch size 8, vLLM-GR measured 128.2 ms P99 at beam width 128 and 151.7 ms at beam width 256. It recorded the lowest P99 among the backends shown at all three batch sizes for both overview beam widths.
 
 ![A5 batch-1 P99 latency in milliseconds across beam widths and input lengths. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a5-b1.png)
 
