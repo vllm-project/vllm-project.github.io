@@ -16,7 +16,7 @@ tags:
 
 ## About
 
-Today we’re introducing **vLLM-GR**, an open-source inference and serving framework built on vLLM for generative recommendation models.
+Today we’re introducing [**vLLM-GR**](https://github.com/vllm-project/vllm-gr), an open-source inference and serving framework built on vLLM for generative recommendation models.
 
 Consider a video feed. Given a viewer’s history, a model such as OneRec can generate a semantic ID (SID) for a video the viewer might watch next. To assemble a feed, the application needs a set of candidates. vLLM-GR extends vLLM’s model execution and paged key-value (KV) cache with beam search that explores multiple candidate IDs in one request.
 
