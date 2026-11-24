@@ -10,7 +10,3 @@
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
 </script>
 {% endif %}
-{% if page.gr_p99_chart_assets %}
-<link rel="stylesheet" href="{{ page.gr_p99_chart_assets | append: '/beam-width.css' | relative_url }}">
-<script defer src="{{ page.gr_p99_chart_assets | append: '/beam-width.js' | relative_url }}"></script>
-{% endif %}

@@ -7,7 +7,6 @@ summary: "vLLM-GR extends vLLM to serve generative recommendation models with ac
 description: "vLLM-GR extends vLLM to serve generative recommendation models with accelerator-side beam search, catalog constraints, and shared KV caching across candidate paths."
 image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png
 social_image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png
-gr_p99_chart_assets: /assets/figures/2026-11-24-vllm-gr-announcement/p99
 tags:
   - performance
   - generative-recommendation
@@ -57,10 +56,9 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 
 ## Performance Evaluation
 
-<div id="gr-p99-overview">
-  <p><a href="/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview.svg" data-chart-alt="P99 latency at beam width 256 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.">BW=256</a> · <a href="/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview-bw128.svg" data-chart-alt="P99 latency at beam width 128 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.">BW=128</a></p>
-  <img src="/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview.svg" width="1040" height="617" alt="P99 latency at beam width 256 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.">
-</div>
+![P99 latency at beam width 256 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview.svg)
+
+![P99 latency at beam width 128 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview-bw128.svg)
 
 <details markdown="1">
 <summary markdown="0">H20 · B=1, B=4 and B=8</summary>
