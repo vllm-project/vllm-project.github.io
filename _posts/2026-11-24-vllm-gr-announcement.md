@@ -78,8 +78,6 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 
 ![RTX PRO 6000 P99 latency in milliseconds for batch sizes 1, 4 and 8, from top to bottom. Each panel compares vLLM-GR, SGLang Beam and NVIDIA SID-GR across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/rtx-pro-6000.png)
 
-vLLM-GR and NVIDIA SID-GR used K equal to the beam width. The SGLang Beam branch used its native 2W candidate pool. Its request-slot limit excluded 16 of the 66 configurations, shown as gaps in the curves.
-
 </details>
 
 <details markdown="1">
