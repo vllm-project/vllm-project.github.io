@@ -76,8 +76,6 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 <details markdown="1">
 <summary markdown="0">RTX PRO 6000 · B=1, B=4 and B=8</summary>
 
-On November 21–22, 2026, we measured OneRec-1.7B (BF16) on one RTX PRO 6000 Blackwell Server Edition. Each backend generated three tokens from the same synthetic inputs with no catalog constraint. Each point shows whole-batch P99 over 48 timed batches after three warmups, including candidate IDs and scores returned to the host. The timer excludes HTTP.
-
 ![RTX PRO 6000 P99 latency in milliseconds for batch sizes 1, 4 and 8, from top to bottom. Each panel compares vLLM-GR, SGLang Beam and NVIDIA SID-GR across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/rtx-pro-6000.png)
 
 vLLM-GR and NVIDIA SID-GR used K equal to the beam width. The SGLang Beam branch used its native 2W candidate pool. Its request-slot limit excluded 16 of the 66 configurations, shown as gaps in the curves.
