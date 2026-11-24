@@ -2,17 +2,17 @@
 layout: post
 title: "Announcing vLLM-GR: Efficient Inference for Generative Recommendation"
 author: vLLM-GR Team
-date: 2026-11-24
+date: 2026-11-24 00:00:00 +0800
 summary: "vLLM-GR extends vLLM to serve generative recommendation models with accelerator-side beam search, catalog constraints, and shared KV caching across candidate paths."
 description: "vLLM-GR extends vLLM to serve generative recommendation models with accelerator-side beam search, catalog constraints, and shared KV caching across candidate paths."
-image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png
-social_image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png
+image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.jpg
+social_image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.jpg
 tags:
   - performance
   - generative-recommendation
 ---
 
-![vLLM-GR logo](/assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png)
+![vLLM-GR logo](/assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.jpg)
 
 ## About
 
@@ -36,13 +36,13 @@ A recommendation service has to turn a long interaction history into a set of ca
 
 vLLM-GR builds its recommendation search into the vLLM engine. vLLM supplies the scheduler, model execution, and paged KV cache. vLLM-GR adds a beam session that spans the whole search and keeps track of how candidate paths branch.
 
-![Blue marks reused vLLM components such as the HTTP entry point and model forward. Yellow marks extensions to EngineCore scheduling and worker execution. Pink marks vLLM-GR additions including the offline and gRPC entry points, beam session, BeamAttn, suffix KV, and both catalog-constrained and full-vocabulary beam selection.](/assets/figures/2026-11-24-vllm-gr-announcement/00-gr-architecture-handdrawn.png)
+![Blue marks reused vLLM components such as the HTTP entry point and model forward. Yellow marks extensions to EngineCore scheduling and worker execution. Pink marks vLLM-GR additions including the offline and gRPC entry points, beam session, BeamAttn, suffix KV, and both catalog-constrained and full-vocabulary beam selection.](/assets/figures/2026-11-24-vllm-gr-announcement/gr-inference-architecture.png)
 
 EngineCore owns each beam session from admission to completion. The scheduler dispatches prefill and decode stages to a worker. At each stage, the model runner scores the next token and beam selection records the score and parent of each surviving path. The next decode uses those parent indices to read the right KV state.
 
 ### Key Features
 
-- **Simplicity.** The diagrams use `BeamSearch()` to represent one complete search. Submit it through the offline Python interface, OpenAI-compatible HTTP, or gRPC. The engine runs the decode loop and returns candidate sequences and scores in one response.
+- **Simplicity.** Submit a complete beam search through the offline Python interface, OpenAI-compatible HTTP, or gRPC. The engine runs the decode loop and returns candidate sequences and scores in one response.
 - **Flexibility.** Search the full vocabulary or restrict generation to semantic IDs in the item catalog. Per-stage beam widths and per-parent candidate limits let a service explore more partial IDs than it ultimately returns.
 - **Performance.** Sharing prompt KV across beams avoids copying the viewer’s history for each candidate. While the accelerator executes one stage, the host prepares the next, reducing the wait between decode steps.
 
@@ -56,13 +56,21 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 
 ## Performance Evaluation
 
-The benchmarks measure P99 latency to show how beam width and batch size affect tail latency for generative recommendation. The two overview charts hold the input length at 1,024 tokens and compare beam widths of 256 and 128 at batch sizes 1, 4, and 8 across four NVIDIA GPUs and two Ascend NPUs. On the Ascend A2 and A5, vLLM-GR and xLLM both used a catalog constraint table. Timing definitions and sample counts vary across the benchmark runs.
+The benchmarks measure P99 latency to show how beam width and batch size affect tail latency for generative recommendation. The two overview charts hold the input length at 1,024 tokens and compare beam widths of 256 and 128 at batch sizes 1, 4, and 8 across four NVIDIA GPUs and two Ascend NPUs. The figures summarize separate benchmark runs with different timing definitions, sample counts, and backend settings.
+
+On RTX PRO 6000, vLLM-GR, SGLang Beam, and NVIDIA SID-GR ran OneRec-1.7B in BF16 and generated three tokens from the same synthetic inputs with catalog constraints disabled. Each point reports whole-batch P99 over 48 timed batches after three warmups. Timing includes returning candidate IDs and scores to the host and excludes HTTP. With beam width denoted by *W* and candidate pool size by *K*, vLLM-GR and NVIDIA SID-GR used *K* equal to *W*. SGLang Beam used its native pool of *2W* candidates.
+
+On the Ascend A2 and A5, vLLM-GR and xLLM used a catalog constraint table. The SGLang constraint setting was not recorded in the benchmark summary. Recorded L20 sample counts range from 100 to 1,000 timed batches per configuration. The available summaries do not specify exact backend revisions for these comparisons or warmup counts outside the RTX PRO 6000 run.
 
 ![P99 latency at beam width 256 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview.svg)
 
 ![P99 latency at beam width 128 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview-bw128.svg)
 
-At beam width 256, vLLM-GR recorded the lowest P99 among the backends shown at batch sizes 4 and 8 on all six accelerators. At beam width 128, the lowest-latency backend varies by accelerator and batch size. Expand the hardware sections below to see how latency changes across a wider range of beam widths and input lengths. The tested ranges vary by accelerator and batch size.
+At beam width 256, vLLM-GR recorded the lowest P99 among the backends shown at batch sizes 4 and 8 on all six accelerators. On H20 at beam width 256 and batch size 8, P99 was 369.4 ms for vLLM-GR, 1,280.1 ms for SGLang, and 428.1 ms for NVIDIA SID-GR.
+
+At beam width 256 and batch size 1 on RTX PRO 6000, NVIDIA SID-GR reported 28.25 ms versus 29.21 ms for vLLM-GR. On A2 at the same beam width and batch size 8, vLLM-GR and xLLM reported 312.69 ms and 324.60 ms, respectively, with catalog constraints enabled for both. At beam width 128, the lowest-latency backend varies by accelerator and batch size.
+
+Expand the hardware sections below to see how latency changes across a wider range of beam widths and input lengths. The tested ranges vary by accelerator and batch size.
 
 <details markdown="1">
 <summary markdown="0">H20 · B=1, B=4 and B=8</summary>
@@ -71,7 +79,7 @@ At beam width 256 and batch size 4, vLLM-GR and NVIDIA SID-GR both measured abou
 
 ![H20 batch-1 P99 latency in milliseconds across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/h20-b1.png)
 
-![H20 P99 latency from the benchmark slides, batch size 4 above and batch size 8 below. Each slide plots latency against beam width at 1,024 and 8,192 input tokens and against input length at beam widths 64 and 1,024.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/h20.png)
+![H20 P99 latency at batch sizes 4 (top) and 8 (bottom). The plots show latency against beam width at 1,024 and 8,192 input tokens and against input length at beam widths 64 and 1,024.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/h20.png)
 
 </details>
 
@@ -91,7 +99,7 @@ At batch size 8, NVIDIA SID-GR measured 199.0 ms and vLLM-GR measured 209.7 ms a
 
 ![A100 batch-1 P99 latency in milliseconds across beam widths and input lengths.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a100-b1.png)
 
-![A100 P99 latency from the benchmark slides, batch size 4 above and batch size 8 below. Each slide plots latency against beam width at 1,024 and 8,192 input tokens and against input length at beam widths 64 and 1,024.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a100.png)
+![A100 P99 latency at batch sizes 4 (top) and 8 (bottom). The plots show latency against beam width at 1,024 and 8,192 input tokens and against input length at beam widths 64 and 1,024.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a100.png)
 
 </details>
 
@@ -109,7 +117,7 @@ At batch size 8 and beam width 256, vLLM-GR measured 474.3 ms P99, followed by N
 <details markdown="1">
 <summary markdown="0">A2 · B=1, B=4 and B=8</summary>
 
-At batch size 8 and beam width 256, vLLM-GR and xLLM measured 312.7 ms and 324.6 ms P99, respectively, with catalog constraints enabled on both.
+Some curves end before the final configuration because those runs exceeded device memory. At 8,192 input tokens and batch size 8, vLLM-GR completed the beam-width sweep through 1,024.
 
 ![A2 batch-1 P99 latency across beam widths and input lengths for vLLM-GR, SGLang and xLLM. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a2-b1.png)
 
@@ -124,7 +132,7 @@ At batch size 8, vLLM-GR measured 128.2 ms P99 at beam width 128 and 151.7 ms at
 
 ![A5 batch-1 P99 latency in milliseconds across beam widths and input lengths. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a5-b1.png)
 
-![A5 P99 latency from the benchmark slides, batch size 4 above and batch size 8 below. Each slide plots latency against beam width at 1,024 and 8,192 input tokens and against input length at beam widths 64 and 1,024. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a5.png)
+![A5 P99 latency at batch sizes 4 (top) and 8 (bottom). The plots show latency against beam width at 1,024 and 8,192 input tokens and against input length at beam widths 64 and 1,024. vLLM-GR and xLLM used a catalog constraint table.](/assets/figures/2026-11-24-vllm-gr-announcement/p99/a5.png)
 
 </details>
 
@@ -133,7 +141,7 @@ At batch size 8, vLLM-GR measured 128.2 ms P99 at beam width 128 and 151.7 ms at
 We’re working toward a framework that can serve both candidate generation and ranking, from long user histories to wide beam searches.
 
 - **Broader model support.** Extend candidate scoring to HSTU, MTGR, and RankMixer, add native serving for OneTrans, and explore serving optimizations for recommendation models with larger total parameter counts, including mixture-of-experts (MoE) models.
-- **More flexible beam search.** Explore value-aware candidate selection, additional output heads for semantic IDs, and a conditional GID branch. Support deeper SID hierarchies across device types and variable-length generation that can stop individual beams at EOS, release their slots and KV, and admit new requests.
+- **More flexible beam search.** Explore value-aware candidate selection and additional output heads for semantic IDs. Support deeper SID hierarchies across device types and variable-length generation that can stop individual beams at EOS, release their slots and KV, and admit new requests.
 - **Online batching and scheduling.** Explore an online scheduler that decides when to form a batch and which queued requests to include, allowing requests with different user history lengths to run together while keeping queues bounded under overload. Group batches with similar shapes so they can reuse the same captured computation graph for replay with less padding.
 - **Long histories and KV reuse.** Optimize prefill for histories of 10,000 tokens or more and explore beam search with linear or sparse attention. As a user’s history grows, reuse KV blocks for the unchanged prefix across requests to avoid repeating prefill for those tokens.
 - **Distributed inference and KV caching.** Explore a distributed KV cache that lets a serving instance reuse KV blocks from another device on the same node or on a different node. Evaluate model sharding and KV transfer costs in both settings.
@@ -145,17 +153,15 @@ vLLM-GR 0.30.0 is built on vLLM 0.30.0 and supports NVIDIA GPUs and Ascend NPUs.
 
 ### Installation
 
-Follow the installation guide for your accelerator, either [NVIDIA CUDA](https://github.com/JiusiServe/vllm-gr/blob/main/docs/getting_started/installation/gpu.md) or [Ascend NPU](https://github.com/JiusiServe/vllm-gr/blob/main/docs/getting_started/installation/npu.md).
+Follow the installation guide for your accelerator, either [NVIDIA CUDA](https://github.com/vllm-project/vllm-gr/blob/main/docs/getting_started/installation/gpu.md) or [Ascend NPU](https://github.com/vllm-project/vllm-gr/blob/main/docs/getting_started/installation/npu.md).
 
 ### Serving Generative Recommendation Models
 
-Run OneRec-1.7B [offline](https://github.com/JiusiServe/vllm-gr/blob/main/examples/offline_inference/beam_search/README.md) or follow the [HTTP serving example](https://github.com/JiusiServe/vllm-gr/blob/main/examples/online_serving/beam_search/README.md) or the [gRPC serving example for CUDA](https://github.com/JiusiServe/vllm-gr/blob/main/examples/online_serving/grpc/README.md).
+Run OneRec-1.7B [offline](https://github.com/vllm-project/vllm-gr/blob/main/examples/offline_inference/beam_search/README.md) or follow the [HTTP serving example](https://github.com/vllm-project/vllm-gr/blob/main/examples/online_serving/beam_search/README.md) or the [gRPC serving example for CUDA](https://github.com/vllm-project/vllm-gr/blob/main/examples/online_serving/grpc/README.md).
 
 ## Join the Community
 
 If you’re bringing another recommendation model to vLLM-GR, tell us how it represents interaction history and what it predicts. If you’re reporting a serving bottleneck, include the model, history length, beam width, and hardware so others can reproduce it. [GitHub repository](https://github.com/vllm-project/vllm-gr) · [Open an issue](https://github.com/vllm-project/vllm-gr/issues) · [Contributing guide](https://github.com/vllm-project/vllm-gr/blob/main/CONTRIBUTING.md)
-
-<a id="acknowledgments"></a>
 
 ## Acknowledgements
 
