@@ -1,0 +1,35 @@
+#gr-p99-overview .beam-width-controls {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #cdd7dc;
+}
+
+#gr-p99-overview button {
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+#gr-p99-overview button[aria-pressed="true"] {
+  border-bottom-color: currentColor;
+  font-weight: 700;
+}
+
+#gr-p99-overview button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+}
+
+#gr-p99-overview img {
+  display: block;
+  width: 100%;
+  max-width: 1040px;
+  height: auto;
+  aspect-ratio: 1040 / 617;
+}
