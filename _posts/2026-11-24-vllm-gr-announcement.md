@@ -7,6 +7,7 @@ summary: "vLLM-GR extends vLLM to serve generative recommendation models with ac
 description: "vLLM-GR extends vLLM to serve generative recommendation models with accelerator-side beam search, catalog constraints, and shared KV caching across candidate paths."
 image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png
 social_image: /assets/figures/2026-11-24-vllm-gr-announcement/vLLM-GR.png
+gr_p99_chart_assets: /assets/figures/2026-11-24-vllm-gr-announcement/p99
 tags:
   - performance
   - generative-recommendation
@@ -55,9 +56,6 @@ EngineCore owns each beam session from admission to completion. The scheduler di
 *In the prefill–decode–decode (PDD) pipeline, the scheduler admits a `BeamSearch()` request and dispatches its prefill stage to the worker. Prefill scores the first SID component while the host prepares decode 1. During decode 1, the host prepares decode 2. The second decode inherits the selected parents’ suffix KV and completes two SIDs. Green marks the component selected at each stage.*
 
 ## Performance Evaluation
-
-<link rel="stylesheet" href="/assets/figures/2026-11-24-vllm-gr-announcement/p99/beam-width.css">
-<script defer src="/assets/figures/2026-11-24-vllm-gr-announcement/p99/beam-width.js"></script>
 
 <div id="gr-p99-overview">
   <p><a href="/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview.svg" data-chart-alt="P99 latency at beam width 256 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.">BW=256</a> · <a href="/assets/figures/2026-11-24-vllm-gr-announcement/p99/overview-bw128.svg" data-chart-alt="P99 latency at beam width 128 and 1,024 input tokens across six accelerators, for batch sizes 1, 4 and 8. On the Ascend NPU platforms (A2 and A5), vLLM-GR and xLLM used a catalog constraint table.">BW=128</a></p>
