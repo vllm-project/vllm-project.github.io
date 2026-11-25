@@ -118,7 +118,7 @@ We thank Nicolò Lucchesi (Mistral), Mark McLoughlin (Red Hat), and the vLLM com
 
 The topology is two AWS p5en instances (prefill on `:8100`, decode on `:8200`) with EFA enabled, plus a third small node running the proxy and the benchmark client on `:8000`.
 
-Three scripts ship with this post: [`serve_pd_multiturn.sh`](/assets/repro/2026-10-12-bidirectional-kvxfer-multiturn-agentic-workload/serve_pd_multiturn.sh) launches either leg with the feature on or off, [`run_multiturn_sweep.sh`](/assets/repro/2026-10-12-bidirectional-kvxfer-multiturn-agentic-workload/run_multiturn_sweep.sh) drives the prompt-length sweep, and [`cleanup.sh`](/assets/repro/2026-10-12-bidirectional-kvxfer-multiturn-agentic-workload/cleanup.sh) tears the deployment down.
+Three scripts ship with this post: [`serve_pd_multiturn.sh`](https://vllm.ai/blog-assets/repro/2026-10-12-bidirectional-kvxfer-multiturn-agentic-workload/serve_pd_multiturn.sh) launches either leg with the feature on or off, [`run_multiturn_sweep.sh`](https://vllm.ai/blog-assets/repro/2026-10-12-bidirectional-kvxfer-multiturn-agentic-workload/run_multiturn_sweep.sh) drives the prompt-length sweep, and [`cleanup.sh`](https://vllm.ai/blog-assets/repro/2026-10-12-bidirectional-kvxfer-multiturn-agentic-workload/cleanup.sh) tears the deployment down.
 
 ### Test environment
 
