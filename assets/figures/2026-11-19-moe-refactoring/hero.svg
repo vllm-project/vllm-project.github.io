@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">MoE, built to extend</title>
+  <desc id="desc">An oracle selects and assembles compatible prepare/finalize and experts implementations. Communication and compute have separate responsibilities.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#eef2ff"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <rect x="60" y="48" width="6" height="28" rx="3" fill="#f97316"/>
+  <g font-family="DejaVu Sans, sans-serif">
+    <text x="82" y="70" font-size="20" font-weight="700" letter-spacing="2" fill="#475569">vLLM / ENGINEERING</text>
+    <text x="60" y="150" font-size="54" font-weight="700" fill="#0f172a">MoE, built to extend</text>
+    <text x="63" y="196" font-size="25" fill="#475569">Separate responsibilities. Preserve specialization.</text>
+    <rect x="60" y="244" width="1080" height="88" rx="16" fill="#0f172a"/>
+    <text x="88" y="298" font-size="28" font-weight="700" fill="#ffffff">Oracle</text>
+    <text x="330" y="298" font-size="23" fill="#e2e8f0">Select and assemble a supported pairing</text>
+    <path d="M320 332 V384" fill="none" stroke="#475569" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M880 332 V384" fill="none" stroke="#475569" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="60" y="396" width="520" height="144" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="60" y="396" width="8" height="144" rx="4" fill="#0284c7"/>
+    <text x="92" y="446" font-size="29" font-weight="700" fill="#0c4a6e">Prepare / finalize</text>
+    <text x="92" y="484" font-size="20" fill="#475569">Activation preparation</text>
+    <text x="92" y="514" font-size="20" fill="#475569">Dispatch and combine</text>
+    <rect x="620" y="396" width="520" height="144" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="620" y="396" width="8" height="144" rx="4" fill="#ea580c"/>
+    <text x="652" y="446" font-size="29" font-weight="700" fill="#9a3412">Experts</text>
+    <text x="652" y="484" font-size="20" fill="#475569">Feed-forward computation</text>
+    <text x="652" y="514" font-size="20" fill="#475569">Layouts and capabilities</text>
+    <text x="600" y="591" text-anchor="middle" font-size="22" fill="#475569">Compatible components. Specialized implementations.</text>
+  </g>
+</svg>
