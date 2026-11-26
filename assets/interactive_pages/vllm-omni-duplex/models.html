@@ -34,14 +34,14 @@ const models = {
     name: "PersonaPlex (historical)", mode: "V1 Talker · unavailable in v0.34",
     summary: "This earlier implementation requires Model Runner V1 and cannot run on v0.34. Continuing input updates the active Stage 0 request. Temporal and codec state carry across frames.",
     input: "24 kHz pcm_f32le audio → buffered into 80 ms frames",
-    inputDetail: "The client sends 24 kHz pcm_f32le audio continuously and receives 24 kHz pcm16 audio. Buffering assembles model frames of 80 ms; client packets need not have that size. The model can keep listening while it speaks, without a client commit marking each turn.",
+    inputDetail: "The client sends 24 kHz pcm_f32le audio continuously and receives 24 kHz pcm16 audio. Buffering assembles client packets into 80 ms model frames. The model controls its listening and speaking decisions.",
     overview: "Two autoregressive loops share Stage 0: the Temporal Transformer advances across frames, while the Depformer predicts codebooks within a frame. Stage 1 decodes the resulting audio tokens.",
     stages: [{name: "Stage 0 · Talker", first: 0, last: 2}, {name: "Stage 1 · Code2Wav", first: 3, last: 3}],
     modules: [
       {name: "Mimi encoder", type: ["ConvNet + Transformer", "RVQ"], output: "PCM → codec tokens", detail: "Mimi encodes the incoming waveform with convolutional and Transformer layers. Residual vector quantization converts its representation into codec tokens that participate in the streaming model computation."},
-      {name: "Temporal", type: ["AR Transformer", "Across frames"], output: "Temporal features", detail: "The Temporal Transformer advances along the conversation's frame timeline. Its retained KV context allows continuing user input to participate in ongoing listening and speaking, within the supported context window."},
-      {name: "Depformer", type: ["AR Transformer", "Across codebooks"], output: "Audio codec tokens", detail: "The Depformer autoregressively predicts codebooks within the current frame. It is tightly coupled to the Temporal Transformer in the same Talker stage. Its short-lived KV state resets for each frame; it is not a second conversation-history cache."},
-      {name: "Mimi decoder", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 1 reconstructs a waveform from the generated codebooks. Streaming codec state preserves the context required at frame boundaries, so decoding does not need to restart from the entire conversation prefix."}
+      {name: "Temporal", type: ["AR Transformer", "Across frames"], output: "Temporal features", detail: "The Temporal Transformer advances along the conversation's frame timeline. Its retained KV context allows continuing user input to participate in ongoing listening and speaking, within its context window."},
+      {name: "Depformer", type: ["AR Transformer", "Across codebooks"], output: "Audio codec tokens", detail: "The Depformer autoregressively predicts codebooks within the current frame. It is tightly coupled to the Temporal Transformer in the same Talker stage. Its KV state is reused across codebook predictions and resets for each frame."},
+      {name: "Mimi decoder", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 1 reconstructs a waveform from the generated codebooks. Streaming codec state carries convolution and attention context into the next frame."}
     ],
     state: ["Across frames: Temporal KV + Mimi streaming state.", "Within each frame: Depformer KV is rebuilt; context remains bounded."],
     stateDetail: "Conversation continuity comes from temporal model context and streaming codec state. These are distinct from the Depformer's per-frame state. In the current integration, explicit cancellation resets context and a disconnected client starts a new session.",
@@ -51,18 +51,18 @@ const models = {
     name: "MiniCPM-o 4.5", mode: "Native duplex · typically ~1 s input chunks",
     summary: "Audio and video update ongoing model computation. LISTEN stays in the listening path; SPEAK continues to speech generation.",
     input: "PCM audio + video frames → accumulated into model input chunks",
-    inputDetail: "The runtime buffers PCM audio and associated video frames, typically into chunks around one second. Continuing input updates the active Stage 0 request. This chunk size is a processing granularity, not a response-latency guarantee.",
+    inputDetail: "The model declares a one-second input cadence. The runtime groups PCM audio with associated video frames and updates the active Stage 0 request.",
     overview: "Stage 0 combines perception and LLM execution. Only SPEAK results continue to the Talker. Stage 2 combines a flow-matching model and a vocoder: generating a mel spectrogram and reconstructing PCM are separate computations within the same serving stage.",
     stages: [{name: "Stage 0 · LLM", first: 0, last: 1}, {name: "Stage 1 · Talker", first: 2, last: 2}, {name: "Stage 2 · Code2Wav", first: 3, last: 4}],
     modules: [
       {name: "Audio / vision", type: ["Whisper Transformer", "SigLIP ViT"], output: "Audio / visual features", detail: "Whisper-based audio encoding and a SigLIP vision encoder turn the current audio and video chunks into model features. They run as part of Stage 0, together with the language model."},
-      {name: "LLM", type: ["AR Transformer", "LISTEN / SPEAK"], output: "Text + hidden features", detail: "The LLM uses retained context and new input to produce a LISTEN or SPEAK decision. LISTEN continues receiving input without forwarding that marker to speech synthesis. SPEAK passes text and hidden features to the Talker. This is model-driven behavior, not a Server VAD silence threshold."},
+      {name: "LLM", type: ["AR Transformer", "LISTEN / SPEAK"], output: "Text + hidden features", detail: "The LLM uses retained context and new input to produce a LISTEN or SPEAK decision. LISTEN keeps the session listening. SPEAK passes text and hidden features to the Talker."},
       {name: "Talker", type: ["AR Transformer"], output: "Speech codec tokens", detail: "The Talker receives a SPEAK result and autoregressively produces speech codec tokens. It is a separate execution stage from the LLM and from waveform synthesis."},
-      {name: "Flow matching", type: ["DiT"], output: "Tokens → mel", detail: "The flow-matching model, implemented with a Diffusion Transformer, converts speech-token conditioning into a mel spectrogram. This computation is not another autoregressive language-model decode loop."},
+      {name: "Flow matching", type: ["DiT"], output: "Tokens → mel", detail: "The flow-matching model, implemented with a Diffusion Transformer, converts speech-token conditioning into a mel spectrogram."},
       {name: "HiFT vocoder", type: ["ConvNet + iSTFT"], output: "Mel → PCM", detail: "The HiFT vocoder converts the mel representation into PCM waveform samples using convolutional processing and inverse STFT. Flow matching and HiFT are grouped into Stage 2, Code2Wav."}
     ],
     state: ["Across chunks: LLM KV + audio-processing state carry forward.", "LISTEN keeps receiving; SPEAK advances to Talker and Code2Wav."],
-    stateDetail: "The native path reuses supported model and audio-processing state as new chunks arrive. This avoids rebuilding every conversational turn from scratch. The retained KV is bounded by the configured context; it is not unlimited conversation memory.",
+    stateDetail: "The native path reuses LLM and audio-processing state as new chunks arrive. The serving profile sets the KV window and stage token budget.",
     source: "vllm_omni/model_executor/models/minicpmo_4_5/pipeline.py"
   },
   aura: {
@@ -73,30 +73,30 @@ const models = {
     overview: "Four serving stages separate speech recognition, multimodal reasoning, speech-token generation, and waveform decoding. History is retained on the Thinker side as transcripts, video clips, and assistant text; every response is built as a new inference request.",
     stages: [{name: "Stage 0 · ASR", first: 0, last: 0}, {name: "Stage 1 · Thinker", first: 1, last: 1}, {name: "Stage 2 · Talker", first: 2, last: 2}, {name: "Stage 3 · Code2Wav", first: 3, last: 3}],
     modules: [
-      {name: "Qwen3-ASR", type: ["Audio Transformer", "+ AR LLM"], output: "PCM → transcript", detail: "Qwen3-ASR turns user audio into text. The Thinker's conversational history retains the resulting transcript, rather than treating the original audio as native continuing acoustic input."},
+      {name: "Qwen3-ASR", type: ["Audio Transformer", "+ AR LLM"], output: "PCM → transcript", detail: "Qwen3-ASR turns user audio into text. The Thinker's conversational history retains the transcript alongside video and assistant text."},
       {name: "AURA Thinker", type: ["Qwen3-VL", "ViT + AR Transformer"], output: "Transcript + video → text", detail: "The Qwen3-VL-based Thinker consumes transcript text and video. Its stage retains ASR text, video clips, and assistant text, then combines that history with current input to prepare a new response request."},
       {name: "Qwen3-TTS Talker", type: ["AR Transformer", "+ code predictor"], output: "Text → codec tokens", detail: "The Qwen3-TTS Talker generates speech codec tokens from the response text, using autoregressive generation and its code predictor. This is a separate stage from the visual-language Thinker."},
       {name: "Code2Wav", type: ["12 Hz codec decoder", "Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "The 12 Hz speech codec decoder reconstructs PCM audio from the Talker's tokens."}
     ],
     state: ["Retained history: ASR transcripts + video clips + assistant text.", "Next response: construct a new request from current input and history."],
-    stateDetail: "AURA preserves conversational content and assembles it into subsequent requests. It does not append every incoming chunk to one continuously active native duplex computation. Prefix reuse, where applicable, is a separate optimization.",
+    stateDetail: "AURA retains transcripts, video clips, and assistant text to build subsequent requests.",
     source: "vllm_omni/model_executor/models/aura_omni/pipeline.py"
   },
   qwen: {
     name: "Qwen3-Omni", mode: "Turn-based execution inside a duplex session",
     summary: "Audio features enter the Thinker directly. New responses are prepared from retained multimodal history.",
     input: "PCM audio + images / video frames → Thinker-side encoders",
-    inputDetail: "The live session can receive new microphone input during output playback. Server VAD can support turn completion and, when configured, cancellation. Model inference still starts each response as a new request; bidirectional transport does not make it native duplex execution.",
-    overview: "Audio and vision encoders share Stage 0 with the Thinker. Unlike AURA's ASR-first path, the AuT audio encoder produces features, not a transcript to feed a separate text-only path. The Talker and Code2Wav execute in Stages 1 and 2.",
+    inputDetail: "The session receives microphone input during playback. Server VAD can commit a turn and cancel an active response when interrupt_response is enabled.",
+    overview: "Audio and vision encoders supply features to the Thinker within Stage 0. The Talker and Code2Wav execute in Stages 1 and 2.",
     stages: [{name: "Stage 0 · Thinker", first: 0, last: 1}, {name: "Stage 1 · Talker", first: 2, last: 2}, {name: "Stage 2 · Code2Wav", first: 3, last: 3}],
     modules: [
-      {name: "AuT / vision", type: ["Conv2D + Transformer", "Vision: ViT"], output: "Audio / visual features", detail: "The AuT encoder transforms audio into features using convolutional downsampling and Transformer processing. A vision encoder handles images or frames. These encoders belong to the Thinker stage; AuT output is not an ASR transcript."},
+      {name: "AuT / vision", type: ["Conv2D + Transformer", "Vision: ViT"], output: "Audio / visual features", detail: "The AuT encoder transforms audio into features using convolutional downsampling and Transformer processing. A vision encoder handles images or frames. Both encoders feed their features into the Thinker."},
       {name: "Thinker", type: ["AR MoE Transformer"], output: "Text + hidden features", detail: "The multimodal Thinker processes current content together with retained conversation history. Its autoregressive execution produces response text and features used by speech generation. A response uses a newly prepared request, with prefill and decode as required."},
       {name: "Talker", type: ["AR MoE Transformer", "+ code predictor"], output: "Speech codec tokens", detail: "The Talker uses the Thinker's outputs to produce audio codec tokens. Its autoregressive model and code predictor are grouped in Stage 1, independently of the Stage 0 input encoders."},
-      {name: "Code2Wav", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 2 decodes the generated speech codec tokens into PCM waveform samples. Streaming delivery can overlap stage work, but does not change the model's turn-based request construction."}
+      {name: "Code2Wav", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 2 decodes the generated speech codec tokens into PCM waveform samples. Streaming delivery overlaps waveform decoding with upstream generation."}
     ],
     state: ["Retained history: user audio / images + conversation text.", "Next response: rebuild a multimodal request from that history."],
-    stateDetail: "The default full_history policy retains effective original messages and media for subsequent requests. Over-budget requests fail with input_capacity_exceeded. Optional bounded_recent and incremental policies select or summarize older context and currently reject tools. This differs from AURA's transcript-first history and from a native duplex model's continuing computation state.",
+    stateDetail: "The default full_history policy retains effective original messages and media for subsequent requests. Over-budget requests fail with input_capacity_exceeded. Optional bounded_recent and incremental policies select or summarize older context and currently reject tools.",
     source: "vllm_omni/model_executor/models/qwen3_omni/duplex/plugin.py"
   }
 };

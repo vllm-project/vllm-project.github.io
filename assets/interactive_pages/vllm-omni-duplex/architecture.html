@@ -86,13 +86,13 @@ const steps = [
   {label: "Handle", title: "2 · Connect the application to a session", nodes: ["api", "engine"], edges: ["handle"],
    text: "EngineClient exposes a session handle, coordinates open, close, and resume operations, submits commands, and delivers events. It connects the application to the session runtime."},
   {label: "Coordinate", title: "3 · Order work and advance session state", nodes: ["engine", "manager", "runner"], edges: ["command"],
-   text: "DuplexSessionManager admits sessions and dispatches their work. Each DuplexSessionRunner consumes an ordered mailbox of commands and stage outputs. DuplexEngineSession tracks turns, responses, epochs, request resources, and playback progress."},
+   text: "DuplexSessionManager admits sessions and manages their resources. Each DuplexSessionRunner processes commands and stage outputs in order. DuplexEngineSession tracks the conversation, active responses, and playback progress."},
   {label: "Adapt", title: "4 · Apply the model's execution rules", nodes: ["runner", "plugin"], edges: [],
-   text: "The model plugin declares capabilities, prepares model inputs and generation settings, supplies model-specific state, and interprets outputs. For MiniCPM, LISTEN is a session decision; it must not become text sent to speech synthesis."},
+   text: "The model plugin declares capabilities, prepares model inputs and generation settings, supplies model-specific state, and interprets outputs. For MiniCPM, LISTEN keeps the session listening."},
   {label: "Execute", title: "5 · Schedule computation on model stages", nodes: ["runner", "stages"], edges: ["dispatch", "stage-01", "stage-1n"],
-   text: "The runtime submits work through the Model Runner V2 stage machinery. Stage engines and workers encode inputs, run generation, and synthesize audio. Stage replicas may run on other hosts. A session stays pinned to its selected replica group; this does not migrate live state."},
+   text: "The runtime submits work through the Model Runner V2 stage machinery. Stage engines and workers encode inputs, run generation, and synthesize audio. Stage replicas may run on other hosts. A session stays on its selected replica group for its lifetime."},
   {label: "Interpret", title: "6 · Turn stage outputs into session events", nodes: ["stages", "runner", "plugin"], edges: ["stage-output"],
-   text: "Stage outputs return to session coordination. Model-specific decisions and outputs are interpreted before the runtime advances response state, continues supported model work, or emits text and audio events."},
+   text: "Stage outputs return to session coordination. Model-specific decisions and outputs are interpreted before the runtime advances response state, continues model work, or emits text and audio events."},
   {label: "Deliver", title: "7 · Deliver output through the session's own buffer", nodes: ["manager", "buffer", "engine", "api", "client"], edges: ["emit", "events", "wire-output", "playback"],
    text: "Session events go into a bounded per-session buffer shared with handle._outbox. handle.events() consumes them and the API sends them to the client. Exceeding the output limit fails the affected response and closes that session. The client must open a new session to continue."}
 ];
