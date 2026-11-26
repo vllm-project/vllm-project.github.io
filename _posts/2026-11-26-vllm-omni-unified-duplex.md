@@ -80,7 +80,7 @@ Inside the orchestrator, **DuplexSessionManager** manages admission, session-to-
 
 The **model plugin** supplies the model-specific rules: which capabilities are available, how to buffer and construct inputs, how to configure generation, and how to interpret outputs. For example, a MiniCPM `LISTEN` decision must be handled as a session decision rather than sent onward as text to synthesize.
 
-v0.34 uses **Model Runner V2** for AR and generation stages. Deployment profiles must select V2 for these stages. The [runner compatibility guide](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/configuration/stage_configs.md#stage-level-runner-selection) lists the supported platform profiles.
+v0.34 uses **Model Runner V2** by default for AR and generation stages. Any stage that resolves to V1 is rejected. The [runner compatibility guide](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/configuration/stage_configs.md#stage-level-runner-selection) lists the supported platform profiles.
 
 These responsibilities also clarify the process boundary. In the local serving arrangement, the API side and the orchestrator run in the same frontend process, with the orchestrator on its own thread and event loop. Stage engines and GPU workers perform model computation in their execution processes. Stage replicas can also attach through distributed runtimes on other hosts. With `least_sessions`, the manager reserves a replica group when a session opens and keeps its work on that group. This adds placement capacity, not live session migration or failover. See [duplex replica placement](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/configuration/stage_configs.md#duplex-replica-placement).
 
@@ -117,7 +117,7 @@ The Talker predicts audio tokens. Code2Wav then uses conditional flow matching, 
 
 ### Haru-4B: audio generation inside one stage
 
-Haru-4B processes 24 kHz audio in 3,200-sample frames, about 133 ms each. Its Qwen3.5 backbone, MeanFlow audio head, and VibeVoice codec run in one serving stage. The generated audio latent feeds the next frame, so the audio head and codec execute with the language-model step rather than through separate Talker and Code2Wav stages. Each conversation keeps one resumable engine request. This is an internal execution mechanism: the adapter does **not** support reconnecting to the same public Session. The [Haru pipeline](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/vllm_omni/model_executor/models/haru/pipeline.py) and [serving recipe](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/recipes/higurashi-ai/Haru-4B-H200.md) describe the frame contract and deployment.
+Haru-4B processes 24 kHz audio in 3,200-sample frames, about 133 ms each. Each `input_audio_buffer.append` must contain exactly 3,200 samples of `pcm_f32le` audio; the client must assemble these frames before sending them. Its Qwen3.5 backbone, MeanFlow audio head, and VibeVoice codec run in one serving stage. The generated audio latent feeds the next frame, so the audio head and codec execute with the language-model step rather than through separate Talker and Code2Wav stages. Each conversation keeps one resumable engine request. This is an internal execution mechanism: the adapter does **not** support reconnecting to the same public Session. The [Haru pipeline](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/vllm_omni/model_executor/models/haru/pipeline.py) and [serving recipe](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/recipes/higurashi-ai/Haru-4B-H200.md) describe the frame contract and deployment.
 
 ### AURA and Qwen3-Omni: new requests from retained history
 
@@ -179,7 +179,7 @@ Several active conversations produce similar work at nearby times. Processing re
 
 CUDA Graphs reduce repeated CPU kernel-launch work for supported, stable execution shapes. Model-specific graph capture is especially useful for repeated audio-frame operations. Kernel fusion addresses a related cost: several small operations can otherwise require separate launches and intermediate memory traffic.
 
-These techniques apply at different points in different models. MiniCPM's Code2Wav path contains graph execution and fused DiT work. Its CUDA MRv2 Talker can generate several codec frames per step and replay supported K-step batches in a CUDA graph; mixed prefill/decode uses the single-frame path. Capture policy, batch shapes, precision, and memory budgets still need to match the stage and hardware. The [MiniCPM execution profiles](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/design/minicpm_o45_mrv2_performance.md) expose those choices.
+These techniques apply at different points in different models. MiniCPM's Code2Wav path contains graph execution and fused DiT work. The CUDA settings in `minicpmo_4_5.yaml` enable its MRv2 Talker to generate several codec frames per step and replay supported K-step batches in a CUDA graph; mixed prefill/decode uses the single-frame path. The `minicpmo_4_5_2gpu.yaml` quickstart profile below uses the single-frame Talker. Capture policy, batch shapes, precision, and memory budgets still need to match the stage and hardware. The [MiniCPM execution profiles](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/design/minicpm_o45_mrv2_performance.md) expose those choices.
 
 ### Keep codec state and process new audio
 
@@ -241,7 +241,7 @@ The backend uses the model-bundled reference voice by default; add `--ref-audio 
 
 ### Qwen3-Omni: automatic turns with Server VAD
 
-This example keeps a live session while each committed utterance starts a new Thinker → Talker → Code2Wav request. Install ONNX Runtime and obtain the pinned Silero v6.2 ONNX model described in the [Server VAD setup guide](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/examples/online_serving/realtime_web/README.md#qwen3-with-server-vad-automatic-turns). Create `qwen3_vad.yaml`, replacing both paths with absolute paths on the backend host:
+This example keeps a live session while each committed utterance starts a new Thinker → Talker → Code2Wav request. Install ONNX Runtime and obtain the pinned Silero v6.2 ONNX artifact from `istupakov/silero-vad-onnx`, as described in the [Server VAD prerequisites](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/examples/online_serving/realtime_web/README.md#L138-L144). Create `qwen3_vad.yaml`, replacing both paths with absolute paths on the backend host:
 
 ```yaml
 base_config: /path/to/vllm-omni/vllm_omni/deploy/qwen3_omni_duplex_mrv2.yaml
@@ -275,7 +275,6 @@ Open `http://localhost:7863`. Speak and pause to let Server VAD commit a turn, t
 ## Next steps for the framework
 
 - **Broader tool-call validation.** Test how each model continues after cancellation and timeout notices, including repeated calls, late results, and interruptions during tool execution.
-- **Gander integration.** The [Gander integration PR](https://github.com/vllm-project/vllm-omni/pull/7346) remains open. Its aim is to connect continuous audio-visual interaction with asynchronous agent work, allowing follow-up questions and task redirection while work runs.
 - **Longer conversations and broader scale.** Build on the existing memory policies with broader long-session validation and predictable resource use. Cross-host stage placement is available. Multi-frontend routing still requires non-resumable plugins; resumable sessions, replica recovery, and session migration need separate work. See the [current frontend constraints](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/serving/realtime_duplex_api.md#multiple-frontends).
 - **Broader interaction evaluation.** Expand model and task coverage, including interruptions, long audio/video sessions, and regressions in both quality and responsiveness.
 
@@ -296,7 +295,6 @@ The work is developed in the open. Join the discussion in [vLLM-Omni](https://gi
 
 - [Silero VAD](https://github.com/snakers4/silero-vad): acoustic speech-activity detection.
 - [Pipecat Smart Turn](https://github.com/pipecat-ai/smart-turn) and [LiveKit turn detection](https://docs.livekit.io/agents/logic/turns/turn-detector/): turn-completion detection and its combination with acoustic VAD.
-- [Gander](https://github.com/Omni-Interaction-Gander/Omni-Interaction-Agent) and [vLLM-Omni community roadmap #8264](https://github.com/vllm-project/vllm-omni/issues/8264): continuous multimodal interaction, asynchronous agent work, and proposed integration priorities.
 
 - [vLLM Office Hours #57 — vLLM-Omni Project Update & Demos](https://docs.google.com/presentation/d/1L84FWrGAI-fns6TaR0Q8R6I9CvbrWQvbVbGl_KtXhy8/edit): the September 2026 presentation, including the v0.28 duplex update on slide 19.
 - [Streaming Requests & Realtime API in vLLM](https://vllm-project.github.io/2026/01/31/streaming-realtime.html): incremental input processing and the Realtime transport foundation.
