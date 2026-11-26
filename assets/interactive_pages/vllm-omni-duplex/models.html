@@ -62,7 +62,7 @@ const models = {
       {name: "HiFT vocoder", type: ["ConvNet + iSTFT"], output: "Mel → PCM", detail: "The HiFT vocoder converts the mel representation into PCM waveform samples using convolutional processing and inverse STFT. Flow matching and HiFT are grouped into Stage 2, Code2Wav."}
     ],
     state: ["Across chunks: LLM KV + audio-processing state carry forward.", "LISTEN keeps receiving; SPEAK advances to Talker and Code2Wav."],
-    stateDetail: "The native path reuses LLM and audio-processing state as new chunks arrive. The serving profile sets the KV window and stage token budget.",
+    stateDetail: "The native path reuses LLM and audio-processing state as new chunks arrive. The Thinker KV-window policy is selected per session through extra_body.sliding_window_mode (default basic) and is fixed at session creation.",
     source: "vllm_omni/model_executor/models/minicpmo_4_5/pipeline.py"
   },
   aura: {

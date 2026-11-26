@@ -102,11 +102,11 @@ Temporal context and streaming codec state carry forward across frames. The Depf
 
 MiniCPM-o 4.5 declares a one-second input cadence (`chunk_period_ms=1000`) and groups PCM audio with associated video frames. Its first stage combines audio and visual encoding with language-model execution. A `LISTEN` result keeps the conversation listening; a `SPEAK` result forwards text and model features to the Talker.
 
-The Talker predicts audio tokens. Code2Wav then uses conditional flow matching, implemented with a DiT, followed by a HiFT vocoder to produce PCM. Continuing input reuses LLM and audio-processing state. The retained context follows the configured KV window and stage token budget. The [MiniCPM pipeline](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/vllm_omni/model_executor/models/minicpmo_4_5/pipeline.py) separates understanding, speech-token generation, and waveform synthesis into three stages.
+The Talker predicts audio tokens. Code2Wav then uses conditional flow matching, implemented with a DiT, followed by a HiFT vocoder to produce PCM. Continuing input reuses LLM and audio-processing state. The Thinker uses the per-session [`extra_body.sliding_window_mode`](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/serving/realtime_duplex_api.md#L648-L659) setting (`basic` by default), fixed when the session is created. The [MiniCPM pipeline](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/vllm_omni/model_executor/models/minicpmo_4_5/pipeline.py) separates understanding, speech-token generation, and waveform synthesis into three stages.
 
 ### Haru-4B: audio generation inside one stage
 
-Haru-4B processes 24 kHz audio in 3,200-sample frames, about 133 ms each. Each `input_audio_buffer.append` must contain exactly 3,200 samples of `pcm_f32le` audio; the client must assemble these frames before sending them. Its Qwen3.5 backbone, MeanFlow audio head, and VibeVoice codec run in one serving stage. The generated audio latent feeds the next frame, so the audio head and codec execute with the language-model step rather than through separate Talker and Code2Wav stages. Each conversation keeps one engine request that resumes as frames arrive. Reconnecting after a disconnect requires a new public session. The [Haru pipeline](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/vllm_omni/model_executor/models/haru/pipeline.py) and [serving recipe](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/recipes/higurashi-ai/Haru-4B-H200.md) describe the frame contract and deployment.
+Haru-4B processes 24 kHz audio in 3,200-sample frames, about 133 ms each. Clients should send 3,200-sample `pcm_f32le` appends. The server buffers smaller packets into frames but releases at most one frame per append, so repeatedly sending larger packets builds up buffered audio. Its Qwen3.5 backbone, MeanFlow audio head, and VibeVoice codec run in one serving stage. The generated audio latent feeds the next frame, so the audio head and codec execute with the language-model step rather than through separate Talker and Code2Wav stages. Each conversation keeps one engine request that resumes as frames arrive. Reconnecting after a disconnect requires a new public session. The [Haru pipeline](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/vllm_omni/model_executor/models/haru/pipeline.py) and [serving recipe](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/recipes/higurashi-ai/Haru-4B-H200.md) describe the frame contract and deployment.
 
 ### AURA and Qwen3-Omni: new requests from retained history
 
@@ -136,7 +136,7 @@ Three mechanisms can stop or change speech:
 |---|---|---|
 | **Model-driven speech** | The model responds to continuing input and determines its subsequent speech or silence. | MiniCPM-o `LISTEN` / `SPEAK`; Haru speech output. |
 | **Local playback stop** | The client stops playing queued audio. Inference can continue unless separately cancelled. | Holding the talk button in the AURA demo. |
-| **Server cancellation** | The serving runtime cancels the active generation. The client must also handle queued audio appropriately. | Qwen3-Omni with Server VAD and `interrupt_response` enabled. |
+| **Server cancellation** | The serving runtime cancels the active generation. The client must also stop playback and clear queued audio for that response. | Qwen3-Omni with Server VAD and `interrupt_response` enabled. |
 
 In the MiniCPM web client, [`response.listen` updates the listening state without clearing the playback queue](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/examples/online_serving/realtime_web/app/static/app.js#L746-L750), so previously buffered audio can continue playing. Stopping that audio requires a separate client playback action.
 
@@ -144,7 +144,7 @@ In the MiniCPM web client, [`response.listen` updates the listening state withou
 
 **Semantic VAD** builds on that Silero-based detection path, adding [Smart Turn v3.2](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/examples/online_serving/realtime_web/README.md#semantic-vad-silero--smart-turn) to predict turn completion at candidate pauses. If the prediction is incomplete, the session continues buffering the same turn. A completion prediction or the silence timeout commits the turn through the existing session and response-handling flow.
 
-`create_response` controls whether a detector-triggered commit also starts a response. In the unified duplex runtime, Semantic VAD is supported for turn-based sessions and requires `interrupt_response=true`; native auto-responding sessions reject `semantic_vad`. Native models retain their own speech/silence decisions.
+`create_response` controls whether a detector-triggered commit also starts a response. In the unified duplex runtime, Semantic VAD is supported for turn-based sessions and requires `interrupt_response=true`; native auto-responding sessions reject `semantic_vad`.
 
 Session resume differs by model. MiniCPM-o 4.5, AURA, and Qwen3-Omni can reattach a client while the original session is alive and its events remain available for replay. Haru requires a new session after disconnect. The historical PersonaPlex path also required a new session and reset context on explicit cancellation. Resume reattaches a connection; it is not recovery from a destroyed engine or restarted frontend. See the [session capabilities](https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/serving/realtime_duplex_api.md).
 
@@ -170,7 +170,7 @@ The earlier PersonaPlex implementation retained Mimi convolution and attention s
 |---|---|---|
 | **First response** | Text TTFT; audio TTFP; conversational response timing | Measures how long the user waits for the first text or audio. |
 | **Sustained audio** | Generation RTF, chunk-arrival intervals, playback underruns | Detects gaps after the first packet. |
-| **Conversation under load** | Session count and duration, memory use, cleanup, task quality | Measure latency, resource use, and task quality across session durations and concurrency levels. |
+| **Conversation under load** | Session count and duration, memory use, cleanup, task quality | Shows whether latency and quality hold as sessions get longer and more numerous. |
 
 For generation measurements, **RTF = generation time / generated audio duration**; a value below one means generation is faster than playback over that interval.
 
