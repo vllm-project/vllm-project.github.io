@@ -1,12 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1180" height="790" viewBox="0 0 1180 790" role="img" aria-labelledby="title desc">
-<title id="title">Model stages and retained state</title><desc id="desc">PersonaPlex uses a two-stage native duplex path, MiniCPM-o 4.5 a three-stage native duplex path, AURA four turn-based stages, and Qwen3-Omni three turn-based stages. Inputs are PCM audio and, for the multimodal paths, images or video frames.</desc>
+<title id="title">Model stages and retained state</title><desc id="desc">PersonaPlex is a historical V1 path unavailable in v0.34, MiniCPM-o 4.5 a three-stage native duplex path, AURA four turn-based stages, and Qwen3-Omni three turn-based stages. Inputs are PCM audio and, for the multimodal paths, images or video frames.</desc>
 <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#607b96"/></marker></defs>
 <style>text{font-family:Arial,Helvetica,sans-serif} .title{font-weight:700}</style>
 <rect width="1180" height="790" fill="white"/>
 <text x="35" y="43" font-size="27" fill="#17324f" font-weight="700" text-anchor="start">Different model paths, one session framework</text>
 <text x="35" y="74" font-size="18" fill="#57708a" font-weight="400" text-anchor="start">PCM input → model stages → PCM output</text>
 <text x="35" y="149" font-size="18" fill="#2476db" font-weight="700" text-anchor="start">PersonaPlex</text>
-<text x="35" y="176" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Native duplex · 80 ms</text>
+<text x="35" y="176" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Historical V1 path</text>
+<text x="35" y="198" font-size="14" fill="#57708a">Unavailable in v0.34</text>
 <rect x="230" y="119" width="587" height="84" rx="8" fill="#f4f8fd" stroke="#a2bcd9" stroke-width="1.5"/>
 <text x="523.5" y="144" font-size="16" fill="#2476db" font-weight="700" text-anchor="middle">Stage 0 · Talker</text>
 <text x="523.5" y="170" font-size="14" fill="#17324f" font-weight="400" text-anchor="middle">Mimi Encoder → Temporal AR → Depformer AR</text>
@@ -73,5 +74,5 @@
 <path d="M794 635 L842 635" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
 <rect x="230" y="693" width="900" height="34" rx="0" fill="#edf7f7" stroke="none" stroke-width="1.5"/>
 <text x="242" y="716" font-size="14" fill="#17324f" font-weight="400" text-anchor="start">History: user audio / images + conversation text, assembled into each new request.</text>
-<text x="35" y="771" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Input frame / chunk sizes describe processing cadence, not end-to-end latency. Context and history are bounded.</text>
+<text x="35" y="771" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Input frame / chunk sizes describe processing cadence, not end-to-end latency. Context limits and history policies vary by model.</text>
 </svg>

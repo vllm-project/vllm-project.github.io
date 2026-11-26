@@ -30,8 +30,8 @@
     <g id="chat-models" class="node" aria-label="Request-response examples: Qwen3-Omni and MiniCPM-o 4.5 in turn mode">
       <rect x="142" y="415" width="224" height="117" rx="4"/><text x="254" y="446" class="label" text-anchor="middle">Qwen3-Omni</text><text x="254" y="474" class="label" text-anchor="middle">MiniCPM-o 4.5</text><text x="254" y="501" class="small" text-anchor="middle">(turn mode)</text>
     </g>
-    <g id="native-models" class="node" aria-label="Native duplex examples: PersonaPlex, MiniCPM-o 4.5, and Nemotron VoiceChat">
-      <rect x="396" y="415" width="270" height="117" rx="4"/><text x="531" y="446" class="label" text-anchor="middle">PersonaPlex</text><text x="531" y="475" class="label" text-anchor="middle">MiniCPM-o 4.5</text><text x="531" y="504" class="label" text-anchor="middle">Nemotron VoiceChat</text>
+    <g id="native-models" class="node" aria-label="Native duplex examples: Haru-4B, MiniCPM-o 4.5, and Nemotron VoiceChat">
+      <rect x="396" y="415" width="270" height="117" rx="4"/><text x="531" y="446" class="label" text-anchor="middle">Haru-4B</text><text x="531" y="475" class="label" text-anchor="middle">MiniCPM-o 4.5</text><text x="531" y="504" class="label" text-anchor="middle">Nemotron VoiceChat</text>
     </g>
     <g id="turn-models" class="node" aria-label="Turn-based duplex examples: Qwen3-Omni with Server VAD and AURA">
       <rect x="706" y="415" width="270" height="117" rx="4"/><text x="841" y="446" class="label" text-anchor="middle">Qwen3-Omni</text><text x="841" y="472" class="small" text-anchor="middle">+ Server VAD</text><text x="841" y="504" class="label" text-anchor="middle">AURA</text>

@@ -11,8 +11,8 @@
   <div class="kicker">vLLM-Omni · model execution and state</div>
   <header class="head"><div><h1>From streaming input to PCM</h1><p class="sub">Explore neural modules, stage boundaries, and what carries into the next input.</p></div><a href="models.html" id="open-page" target="_blank" rel="noopener">Open separately ↗</a></header>
   <div class="model-picker" role="group" aria-label="Choose a model">
-    <button type="button" data-model="personaplex" aria-pressed="true">PersonaPlex</button>
-    <button type="button" data-model="minicpm" aria-pressed="false">MiniCPM-o 4.5</button>
+    <button type="button" data-model="personaplex" aria-pressed="false">PersonaPlex (historical)</button>
+    <button type="button" data-model="minicpm" aria-pressed="true">MiniCPM-o 4.5</button>
     <button type="button" data-model="aura" aria-pressed="false">AURA</button>
     <button type="button" data-model="qwen" aria-pressed="false">Qwen3-Omni</button>
   </div>
@@ -31,8 +31,8 @@
 "use strict";
 const models = {
   personaplex: {
-    name: "PersonaPlex", mode: "Native duplex · 80 ms model frames",
-    summary: "Continuing input updates the active Stage 0 request. Temporal and codec state carry across frames.",
+    name: "PersonaPlex (historical)", mode: "V1 Talker · unavailable in v0.34",
+    summary: "This earlier implementation requires Model Runner V1 and cannot run on v0.34. Continuing input updates the active Stage 0 request. Temporal and codec state carry across frames.",
     input: "24 kHz pcm_f32le audio → buffered into 80 ms frames",
     inputDetail: "The client sends 24 kHz pcm_f32le audio continuously and receives 24 kHz pcm16 audio. Buffering assembles model frames of 80 ms; client packets need not have that size. The model can keep listening while it speaks, without a client commit marking each turn.",
     overview: "Two autoregressive loops share Stage 0: the Temporal Transformer advances across frames, while the Depformer predicts codebooks within a frame. Stage 1 decodes the resulting audio tokens.",
@@ -45,7 +45,7 @@ const models = {
     ],
     state: ["Across frames: Temporal KV + Mimi streaming state.", "Within each frame: Depformer KV is rebuilt; context remains bounded."],
     stateDetail: "Conversation continuity comes from temporal model context and streaming codec state. These are distinct from the Depformer's per-frame state. In the current integration, explicit cancellation resets context and a disconnected client starts a new session.",
-    source: "vllm_omni/model_executor/models/personaplex/pipeline.py"
+    commit: "c792d3aef476876f3d7af93f3f95d37b469d11ad", source: "vllm_omni/model_executor/models/personaplex/pipeline.py"
   },
   minicpm: {
     name: "MiniCPM-o 4.5", mode: "Native duplex · typically ~1 s input chunks",
@@ -96,7 +96,7 @@ const models = {
       {name: "Code2Wav", type: ["Transformer + ConvNet"], output: "Codec tokens → PCM", detail: "Stage 2 decodes the generated speech codec tokens into PCM waveform samples. Streaming delivery can overlap stage work, but does not change the model's turn-based request construction."}
     ],
     state: ["Retained history: user audio / images + conversation text.", "Next response: rebuild a multimodal request from that history."],
-    stateDetail: "The adapter retains multimodal conversation content, including audio and images, for subsequent requests. This differs from AURA's transcript-first history and from a native duplex model's continuing computation state.",
+    stateDetail: "The default full_history policy retains effective original messages and media for subsequent requests. Over-budget requests fail with input_capacity_exceeded. Optional bounded_recent and incremental policies select or summarize older context and currently reject tools. This differs from AURA's transcript-first history and from a native duplex model's continuing computation state.",
     source: "vllm_omni/model_executor/models/qwen3_omni/duplex/plugin.py"
   }
 };
@@ -136,7 +136,7 @@ function selectModel(key) {
   document.querySelector("#model-name").textContent = model.name;
   document.querySelector("#mode").textContent = model.mode;
   document.querySelector("#model-summary").textContent = model.summary;
-  document.querySelector("#source").href = "https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/" + model.source;
+  document.querySelector("#source").href = "https://github.com/vllm-project/vllm-omni/blob/" + (model.commit || "06a28821a7f72bdb436c3df656b10f67fded0846") + "/" + model.source;
   document.querySelector("#open-page").href = "models.html?model=" + key;
   svg.replaceChildren();
   element("title", {id: "model-title"}, svg, model.name + " execution and state");
@@ -188,7 +188,7 @@ function selectModel(key) {
 }
 document.querySelectorAll("[data-model]").forEach(button => button.onclick = () => selectModel(button.dataset.model));
 const requested = new URLSearchParams(location.search).get("model");
-selectModel(Object.hasOwn(models, requested) ? requested : "personaplex");
+selectModel(Object.hasOwn(models, requested) ? requested : "minicpm");
 </script>
 </body>
 </html>

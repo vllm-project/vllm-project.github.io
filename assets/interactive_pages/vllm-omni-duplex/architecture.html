@@ -60,7 +60,7 @@
     <text x="37" y="284" class="small">Input and output are handled independently.</text>
     <rect class="tag" x="453" y="425" width="265" height="20"/><text x="465" y="439" class="edge-label">Stage requests / outputs</text>
     <rect class="boundary" x="16" y="450" width="928" height="100" rx="5"/>
-    <text x="36" y="471" class="meta">MODEL EXECUTION · STAGE ENGINES AND WORKERS</text>
+    <text x="36" y="471" class="meta">MODEL EXECUTION · STAGE ENGINES AND MODEL RUNNER V2</text>
     <g class="node" id="stages" data-step="4" aria-label="Stage execution: stage engines schedule model work in execution processes">
       <rect x="36" y="485" width="266" height="47" rx="3"/><text x="50" y="514">Stage 0</text>
       <rect x="353" y="485" width="266" height="47" rx="3"/><text x="367" y="514">Stage 1</text>
@@ -74,7 +74,7 @@
   <div id="player" aria-label="Architecture walkthrough"></div>
   <div class="legend"><span></span>Gold marks the current step. Click a component or use the step controls.</div>
   <p class="note">Input and output can overlap. The model profile determines the stage layout.</p>
-  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/c792d3aef476876f3d7af93f3f95d37b469d11ad/docs/design/fullduplex.md" target="_blank" rel="noopener">Framework design ↗</a></p>
+  <p class="note"><a href="../../figures/2026-10-12-vllm-omni-unified-duplex/unified-duplex-architecture.svg" target="_blank" rel="noopener">Static diagram</a><a href="https://github.com/vllm-project/vllm-omni/blob/06a28821a7f72bdb436c3df656b10f67fded0846/docs/design/fullduplex.md" target="_blank" rel="noopener">Framework design ↗</a></p>
   <noscript><p>The walkthrough needs JavaScript. The full architecture is shown above and is also available as a static diagram.</p></noscript>
 </main>
 <script src="player.js"></script>
@@ -90,7 +90,7 @@ const steps = [
   {label: "Adapt", title: "4 · Apply the model's execution rules", nodes: ["runner", "plugin"], edges: [],
    text: "The model plugin declares capabilities, prepares model inputs and generation settings, supplies model-specific state, and interprets outputs. For MiniCPM, LISTEN is a session decision; it must not become text sent to speech synthesis."},
   {label: "Execute", title: "5 · Schedule computation on model stages", nodes: ["runner", "stages"], edges: ["dispatch", "stage-01", "stage-1n"],
-   text: "The runtime submits work through the stage machinery. Stage engines and workers encode inputs, run generation, and synthesize audio. The pipeline and retained computation state depend on the selected model."},
+   text: "The runtime submits work through the Model Runner V2 stage machinery. Stage engines and workers encode inputs, run generation, and synthesize audio. Stage replicas may run on other hosts. A session stays pinned to its selected replica group; this does not migrate live state."},
   {label: "Interpret", title: "6 · Turn stage outputs into session events", nodes: ["stages", "runner", "plugin"], edges: ["stage-output"],
    text: "Stage outputs return to session coordination. Model-specific decisions and outputs are interpreted before the runtime advances response state, continues supported model work, or emits text and audio events."},
   {label: "Deliver", title: "7 · Deliver output through the session's own buffer", nodes: ["manager", "buffer", "engine", "api", "client"], edges: ["emit", "events", "wire-output", "playback"],

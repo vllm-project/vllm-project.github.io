@@ -48,7 +48,7 @@
 <path d="M738 589 L738 518" fill="none" stroke="#607b96" stroke-width="1.7" marker-end="url(#arrow)"/>
 <text x="784" y="572" font-size="14" fill="#57708a" font-weight="400" text-anchor="start">Submit work / receive stage output</text>
 <rect x="25" y="589" width="1130" height="153" rx="8" fill="#fbfcfe" stroke="#92acc8" stroke-width="1.5" stroke-dasharray="6 5"/>
-<text x="45" y="619" font-size="17" fill="#57708a" font-weight="700" text-anchor="start">Stage engines and model workers</text>
+<text x="45" y="619" font-size="17" fill="#57708a" font-weight="700" text-anchor="start">Stage engines and Model Runner V2 workers</text>
 <rect x="50" y="639" width="300" height="77" rx="8" fill="#f4f8fd" stroke="#a9bfd5" stroke-width="1.5"/>
 <text x="200.0" y="666" font-size="17" fill="#2476db" font-weight="700" text-anchor="middle">Stage 0</text>
 <text x="200.0" y="692" font-size="13.5" fill="#57708a" font-weight="400" text-anchor="middle">Scheduler + model worker</text>
